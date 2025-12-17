@@ -45,13 +45,11 @@ async def test_profile_report(client: AsyncClient):
     # Now authenticate as moderator to view reports page
     client.headers['Authorization'] = 'User moderator'
 
-    # Get the reports page
-    r = await client.get(
-        '/api/web/reports',
-        params={
-            'page': 1,
-            'num_items': 10,
-        },
+    # Get the first page of reports
+    r = await client.post(
+        '/api/web/reports/page',
+        params={'status': ''},
+        headers={'Content-Type': 'application/x-protobuf'},
     )
     assert r.is_success, r.text
 

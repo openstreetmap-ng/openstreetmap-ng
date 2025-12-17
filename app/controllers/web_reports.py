@@ -104,7 +104,7 @@ async def change_comment_visibility(
 @router.post('/page')
 async def reports_page(
     _: Annotated[User, web_user('role_moderator')],
-    status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
+    status: Annotated[Literal['', 'open', 'closed'], Query()],
     sp_state: StandardPaginationStateBody = b'',
 ):
     """Get a page of reports for the moderation interface."""
