@@ -356,7 +356,7 @@ async def _update(
         max_sequence, last_sequence = await r.fetchone()  # type: ignore
 
     num_items = max_sequence - last_sequence
-    if not num_items:
+    if num_items == 0:
         return
 
     # Rollback unfinished work
@@ -383,7 +383,7 @@ async def _update(
             last_sequence=last_sequence,
             max_sequence=max_sequence,
             parallelism=parallelism,
-            batch_size=ways_batch_size if not depth else rels_batch_size,
+            batch_size=(ways_batch_size if depth == 0 else rels_batch_size),
         ):
             break
 
@@ -420,7 +420,7 @@ async def _process_depth(
         ):
             (num_items,) = await r.fetchone()  # type: ignore
 
-        if not num_items:
+        if num_items == 0:
             logging.debug('Depth %d: No relations to process', depth)
             return False
 
@@ -438,7 +438,7 @@ async def _process_depth(
 
     with (
         progress(desc=f'element_spatial_staging depth={depth}', total=num_items)
-        if not last_sequence
+        if last_sequence == 0
         else nullcontext()
     ) as advance:
 
@@ -475,7 +475,7 @@ async def _process_depth(
                 advance(batch_items)
 
         async with TaskGroup() as tg:
-            if not depth:
+            if depth == 0:
                 # Depth 0: Batch by sequence range
                 for start_seq in range(last_sequence + 1, max_sequence + 1, batch_size):
                     end_seq = min(start_seq + batch_size - 1, max_sequence)
@@ -491,10 +491,11 @@ async def _process_depth(
                     tg.create_task(process_rels_batch(batch_id, batch_items))
 
     async with db(True) as conn:
-        if num_items >= 10_000:
-            await conn.execute('ANALYZE element_spatial_staging')
+        if depth == 0:
+            if num_items >= 10_000:
+                await conn.execute('ANALYZE element_spatial_staging')
 
-        if depth:
+        else:
             async with await conn.execute(
                 """
                 SELECT COUNT(*) FROM element_spatial_staging
@@ -503,10 +504,9 @@ async def _process_depth(
                 (depth,),
             ) as r:
                 (rels_inserted,) = await r.fetchone()  # type: ignore
-
-            if not rels_inserted:
-                logging.debug('Depth %d: No more progress is being made', depth)
-                return False
+                if rels_inserted == 0:
+                    logging.debug('Depth %d: No more progress is being made', depth)
+                    return False
 
     return True
 
@@ -548,12 +548,19 @@ async def _seed_pending_relations(
                 {'depth': depth},
             )
 
+        # Initial build (watermark=0): pending already contains all latest relations via the
+        # sequence-range insert above. Additional parent discovery via members overlap
+        # adds no new work and is extremely expensive at full scale.
+        if last_sequence == 0:
+            await conn.execute('ANALYZE element_spatial_pending_rels')
+            return
+
     semaphore = Semaphore(parallelism)
     num_items = max_sequence - last_sequence
 
     with (
         progress(desc='element_spatial_pending_rels', total=num_items)
-        if not last_sequence and not depth
+        if last_sequence == 0 and depth == 0
         else nullcontext()
     ) as advance:
 
@@ -574,8 +581,9 @@ async def _seed_pending_relations(
             for batch_id in range(num_batches):
                 tg.create_task(_seed_from_staging_batch(batch_id, semaphore))
 
-    async with db(True) as conn:
-        await conn.execute('ANALYZE element_spatial_pending_rels')
+    if depth == 0:
+        async with db(True) as conn:
+            await conn.execute('ANALYZE element_spatial_pending_rels')
 
 
 async def _seed_from_element_batch(
@@ -627,7 +635,6 @@ async def _materialize_staging_batches(batch_size: int, *, depth: int) -> int:
             """,
             {'depth': depth, 'batch_size': batch_size},
         )
-        await conn.execute('ANALYZE element_spatial_staging_batch')
 
         async with await conn.execute(
             'SELECT COUNT(*) FROM element_spatial_staging_batch'
@@ -660,7 +667,6 @@ async def _materialize_pending_rels_batches(batch_size: int) -> int:
             """,
             {'batch_size': batch_size},
         )
-        await conn.execute('ANALYZE element_spatial_pending_rels_batch')
 
         async with await conn.execute(
             'SELECT COUNT(*) FROM element_spatial_pending_rels_batch'
@@ -697,7 +703,7 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
         db(True) as conn,
         (
             without_indexes(conn, 'element_spatial')
-            if not last_sequence
+            if last_sequence == 0
             else nullcontext()
         ),
     ):
