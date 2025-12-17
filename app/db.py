@@ -338,7 +338,9 @@ async def without_indexes(conn: AsyncConnection, /, *tables: str, analyze: bool 
             await conn.execute(sql)
         except OperationalError as e:
             capture_exception(e)
-            logging.exception('Unable to recreate index %s; paused indefinitely', name)
+            logging.critical(
+                'Unable to recreate index %s; paused indefinitely', name, exc_info=e
+            )
             await Future()
         logging.info('Recreated index %s in %.1fs', name, monotonic() - start)
 

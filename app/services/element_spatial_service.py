@@ -35,7 +35,8 @@ _BATCH_QUERY_WAYS = """
 WITH changed_node_ids AS (
     SELECT array_agg(typed_id) AS ids
     FROM element
-    WHERE sequence_id BETWEEN {start_seq} AND {end_seq}
+    WHERE {include_node_overlap}
+      AND sequence_id BETWEEN {start_seq} AND {end_seq}
       AND typed_id <= 1152921504606846975
       AND latest
 ),
@@ -47,7 +48,7 @@ candidate_ways AS (
       AND w.latest
       AND (
         w.sequence_id BETWEEN {start_seq} AND {end_seq}
-        OR w.members && n.ids
+        OR ({include_node_overlap} AND w.members && n.ids)
       )
 ),
 ways_with_geom AS (
@@ -79,6 +80,7 @@ ways_with_geom AS (
                 FROM element n
                 WHERE n.typed_id = m.node_id
                   AND n.typed_id <= 1152921504606846975
+                  AND n.sequence_id <= {max_sequence}
                 ORDER BY n.sequence_id DESC
                 LIMIT 1
             ) node_point ON true
@@ -148,7 +150,7 @@ staging_latest_geom AS (
         FROM element_spatial_staging s
         WHERE s.typed_id = n.typed_id
           AND s.depth < {depth}
-        ORDER BY s.updated_sequence_id DESC
+        ORDER BY s.updated_sequence_id DESC, s.depth DESC
         LIMIT 1
     ) s ON true
 ),
@@ -193,6 +195,7 @@ rels_computed AS (
                 WHERE n.typed_id = mw.member_id
                   AND n.typed_id <= 1152921504606846975
                   AND mw.member_id <= 1152921504606846975
+                  AND n.sequence_id <= {max_sequence}
                 ORDER BY n.sequence_id DESC
                 LIMIT 1
             ) node_point ON true
@@ -238,7 +241,7 @@ rels_computed AS (
     WHERE rr.eligible
 )
 INSERT INTO element_spatial_staging (typed_id, sequence_id, updated_sequence_id, depth, geom)
-SELECT typed_id, sequence_id, {end_seq}, {depth}, geom FROM rels_computed
+SELECT typed_id, sequence_id, {max_sequence}, {depth}, geom FROM rels_computed
 """
 
 
@@ -290,10 +293,11 @@ async def _process_task() -> None:
                     ):
                         await _update()
                 except InternalError_ as e:
-                    if 'GEOS Error' not in str(e):
+                    if 'GEOS Error' in str(e):
                         capture_exception(e)
-                        logging.exception(
+                        logging.critical(
                             'ElementSpatialService encountered a GEOS error; paused indefinitely',
+                            exc_info=e,
                         )
                         await Future()
                     raise
@@ -325,6 +329,7 @@ async def _update(
     parent elements when members change:
     - Ways updated when: the way itself changes OR any member node changes
     - Relations updated when: the relation itself changes OR any member node/way changes
+    - Initial build (watermark=0): skip node→way cascading to avoid duplicate work
 
     Multi-depth processing handles nested relations deterministically:
     - Depth 0: Process ways (no dependencies)
@@ -429,6 +434,7 @@ async def _process_depth(
         rels_last_batch_size = 0
 
     semaphore = Semaphore(parallelism)
+    include_node_overlap = 'TRUE' if last_sequence else 'FALSE'
 
     with (
         progress(desc=f'element_spatial_staging depth={depth}', total=num_items)
@@ -437,16 +443,20 @@ async def _process_depth(
     ) as advance:
 
         async def process_ways_batch(start_seq: int, end_seq: int):
+            batch_items = end_seq - start_seq + 1
+            ways_per_batch = (batch_items + 4) // 5
             async with semaphore, db(True) as conn:
                 await conn.execute(
                     _BATCH_QUERY_WAYS.format(  # type: ignore
-                        ways_per_batch=batch_size // 10,
+                        ways_per_batch=ways_per_batch,
                         start_seq=start_seq,
                         end_seq=end_seq,
+                        max_sequence=max_sequence,
+                        include_node_overlap=include_node_overlap,
                     )
                 )
             if advance is not None:
-                advance(end_seq - start_seq + 1)
+                advance(batch_items)
 
         async def process_rels_batch(batch_id: int, batch_items: int):
             async with semaphore, db(True) as conn:
@@ -456,7 +466,7 @@ async def _process_depth(
                         members_per_batch=batch_items * _AVG_MEMBERS_PER_RELATION,
                         depth=depth,
                         max_depth=_MAX_RELATION_NESTING_DEPTH,
-                        end_seq=max_sequence,
+                        max_sequence=max_sequence,
                         batch_id=batch_id,
                         batch_items=batch_items,
                     )
@@ -699,7 +709,7 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
                 FROM (
                     SELECT DISTINCT ON (typed_id) typed_id, geom
                     FROM element_spatial_staging
-                    ORDER BY typed_id, updated_sequence_id DESC
+                    ORDER BY typed_id, updated_sequence_id DESC, depth DESC
                 ) latest
                 WHERE geom IS NULL
             )
@@ -712,7 +722,7 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
             FROM (
                 SELECT DISTINCT ON (typed_id) typed_id, sequence_id, geom
                 FROM element_spatial_staging
-                ORDER BY typed_id, updated_sequence_id DESC
+                ORDER BY typed_id, updated_sequence_id DESC, depth DESC
             ) latest
             WHERE geom IS NOT NULL
             ON CONFLICT (typed_id) DO UPDATE SET
