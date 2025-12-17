@@ -4,13 +4,14 @@ import { mount } from "@lib/mount"
 import { MessageReadSchema } from "@lib/proto/shared_pb"
 import { configureReportButton } from "@lib/report-modal"
 import { configureStandardForm } from "@lib/standard-form"
-import { assert, assertExists } from "@std/assert"
+import { configureStandardPagination } from "@lib/standard-pagination"
+import { assert } from "@std/assert"
 import { t } from "i18next"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 mount("messages-index-body", (body) => {
-    const messages = body.querySelectorAll(".messages-list li.social-entry.clickable")
-    const messagePreview = body.querySelector<HTMLElement>(".message-preview")!
+    const messagesPagination = body.querySelector("div.messages-pagination")!
+    const messagePreview = body.querySelector(".message-preview")!
     const messagePreviewContainer = messagePreview.parentElement!
     const messageSender = messagePreview.querySelector(".message-sender")!
     const senderAvatar = messageSender.querySelector("img.avatar")!
@@ -27,22 +28,23 @@ mount("messages-index-body", (body) => {
     const reportButton = messagePreview.querySelector("button.report-btn")
 
     let abortController: AbortController | undefined
-    let openTarget: HTMLElement | null = null
-    let openMessageId: string | null = null
+    let openTarget: HTMLElement | undefined
+    let openMessageId: string | undefined
 
-    const openMessagePreview = async (target: HTMLElement) => {
-        const newMessageId = target.dataset.id!
-        if (openMessageId === newMessageId) return
+    const openMessagePreview = async (messageId: string, target?: HTMLElement) => {
+        if (openMessageId === messageId) return
         closeMessagePreview()
 
         openTarget = target
-        openMessageId = newMessageId
+        openMessageId = messageId
         console.debug("Messages: Opening preview", openMessageId)
-        if (openTarget.classList.contains("unread")) {
-            openTarget.classList.remove("unread")
-            changeUnreadMessagesBadge(-1)
+        if (openTarget) {
+            if (openTarget.classList.contains("unread")) {
+                openTarget.classList.remove("unread")
+                changeUnreadMessagesBadge(-1)
+            }
+            openTarget.classList.add("active")
         }
-        openTarget.classList.add("active")
         senderAvatar.removeAttribute("src")
         senderLink.innerHTML = ""
         messageTime.innerHTML = ""
@@ -52,7 +54,8 @@ mount("messages-index-body", (body) => {
         loadingSpinner.classList.remove("d-none")
 
         // Set show parameter in URL
-        updatePageUrl(openTarget)
+        if (openTarget) updatePageUrl(openTarget)
+        else updatePageUrlById(messageId)
 
         // Update reply link
         replyLink.href = `/message/new?reply=${openMessageId}`
@@ -137,15 +140,14 @@ mount("messages-index-body", (body) => {
     }
 
     const closeMessagePreview = () => {
-        if (!openTarget) return
-        assertExists(openMessageId)
+        if (!openMessageId) return
 
         console.debug("Messages: Closing preview", openMessageId)
         messagePreviewContainer.classList.add("d-none")
         abortController?.abort()
-        openTarget.classList.remove("active")
-        openTarget = null
-        openMessageId = null
+        openTarget?.classList.remove("active")
+        openTarget = undefined
+        openMessageId = undefined
 
         // Remove show parameter from URL
         updatePageUrl(undefined)
@@ -161,6 +163,15 @@ mount("messages-index-body", (body) => {
             window.history.replaceState(null, "", url)
         }
     }
+
+    const updatePageUrlById = (messageId: string) => {
+        const url = new URL(window.location.href)
+        url.searchParams.set("show", messageId)
+        window.history.replaceState(null, "", url)
+    }
+
+    const getShowMessageId = () =>
+        new URL(window.location.href).searchParams.get("show")
 
     // Configure message header buttons
     const closePreviewButton = messagePreview.querySelector(".btn-close")!
@@ -209,28 +220,49 @@ mount("messages-index-body", (body) => {
         deleteForm.requestSubmit()
     })
 
-    // Configure message selection
-    for (const message of messages) {
-        const messageLink = message.querySelector("a.stretched-link")!
+    const configureMessageSelection = (renderContainer: HTMLElement) => {
+        const messages = renderContainer.querySelectorAll(
+            "li.social-entry.clickable[data-id]",
+        )
 
-        // On message click, open preview if target is not a link
-        messageLink.addEventListener("click", (e) => {
-            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
-                return
-            e.preventDefault()
-            messageLink.blur()
-            openMessagePreview(message)
-        })
-        messageLink.addEventListener("keydown", (e: KeyboardEvent) => {
-            if (e.key !== "Enter") return
-            e.preventDefault()
-            messageLink.blur()
-            openMessagePreview(message)
-        })
+        for (const message of messages) {
+            const messageId = message.dataset.id!
+            const messageLink = message.querySelector("a.stretched-link")!
 
-        // Auto-open the message if it's marked as active
-        if (message.classList.contains("active")) {
-            openMessagePreview(message)
+            // On message click, open preview if target is not a link
+            messageLink.addEventListener("click", (e) => {
+                if (
+                    e.button !== 0 ||
+                    e.metaKey ||
+                    e.ctrlKey ||
+                    e.shiftKey ||
+                    e.altKey
+                ) {
+                    return
+                }
+                e.preventDefault()
+                messageLink.blur()
+                openMessagePreview(messageId, message)
+            })
+            messageLink.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter") return
+                e.preventDefault()
+                messageLink.blur()
+                openMessagePreview(messageId, message)
+            })
         }
+
+        const showMessageId = getShowMessageId()
+        if (!showMessageId) return
+        if (openMessageId === showMessageId) return
+
+        const showTarget = Array.from(messages).find(
+            (message) => message.dataset.id === showMessageId,
+        )
+        openMessagePreview(showMessageId, showTarget)
     }
+
+    configureStandardPagination(messagesPagination, {
+        loadCallback: configureMessageSelection,
+    })
 })

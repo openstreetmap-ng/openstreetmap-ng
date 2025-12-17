@@ -10,7 +10,6 @@ from app.config import (
     APP_URL,
     MESSAGE_BODY_MAX_LENGTH,
     MESSAGE_SUBJECT_MAX_LENGTH,
-    MESSAGES_INBOX_PAGE_SIZE,
 )
 from app.lib.auth_context import web_user
 from app.lib.date_utils import format_sql_date
@@ -32,22 +31,30 @@ router = APIRouter()
 async def get_inbox(
     _: Annotated[User, web_user()],
     show: Annotated[MessageId | None, Query()] = None,
-    after: Annotated[MessageId | None, Query()] = None,
-    before: Annotated[MessageId | None, Query()] = None,
 ):
-    data = await _get_messages_data(inbox=True, show=show, after=after, before=before)
-    return await render_response('messages/index', data)
+    return await render_response(
+        'messages/index',
+        {
+            'inbox': True,
+            'pagination_action': '/api/web/messages/inbox',
+            'active_message_id': show,
+        },
+    )
 
 
 @router.get('/messages/outbox')
 async def get_outbox(
     _: Annotated[User, web_user()],
     show: Annotated[MessageId | None, Query()] = None,
-    after: Annotated[MessageId | None, Query()] = None,
-    before: Annotated[MessageId | None, Query()] = None,
 ):
-    data = await _get_messages_data(inbox=False, show=show, after=after, before=before)
-    return await render_response('messages/index', data)
+    return await render_response(
+        'messages/index',
+        {
+            'inbox': False,
+            'pagination_action': '/api/web/messages/outbox',
+            'active_message_id': show,
+        },
+    )
 
 
 @router.get('/message/new')
@@ -165,72 +172,3 @@ async def legacy_message(message_id: MessageId):
 @router.get('/messages/{message_id:int}/reply')
 async def legacy_message_reply(message_id: MessageId):
     return RedirectResponse(f'/message/new?reply={message_id}', status.HTTP_302_FOUND)
-
-
-async def _get_messages_data(
-    inbox: bool,
-    show: MessageId | None,
-    after: MessageId | None,
-    before: MessageId | None,
-) -> dict:
-    if (show is not None) and (after is None) and (before is None):
-        before = show + 1  # type: ignore
-
-    messages = await MessageQuery.find(
-        inbox=inbox,
-        show=show,
-        after=after,
-        before=before,
-        limit=MESSAGES_INBOX_PAGE_SIZE,
-        resolve_recipients=True,
-    )
-
-    async def new_after_task():
-        after = messages[0]['id']
-        after_messages = await MessageQuery.find(
-            inbox=inbox,
-            after=after,
-            limit=1,
-        )
-        return after if after_messages else None
-
-    async def new_before_task():
-        before = messages[-1]['id']
-        before_messages = await MessageQuery.find(
-            inbox=inbox,
-            before=before,
-            limit=1,
-        )
-        return before if before_messages else None
-
-    async with TaskGroup() as tg:
-        if inbox:
-            tg.create_task(
-                UserQuery.resolve_users(
-                    messages, user_id_key='from_user_id', user_key='from_user'
-                )
-            )
-        else:
-            tg.create_task(
-                UserQuery.resolve_users(
-                    [r for m in messages for r in m['recipients']]  # pyright: ignore [reportTypedDictNotRequiredAccess]
-                )
-            )
-
-        if messages:
-            new_after_t = tg.create_task(new_after_task())
-            new_before_t = tg.create_task(new_before_task())
-            new_after, new_before = await new_after_t, await new_before_t
-            current_before = messages[0]['id'] + 1
-        else:
-            new_after, new_before = None, None
-            current_before = None
-
-    return {
-        'inbox': inbox,
-        'new_after': new_after,
-        'new_before': new_before,
-        'current_before': current_before,
-        'messages': messages,
-        'active_message_id': show,
-    }

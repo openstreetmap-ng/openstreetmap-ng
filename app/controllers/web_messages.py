@@ -2,11 +2,21 @@ from asyncio import TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Response
+from psycopg.sql import SQL
 from starlette import status
 
-from app.config import MESSAGE_BODY_MAX_LENGTH, MESSAGE_SUBJECT_MAX_LENGTH
+from app.config import (
+    MESSAGE_BODY_MAX_LENGTH,
+    MESSAGE_SUBJECT_MAX_LENGTH,
+    MESSAGES_INBOX_PAGE_SIZE,
+)
 from app.lib.auth_context import web_user
-from app.models.db.message import messages_resolve_rich_text
+from app.lib.standard_pagination import (
+    StandardPaginationStateBody,
+    sp_paginate_table,
+    sp_render_response,
+)
+from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import User, user_avatar_url
 from app.models.proto.shared_pb2 import MessageRead
 from app.models.types import MessageId
@@ -101,3 +111,73 @@ async def delete_message(
 ):
     await MessageService.delete_message(message_id)
     return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/inbox')
+async def inbox_page(
+    user: Annotated[User, web_user()],
+    sp_state: StandardPaginationStateBody = b'',
+):
+    messages, state = await sp_paginate_table(
+        Message,
+        sp_state,
+        table='message',
+        where=SQL("""
+            EXISTS (
+                SELECT 1 FROM message_recipient
+                WHERE message_id = id
+                  AND user_id = %s
+                  AND NOT hidden
+            )
+        """),
+        params=(user['id'],),
+        page_size=MESSAGES_INBOX_PAGE_SIZE,
+        cursor_column='id',
+        cursor_kind='id',
+        order_dir='desc',
+    )
+
+    async with TaskGroup() as tg:
+        tg.create_task(MessageQuery.resolve_recipients(user['id'], messages))
+        tg.create_task(
+            UserQuery.resolve_users(
+                messages, user_id_key='from_user_id', user_key='from_user'
+            )
+        )
+
+    return await sp_render_response(
+        'messages/page',
+        {'messages': messages, 'inbox': True},
+        state,
+    )
+
+
+@router.post('/outbox')
+async def outbox_page(
+    user: Annotated[User, web_user()],
+    sp_state: StandardPaginationStateBody = b'',
+):
+    messages, state = await sp_paginate_table(
+        Message,
+        sp_state,
+        table='message',
+        where=SQL('from_user_id = %s AND NOT from_user_hidden'),
+        params=(user['id'],),
+        page_size=MESSAGES_INBOX_PAGE_SIZE,
+        cursor_column='id',
+        cursor_kind='id',
+        order_dir='desc',
+    )
+
+    await MessageQuery.resolve_recipients(user['id'], messages)
+    await UserQuery.resolve_users([
+        r
+        for m in messages
+        for r in m['recipients']  # type: ignore
+    ])
+
+    return await sp_render_response(
+        'messages/page',
+        {'messages': messages, 'inbox': False},
+        state,
+    )

@@ -1,0 +1,59 @@
+{% if messages %}
+{% for message in messages %}
+{% set _unread = 'user_recipient' in message and not message['user_recipient']['read'] %}
+<li class="social-entry clickable {% if _unread %}unread{% endif %}" data-id="{{ message.id }}">
+    <p class="header text-muted d-flex justify-content-between">
+        {% if inbox %}
+        <span>
+            <a href="/user/{{ message.from_user.display_name }}">
+                <img class="avatar" src="{{ user_avatar_url(message.from_user) }}" alt="{{ t('alt.profile_picture') }}"
+                    loading="lazy">
+                {{- message.from_user.display_name -}}
+            </a>
+            {{ t('messages.action_sent') }}
+            <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
+        </span>
+        {% else %}
+        <span>
+            {% set _num_recipients = message.recipients|length %}
+            {% if _num_recipients == 1 %}
+            {% set _recipient = message.recipients | first %}
+            <a href="/user/{{ _recipient.user.display_name }}">
+                <img class="avatar" src="{{ user_avatar_url(_recipient.user) }}" alt="{{ t('alt.profile_picture') }}"
+                    loading="lazy">
+                {{- _recipient.user.display_name -}}
+            </a>
+            {% else %}
+            <span class="recipients-group">
+                {% for _recipient in message.recipients[:3] %}
+                <img class="avatar avatar" src="{{ user_avatar_url(_recipient.user) }}"
+                    alt="{{ t('alt.profile_picture') }}" loading="lazy" title="{{ _recipient.user.display_name }}">
+                {% endfor %}
+                {% if _num_recipients > 3 %}
+                <span class="fw-medium">+{{ _num_recipients - 3 }}</span>
+                {% endif %}
+            </span>
+            {% endif %}
+            {{ t('messages.action_delivered') }}
+            <time datetime="{{ message.created_at.isoformat() }}" data-style="long"></time>
+        </span>
+        {% endif %}
+        <span>
+            <a class="stretched-link" href="?show={{ message.id }}"></a>
+            <span class="unread-badge badge text-bg-primary">
+                <i class="bi bi-bell-fill me-1"></i>
+                {{- t('state.unread') }}
+            </span>
+        </span>
+    </p>
+    <div class="body">
+        <h6 class="title">{{ message.subject }}</h6>
+        <p class="description">{{ message.body | truncate(250) }}</p>
+    </div>
+</li>
+{% endfor %}
+{% else %}
+<li class="messages-empty">
+    <h3>{{ t('traces.index.empty_title') }}</h3>
+</li>
+{% endif %}

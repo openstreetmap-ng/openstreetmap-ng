@@ -157,8 +157,6 @@ follows:
   you_dont_have_any_followers_yet: You don't have any followers yet.
 messages:
   description: Your private messages with other map users.
-  newer_messages: Newer messages
-  older_messages: Older messages
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
   action_delivered: delivered

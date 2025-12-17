@@ -38,7 +38,18 @@
     <div class="container">
         <div class="row flex-wrap-reverse">
             <div class="col-lg">
-                {% include 'messages/_list' %}
+                <div class="messages-pagination">
+                    <nav aria-label="{{ t('alt.page_navigation') }}">
+                        <ul class="pagination justify-content-end mb-2">
+                        </ul>
+                    </nav>
+                    <ul class="messages-list social-list list-unstyled mb-2">
+                    </ul>
+                    <nav aria-label="{{ t('alt.page_navigation') }}">
+                        <ul class="pagination justify-content-end mb-0" data-action="{{ pagination_action }}">
+                        </ul>
+                    </nav>
+                </div>
             </div>
             <div class="col-lg mb-3 d-none">
                 <div class="message-preview card sticky-top">
