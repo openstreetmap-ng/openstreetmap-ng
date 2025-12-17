@@ -34,7 +34,7 @@ export const getChangesetController = (map: MaplibreMap) => {
     let paramsBounds: Bounds[]
 
     const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
-        configureTagsFormat(sidebarContent.querySelector<HTMLElement>("div.tags"))
+        configureTagsFormat(sidebarContent.querySelector("div.tags"))
         configureReportButtonsLazy(sidebarContent)
 
         const sidebarTitleElement =

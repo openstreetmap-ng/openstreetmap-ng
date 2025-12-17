@@ -5,7 +5,11 @@ export const isHrefCurrentPage = (href: string) => {
 }
 
 /** Create a Python-like range [start, stop) */
-export const range = (start: number, stop: number, step = 1) => {
+export const range = (start: number, stop?: number, step = 1) => {
+    if (stop === undefined) {
+        stop = start
+        start = 0
+    }
     const result: number[] = []
     for (let i = start; i < stop; i += step) result.push(i)
     return result

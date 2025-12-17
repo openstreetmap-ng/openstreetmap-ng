@@ -70,7 +70,7 @@ export const initializeElementContent = (map: MaplibreMap, container: HTMLElemen
     console.debug("Element: Initializing content")
 
     // Enhance tags table
-    configureTagsFormat(container.querySelector<HTMLElement>("div.tags"))
+    configureTagsFormat(container.querySelector("div.tags"))
 
     const locationButton = container.querySelector(".location-container button")
     locationButton?.addEventListener("click", () => {

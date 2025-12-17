@@ -278,7 +278,7 @@ export const getDistanceController = (map: MaplibreMap) => {
         currentUnit = currentUnit === "metric" ? "imperial" : "metric"
         console.debug("Distance: Unit toggled", currentUnit)
         updateUnitToggleButton()
-        updateLabels(range(0, markers.length))
+        updateLabels(range(markers.length))
     })
 
     // Removes a marker and updates subsequent geometry
@@ -479,7 +479,7 @@ export const getDistanceController = (map: MaplibreMap) => {
                 createNewMarker({ lngLat: [lon, lat], skipUpdates: true })
             }
             console.debug("Distance: Loaded", positions.length, "points")
-            update(range(0, markers.length))
+            update(range(markers.length))
 
             // Focus on the makers if they're offscreen
             if (markers.length) {
