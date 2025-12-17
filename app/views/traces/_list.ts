@@ -1,10 +1,14 @@
 import { decodeLonLat } from "@lib/polyline"
-import { assertExists } from "@std/assert"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
-for (const tracesList of document.querySelectorAll("ul.traces-list")) {
-    const tracesLines = tracesList.dataset.lines!.split(";")
-    const svgs: NodeListOf<SVGElement> = tracesList.querySelectorAll("svg")
+const configureTracesListElement = (tracesList: HTMLUListElement) => {
+    const linesElement = tracesList.querySelector("li.traces-lines")!
+    const tracesLines = linesElement.dataset.lines!.split(";")
+    linesElement.remove()
+
+    const svgs = tracesList.querySelectorAll("svg")
+    if (!svgs.length) return
+
     const resultActions = tracesList.querySelectorAll(".social-entry.clickable")
 
     console.debug("TraceList: Rendering trace SVGs", svgs.length)
@@ -16,20 +20,28 @@ for (const tracesList of document.querySelectorAll("ul.traces-list")) {
         let svgAnimated: SVGElement | undefined
 
         // On action enter, show animated trace
-        const resultAction = resultActions[i]
+        const resultAction = resultActions[i]!
         resultAction.addEventListener("mouseenter", () => {
             if (!svgAnimated) {
-                svgAnimated = svg.cloneNode(true) as SVGElement
-                svgAnimated.innerHTML = ""
+                svgAnimated = svg.cloneNode() as SVGElement
                 renderAnimatedTrace(svgAnimated, coords)
             }
-            svg.parentElement!.replaceChild(svgAnimated, svg)
+            svg.replaceWith(svgAnimated)
         })
 
         // On action leave, show static trace
         resultAction.addEventListener("mouseleave", () => {
-            assertExists(svgAnimated)
-            svgAnimated.parentElement!.replaceChild(svg, svgAnimated)
+            svgAnimated!.replaceWith(svg)
         })
+    }
+}
+
+export const configureTracesList = (root: ParentNode = document) => {
+    if (root instanceof HTMLUListElement && root.classList.contains("traces-list")) {
+        configureTracesListElement(root)
+        return
+    }
+    for (const tracesList of root.querySelectorAll("ul.traces-list")) {
+        configureTracesListElement(tracesList)
     }
 }

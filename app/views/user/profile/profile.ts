@@ -4,12 +4,16 @@ import { formatMonthName, formatShortDate, formatWeekdayName } from "@lib/format
 import { mount } from "@lib/mount"
 import { UserActivityChartSchema } from "@lib/proto/shared_pb"
 import { configureStandardForm } from "@lib/standard-form"
+import { range } from "@lib/utils"
 import { DAY } from "@std/datetime/constants"
 import { format as formatDate } from "@std/datetime/format"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
+import { configureTracesList } from "../../traces/_list"
 
 mount("user-profile-body", (body) => {
+    configureTracesList(body)
+
     const avatarForm = body.querySelector("form.avatar-form")!
     const avatarDropdown = avatarForm.querySelector(".dropdown")
 
@@ -234,7 +238,7 @@ mount("user-profile-body", (body) => {
         if (label) cell.textContent = label
     }
 
-    const weekdayRows = Array.from({ length: 7 }, (_, weekday) => {
+    const weekdayRows = range(7).map((weekday) => {
         const row = chartBody.insertRow()
         const labelCell = row.insertCell()
         labelCell.className = "week-cell"
