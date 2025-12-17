@@ -83,7 +83,7 @@ static-precompress    # Produce .zst/.br for large static assets
   - Exceptions: create a separate entry only for hard isolation (e.g., editor iframes like `id.ts`/`rapid.ts`, or `embed.ts`). Declare it in `vite.config.ts` and include it via `vite_render_asset` from a dedicated template.
 - Synchronous bootstrap: `app/views/main-sync.ts` is the only blocking script; keep it import‑free to avoid extra polyfills and ensure theme setup before paint.
 - TypeScript: `tsconfig.json` has `"strict": true`. Prefer fail‑fast crashes over silently continuing with unexpected states. Avoid defensive optional chaining (`?.`) or fallback operators (`??`) on values guaranteed by template or control flow—these hide bugs instead of surfacing them. Omit explicit return types when inferable; redundant annotations add noise and slow iteration.
-- DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid `as HTML...` casts and non-null assertions. Required elements are guaranteed by the template contract; let missing ones crash loudly.
+- DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid explicit generics (`querySelector<HTML...>`) and `as HTML...` casts.
 - Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
 - Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
 - Router integration: for map/index pages, implement `IndexController` and register routes via `configureRouter(...)` (`app/views/index/router.ts`); navigate with `routerNavigateStrict(...)`.
