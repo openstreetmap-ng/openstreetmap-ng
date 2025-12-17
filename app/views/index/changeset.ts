@@ -138,8 +138,7 @@ const renderElements = (
     }
 
     if (fragment.children.length) {
-        elementsSection.innerHTML = ""
-        elementsSection.appendChild(fragment)
+        elementsSection.replaceChildren(fragment)
     } else {
         elementsSection.remove()
     }
@@ -240,8 +239,7 @@ const renderElementType = (
             renderFragment.appendChild(entryFragment)
         }
 
-        renderContainer.innerHTML = ""
-        renderContainer.appendChild(renderFragment)
+        renderContainer.replaceChildren(renderFragment)
     }
 
     const disposePagination = configureStandardPagination(groupFragment, {

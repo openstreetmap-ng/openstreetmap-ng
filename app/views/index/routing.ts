@@ -512,8 +512,7 @@ export const getRoutingController = (map: MaplibreMap) => {
         }
 
         // Display the turn-by-turn table
-        stepsTableBody.innerHTML = ""
-        stepsTableBody.append(stepsRows)
+        stepsTableBody.replaceChildren(stepsRows)
         attribution.innerHTML = i18next.t(
             "javascripts.directions.instructions.courtesy",
             {

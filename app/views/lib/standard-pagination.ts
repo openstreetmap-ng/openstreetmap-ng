@@ -96,8 +96,7 @@ export const configureStandardPagination = (
 
             spinnerElement.appendChild(srText)
             spinner.appendChild(spinnerElement)
-            renderContainer.innerHTML = ""
-            renderContainer.appendChild(spinner)
+            renderContainer.replaceChildren(spinner)
         }
     }
 
@@ -362,8 +361,7 @@ export const configureStandardPagination = (
                 paginationFragment.appendChild(gap)
             }
 
-            paginationContainer.innerHTML = ""
-            paginationContainer.appendChild(paginationFragment)
+            paginationContainer.replaceChildren(paginationFragment)
         }
     })
 

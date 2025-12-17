@@ -109,8 +109,7 @@ mount("messages-index-body", (body) => {
 
                 messageRecipientsFragment.appendChild(userElement)
             }
-            messageRecipients.innerHTML = ""
-            messageRecipients.appendChild(messageRecipientsFragment)
+            messageRecipients.replaceChildren(messageRecipientsFragment)
             if (replyAllLink && message.recipients.length > 1) {
                 replyAllLink.classList.remove("d-none")
             }

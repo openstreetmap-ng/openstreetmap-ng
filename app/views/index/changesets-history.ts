@@ -497,8 +497,11 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             idSidebarMap.set(changesetId, div)
         }
 
-        if (!appendMode) entryContainer.innerHTML = ""
-        entryContainer.appendChild(fragment)
+        if (appendMode) {
+            entryContainer.appendChild(fragment)
+        } else {
+            entryContainer.replaceChildren(fragment)
+        }
         resolveDatetimeLazy(entryContainer)
     }
 
@@ -604,7 +607,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
         // Update date filter element
         const fetchDate = params.date
-        dateFilterElement.innerHTML = ""
         if (fetchDate) {
             // Create a span for the text
             const textSpan = document.createElement("span")
@@ -612,7 +614,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
                 date: fetchDate,
             })
             textSpan.classList.add("date-filter-text")
-            dateFilterElement.appendChild(textSpan)
 
             // Create the close button as a link
             const closeLink = document.createElement("a")
@@ -622,7 +623,9 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
             })}`
             closeLink.classList.add("btn", "btn-sm", "btn-link", "btn-close")
             closeLink.title = t("action.remove_filter")
-            dateFilterElement.appendChild(closeLink)
+            dateFilterElement.replaceChildren(textSpan, closeLink)
+        } else {
+            dateFilterElement.replaceChildren()
         }
 
         if (

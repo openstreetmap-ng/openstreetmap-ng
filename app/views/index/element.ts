@@ -226,8 +226,7 @@ const renderElementsComponent = (
             renderFragment.appendChild(entryFragment)
         }
 
-        renderContainer.innerHTML = ""
-        renderContainer.appendChild(renderFragment)
+        renderContainer.replaceChildren(renderFragment)
     }
 
     const disposePagination = configureStandardPagination(elementsSection, {
