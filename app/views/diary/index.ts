@@ -4,6 +4,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { delay } from "@std/async/delay"
 import { Offcanvas } from "bootstrap"
+import i18next from "i18next"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {
@@ -23,104 +24,179 @@ mount("diary-details-body", (body) => {
 
 // Listings page: diaries start collapsed; expand and lazy‑load comments per entry
 mount("diary-index-body", (body) => {
-    const disposers = new WeakMap<Element, () => void>()
+    const diaryPagination = body.querySelector("div.diary-pagination")!
+    const scrollNav = document.getElementById("diary-scroll-nav")!
+    const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")!
+    const navContainer = navOffcanvas.querySelector("nav")!
+    const navList = navContainer.querySelector("ul.nav")!
+    const offcanvasButton = scrollNav.querySelector("button.btn-floating-bottom-left")!
 
-    for (const article of body.querySelectorAll("article.diary")) {
-        const diaryBody = article.querySelector(".diary-body")!
-        const readMore = article.querySelector(".diary-read-more")!
+    const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
+    navOffcanvas.addEventListener("click", (e) => {
+        const target = e.target
+        if (!(target instanceof Element)) return
+        if (!target.closest("a[href]")) return
+        navOffcanvasInstance.hide()
+    })
 
-        // Mark entry clamped when rendered height < content height
-        const updateClamp = () => {
-            if (article.classList.contains("show")) return
-            const clamped = diaryBody.scrollHeight - 1 > diaryBody.clientHeight
-            article.classList.toggle("diary-clamped", clamped)
-            readMore.classList.toggle("d-none", !clamped)
+    let disposeScrollspy = () => {}
+    let disposeDiaryPage = () => {}
+
+    const buildScrollNav = (renderContainer: HTMLElement) => {
+        const diaries = renderContainer.querySelectorAll("article.diary")
+        const hasDiaries = diaries.length > 0
+        navContainer.hidden = !hasDiaries
+        offcanvasButton.hidden = !hasDiaries
+
+        const fragment = document.createDocumentFragment()
+
+        for (const diary of diaries) {
+            const diaryId = diary.id
+            const title = diary.querySelector("a.diary-title-link")!.textContent!.trim()
+            const badgeText = diary
+                .querySelector(".diary-comments-btn .badge")!
+                .textContent!.trim()
+            const numComments = Number.parseInt(badgeText, 10)
+
+            const li = document.createElement("li")
+            li.className = "nav-item"
+
+            const a = document.createElement("a")
+            a.className = "nav-link d-flex justify-content-between align-items-center"
+            a.href = `#${diaryId}`
+
+            const spanTitle = document.createElement("span")
+            spanTitle.className = "title"
+            spanTitle.textContent = title
+
+            const badge = document.createElement("span")
+            badge.className = `badge ms-1 px-1-5 ${
+                numComments ? "text-bg-green" : "text-bg-light"
+            }`
+            badge.title = i18next.t("diary.number_of_comments")
+            badge.textContent = badgeText
+
+            a.appendChild(spanTitle)
+            a.appendChild(badge)
+            li.appendChild(a)
+            fragment.appendChild(li)
         }
 
-        updateClamp()
-        // Images and rich content may change height; observe and re-evaluate
-        const ro = new ResizeObserver(updateClamp)
-        ro.observe(diaryBody)
-        article.addEventListener(
-            "transitionend",
-            () => {
-                if (article.classList.contains("show")) ro.disconnect()
-            },
-            { once: true },
-        )
-
-        // Expand smoothly, then remove the button to avoid layout jitter
-        readMore.addEventListener(
-            "click",
-            async () => {
-                article.classList.add("show")
-                readMore.classList.add("invisible")
-                await delay(50)
-                readMore.remove()
-            },
-            { once: true },
-        )
-
-        const commentsContainer = article.querySelector(".diary-comments")!
-
-        commentsContainer.addEventListener(
-            "show.bs.collapse",
-            () => {
-                // Initialize only once on first toggle; reuse DOM thereafter
-                const dispose = configureStandardPagination(commentsContainer)
-                disposers.set(commentsContainer, dispose)
-
-                const subForm = commentsContainer.querySelector(
-                    "form.subscription-form",
-                )
-                configureStandardForm(subForm, () => {
-                    window.location.reload()
-                })
-
-                const commentForm = commentsContainer.querySelector("form.comment-form")
-                configureStandardForm(commentForm, () => {
-                    commentForm!.reset()
-                    disposers.get(commentsContainer)?.()
-                    const d2 = configureStandardPagination(commentsContainer)
-                    disposers.set(commentsContainer, d2)
-                })
-            },
-            { once: true },
-        )
+        navList.replaceChildren(fragment)
     }
 
-    // Custom scrollspy for diary navigation
-    const diaryList = body.querySelector(".diary-list")
-    const scrollNav = document.getElementById("diary-scroll-nav")
-    configureScrollspy(diaryList, scrollNav)
+    const configureDiaryPage = (renderContainer: HTMLElement) => {
+        const disposers: (() => void)[] = []
 
-    // Hide the diary scroll navigation panel after any link click
-    // (mobile view)
-    const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")
-    if (navOffcanvas) {
-        const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
-        navOffcanvas.addEventListener("click", (e) => {
-            const target = e.target
-            if (!(target instanceof Element)) return
-            if (!target.closest("a[href]")) return
-            navOffcanvasInstance.hide()
-        })
+        for (const article of renderContainer.querySelectorAll("article.diary")) {
+            const diaryBody = article.querySelector(".diary-body")!
+            const readMore = article.querySelector(".diary-read-more")!
+
+            // Mark entry clamped when rendered height < content height
+            const updateClamp = () => {
+                if (article.classList.contains("show")) return
+                const clamped = diaryBody.scrollHeight - 1 > diaryBody.clientHeight
+                article.classList.toggle("diary-clamped", clamped)
+                readMore.classList.toggle("d-none", !clamped)
+            }
+
+            updateClamp()
+            // Images and rich content may change height; observe and re-evaluate
+            const ro = new ResizeObserver(updateClamp)
+            ro.observe(diaryBody)
+            disposers.push(() => ro.disconnect())
+            article.addEventListener(
+                "transitionend",
+                () => {
+                    if (article.classList.contains("show")) ro.disconnect()
+                },
+                { once: true },
+            )
+
+            // Expand smoothly, then remove the button to avoid layout jitter
+            readMore.addEventListener(
+                "click",
+                async () => {
+                    article.classList.add("show")
+                    readMore.classList.add("invisible")
+                    await delay(50)
+                    readMore.remove()
+                },
+                { once: true },
+            )
+
+            const commentsContainer = article.querySelector(".diary-comments")!
+            let disposeCommentsPagination: (() => void) | undefined
+
+            commentsContainer.addEventListener(
+                "show.bs.collapse",
+                () => {
+                    const reloadCommentsPagination = () => {
+                        disposeCommentsPagination?.()
+                        disposeCommentsPagination =
+                            configureStandardPagination(commentsContainer)
+                    }
+                    disposers.push(() => disposeCommentsPagination?.())
+                    reloadCommentsPagination()
+
+                    const subForm = commentsContainer.querySelector(
+                        "form.subscription-form",
+                    )
+                    configureStandardForm(subForm, () => {
+                        window.location.reload()
+                    })
+
+                    const commentForm =
+                        commentsContainer.querySelector("form.comment-form")
+                    if (commentForm) {
+                        configureStandardForm(commentForm, () => {
+                            commentForm.reset()
+                            reloadCommentsPagination()
+                        })
+                    }
+                },
+                { once: true },
+            )
+        }
+
+        return () => {
+            for (const dispose of disposers) dispose()
+        }
     }
+
+    configureStandardPagination(diaryPagination, {
+        loadCallback: (renderContainer) => {
+            disposeDiaryPage()
+            disposeScrollspy()
+
+            buildScrollNav(renderContainer)
+            disposeScrollspy = configureScrollspy(renderContainer, scrollNav)
+            disposeDiaryPage = configureDiaryPage(renderContainer)
+        },
+    })
+})
+
+mount("diary-user-comments-body", (body) => {
+    configureStandardPagination(
+        body.querySelector("div.diary-user-comments-pagination")!,
+    )
 })
 
 mount(["diary-details-body", "diary-index-body"], (body) => {
-    for (const link of body.querySelectorAll(
-        "article.diary .share a[data-action=copy-link]",
-    )) {
-        link.addEventListener("click", async (e) => {
-            e.preventDefault()
-            try {
-                await navigator.clipboard.writeText(link.href)
-                console.debug("DiaryIndex: Copied share link", link.href)
-            } catch (error) {
-                console.warn("DiaryIndex: Failed to copy share link", error)
-                alert(error.message)
-            }
-        })
-    }
+    body.addEventListener("click", async (e) => {
+        const target = e.target
+        if (!(target instanceof Element)) return
+
+        const link = target.closest("article.diary .share a[data-action=copy-link]")
+        if (!link) return
+
+        e.preventDefault()
+        try {
+            await navigator.clipboard.writeText(link.href)
+            console.debug("DiaryIndex: Copied share link", link.href)
+        } catch (error) {
+            console.warn("DiaryIndex: Failed to copy share link", error)
+            alert(error.message)
+        }
+    })
 })

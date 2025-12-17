@@ -39,49 +39,31 @@
 <div class="content-body">
     <div class="row g-0">
         <div id="diary-scroll-nav" class="col-lg-3 sticky-top">
-            {% if diaries %}
             <div id="diary-scroll-nav-offcanvas" class="offcanvas-lg offcanvas-start offset-xxl-1" tabindex="-1">
                 <div class="text-end d-lg-none">
                     <button type="button" class="btn-close p-3 d-lg-none" data-bs-dismiss="offcanvas"
                         data-bs-target="#diary-scroll-nav-offcanvas" aria-label="{{ t('javascripts.close') }}"></button>
                 </div>
-                {% include 'diary/_scroll-nav' %}
+                <nav class="pt-3 pe-4" hidden>
+                    <h5 class="fw-bold ms-3 mb-2">{{ t('diary.jump_to') }}</h5>
+                    <ul class="nav flex-column"></ul>
+                </nav>
             </div>
             <button class="btn btn-primary btn-floating-bottom-left d-lg-none" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#diary-scroll-nav-offcanvas" aria-controls="diary-scroll-nav-offcanvas">
+                data-bs-target="#diary-scroll-nav-offcanvas" aria-controls="diary-scroll-nav-offcanvas" hidden>
                 <i class="bi bi-list me-2"></i>{{ t('diary.jump_to') }}
             </button>
-            {% endif %}
         </div>
         <div class="col-lg-9 col-xl-8 col-xxl-6">
-            {% if diaries %}
-            {% set entry_mode = 'listing' %}
-            <div class="diary-list mb-3">
-                {% for diary in diaries %}
-                {% include 'diary/_entry' %}
-                {% endfor %}
+            <div class="diary-pagination">
+                <nav aria-label="{{ t('alt.page_navigation') }}">
+                    <ul class="pagination justify-content-end mb-2"></ul>
+                </nav>
+                <div class="diary-list mb-3"></div>
+                <nav aria-label="{{ t('alt.page_navigation') }}">
+                    <ul class="pagination justify-content-end mb-0" data-action="{{ pagination_action }}"></ul>
+                </nav>
             </div>
-
-            <nav aria-label="{{ t('alt.page_navigation') }}">
-                <ul class="pagination justify-content-end">
-                    <li class="page-item {% if new_after is none %}disabled{% endif %}">
-                        <a class="page-link" href="?after={{ new_after }}" rel="next">
-                            <i class="bi bi-chevron-left"></i>
-                            {{ t('diary_entries.index.newer_entries') | capitalize }}
-                        </a>
-                    </li>
-                    <li class="page-item {% if new_before is none %}disabled{% endif %}">
-                        <a class="page-link" href="?before={{ new_before }}" rel="prev">
-                            {{ t('diary_entries.index.older_entries') | capitalize }}
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            {% else %}
-            <h3>{{ t('traces.index.empty_title') }}</h3>
-            {% endif %}
         </div>
     </div>
 </div>

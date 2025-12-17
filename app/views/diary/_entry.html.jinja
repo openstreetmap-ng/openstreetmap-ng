@@ -14,7 +14,9 @@
 
             {# Header #}
             {% if _show_header %}
-            <h3><a href="/diary/{{ diary.id }}">{{ diary.title }}</a></h3>
+            <h3>
+                <a class="diary-title-link" href="/diary/{{ diary.id }}">{{ diary.title }}</a>
+            </h3>
             <p class="small mb-2">
                 {% set link_user -%}
                 <a href="/user/{{ diary.user.display_name }}" rel="author">
