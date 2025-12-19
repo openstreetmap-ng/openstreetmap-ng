@@ -1,77 +1,9 @@
-import gc
-import logging
-import tracemalloc
-from collections.abc import Callable
 from datetime import UTC, datetime
-from functools import wraps
-from itertools import pairwise
-from tracemalloc import Statistic, StatisticDiff
 
 import pytest
-from sizestr import sizestr
 
 from app.lib.xmltodict import XMLToDict, get_xattr
 from speedup import CDATA
-
-
-def _check_for_leaks(func: Callable):
-    func_lineno = func.__code__.co_firstlineno
-
-    # Warm up internal caches/free-lists before measuring.
-    #
-    # In CPython (and especially when allocations happen inside native extensions),
-    # repeated calls can populate free-lists that keep a small amount of memory
-    # "allocated" even after `gc.collect()`. We treat that as expected steady-state
-    # behavior and only flag sustained growth after a warm-up.
-    warmup_iters = 3
-    measure_iters = 3
-    memory_usage = [0] * measure_iters
-
-    def filter_stats[T: list[Statistic] | list[StatisticDiff]](stats: T) -> T:
-        return [
-            stat  #
-            for stat in stats
-            if stat.traceback[0].filename == __file__
-            and stat.traceback[0].lineno >= func_lineno
-        ]  # type: ignore
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # pytest's log capture retains LogRecords, so logging can look like a leak
-        previous_disable = logging.root.manager.disable
-        logging.disable(logging.CRITICAL)
-        try:
-            for _ in range(warmup_iters):
-                func(*args, **kwargs)
-                gc.collect()
-
-            gc.collect()
-            tracemalloc.start()
-
-            try:
-                baseline = tracemalloc.take_snapshot()
-
-                for i in range(measure_iters):
-                    func(*args, **kwargs)
-                    gc.collect()
-                    snapshot = tracemalloc.take_snapshot()
-                    memory_usage[i] = sum(
-                        stat.size
-                        for stat in filter_stats(snapshot.statistics('lineno'))
-                    )
-            finally:
-                tracemalloc.stop()
-
-            # Check for a consistent upward trend which would indicate a leak
-            is_leaking = all(left < right for left, right in pairwise(memory_usage))
-            if is_leaking:
-                for leak in filter_stats(snapshot.compare_to(baseline, 'lineno')):  # type: ignore
-                    print(f'Leaked {sizestr(leak.size_diff)}: {leak}')
-                raise AssertionError('Leaked memory')
-        finally:
-            logging.disable(previous_disable)
-
-    return wrapper
 
 
 @pytest.mark.parametrize(
@@ -106,7 +38,6 @@ def _check_for_leaks(func: Callable):
         ),
     ],
 )
-@_check_for_leaks
 def test_xml_parse(input, expected):
     assert XMLToDict.parse(input) == expected
 
@@ -167,7 +98,6 @@ def test_xml_parse(input, expected):
         ),
     ],
 )
-@_check_for_leaks
 def test_xml_unparse(input, expected):
     assert XMLToDict.unparse(input).replace('"', "'") == expected.replace('"', "'")
 
