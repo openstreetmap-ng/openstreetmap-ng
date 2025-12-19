@@ -122,6 +122,7 @@ def _feature_icon(
     _POPULAR_NODE=_POPULAR_NODE,
     _POPULAR_RELATION=_POPULAR_RELATION,
     _POPULAR_WAY=_POPULAR_WAY,
+    _EMPTY: dict = {},
 ):
     tags = element['tags']
     if not tags:
@@ -161,10 +162,7 @@ def _feature_icon(
             values_icons_map is not None
             and (icon := values_icons_map.get(value)) is not None
         ):
-            popularity_map = popular_typed.get(key)
-            popularity = (
-                popularity_map.get(value, 0) if popularity_map is not None else 0
-            )
+            popularity = popular_typed.get(key, _EMPTY).get(value, 0)
             if best_specific is None or popularity < best_specific.popularity:
                 best_specific = FeatureIcon(popularity, icon, f'{key}={value}')
                 if popularity == 0:
@@ -176,10 +174,7 @@ def _feature_icon(
             values_icons_map is not None
             and (icon := values_icons_map.get(value)) is not None
         ):
-            popularity_map = _POPULAR_GENERIC.get(key)
-            popularity = (
-                popularity_map.get(value, 0) if popularity_map is not None else 0
-            )
+            popularity = _POPULAR_GENERIC.get(key, _EMPTY).get(value, 0)
             if best_specific is None or popularity < best_specific.popularity:
                 best_specific = FeatureIcon(popularity, icon, f'{key}={value}')
                 if popularity == 0:
@@ -195,12 +190,9 @@ def _feature_icon(
             values_icons_map is not None
             and (icon := values_icons_map.get('*')) is not None
         ):
-            popularity_map = popular_typed.get(key)
-            popularity = popularity_map.get('*', 0) if popularity_map is not None else 0
+            popularity = popular_typed.get(key, _EMPTY).get('*', 0)
             if best_generic is None or popularity < best_generic.popularity:
                 best_generic = FeatureIcon(popularity, icon, key)
-                if popularity == 0:
-                    return best_generic
             continue
 
         values_icons_map = _CONFIG_GENERIC.get(key)
@@ -208,11 +200,8 @@ def _feature_icon(
             values_icons_map is not None
             and (icon := values_icons_map.get('*')) is not None
         ):
-            popularity_map = _POPULAR_GENERIC.get(key)
-            popularity = popularity_map.get('*', 0) if popularity_map is not None else 0
+            popularity = _POPULAR_GENERIC.get(key, _EMPTY).get('*', 0)
             if best_generic is None or popularity < best_generic.popularity:
                 best_generic = FeatureIcon(popularity, icon, key)
-                if popularity == 0:
-                    return best_generic
 
     return best_specific if best_specific is not None else best_generic
