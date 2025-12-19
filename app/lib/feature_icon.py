@@ -55,6 +55,44 @@ _CONFIG_KEYS = frozenset(k.split('.', 1)[0] for k in _CONFIG)
 _POPULAR_STATS = _get_popular_stats()
 _check_config()
 
+_CONFIG_GENERIC: dict[str, dict[str, str]] = {}
+_CONFIG_NODE: dict[str, dict[str, str]] = {}
+_CONFIG_WAY: dict[str, dict[str, str]] = {}
+_CONFIG_RELATION: dict[str, dict[str, str]] = {}
+for _config_key, _values_icons_map in _CONFIG.items():
+    if '.' not in _config_key:
+        _CONFIG_GENERIC[_config_key] = _values_icons_map
+        continue
+
+    _key, _type = _config_key.split('.', 1)
+    if _type == 'node':
+        _CONFIG_NODE[_key] = _values_icons_map
+    elif _type == 'way':
+        _CONFIG_WAY[_key] = _values_icons_map
+    elif _type == 'relation':
+        _CONFIG_RELATION[_key] = _values_icons_map
+    else:
+        raise NotImplementedError(f'Unsupported element type {_type!r}')
+
+_POPULAR_GENERIC: dict[str, dict[str, int]] = {}
+_POPULAR_NODE: dict[str, dict[str, int]] = {}
+_POPULAR_WAY: dict[str, dict[str, int]] = {}
+_POPULAR_RELATION: dict[str, dict[str, int]] = {}
+for _config_key, _values_popularity_map in _POPULAR_STATS.items():
+    if '.' not in _config_key:
+        _POPULAR_GENERIC[_config_key] = _values_popularity_map
+        continue
+
+    _key, _type = _config_key.split('.', 1)
+    if _type == 'node':
+        _POPULAR_NODE[_key] = _values_popularity_map
+    elif _type == 'way':
+        _POPULAR_WAY[_key] = _values_popularity_map
+    elif _type == 'relation':
+        _POPULAR_RELATION[_key] = _values_popularity_map
+    else:
+        raise NotImplementedError(f'Unsupported element type {_type!r}')
+
 
 def features_icons(
     elements: Iterable[Element | ElementInit | None],
@@ -71,44 +109,110 @@ def features_icons(
 
 
 @cython.cfunc
-def _feature_icon(element: Element | ElementInit):
+def _feature_icon(
+    element: Element | ElementInit,
+    /,
+    *,
+    _CONFIG_KEYS=_CONFIG_KEYS,
+    _CONFIG_GENERIC=_CONFIG_GENERIC,
+    _POPULAR_GENERIC=_POPULAR_GENERIC,
+    _CONFIG_NODE=_CONFIG_NODE,
+    _CONFIG_RELATION=_CONFIG_RELATION,
+    _CONFIG_WAY=_CONFIG_WAY,
+    _POPULAR_NODE=_POPULAR_NODE,
+    _POPULAR_RELATION=_POPULAR_RELATION,
+    _POPULAR_WAY=_POPULAR_WAY,
+):
     tags = element['tags']
     if not tags:
         return None
 
-    matched_keys = _CONFIG_KEYS.intersection(tags)
-    if not matched_keys:
-        return None
+    config_typed: dict[str, dict[str, str]] | None = None
+    popular_typed: dict[str, dict[str, int]] | None = None
+    best_specific: FeatureIcon | None = None
+    best_generic: FeatureIcon | None = None
 
-    type = split_typed_element_id(element['typed_id'])[0]
-    result: list[FeatureIcon] | None = None
-    specific: cython.bint
+    for key, value in tags.items():
+        if key not in _CONFIG_KEYS:
+            continue
 
-    # prefer value-specific icons first
-    for specific in (True, False):
-        for key in matched_keys:
-            value = tags[key] if specific else '*'
+        if config_typed is None:
+            type = split_typed_element_id(element['typed_id'])[0]
+            if type == 'node':
+                config_typed = _CONFIG_NODE
+                popular_typed = _POPULAR_NODE
+            elif type == 'way':
+                config_typed = _CONFIG_WAY
+                popular_typed = _POPULAR_WAY
+            elif type == 'relation':
+                config_typed = _CONFIG_RELATION
+                popular_typed = _POPULAR_RELATION
+            else:
+                raise NotImplementedError(
+                    f'Unsupported element type {type!r} in typed id {element["typed_id"]}'
+                )
 
-            # prefer type-specific icons first
-            for config_key in (f'{key}.{type}', key):
-                values_icons_map = _CONFIG.get(config_key)
-                if values_icons_map is None:
-                    continue
+        assert config_typed is not None
+        assert popular_typed is not None
 
-                icon = values_icons_map.get(value)
-                if icon is None:
-                    continue
+        # Prefer value-specific icons first.
+        values_icons_map = config_typed.get(key)
+        if (
+            values_icons_map is not None
+            and (icon := values_icons_map.get(value)) is not None
+        ):
+            popularity_map = popular_typed.get(key)
+            popularity = (
+                popularity_map.get(value, 0) if popularity_map is not None else 0
+            )
+            if best_specific is None or popularity < best_specific.popularity:
+                best_specific = FeatureIcon(popularity, icon, f'{key}={value}')
+                if popularity == 0:
+                    return best_specific
+            continue
 
-                popularity = _POPULAR_STATS.get(config_key, {}).get(value, 0)
-                title = f'{key}={value}' if specific else key
+        values_icons_map = _CONFIG_GENERIC.get(key)
+        if (
+            values_icons_map is not None
+            and (icon := values_icons_map.get(value)) is not None
+        ):
+            popularity_map = _POPULAR_GENERIC.get(key)
+            popularity = (
+                popularity_map.get(value, 0) if popularity_map is not None else 0
+            )
+            if best_specific is None or popularity < best_specific.popularity:
+                best_specific = FeatureIcon(popularity, icon, f'{key}={value}')
+                if popularity == 0:
+                    return best_specific
+            continue
 
-                if result is None:
-                    result = [FeatureIcon(popularity, icon, title)]
-                else:
-                    result.append(FeatureIcon(popularity, icon, title))
+        # Generic fallback: only relevant if no specific match was found anywhere.
+        if best_specific is not None:
+            continue
 
-        # pick the least popular tagging icon
-        if result:
-            return min(result)
+        values_icons_map = config_typed.get(key)
+        if (
+            values_icons_map is not None
+            and (icon := values_icons_map.get('*')) is not None
+        ):
+            popularity_map = popular_typed.get(key)
+            popularity = popularity_map.get('*', 0) if popularity_map is not None else 0
+            if best_generic is None or popularity < best_generic.popularity:
+                best_generic = FeatureIcon(popularity, icon, key)
+                if popularity == 0:
+                    return best_generic
+            continue
 
-    return None
+        values_icons_map = _CONFIG_GENERIC.get(key)
+        if (
+            values_icons_map is not None
+            and (icon := values_icons_map.get('*')) is not None
+        ):
+            popularity_map = _POPULAR_GENERIC.get(key)
+            popularity = popularity_map.get('*', 0) if popularity_map is not None else 0
+            if best_generic is None or popularity < best_generic.popularity:
+                best_generic = FeatureIcon(popularity, icon, key)
+                if popularity == 0:
+                    return best_generic
+
+    return best_specific if best_specific is not None else best_generic
