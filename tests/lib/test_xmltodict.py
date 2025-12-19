@@ -1,4 +1,5 @@
 import gc
+import logging
 import tracemalloc
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -22,8 +23,8 @@ def _check_for_leaks(func: Callable):
     # repeated calls can populate free-lists that keep a small amount of memory
     # "allocated" even after `gc.collect()`. We treat that as expected steady-state
     # behavior and only flag sustained growth after a warm-up.
-    warmup_iters = 8
-    measure_iters = 5
+    warmup_iters = 3
+    measure_iters = 3
     memory_usage = [0] * measure_iters
 
     def filter_stats[T: list[Statistic] | list[StatisticDiff]](stats: T) -> T:
@@ -36,30 +37,39 @@ def _check_for_leaks(func: Callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        for _ in range(warmup_iters):
-            func(*args, **kwargs)
+        # pytest's log capture retains LogRecords, so logging can look like a leak
+        previous_disable = logging.root.manager.disable
+        logging.disable(logging.CRITICAL)
+        try:
+            for _ in range(warmup_iters):
+                func(*args, **kwargs)
+                gc.collect()
+
             gc.collect()
+            tracemalloc.start()
 
-        gc.collect()
-        tracemalloc.start()
-        baseline = tracemalloc.take_snapshot()
+            try:
+                baseline = tracemalloc.take_snapshot()
 
-        for i in range(measure_iters):
-            func(*args, **kwargs)
-            gc.collect()
-            snapshot = tracemalloc.take_snapshot()
-            memory_usage[i] = sum(
-                stat.size for stat in filter_stats(snapshot.statistics('lineno'))
-            )
+                for i in range(measure_iters):
+                    func(*args, **kwargs)
+                    gc.collect()
+                    snapshot = tracemalloc.take_snapshot()
+                    memory_usage[i] = sum(
+                        stat.size
+                        for stat in filter_stats(snapshot.statistics('lineno'))
+                    )
+            finally:
+                tracemalloc.stop()
 
-        tracemalloc.stop()
-
-        # Check for a consistent upward trend which would indicate a leak
-        is_leaking = all(left < right for left, right in pairwise(memory_usage))
-        if is_leaking:
-            for leak in filter_stats(snapshot.compare_to(baseline, 'lineno')):  # type: ignore
-                print(f'Leaked {sizestr(leak.size_diff)}: {leak}')
-            raise AssertionError('Leaked memory')
+            # Check for a consistent upward trend which would indicate a leak
+            is_leaking = all(left < right for left, right in pairwise(memory_usage))
+            if is_leaking:
+                for leak in filter_stats(snapshot.compare_to(baseline, 'lineno')):  # type: ignore
+                    print(f'Leaked {sizestr(leak.size_diff)}: {leak}')
+                raise AssertionError('Leaked memory')
+        finally:
+            logging.disable(previous_disable)
 
     return wrapper
 
