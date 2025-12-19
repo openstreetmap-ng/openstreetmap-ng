@@ -22,8 +22,8 @@ def _check_for_leaks(func: Callable):
     # repeated calls can populate free-lists that keep a small amount of memory
     # "allocated" even after `gc.collect()`. We treat that as expected steady-state
     # behavior and only flag sustained growth after a warm-up.
-    warmup_iters = 5
-    measure_iters = 3
+    warmup_iters = 8
+    measure_iters = 5
     memory_usage = [0] * measure_iters
 
     def filter_stats[T: list[Statistic] | list[StatisticDiff]](stats: T) -> T:
