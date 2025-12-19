@@ -20,7 +20,7 @@ from app.models.element import (
     TypedElementId,
 )
 from app.models.types import ChangesetId, SequenceId
-from speedup import split_typed_element_id
+from speedup import element_id
 
 
 class ElementQuery:
@@ -69,9 +69,9 @@ class ElementQuery:
             seq_id, node_typed, way_typed, rel_typed = await r.fetchone()  # type: ignore
             return (
                 seq_id,
-                split_typed_element_id(node_typed)[1],
-                split_typed_element_id(way_typed)[1],
-                split_typed_element_id(rel_typed)[1],
+                element_id(node_typed),
+                element_id(way_typed),
+                element_id(rel_typed),
             )
 
     @staticmethod

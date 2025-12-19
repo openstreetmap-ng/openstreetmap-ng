@@ -14,7 +14,7 @@ from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.models.db.element import Element
 from app.models.element import TypedElementId
-from speedup import split_typed_element_ids
+from speedup import element_type
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2
@@ -127,12 +127,8 @@ class Search:
         results: list[SearchResult], members_map: dict[TypedElementId, Element]
     ) -> None:
         """Improve accuracy of points by analyzing relations members."""
-        for result, type_id in zip(
-            results,
-            split_typed_element_ids([result.element['typed_id'] for result in results]),
-            strict=True,
-        ):
-            if type_id[0] != 'relation':
+        for result in results:
+            if element_type(result.element['typed_id']) != 'relation':
                 continue
 
             element = result.element
@@ -142,13 +138,10 @@ class Search:
             assert members_roles is not None, 'Relation members roles must be set'
 
             success: cython.bint = False
-            for member_tid, type_id, role in zip(
-                members_tids,
-                split_typed_element_ids(members_tids),
-                members_roles,
-                strict=True,
-            ):
-                if type_id[0] != 'node' or (success and role != 'admin_centre'):
+            for member_tid, role in zip(members_tids, members_roles, strict=True):
+                if element_type(member_tid) != 'node' or (
+                    success and role != 'admin_centre'
+                ):
                     continue
 
                 member = members_map.get(member_tid)
@@ -163,14 +156,8 @@ class Search:
         """Remove overlapping points, preserving most important results."""
         relations = [
             result
-            for result, type_id in zip(
-                results,
-                split_typed_element_ids([
-                    result.element['typed_id'] for result in results
-                ]),
-                strict=True,
-            )
-            if type_id[0] == 'relation'
+            for result in results
+            if element_type(result.element['typed_id']) == 'relation'
         ]
         if len(relations) <= 1:
             return

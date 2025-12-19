@@ -7,7 +7,7 @@ from app.config import FEATURE_PREFIX_TAGS_LIMIT
 from app.lib.translation import t
 from app.models.db.element import Element, ElementInit
 from app.models.element import ElementType
-from speedup import split_typed_element_id
+from speedup import element_type
 
 
 @overload
@@ -38,7 +38,7 @@ def _feature_prefix(element: Element | ElementInit) -> str:
         return r
 
     # type-generic translations
-    type = split_typed_element_id(element['typed_id'])[0]
+    type = element_type(element['typed_id'])
     return _feature_prefix_type(type)
 
 

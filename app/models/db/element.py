@@ -20,7 +20,7 @@ from app.validators.geometry import GeometryValidator
 from app.validators.tags import TagsValidating
 from app.validators.unicode import UnicodeValidator
 from app.validators.xml import XMLSafeValidator
-from speedup import split_typed_element_id
+from speedup import element_type
 
 
 class ElementInit(TypedDict):
@@ -69,7 +69,7 @@ def validate_elements(elements: list[ElementInit]) -> list[ElementInit]:
     elements = _ElementInitListValidator.validate_python(elements)
 
     for element in elements:
-        type = split_typed_element_id(element['typed_id'])[0]
+        type = element_type(element['typed_id'])
         if type == 'node':
             _validate_node(element)
         elif type == 'way':

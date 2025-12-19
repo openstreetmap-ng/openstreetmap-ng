@@ -14,7 +14,7 @@ from app.services.optimistic_diff.prepare import (
     ElementStateEntry,
     OptimisticDiffPrepare,
 )
-from speedup import split_typed_element_id, typed_element_id
+from speedup import element_type, typed_element_id
 
 
 class OptimisticDiffApply:
@@ -210,11 +210,11 @@ async def _update_elements(
                 tid = assigned_tid
             else:
                 # Assign a new id
-                element_type = split_typed_element_id(tid)[0]
-                new_id: ElementId = current_id_map[element_type] + 1  # type: ignore
-                current_id_map[element_type] = new_id
+                type = element_type(tid)
+                new_id: ElementId = current_id_map[type] + 1  # type: ignore
+                current_id_map[type] = new_id
                 original_tid = tid
-                tid = typed_element_id(element_type, new_id)
+                tid = typed_element_id(type, new_id)
                 assigned_tid_map[original_tid] = tid
             element['typed_id'] = tid
 

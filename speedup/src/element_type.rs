@@ -8,6 +8,9 @@ use pyo3::types::{PyDict, PyList, PyString, PyTuple};
 const NODE_TYPE_NUM: u64 = 0;
 const WAY_TYPE_NUM: u64 = 1;
 const RELATION_TYPE_NUM: u64 = 2;
+
+const TYPE_SHIFT: u8 = 60;
+const TYPE_MASK: u64 = 0b11;
 const SIGN_MASK: u64 = 1 << 59;
 const ID_MASK: u64 = (1 << 56) - 1;
 
@@ -15,7 +18,19 @@ static NODE_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
 static WAY_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
 static RELATION_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
 
-fn interned_type(py: Python<'_>, type_num: u64) -> PyResult<Py<PyString>> {
+fn type_num_from_typed_id(typed_id: u64) -> u64 {
+    (typed_id >> TYPE_SHIFT) & TYPE_MASK
+}
+
+fn element_id_from_typed_id(typed_id: u64) -> i64 {
+    let mut element_id = (typed_id & ID_MASK) as i64;
+    if (typed_id & SIGN_MASK) != 0 {
+        element_id = -element_id;
+    }
+    element_id
+}
+
+fn type_str_from_num(py: Python<'_>, type_num: u64) -> PyResult<Py<PyString>> {
     let out = match type_num {
         NODE_TYPE_NUM => NODE_STR.get_or_init(py, || PyString::new(py, "node").unbind()),
         WAY_TYPE_NUM => WAY_STR.get_or_init(py, || PyString::new(py, "way").unbind()),
@@ -52,12 +67,17 @@ fn typed_element_id_impl(type_num: u64, id: i64) -> PyResult<u64> {
     }
 
     let result = if id < 0 { abs | SIGN_MASK } else { abs };
-    Ok(result | (type_num << 60))
+    Ok(result | (type_num << TYPE_SHIFT))
 }
 
 #[pyfunction]
-fn element_type(py: Python<'_>, s: &str) -> PyResult<Py<PyString>> {
-    interned_type(py, type_num_from_str(s)?)
+fn element_id(typed_id: u64) -> i64 {
+    element_id_from_typed_id(typed_id)
+}
+
+#[pyfunction]
+fn element_type(py: Python<'_>, typed_id: u64) -> PyResult<Py<PyString>> {
+    type_str_from_num(py, type_num_from_typed_id(typed_id))
 }
 
 #[pyfunction]
@@ -101,20 +121,10 @@ fn versioned_typed_element_id(type_: &str, s: &str) -> PyResult<(u64, i64)> {
 
 #[pyfunction]
 fn split_typed_element_id(py: Python<'_>, id: i64) -> PyResult<(Py<PyString>, i64)> {
-    let id_u64 = id as u64;
-
-    let mut element_id = (id_u64 & ID_MASK) as i64;
-    if (id_u64 & SIGN_MASK) != 0 {
-        element_id = -element_id;
-    }
-
-    let type_num = (id_u64 >> 60) & 0b11;
-    let type_str = interned_type(py, type_num).map_err(|_| {
-        PyNotImplementedError::new_err(format!(
-            "Unsupported element type number {type_num} in typed id {id}"
-        ))
-    })?;
-
+    let typed_id = id as u64;
+    let element_id = element_id_from_typed_id(typed_id);
+    let type_num = type_num_from_typed_id(typed_id);
+    let type_str = type_str_from_num(py, type_num)?;
     Ok((type_str, element_id))
 }
 
@@ -122,7 +132,7 @@ fn split_typed_element_id(py: Python<'_>, id: i64) -> PyResult<(Py<PyString>, i6
 fn split_typed_element_ids(py: Python<'_>, ids: &Bound<'_, PyList>) -> PyResult<Py<PyList>> {
     let out = PyList::empty(py);
 
-    for item in ids.iter() {
+    ids.iter().try_for_each(|item| {
         let typed_id = if let Ok(v) = item.extract::<i64>() {
             v
         } else if let Ok(dict) = item.cast::<PyDict>() {
@@ -139,12 +149,14 @@ fn split_typed_element_ids(py: Python<'_>, ids: &Bound<'_, PyList>) -> PyResult<
         let element_id_obj = element_id.into_pyobject(py)?.into_any().unbind();
         let tuple = PyTuple::new(py, [type_str.into_any(), element_id_obj])?;
         out.append(tuple)?;
-    }
+        Ok(())
+    })?;
 
     Ok(out.unbind())
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(element_id, m)?)?;
     m.add_function(wrap_pyfunction!(element_type, m)?)?;
     m.add_function(wrap_pyfunction!(typed_element_id, m)?)?;
     m.add_function(wrap_pyfunction!(versioned_typed_element_id, m)?)?;

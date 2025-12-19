@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::hint::{likely, unlikely};
+use std::mem;
 
 use memchr::{memchr, memchr3};
 use pyo3::exceptions::{PyTypeError, PyValueError};
@@ -287,7 +288,7 @@ where
     for (i, is_pair) in pair_mask.iter().enumerate() {
         if Some(i) == first_pair_index {
             // Emit the aggregated pairs where the first pair originally appeared.
-            let pairs = std::mem::take(&mut pairs);
+            let pairs = mem::take(&mut pairs);
             let len = pairs.len();
             let iter = pairs
                 .into_iter()

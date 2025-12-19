@@ -10,7 +10,7 @@ from app.models.proto.shared_pb2 import (
     PartialElementParams,
 )
 from app.queries.element_query import ElementQuery
-from speedup import split_typed_element_ids
+from speedup import split_typed_element_id
 
 
 class FormatElementList:
@@ -103,9 +103,8 @@ def _encode_elements(
         'way': [],
         'relation': [],
     }
-    for (type, id), element, name, feature_icon in zip(
-        split_typed_element_ids(elements), elements, names, feature_icons, strict=True
-    ):
+    for element, name, feature_icon in zip(elements, names, feature_icons, strict=True):
+        type, id = split_typed_element_id(element['typed_id'])
         icon = (
             ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
             if feature_icon is not None
@@ -131,9 +130,8 @@ def _encode_parents(
     feature_icons: list[FeatureIcon | None],
 ):
     result: list[PartialElementParams.Entry] = []
-    for (type, id), parent, name, feature_icon in zip(
-        split_typed_element_ids(parents), parents, names, feature_icons, strict=True
-    ):
+    for parent, name, feature_icon in zip(parents, names, feature_icons, strict=True):
+        type, id = split_typed_element_id(parent['typed_id'])
         role = (
             ', '.join(
                 sorted({
@@ -176,9 +174,8 @@ def _encode_members(
         members_roles = [None] * len(members)
 
     result: list[PartialElementParams.Entry] = []
-    for (type, id), member, role in zip(
-        split_typed_element_ids(members), members, members_roles, strict=True
-    ):
+    for member, role in zip(members, members_roles, strict=True):
+        type, id = split_typed_element_id(member)
         data = type_id_map.get(member)
         name, feature_icon = data or (None, None)
         icon = (

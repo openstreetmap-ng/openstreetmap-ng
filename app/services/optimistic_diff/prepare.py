@@ -26,7 +26,7 @@ from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
-from speedup import split_typed_element_id, split_typed_element_ids
+from speedup import element_id, element_type, split_typed_element_id
 
 OSMChangeAction = Literal['create', 'modify', 'delete']
 
@@ -140,19 +140,16 @@ class OptimisticDiffPrepare:
         entry: ElementStateEntry | None
         prev: ElementInit | None
 
-        for element, (element_type, element_id) in zip(
-            self._elements,
-            split_typed_element_ids(self._elements),
-            strict=True,
-        ):
+        for element in self._elements:
             typed_id = element['typed_id']
+            type, id = split_typed_element_id(typed_id)
             version = element['version']
 
             if version == 1:  # Handle element creation
                 action = 'create'
                 num_create += 1
 
-                if element_id >= 0:
+                if id >= 0:
                     raise_for.diff_create_bad_id(element)
                 assert typed_id not in element_state, (
                     f'Element {typed_id} must not exist in the element state'
@@ -179,7 +176,7 @@ class OptimisticDiffPrepare:
                 if action == 'delete' and not prev['visible']:
                     raise_for.element_already_deleted(typed_id)
 
-            if element_type != 'node':
+            if type != 'node':
                 if (members := element['members']) is not None:
                     element['members_arr'] = np.array(members, np.uint64)
 
@@ -201,7 +198,7 @@ class OptimisticDiffPrepare:
                 if len(indices):
                     element['unassigned_member_indices'] = indices.tolist()
 
-            self._push_bbox_info(prev, element, element_type)
+            self._push_bbox_info(prev, element, type)
             apply_elements.append(element)
 
             # Update the current element state
@@ -489,12 +486,8 @@ class OptimisticDiffPrepare:
         bbox_points: list[Point] = self._bbox_points
         bbox_refs: set[TypedElementId] = self._bbox_refs
 
-        for typed_id, type_id in zip(
-            typed_ids_diff,
-            split_typed_element_ids(typed_ids_diff),
-            strict=True,
-        ):
-            type = type_id[0]
+        for typed_id in typed_ids_diff:
+            type = element_type(typed_id)
 
             if type == 'node':
                 entry = element_state.get(typed_id)
@@ -597,10 +590,9 @@ class OptimisticDiffPrepare:
 
                 typed_id: cython.size_t = element['typed_id']
                 if TYPED_ELEMENT_ID_NODE_MIN <= typed_id <= TYPED_ELEMENT_ID_NODE_MAX:
-                    id = split_typed_element_id(element['typed_id'])[1]
                     logging.warning(
                         'Node %d version %d is missing coordinates',
-                        id,
+                        element_id(element['typed_id']),
                         element['version'],
                     )
 

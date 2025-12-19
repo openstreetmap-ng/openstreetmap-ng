@@ -135,41 +135,46 @@ let
     };
 
   packages' = with pkgs; [
-    llvmPackages_latest.lld
-    procps
-    coreutils
-    diffutils
-    findutils
-    parallel'
-    curl
-    jq
-    process-compose
-    watchexec'
-    pigz
-    brotli
-    zstd
     b3sum
-    nixfmt-rfc-style
-    # Python:
-    python'
-    uv
-    ruff
-    gettext
-    protobuf_33
-    rustup
-    # Frontend:
-    nodejs-slim_24
-    bun
     biome
-    # Services:
+    brotli
+    bun
+    coreutils
+    curl
+    diffutils
+    fd
+    findutils
+    gettext
+    gnused
+    gnutar
+    gzip
+    jq
+    llvmPackages_latest.lld
+    mailpit
+    nixfmt-rfc-style
+    nodejs-slim_24
+    parallel'
+    patchelf
+    pigz
+    process-compose
+    procps
+    protobuf_33
+    python'
+    ripgrep
+    rsync
+    ruff
+    rustup
+    timescaledb-parallel-copy
+    uv
+    watchexec'
+    zstd
+
     (postgresql_18_jit.withPackages (ps: [
-      ps.timescaledb-apache
-      ps.postgis
       ps.h3-pg
       ps.pg_hint_plan
+      ps.postgis
+      ps.timescaledb-apache
     ])).out
-    timescaledb-parallel-copy
-    mailpit
 
     # Scripts:
     # -- Cython
@@ -261,12 +266,15 @@ let
     '')
     (makeScript "cython-clean" ''
       rm -rf build/
-      find app scripts \
-        -type f \
-        \( -name '*.c' -o -name '*.html' -o -name '*.so' \) \
-        -not \
-        \( -path 'app/static/*' -o -path 'app/views/*' \) \
-        -delete
+      fd \
+        --type f \
+        --extension c \
+        --extension html \
+        --extension so \
+        --exclude static \
+        --exclude views \
+        . app scripts \
+        -x rm -f -- {}
     '')
     (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
 
@@ -305,24 +313,28 @@ let
       }
       export -f process_file
 
-      find  \
-        "app/static" \
-        "config/locale/i18next" \
-        node_modules/.bun/iD@*/node_modules/iD/dist \
-        node_modules/.bun/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist \
-        -type f \
-        -not -name "*.xcf" \
-        -not -name "*.gif" \
-        -not -name "*.jpg" \
-        -not -name "*.jpeg" \
-        -not -name "*.png" \
-        -not -name "*.webp" \
-        -not -name "*.ts" \
-        -not -name "*.scss" \
-        -not -name "*.br" \
-        -not -name "*.zst" \
-        -size +499c \
-        -printf "%s\t%p\0"  \
+      roots=(
+        "app/static"
+        "config/locale/i18next"
+        node_modules/.bun/iD@*/node_modules/iD/dist
+        node_modules/.bun/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist
+      )
+
+      fd -0 \
+        --type f \
+        --size +499b \
+        --exclude "*.xcf" \
+        --exclude "*.gif" \
+        --exclude "*.jpg" \
+        --exclude "*.jpeg" \
+        --exclude "*.png" \
+        --exclude "*.webp" \
+        --exclude "*.ts" \
+        --exclude "*.scss" \
+        --exclude "*.br" \
+        --exclude "*.zst" \
+        . "''${roots[@]}" \
+      | xargs -0 -r stat --printf '%s\t%n\0' -- \
       | sort -z --numeric-sort --reverse \
       | cut -z -f2- \
       | parallel --null \
@@ -354,10 +366,17 @@ let
       reference_file="app/models/proto/shared_pb2.py"
       if [ ! -f "$reference_file" ]; then
         echo "No protobuf outputs found, compiling..."
-      elif [ -n "$(find app/models/proto -type f -name "*.proto" -newer "$reference_file" -print -quit)" ]; then
-        echo "Proto files have changed, recompiling..."
       else
-        exit 0
+        changed=0
+        while IFS= read -r -d "" proto; do
+          if [ "$proto" -nt "$reference_file" ]; then
+            changed=1
+            break
+          fi
+        done < <(fd -0 --type f --extension proto . app/models/proto)
+
+        ((changed)) || exit 0
+        echo "Proto files have changed, recompiling..."
       fi
 
       mkdir -p app/views/lib/proto
@@ -396,7 +415,7 @@ let
       process-compose up -U --detached -f "''${1:-${processComposeConf}}" >/dev/null
       process-compose project is-ready -U --wait
 
-      process-compose list -U | while read -r name; do
+      while read -r name; do
         if [ -z "$name" ]; then
           continue
         fi
@@ -407,7 +426,7 @@ let
           echo -n "."
         done
         echo " ready"
-      done
+      done < <(process-compose list -U)
 
       echo "Services started"
       _dev-upgrade
@@ -505,10 +524,9 @@ let
       echo "Checking for preload data updates"
       remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
       remote_checksums=$(curl -fsSL "$remote_check_url")
-      names=$(grep -Po '[^/]+(?=\.csv\.zst)' <<< "$remote_checksums")
 
       mkdir -p "data/preload/$dataset"
-      for name in $names; do
+      while IFS= read -r name; do
         remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
         local_file="data/preload/$dataset/$name.csv.zst"
         local_check_file="data/preload/$dataset/$name.csv.zst.b3"
@@ -519,7 +537,9 @@ let
         fi
 
         # compare with remote checksum
-        remote_checksum=$(grep -F "$local_file" <<< "$remote_checksums" | cut -d' ' -f1)
+        remote_checksum=$(
+          rg -P -m 1 -o --replace '$1' "^([0-9a-fA-F]+)\\s+\\Q$local_file\\E$" <<< "$remote_checksums"
+        )
         if cmp -s "$local_check_file" <(echo "$remote_checksum"); then
           echo "File $local_file is up to date"
           continue
@@ -536,7 +556,7 @@ let
           echo "[!] Please retry this command after a few minutes"
           exit 1
         fi
-      done
+      done < <(rg -P -o '[^/[:space:]\\]+(?=[.]csv[.]zst$)' <<< "$remote_checksums")
       cp --archive --link --force "data/preload/$dataset/"*.csv.zst data/preload/
     '')
     (makeScript "_db-load" ''
@@ -609,10 +629,17 @@ let
       manifest_file="app/static/vite/.vite/manifest.json"
       if [ ! -f "$manifest_file" ]; then
         echo "No Vite manifest found, building..."
-      elif [ -n "$(find app/views -type f -not -name "*.jinja" -newer "$manifest_file" -print -quit)" ]; then
-        echo "Source files have changed, rebuilding..."
       else
-        exit 0
+        changed=0
+        while IFS= read -r -d "" src; do
+          if [ "$src" -nt "$manifest_file" ]; then
+            changed=1
+            break
+          fi
+        done < <(fd -0 --type f --exclude "*.jinja" . app/views)
+
+        ((changed)) || exit 0
+        echo "Source files have changed, rebuilding..."
       fi
       exec vite build
     '')
@@ -635,14 +662,14 @@ let
       ''
       + lib.optionalString stdenv.isLinux ''
         interpreter="${stdenv.cc.bintools.dynamicLinker}"
-        find node_modules/.bun/sass-embedded* -type f -name dart -executable -print0 |
-          while IFS= read -r -d "" bin; do
-            curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
-            if [ "$curr" != "$interpreter" ]; then
-              patchelf --set-interpreter "$interpreter" "$bin"
-              echo "Patched $bin interpreter to $interpreter"
-            fi
-          done
+        sass_dirs=(node_modules/.bun/sass-embedded*)
+        ((''${#sass_dirs[@]})) && while IFS= read -r -d "" bin; do
+          curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
+          if [ "$curr" != "$interpreter" ]; then
+            patchelf --set-interpreter "$interpreter" "$bin"
+            echo "Patched $bin interpreter to $interpreter"
+          fi
+        done < <(fd -0 -t x "^dart$" "''${sass_dirs[@]}")
       ''
       + ''
         wait
@@ -678,9 +705,9 @@ let
         list_files() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@"; }
       else
         list_files() {
-          git ls-files -z "$@" | while IFS= read -r -d ''' file; do
+          while IFS= read -r -d ''' file; do
             test -e "$file" && printf '%s\0' "$file"
-          done
+          done < <(git ls-files -z "$@")
         }
       fi
 
@@ -707,11 +734,12 @@ let
 
       if [ "$1" = "--staged" ]; then
         # Stage changes
-        git diff --cached --name-only --diff-filter=ACMR -z -- | while IFS= read -r -d ''' file; do
+        while IFS= read -r -d ''' file; do
           if ! git diff --quiet -- "$file"; then
             printf '%s\0' "$file"
           fi
-        done | xargs -0 -r git add --
+        done < <(git diff --cached --name-only --diff-filter=ACMR -z --) \
+          | git add --pathspec-from-file=- --pathspec-file-nul --
       else
         # Run linters
         status=0
@@ -761,7 +789,7 @@ let
         name=$(basename "$browser_dir")
 
         # Prefer SVG
-        svg=$(find "$browser_dir" -maxdepth 1 -name '*.svg' | head -1)
+        svg=$(fd -t f -d 1 -e svg --max-results 1 . "$browser_dir")
         if [ -n "$svg" ]; then
           cp "$svg" "$dest/$name.svg"
           count=$((count + 1))
@@ -769,7 +797,7 @@ let
         fi
 
         # Fallback to 128x128 PNG
-        png=$(find "$browser_dir" -maxdepth 1 -name '*_128x128.png' | head -1)
+        png=$(fd -t f -d 1 -g '*_128x128.png' --max-results 1 . "$browser_dir")
         if [ -n "$png" ]; then
           cp "$png" "$dest/$name.png"
           count=$((count + 1))
@@ -806,25 +834,25 @@ let
         '
     '')
     (makeScript "_patch-shebang" ''
-      find .venv/bin -maxdepth 1 -type f -executable | while read -r script; do
-        if ! head -n 1 "$script" | grep -q "\.venv/bin/python"; then continue; fi
+      while IFS= read -r -d "" script; do
+        if ! head -n 1 "$script" | rg -q -F ".venv/bin/python"; then continue; fi
 
-        module_name=$(grep -Po "(?<=^from )\S+" "$script")
+        module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script")
         if [ -z "$module_name" ]; then
           echo "Warning: Could not extract module name from $script"
           continue
         fi
 
         temp_file=$(mktemp)
-        cat > "$temp_file" << EOF
-      #!${runtimeShell}
-      exec python -m $module_name "\$@"
-      EOF
+        {
+          printf '%s\n' "#!${runtimeShell}"
+          printf 'exec python -m "%s" "$@"\n' "$module_name"
+        } > "$temp_file"
         chmod --reference="$script" "$temp_file"
         mv "$temp_file" "$script"
 
         echo "Patched $script"
-      done
+      done < <(fd -0 -t x -d 1 . .venv/bin)
     '')
     (makeScript "nixpkgs-update" ''
       hash=$(

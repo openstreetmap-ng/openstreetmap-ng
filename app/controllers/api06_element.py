@@ -13,7 +13,11 @@ from app.models.element import ElementId, ElementType, TypedElementId
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.services.optimistic_diff import OptimisticDiff
-from speedup import split_typed_element_id, typed_element_id, versioned_typed_element_id
+from speedup import (
+    element_id,
+    typed_element_id,
+    versioned_typed_element_id,
+)
 
 router = APIRouter(prefix='/api/0.6')
 
@@ -43,7 +47,7 @@ async def create_element(
         raise_for.bad_xml(type, str(e))
 
     assigned_ref_map = await OptimisticDiff.run(elements)
-    assigned_id = split_typed_element_id(next(iter(assigned_ref_map.values()))[0])[1]
+    assigned_id = element_id(next(iter(assigned_ref_map.values()))[0])
     return Response(str(assigned_id), media_type='text/plain')
 
 

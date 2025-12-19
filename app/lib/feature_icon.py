@@ -8,7 +8,7 @@ import cython
 import orjson
 
 from app.models.db.element import Element, ElementInit
-from speedup import split_typed_element_id
+from speedup import element_type
 
 
 class FeatureIcon(NamedTuple):
@@ -138,7 +138,7 @@ def _feature_icon(
             continue
 
         if config_typed is None:
-            type = split_typed_element_id(element['typed_id'])[0]
+            type = element_type(element['typed_id'])
             if type == 'node':
                 config_typed = _CONFIG_NODE
                 popular_typed = _POPULAR_NODE

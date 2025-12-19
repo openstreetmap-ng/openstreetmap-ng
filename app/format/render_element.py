@@ -12,7 +12,7 @@ from app.models.element import (
     TypedElementId,
 )
 from app.models.proto.shared_pb2 import RenderElementsData
-from speedup import split_typed_element_id
+from speedup import element_id, element_type, split_typed_element_id
 
 
 class RenderElementMixin:
@@ -28,7 +28,7 @@ class RenderElementMixin:
         ways: list[Element] = []
         for element in elements:
             typed_id = element['typed_id']
-            type = split_typed_element_id(typed_id)[0]
+            type = element_type(typed_id)
             if type == 'node':
                 node_id_map[typed_id] = element
             elif type == 'way':
@@ -112,7 +112,7 @@ def _render_ways(
             continue
 
         member_nodes.update(way_members)
-        way_id = split_typed_element_id(way['typed_id'])[1]
+        way_id = element_id(way['typed_id'])
         segments: list[list[Point]] = []
         current_segment: list[Point] = []
 

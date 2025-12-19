@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 from app.models.element import ElementId, ElementType, TypedElementId
-from speedup import split_typed_element_id
+from speedup import element_id, split_typed_element_id
 
 Diff06ResultDict = TypedDict(
     'Diff06ResultDict',
@@ -34,7 +34,7 @@ class Diff06Mixin:
 
         for typed_id, (new_typed_id, versions) in assigned_ref_map.items():
             type, old_id = split_typed_element_id(typed_id)
-            new_id = split_typed_element_id(new_typed_id)[1]
+            new_id = element_id(new_typed_id)
             result.extend(
                 (
                     type,

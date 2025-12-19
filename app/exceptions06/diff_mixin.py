@@ -4,7 +4,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
-from speedup import split_typed_element_id
+from speedup import element_type
 
 if TYPE_CHECKING:
     from app.models.db.element import ElementInit
@@ -27,7 +27,7 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
 
     @override
     def diff_create_bad_id(self, element: 'ElementInit') -> NoReturn:
-        type = split_typed_element_id(element['typed_id'])[0]
+        type = element_type(element['typed_id'])
         if type == 'node':
             raise APIError(
                 status.HTTP_412_PRECONDITION_FAILED,

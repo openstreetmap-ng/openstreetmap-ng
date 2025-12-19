@@ -12,7 +12,13 @@ from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
-from speedup import split_typed_element_id, split_typed_element_ids, typed_element_id
+from speedup import (
+    element_id,
+    element_type,
+    split_typed_element_id,
+    split_typed_element_ids,
+    typed_element_id,
+)
 
 
 class Element06Mixin:
@@ -25,7 +31,7 @@ class Element06Mixin:
         if format_is_json():
             return _encode_element(element, is_json=True)
 
-        type = split_typed_element_id(element['typed_id'])[0]
+        type = element_type(element['typed_id'])
         return {type: _encode_element(element, is_json=False)}
 
     @staticmethod
@@ -46,12 +52,9 @@ class Element06Mixin:
 
         # Merge elements of the same type together
         result: dict[ElementType, list[dict]] = {'node': [], 'way': [], 'relation': []}
-        for element, type_id in zip(
-            elements,
-            split_typed_element_ids(elements),
-            strict=True,
-        ):
-            result[type_id[0]].append(_encode_element(element, is_json=False))
+        for element in elements:
+            type = element_type(element['typed_id'])
+            result[type].append(_encode_element(element, is_json=False))
         return result  # pyright: ignore[reportReturnType]
 
     @staticmethod
@@ -84,13 +87,8 @@ class Element06Mixin:
         action: OSMChangeAction
 
         i: cython.size_t
-        for i, (element, type_id) in enumerate(
-            zip(
-                elements,
-                split_typed_element_ids(elements),
-                strict=True,
-            )
-        ):
+        for i, element in enumerate(elements):
+            type = element_type(element['typed_id'])
             # determine the action automatically
             if element['version'] == 1:
                 action = 'create'
@@ -102,7 +100,7 @@ class Element06Mixin:
             entry: tuple[OSMChangeAction, dict[ElementType, dict]]
             entry = (
                 action,
-                {type_id[0]: _encode_element(element, is_json=False)},
+                {type: _encode_element(element, is_json=False)},
             )
             result[i] = entry
 
@@ -142,9 +140,7 @@ class Element06Mixin:
                     element = _decode_element_unsafe(
                         key, data, changeset_id=changeset_id
                     )
-                    element_id = split_typed_element_id(element['typed_id'])[1]
-
-                    if element_id > 0:
+                    if element_id(element['typed_id']) > 0:
                         raise_for.diff_create_bad_id(element)
 
                     result.append(element)
@@ -189,7 +185,7 @@ class Element06Mixin:
 
 @cython.cfunc
 def _encode_nodes_json(nodes: list[TypedElementId]) -> list[ElementId]:
-    return [type_id[1] for type_id in split_typed_element_ids(nodes)]
+    return list(map(element_id, nodes))
 
 
 @cython.cfunc
@@ -201,7 +197,7 @@ def _encode_nodes_xml(nodes: list[TypedElementId]) -> list[dict[str, int]]:
     ... ])
     ({'@ref': 1}, {'@ref': 2})
     """
-    return [{'@ref': type_id[1]} for type_id in split_typed_element_ids(nodes)]
+    return [{'@ref': element_id(tid)} for tid in nodes]
 
 
 @cython.cfunc

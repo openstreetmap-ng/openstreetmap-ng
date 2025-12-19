@@ -75,7 +75,7 @@ impl ParseState {
     fn add_attributes<'a, I, E>(
         &mut self,
         py: Python<'_>,
-        attrs: I,
+        mut attrs: I,
         datetime_fromisoformat: &Bound<'_, PyAny>,
         parse_date: &Bound<'_, PyAny>,
     ) -> PyResult<()>
@@ -83,11 +83,11 @@ impl ParseState {
         I: Iterator<Item = Result<Attribute<'a>, E>>,
         E: Display,
     {
-        for attr in attrs {
+        attrs.try_for_each(|attr| {
             let attr = attr.map_err(|e| PyValueError::new_err(e.to_string()))?;
             let key_raw = attr.key.as_ref();
             let key_s =
-                std::str::from_utf8(key_raw).map_err(|e| PyValueError::new_err(e.to_string()))?;
+                str::from_utf8(key_raw).map_err(|e| PyValueError::new_err(e.to_string()))?;
             let value_unescaped = attr
                 .unescape_value()
                 .map_err(|e| PyValueError::new_err(e.to_string()))?;
@@ -101,8 +101,8 @@ impl ParseState {
                 .get_or_insert_with(|| PyDict::new(py).unbind());
             let set_key = cached_attr_key(py, &mut self.attr_cache, key_raw, key_s);
             dict.bind(py).set_item(set_key, value_obj)?;
-        }
-        Ok(())
+            Ok(())
+        })
     }
 
     fn start_element<'a, I, E>(
@@ -162,13 +162,17 @@ impl ParseState {
             (None, Some(list)) => Some(list.into_any()),
             (Some(dict), Some(list)) => {
                 let merged = PyList::empty(py);
-                for (k, v) in dict.bind(py).iter() {
-                    let tuple = PyTuple::new(py, [k.unbind(), v.unbind()])?.unbind();
-                    merged.append(tuple)?;
-                }
-                for item in list.bind(py).iter() {
+                dict.bind(py)
+                    .iter()
+                    .try_for_each(|(k, v)| -> PyResult<()> {
+                        let tuple = PyTuple::new(py, [k.unbind(), v.unbind()])?.unbind();
+                        merged.append(tuple)?;
+                        Ok(())
+                    })?;
+                list.bind(py).iter().try_for_each(|item| -> PyResult<()> {
                     merged.append(item)?;
-                }
+                    Ok(())
+                })?;
                 Some(merged.unbind().into_any())
             }
         };
@@ -185,10 +189,13 @@ impl ParseState {
                     // Switch to list-of-pairs to preserve sibling order and allow duplicates.
                     let list = PyList::empty(py).unbind();
                     if let Some(dict) = parent_dict.take() {
-                        for (k, v) in dict.bind(py).iter() {
-                            let tuple = PyTuple::new(py, [k.unbind(), v.unbind()])?.unbind();
-                            list.bind(py).append(tuple)?;
-                        }
+                        dict.bind(py)
+                            .iter()
+                            .try_for_each(|(k, v)| -> PyResult<()> {
+                                let tuple = PyTuple::new(py, [k.unbind(), v.unbind()])?.unbind();
+                                list.bind(py).append(tuple)?;
+                                Ok(())
+                            })?;
                     }
                     let tuple = PyTuple::new(py, [end_name.clone_ref(py).into_any(), child_value])?
                         .unbind();
@@ -301,7 +308,7 @@ fn cached_name(
     if let Some(cached) = cache.get(name_raw) {
         return Ok(cached.clone_ref(py));
     }
-    let s = std::str::from_utf8(name_raw).map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let s = str::from_utf8(name_raw).map_err(|e| PyValueError::new_err(e.to_string()))?;
     let py_s = PyString::new(py, s).unbind();
     cache.insert(name_raw.to_vec(), py_s.clone_ref(py));
     Ok(py_s)
