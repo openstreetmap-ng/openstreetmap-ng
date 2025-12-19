@@ -15,8 +15,16 @@ from speedup import CDATA
 
 def _check_for_leaks(func: Callable):
     func_lineno = func.__code__.co_firstlineno
-    iterations = 3
-    memory_usage = [0] * iterations
+
+    # Warm up internal caches/free-lists before measuring.
+    #
+    # In CPython (and especially when allocations happen inside native extensions),
+    # repeated calls can populate free-lists that keep a small amount of memory
+    # "allocated" even after `gc.collect()`. We treat that as expected steady-state
+    # behavior and only flag sustained growth after a warm-up.
+    warmup_iters = 5
+    measure_iters = 3
+    memory_usage = [0] * measure_iters
 
     def filter_stats[T: list[Statistic] | list[StatisticDiff]](stats: T) -> T:
         return [
@@ -28,11 +36,15 @@ def _check_for_leaks(func: Callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        for _ in range(warmup_iters):
+            func(*args, **kwargs)
+            gc.collect()
+
         gc.collect()
         tracemalloc.start()
         baseline = tracemalloc.take_snapshot()
 
-        for i in range(iterations):
+        for i in range(measure_iters):
             func(*args, **kwargs)
             gc.collect()
             snapshot = tracemalloc.take_snapshot()
