@@ -232,11 +232,17 @@ def _check_way_area(
 
 
 @cython.cfunc
-def _has_area_tag(tags: dict[str, str] | None) -> cython.bint:
-    return bool(
-        tags
-        and (
-            _AREA_TAGS.intersection(tags)
-            or any(key.startswith('area:') for key in tags)
-        )
-    )
+def _has_area_tag(
+    tags: dict[str, str] | None,
+    /,
+    *,
+    _AREA_TAGS=_AREA_TAGS,
+) -> cython.bint:
+    if not tags:
+        return False
+
+    for key in tags:
+        if key in _AREA_TAGS or key[:5] == 'area:':
+            return True
+
+    return False

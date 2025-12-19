@@ -196,6 +196,7 @@ ignore = [
   "S6",
   "SIM105",  # suppressible-exception
   "SIM108",  # if-else-block-instead-of-if-exp
+  "SIM110",  # reimplemented-builtin
   "TRY003",  # raise-vanilla-args
   "W191",  # tab-indentation
 ]
