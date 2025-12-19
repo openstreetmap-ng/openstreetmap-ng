@@ -7,7 +7,7 @@ from psycopg import AsyncConnection
 
 from app.config import PASSKEY_CHALLENGE_CLEANUP_PROBABILITY, PASSKEY_CHALLENGE_EXPIRE
 from app.db import db
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 
 
 class UserPasskeyChallengeService:

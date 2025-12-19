@@ -23,7 +23,7 @@ from app.models.db.user import (
     user_is_deleted,
     user_is_moderator,
 )
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil

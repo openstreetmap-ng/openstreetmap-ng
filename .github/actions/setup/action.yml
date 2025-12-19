@@ -23,25 +23,23 @@ runs:
         path=$(nix eval --impure --expr "(import (fetchTarball \"https://github.com/NixOS/nixpkgs/archive/${{ env.NIXPKGS_HASH }}.tar.gz\") {}).path")
         echo "NIX_PATH=nixpkgs=$path" >> $GITHUB_ENV
 
-    - name: Discover package caches
-      id: cache-dirs
-      shell: bash
-      run: |
-        nix-shell -p uv bun --run "
-          echo \"UV_CACHE=\$(uv cache dir)\"
-          echo \"BUN_CACHE=\$(bun pm cache)\"
-        " | tee -a $GITHUB_OUTPUT
-
     - name: Cache files and packages
       uses: actions/cache@v4
       with:
-        key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock') }}
+        key: pkg-${{ env.CACHE_KEY }}-${{ hashFiles('uv.lock', 'bun.lock', 'speedup/Cargo.lock', 'rust-toolchain.toml') }}
         path: |
-          ${{ steps.cache-dirs.outputs.UV_CACHE }}
-          ${{ steps.cache-dirs.outputs.BUN_CACHE }}
+          ~/.bun/install/cache
+          ~/.cache/uv
+          ~/Library/Caches/uv
+          ~/.cargo/git
+          ~/.cargo/registry
+          ~/.rustup/downloads
+          ~/.rustup/toolchains
           .venv
           node_modules
+          speedup/target
           app/static/img/browser
+          app/static/img/controls/_generated
           app/static/img/element/_generated
           config/locale/gnu
           config/locale/i18next

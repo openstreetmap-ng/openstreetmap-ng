@@ -29,7 +29,7 @@ from app.services.audit_service import audit
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.system_app_service import SystemAppService
 from app.utils import extend_query_params
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 
 
 class AuthProviderService:

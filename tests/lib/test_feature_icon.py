@@ -4,7 +4,7 @@ from app.lib.feature_icon import FeatureIcon, features_icons
 from app.models.db.element import ElementInit
 from app.models.element import ElementId
 from app.models.types import ChangesetId
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 
 @pytest.mark.parametrize(

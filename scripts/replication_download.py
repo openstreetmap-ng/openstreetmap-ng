@@ -27,7 +27,7 @@ from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITO
 from app.lib.xmltodict import XMLToDict
 from app.models.element import ElementType, TypedElementId
 from app.utils import HTTP
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 _Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
 _Frequency = Literal['minute', 'hour', 'day']

@@ -20,7 +20,7 @@ from app.models.db.oauth2_token import (
     OAuth2ResponseMode,
     OAuth2TokenEndpointAuthMethod,
 )
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 from tests.utils.assert_model import assert_model
 
 

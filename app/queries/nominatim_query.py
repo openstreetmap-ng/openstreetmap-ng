@@ -24,7 +24,7 @@ from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
 from app.utils import HTTP
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 _CTX = CacheContext('Nominatim')
 

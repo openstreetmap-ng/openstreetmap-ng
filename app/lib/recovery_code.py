@@ -3,7 +3,7 @@ from hmac import compare_digest
 import cython
 
 from app.lib.crypto import hash_bytes
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 
 # Base58 alphabet
 _ENC = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'

@@ -5,7 +5,7 @@ from httpx import AsyncClient
 
 from app.models.types import DisplayName
 from app.queries.user_query import UserQuery
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 from tests.utils.mailpit_helper import MailpitHelper
 
 

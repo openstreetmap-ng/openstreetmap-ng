@@ -135,7 +135,6 @@ let
     };
 
   packages' = with pkgs; [
-    llvmPackages_latest.clang-tools
     llvmPackages_latest.lld
     procps
     coreutils
@@ -157,9 +156,7 @@ let
     ruff
     gettext
     protobuf_33
-    cmake
-    libxml2.dev
-    openssl.dev
+    rustup
     # Frontend:
     nodejs-slim_24
     bun
@@ -700,26 +697,30 @@ let
       }
 
       # Run formatters
-      format_files '*.c' '*.h' -- clang-format -i
       format_files '*.nix' -- nixfmt
       format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
       format_files '*.py' '*.pyi' -- ruff format --force-exclude
       format_files '*.scss' -- bunx prettier --cache --write
       format_files '*.sql' -- bunx sql-formatter --fix
       format_files '*.ts' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
+      (cd speedup && cargo fmt)
 
       if [ "$1" = "--staged" ]; then
         # Stage changes
         git diff --cached --name-only --diff-filter=ACMR -z -- | while IFS= read -r -d ''' file; do
-          git diff --quiet -- "$file" && printf '%s\0' "$file"
+          if ! git diff --quiet -- "$file"; then
+            printf '%s\0' "$file"
+          fi
         done | xargs -0 -r git add --
       else
         # Run linters
-        set +e
+        status=0
         echo "Linting files..."
-        ruff check --fix
-        biome check --fix --formatter-enabled=false
-        bunx typescript --noEmit
+        ruff check --fix || status=1
+        biome check --fix --formatter-enabled=false || status=1
+        bunx typescript --noEmit || status=1
+        (cd speedup && cargo clippy --locked -- -D warnings) || status=1
+        exit $status
       fi
     '')
     (makeScript "pyright" "bunx basedpyright")
@@ -861,7 +862,6 @@ let
       export CFLAGS="$CFLAGS \
         -pipe -g ${if isDevelopment then "-Og" else "-O3"} \
         -march=''${CMARCH:-native} \
-        -mtune=''${CMTUNE:-native} \
         -funsafe-math-optimizations \
         -fvisibility=hidden \
         -flto=thin \
@@ -870,8 +870,14 @@ let
       export LDFLAGS="$LDFLAGS \
         -flto=thin \
         -fuse-ld=lld \
-        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O3"} \
+        ${if isDevelopment then "-Wl,-O0" else "-Wl,-O2"} \
         ${lib.optionalString stdenv.isLinux "-Wl,-z,relro -Wl,-z,now"}"
+
+      export RUSTFLAGS="$RUSTFLAGS \
+        -C target-cpu=''${CMARCH:-native} \
+        ${lib.optionalString stdenv.isLinux "-C link-arg=-fuse-ld=lld"} \
+        -C link-arg=${if isDevelopment then "-Wl,-O0" else "-Wl,-O2"} \
+        ${lib.optionalString stdenv.isLinux "-C link-arg=-Wl,-z,relro -C link-arg=-Wl,-z,now"}"
     ''
     + lib.optionalString isDevelopment ''
       export ENV=dev
@@ -927,9 +933,12 @@ let
       export UV_NATIVE_TLS=true
       export UV_PYTHON="${python'}/bin/python"
       uv sync --frozen
-      [ -n "$(find speedup -type f -newer .venv/lib/python3.13/site-packages/speedup -print -quit 2>/dev/null)" ] && \
-        uv add ./speedup --reinstall-package speedup
       source .venv/bin/activate
+      export UV_PYTHON="$VIRTUAL_ENV/bin/python"
+
+      python -m maturin_import_hook site install --args="${
+        lib.optionalString (!isDevelopment) "--release"
+      }" &
 
       echo "Installing TS/JS dependencies"
       bun install --frozen-lockfile

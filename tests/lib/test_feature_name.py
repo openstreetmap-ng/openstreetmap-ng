@@ -5,7 +5,7 @@ from app.lib.translation import translation_context
 from app.models.db.element import ElementInit
 from app.models.element import ElementId
 from app.models.types import ChangesetId, LocaleCode
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 
 @pytest.mark.parametrize(

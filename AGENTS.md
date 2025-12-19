@@ -4,7 +4,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 
 ## Project At A Glance
 
-- Backend: Python 3.13, FastAPI, async Psycopg 3, PostgreSQL 18 (PostGIS, TimescaleDB). Optional acceleration via Cython (pure‑Python mode) and `speedup` C extension.
+- Backend: Python 3.13, FastAPI, async Psycopg 3, PostgreSQL 18 (PostGIS, TimescaleDB). Optional acceleration via Cython (pure‑Python mode) and `speedup` Rust extension (PyO3).
 - Frontend: Jinja2 server‑rendered HTML; Vite‑bundled TypeScript (ES2023) and SCSS; Bootstrap 5 + Bootstrap Icons; MapLibre GL.
 - Tooling: Reproducible dev shell (`shell.nix`), Python deps via `uv`, TS/JS via `bun`, formatting with Ruff/Biome, type checks with BasedPyright.
 
@@ -22,7 +22,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 - `app/views/` — Templates (`*.html.jinja`) + feature‑scoped TypeScript/SCSS; shared libs in `app/views/lib/`.
 - `config/locale/` — Locale sources and generated outputs.
 - `scripts/` — Pipelines (locale, proto, raster, replication).
-- `speedup/` — Optional C extension for hot paths.
+- `speedup/` — Optional Rust extension for hot paths (PyO3/maturin).
 - `tests/` — Pytest suite mirroring `app/` layout.
 - Root configs: `vite.config.ts`, `tsconfig.json`, `package.json`, `pyproject.toml`, `biome.json`, `shell.nix`.
 

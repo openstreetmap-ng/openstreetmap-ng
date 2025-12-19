@@ -20,7 +20,7 @@ from app.models.element import (
     TypedElementId,
 )
 from app.models.types import ChangesetId, SequenceId
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 
 class ElementQuery:

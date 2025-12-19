@@ -25,7 +25,7 @@ from app.models.element import (
     TypedElementId,
 )
 from app.utils import calc_num_workers
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 PLANET_INPUT_PATH = PRELOAD_DIR.joinpath('preload.osm')
 PLANET_PARQUET_PATH = PRELOAD_DIR.joinpath('preload.osm.parquet')

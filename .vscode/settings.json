@@ -41,7 +41,6 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
-    ".clang-format": ".clang-format-*",
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
     "package.json": ".npmrc,bunfig.toml",

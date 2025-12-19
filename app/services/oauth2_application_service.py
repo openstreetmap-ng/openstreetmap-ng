@@ -31,7 +31,7 @@ from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.utils import splitlines_trim
 from app.validators.url import UriValidator
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 
 
 class OAuth2ApplicationService:

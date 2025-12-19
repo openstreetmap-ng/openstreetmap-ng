@@ -12,7 +12,7 @@ from app.models.element import (
     TypedElementId,
 )
 from app.models.proto.shared_pb2 import RenderElementsData
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 
 class RenderElementMixin:

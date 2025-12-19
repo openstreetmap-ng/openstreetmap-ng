@@ -21,7 +21,7 @@ from app.models.db.oauth2_token import OAuth2TokenInit
 from app.models.scope import PUBLIC_SCOPES, Scope
 from app.models.types import ApplicationId, ClientId, OAuth2TokenId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 
 SYSTEM_APP_CLIENT_ID_MAP: dict[ClientId, ApplicationId] = {}
 """

@@ -10,7 +10,7 @@ import pytest
 from sizestr import sizestr
 
 from app.lib.xmltodict import XMLToDict, get_xattr
-from speedup.xml_unparse import CDATA
+from speedup import CDATA
 
 
 def _check_for_leaks(func: Callable):

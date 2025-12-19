@@ -10,7 +10,7 @@ from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 from tests.utils.mailpit_helper import MailpitHelper
 
 

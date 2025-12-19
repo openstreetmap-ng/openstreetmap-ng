@@ -16,7 +16,7 @@ from app.models.db.element import Element
 from app.models.element import ElementId, ElementType
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 router = APIRouter(prefix='/api/web/element')
 

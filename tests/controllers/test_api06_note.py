@@ -8,7 +8,7 @@ from pydantic import PositiveInt
 from starlette import status
 
 from app.lib.xmltodict import XMLToDict
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 from tests.utils.assert_model import assert_model
 
 

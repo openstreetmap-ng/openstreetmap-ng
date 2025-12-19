@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 from app.models.element import ElementId, ElementType, TypedElementId
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 Diff06ResultDict = TypedDict(
     'Diff06ResultDict',

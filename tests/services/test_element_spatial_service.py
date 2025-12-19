@@ -8,7 +8,7 @@ from app.queries.element_spatial_query import ElementSpatialQuery
 from app.services.element_spatial_service import ElementSpatialService
 from app.services.optimistic_diff import OptimisticDiff
 from app.validators.geometry import validate_geometry
-from speedup.element_type import typed_element_id
+from speedup import typed_element_id
 
 
 @pytest.mark.extended

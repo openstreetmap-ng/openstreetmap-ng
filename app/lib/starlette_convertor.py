@@ -4,7 +4,7 @@ import re2
 from starlette.convertors import Convertor
 
 from app.models.element import ElementType
-from speedup.element_type import element_type
+from speedup import element_type
 
 
 class ElementTypeConvertor(Convertor):

@@ -14,7 +14,7 @@ from app.services.optimistic_diff.prepare import (
     ElementStateEntry,
     OptimisticDiffPrepare,
 )
-from speedup.element_type import split_typed_element_id, typed_element_id
+from speedup import split_typed_element_id, typed_element_id
 
 
 class OptimisticDiffApply:

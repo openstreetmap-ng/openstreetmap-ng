@@ -8,7 +8,7 @@ import cython
 import orjson
 
 from app.models.db.element import Element, ElementInit
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 
 class FeatureIcon(NamedTuple):

@@ -3,7 +3,7 @@ from typing import LiteralString, override
 from app.db import db
 from app.lib.storage.base import StorageBase
 from app.models.types import StorageKey
-from speedup.buffered_rand import buffered_rand_storage_key
+from speedup import buffered_rand_storage_key
 
 
 class DBStorage(StorageBase):

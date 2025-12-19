@@ -20,7 +20,7 @@ from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
-from speedup.element_type import split_typed_element_id, typed_element_id
+from speedup import split_typed_element_id, typed_element_id
 
 router = APIRouter(prefix='/partial')
 

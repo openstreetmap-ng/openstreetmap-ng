@@ -4,7 +4,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.exceptions.diff_mixin import DiffExceptionsMixin
-from speedup.element_type import split_typed_element_id
+from speedup import split_typed_element_id
 
 if TYPE_CHECKING:
     from app.models.db.element import ElementInit

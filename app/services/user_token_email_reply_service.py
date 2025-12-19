@@ -16,7 +16,7 @@ from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_query import UserQuery
 from app.queries.user_token_email_reply_query import UserTokenEmailReplyQuery
 from app.services.message_service import MessageService
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 
 
 class UserTokenEmailReplyService:

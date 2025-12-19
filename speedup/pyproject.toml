@@ -3,8 +3,12 @@ name = "speedup"
 version = "0.0.0"
 
 [build-system]
-requires = ["scikit-build-core"]
-build-backend = "scikit_build_core.build"
+requires = ["maturin<2.0"]
+build-backend = "maturin"
 
-[tool.scikit-build]
-cmake.build-type = ""
+[tool.maturin]
+bindings = "pyo3"
+features = ["pyo3/extension-module"]
+module-name = "speedup"
+profile = "release"
+editable-profile = "release"

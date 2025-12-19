@@ -12,11 +12,7 @@ from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import ElementId, ElementType, TypedElementId
 from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
-from speedup.element_type import (
-    split_typed_element_id,
-    split_typed_element_ids,
-    typed_element_id,
-)
+from speedup import split_typed_element_id, split_typed_element_ids, typed_element_id
 
 
 class Element06Mixin:

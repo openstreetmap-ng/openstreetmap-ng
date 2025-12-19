@@ -14,7 +14,7 @@ from app.queries.user_token_query import UserTokenQuery
 from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_token_service import UserTokenService
-from speedup.buffered_rand import buffered_randbytes
+from speedup import buffered_randbytes
 
 
 class UserTokenEmailService:

@@ -10,7 +10,7 @@ from app.models.db.connected_account import AuthProviderAction
 from app.queries.openid_query import OpenIDQuery
 from app.services.auth_provider_service import AuthProviderService
 from app.utils import HTTP
-from speedup.buffered_rand import buffered_rand_urlsafe
+from speedup import buffered_rand_urlsafe
 
 router = APIRouter(prefix='/oauth2/google')
 
