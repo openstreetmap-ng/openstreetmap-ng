@@ -1,7 +1,6 @@
 use std::cell::UnsafeCell;
 use std::hint::unlikely;
 
-use getrandom::getrandom;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -33,7 +32,7 @@ impl BufferedRand {
             )));
         }
         if self.pos + needed > RAND_BUFFER_SIZE {
-            getrandom(&mut self.buf).map_err(|e| PyValueError::new_err(e.to_string()))?;
+            getrandom::fill(&mut self.buf).map_err(|e| PyValueError::new_err(e.to_string()))?;
             self.pos = 0;
         }
         Ok(())
