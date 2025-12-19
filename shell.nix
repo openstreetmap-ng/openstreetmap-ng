@@ -850,6 +850,7 @@ let
     + ''
       export TZ=UTC
       export NIX_ENFORCE_NO_NATIVE=0
+      export NIX_ENFORCE_PURITY=0
       export PROC_COMP_CONFIG=data/pcompose
       export PC_DISABLE_DOTENV=1
       export PC_LOG_FILE=data/pcompose/internal.log

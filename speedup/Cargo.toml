@@ -10,10 +10,10 @@ name = "speedup"
 
 [dependencies]
 ahash = "0.8.11"
-getrandom = "0.2.16"
-parking_lot = "0.12.3"
+getrandom = "0.3.4"
 memchr = "2.7.4"
-pyo3 = { version = "0.27.2", features = ["extension-module"] }
+parking_lot = "0.12.5"
+pyo3 = { version = "0.27.2", features = ["extension-module", "parking_lot"] }
 quick-xml = "0.38.3"
 
 [profile.release]

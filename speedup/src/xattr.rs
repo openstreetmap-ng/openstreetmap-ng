@@ -1,15 +1,11 @@
 use ahash::AHashMap;
 use parking_lot::Mutex;
-use std::sync::OnceLock;
 
 use pyo3::prelude::*;
+use pyo3::sync::{MutexExt, PyOnceLock};
 use pyo3::types::PyString;
 
-static XML_CACHE: OnceLock<Mutex<AHashMap<String, Py<PyString>>>> = OnceLock::new();
-
-fn xml_cache() -> &'static Mutex<AHashMap<String, Py<PyString>>> {
-    XML_CACHE.get_or_init(|| Mutex::new(AHashMap::new()))
-}
+static XML_CACHE: PyOnceLock<Mutex<AHashMap<String, Py<PyString>>>> = PyOnceLock::new();
 
 #[pyfunction(signature = (name, /, xml = None))]
 fn xattr_json(name: Py<PyString>, xml: Option<&str>) -> Py<PyString> {
@@ -20,7 +16,9 @@ fn xattr_json(name: Py<PyString>, xml: Option<&str>) -> Py<PyString> {
 #[pyfunction(signature = (name, /, xml = None))]
 fn xattr_xml(py: Python<'_>, name: &str, xml: Option<&str>) -> PyResult<Py<PyString>> {
     let source = xml.unwrap_or(name);
-    let mut cache = xml_cache().lock();
+    let mut cache = XML_CACHE
+        .get_or_init(py, || Mutex::new(AHashMap::new()))
+        .lock_py_attached(py);
 
     if let Some(cached) = cache.get(source) {
         return Ok(cached.clone_ref(py));

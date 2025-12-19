@@ -1,8 +1,8 @@
 use std::hint::unlikely;
-use std::sync::OnceLock;
 
 use pyo3::exceptions::{PyNotImplementedError, PyOverflowError, PyValueError};
 use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{PyDict, PyList, PyString, PyTuple};
 
 const NODE_TYPE_NUM: u64 = 0;
@@ -11,15 +11,17 @@ const RELATION_TYPE_NUM: u64 = 2;
 const SIGN_MASK: u64 = 1 << 59;
 const ID_MASK: u64 = (1 << 56) - 1;
 
-static NODE_STR: OnceLock<Py<PyString>> = OnceLock::new();
-static WAY_STR: OnceLock<Py<PyString>> = OnceLock::new();
-static RELATION_STR: OnceLock<Py<PyString>> = OnceLock::new();
+static NODE_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
+static WAY_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
+static RELATION_STR: PyOnceLock<Py<PyString>> = PyOnceLock::new();
 
 fn interned_type(py: Python<'_>, type_num: u64) -> PyResult<Py<PyString>> {
     let out = match type_num {
-        NODE_TYPE_NUM => NODE_STR.get().expect("speedup not initialized"),
-        WAY_TYPE_NUM => WAY_STR.get().expect("speedup not initialized"),
-        RELATION_TYPE_NUM => RELATION_STR.get().expect("speedup not initialized"),
+        NODE_TYPE_NUM => NODE_STR.get_or_init(py, || PyString::new(py, "node").unbind()),
+        WAY_TYPE_NUM => WAY_STR.get_or_init(py, || PyString::new(py, "way").unbind()),
+        RELATION_TYPE_NUM => {
+            RELATION_STR.get_or_init(py, || PyString::new(py, "relation").unbind())
+        }
         _ => return Err(PyNotImplementedError::new_err("Unsupported element type")),
     };
     Ok(out.clone_ref(py))
@@ -143,11 +145,6 @@ fn split_typed_element_ids(py: Python<'_>, ids: &Bound<'_, PyList>) -> PyResult<
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    let py = m.py();
-    let _ = NODE_STR.set(PyString::new(py, "node").unbind());
-    let _ = WAY_STR.set(PyString::new(py, "way").unbind());
-    let _ = RELATION_STR.set(PyString::new(py, "relation").unbind());
-
     m.add_function(wrap_pyfunction!(element_type, m)?)?;
     m.add_function(wrap_pyfunction!(typed_element_id, m)?)?;
     m.add_function(wrap_pyfunction!(versioned_typed_element_id, m)?)?;

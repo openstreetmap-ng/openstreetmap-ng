@@ -1,16 +1,16 @@
 use std::borrow::Cow;
 use std::hint::{likely, unlikely};
-use std::sync::OnceLock;
 
 use memchr::{memchr, memchr3};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
+use pyo3::sync::PyOnceLock;
 use pyo3::types::{
     PyAny, PyBool, PyBoolMethods, PyBytes, PyDateAccess, PyDateTime, PyDict, PyList, PyString,
     PyTimeAccess, PyTuple, PyTzInfo, PyTzInfoAccess,
 };
 
-static UTC_TZ: OnceLock<Py<PyTzInfo>> = OnceLock::new();
+static UTC_TZ: PyOnceLock<Py<PyTzInfo>> = PyOnceLock::new();
 
 fn escape_xml<const ESCAPE_QUOTE: bool>(s: &str) -> Cow<'_, str> {
     let bytes = s.as_bytes();
@@ -93,7 +93,8 @@ fn to_string<'py>(py: Python<'py>, value: &'py Bound<'py, PyAny>) -> PyResult<Co
     if let Ok(dt) = value.cast::<PyDateTime>() {
         if let Some(tzinfo) = dt.get_tzinfo() {
             let tzinfo = tzinfo.unbind();
-            let utc = UTC_TZ.get().expect("speedup not initialized");
+            let utc = UTC_TZ
+                .get_or_try_init(py, || PyTzInfo::utc(py).map(|utc| utc.to_owned().unbind()))?;
             if unlikely(!tzinfo.is(utc)) {
                 // Reject non-UTC timestamps to avoid implicit timezone conversion.
                 return Err(PyValueError::new_err(format!(
@@ -368,10 +369,6 @@ fn xml_unparse(py: Python<'_>, root: &Bound<'_, PyDict>, binary: bool) -> PyResu
 }
 
 pub(crate) fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    let py = m.py();
-    let utc = PyTzInfo::utc(py)?.to_owned().unbind();
-    let _ = UTC_TZ.set(utc);
-
     m.add_class::<CDATA>()?;
     m.add_function(wrap_pyfunction!(xml_unparse, m)?)?;
     Ok(())
