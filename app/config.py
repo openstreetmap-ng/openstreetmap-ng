@@ -554,6 +554,7 @@ dictConfig({
             module: {'handlers': [], 'level': 'INFO'}
             for module in (
                 'botocore',
+                'filelock',
                 'hpack',
                 'httpcore',
                 'httpx',
