@@ -112,7 +112,7 @@ impl ParseState {
         attrs: I,
         datetime_fromisoformat: &Bound<'_, PyAny>,
         parse_date: &Bound<'_, PyAny>,
-    ) -> PyResult<Py<PyString>>
+    ) -> PyResult<()>
     where
         I: Iterator<Item = Result<Attribute<'a>, E>>,
         E: Display,
@@ -133,16 +133,21 @@ impl ParseState {
         }
 
         let name_obj = cached_name(py, &mut self.tag_cache, name_raw)?;
-        self.current_name = Some(name_obj.clone_ref(py));
+        self.current_name = Some(name_obj);
         self.current_text = None;
 
         self.add_attributes(py, attrs, datetime_fromisoformat, parse_date)?;
 
-        Ok(name_obj)
+        Ok(())
     }
 
-    fn finalize_element(&mut self, py: Python<'_>, end_name: Py<PyString>) -> PyResult<()> {
+    fn finalize_element(&mut self, py: Python<'_>) -> PyResult<()> {
+        let end_name = self
+            .current_name
+            .take()
+            .expect("start_element sets current_name");
         let end_name_s = end_name.bind(py).to_str()?;
+
         let current_result = match (self.current_dict.take(), self.current_list.take()) {
             (None, None) => None,
             (Some(dict), None) => {
@@ -412,14 +417,14 @@ fn xml_parse(py: Python<'_>, xml: &Bound<'_, PyBytes>) -> PyResult<Py<PyAny>> {
             Event::Empty(e) => {
                 let local_name = e.local_name();
                 let name_raw = local_name.as_ref();
-                let end_name = state.start_element(
+                state.start_element(
                     py,
                     name_raw,
                     e.attributes(),
                     &datetime_fromisoformat,
                     &parse_date,
                 )?;
-                state.finalize_element(py, end_name)?;
+                state.finalize_element(py)?;
             }
             Event::Text(e) => {
                 let decoded = e
@@ -453,10 +458,7 @@ fn xml_parse(py: Python<'_>, xml: &Bound<'_, PyBytes>) -> PyResult<Py<PyAny>> {
                 state.handle_text(py, resolved.as_ref(), &datetime_fromisoformat, &parse_date)?;
             }
             Event::End(_e) => {
-                let Some(end_name) = state.current_name.take() else {
-                    continue;
-                };
-                state.finalize_element(py, end_name)?;
+                state.finalize_element(py)?;
             }
             Event::Eof => break,
             _ => {}

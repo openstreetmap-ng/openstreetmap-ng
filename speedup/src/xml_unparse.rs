@@ -53,32 +53,23 @@ fn escape_attr(s: &str) -> Cow<'_, str> {
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 #[pyclass(frozen)]
-pub(crate) struct CDATA {
-    text: Py<PyString>,
-}
+pub(crate) struct CDATA(Py<PyString>);
 
 #[pymethods]
 impl CDATA {
     #[new]
     fn new(text: Py<PyString>) -> Self {
-        Self { text }
+        Self(text)
     }
 
     fn __str__(&self, py: Python<'_>) -> Py<PyString> {
-        self.text.clone_ref(py)
+        self.0.clone_ref(py)
     }
 
     fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
-        let repr = self.text.bind(py).repr()?.to_str()?.to_owned();
+        let repr = self.0.bind(py).repr()?.to_str()?.to_owned();
         Ok(format!("CDATA({repr})"))
     }
-}
-
-fn cdata_text(value: &Bound<'_, PyAny>) -> PyResult<Option<String>> {
-    if let Ok(cdata) = value.extract::<PyRef<CDATA>>() {
-        return Ok(Some(cdata.text.bind(value.py()).to_str()?.to_owned()));
-    }
-    Ok(None)
 }
 
 fn to_string<'py>(py: Python<'py>, value: &'py Bound<'py, PyAny>) -> PyResult<Cow<'py, str>> {
@@ -125,14 +116,17 @@ fn to_string<'py>(py: Python<'py>, value: &'py Bound<'py, PyAny>) -> PyResult<Co
     Ok(Cow::Owned(value.str()?.to_str()?.to_owned()))
 }
 
-fn scalar_text<'py>(
-    py: Python<'py>,
-    value: &'py Bound<'py, PyAny>,
-) -> PyResult<(bool, Cow<'py, str>)> {
-    if let Some(text) = cdata_text(value)? {
-        return Ok((true, Cow::Owned(text)));
+enum ScalarText<'py> {
+    #[allow(clippy::upper_case_acronyms)]
+    CDATA(Py<PyString>),
+    Text(Cow<'py, str>),
+}
+
+fn scalar_text<'py>(py: Python<'py>, value: &'py Bound<'py, PyAny>) -> PyResult<ScalarText<'py>> {
+    if let Ok(cdata) = value.extract::<PyRef<'py, CDATA>>() {
+        return Ok(ScalarText::CDATA(cdata.0.clone_ref(py)));
     }
-    Ok((false, to_string(py, value)?))
+    Ok(ScalarText::Text(to_string(py, value)?))
 }
 
 fn serialize_scalar_element(
@@ -140,15 +134,19 @@ fn serialize_scalar_element(
     key: &str,
     value: &Bound<'_, PyAny>,
 ) -> PyResult<String> {
-    let (is_cdata, text) = scalar_text(py, value)?;
-    if is_cdata {
-        return Ok(format!("<{key}><![CDATA[{text}]]></{key}>"));
+    match scalar_text(py, value)? {
+        ScalarText::CDATA(text) => {
+            let text = text.bind(py).to_str()?;
+            Ok(format!("<{key}><![CDATA[{text}]]></{key}>"))
+        }
+        ScalarText::Text(text) => {
+            if text.is_empty() {
+                return Ok(format!("<{key}/>"));
+            }
+            let escaped = escape_text(text.as_ref());
+            Ok(format!("<{key}>{escaped}</{key}>"))
+        }
     }
-    if text.is_empty() {
-        return Ok(format!("<{key}/>"));
-    }
-    let escaped = escape_text(text.as_ref());
-    Ok(format!("<{key}>{}</{key}>", escaped))
 }
 
 fn serialize_dict_element(py: Python<'_>, key: &str, dict: &Bound<'_, PyDict>) -> PyResult<String> {
@@ -189,15 +187,17 @@ where
         }
         if key_s == "#text" {
             // "#text" writes character data directly inside the element.
-            let (is_cdata, text) = scalar_text(py, &v)?;
-            if is_cdata {
-                inner.push_str("<![CDATA[");
-                inner.push_str(text.as_ref());
-                inner.push_str("]]>");
-            } else {
-                let escaped = escape_text(text.as_ref());
-                inner.push_str(escaped.as_ref());
-            }
+            match scalar_text(py, &v)? {
+                ScalarText::CDATA(text) => {
+                    inner.push_str("<![CDATA[");
+                    inner.push_str(text.bind(py).to_str()?);
+                    inner.push_str("]]>");
+                }
+                ScalarText::Text(text) => {
+                    let escaped = escape_text(text.as_ref());
+                    inner.push_str(escaped.as_ref());
+                }
+            };
             continue;
         }
         inner.push_str(&serialize_element(py, key_s, &v, false)?);
