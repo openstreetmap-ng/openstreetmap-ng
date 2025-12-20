@@ -5,7 +5,6 @@ from rtree.index import Index
 from shapely import (
     MultiPolygon,
     Point,
-    Polygon,
     box,
     get_coordinates,
     measurement,
@@ -18,6 +17,10 @@ from app.config import (
     CHANGESET_NEW_BBOX_MIN_RATIO,
 )
 
+_BBox = list[float]
+
+_FIXED_K_MAX_CANDIDATE_EDGES = 5_000_000
+
 
 def extend_changeset_bounds(
     bounds: MultiPolygon | None,
@@ -25,11 +28,11 @@ def extend_changeset_bounds(
     *,
     CHANGESET_BBOX_LIMIT: cython.size_t = CHANGESET_BBOX_LIMIT,
 ) -> MultiPolygon:
-    bboxes: list[list[float]]
+    bboxes: list[_BBox]
     bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     num_bboxes: cython.size_t = len(bboxes)
     num_bounds: cython.size_t = num_bboxes
-    dirty_mask: list[bool] = [False] * CHANGESET_BBOX_LIMIT
+    dirty_mask = [False] * CHANGESET_BBOX_LIMIT
 
     # create index
     index = Index()
@@ -38,24 +41,19 @@ def extend_changeset_bounds(
         index.insert(i, bbox)
 
     # process clusters
-    for cluster in _cluster_points(points):
-        minx, miny = cluster.min(axis=0).tolist()
-        maxx, maxy = cluster.max(axis=0).tolist()
-        bbox = [minx, miny, maxx, maxy]
+    for bbox in _cluster_point_bboxes(points):
+        buffer_bbox = _get_buffer_bbox(bbox)
 
         # below the limit, find the intersection, otherwise find the nearest
         i = (
-            next(index.intersection(_get_buffer_bbox(bbox), False), None)
+            next(index.intersection(buffer_bbox, False), None)
             if num_bboxes < CHANGESET_BBOX_LIMIT
-            else next(index.nearest(_get_buffer_bbox(bbox), 1, False))
+            else next(index.nearest(buffer_bbox, 1, False))
         )
 
         if i is not None:
             # merge with the existing bbox
-            index.delete(i, bboxes[i])
-            bbox = bboxes[i] = _union_bbox(bbox, bboxes[i])
-            index.insert(i, bbox)
-            dirty_mask[i] = True
+            _merge_bbox_into_index(index, bboxes, dirty_mask, bbox, i)
         else:
             # add new bbox
             bboxes.append(bbox)
@@ -63,34 +61,29 @@ def extend_changeset_bounds(
             num_bboxes += 1
 
     # recheck dirty bboxes
-    check_queue: list[int] = list(range(num_bboxes))
-    deleted_mask: list[bool] = [False] * num_bboxes
+    check_queue = list(range(num_bboxes))
+    deleted_mask = [False] * num_bboxes
     while check_queue:
         check_i = check_queue.pop()
         bbox = bboxes[check_i]
+        buffer_bbox = _get_buffer_bbox(bbox)
         i = next(
-            (
-                idx
-                for idx in index.intersection(_get_buffer_bbox(bbox), False)
-                if idx != check_i
-            ),
+            (idx for idx in index.intersection(buffer_bbox, False) if idx != check_i),
             None,
         )
         if i is None:
             continue
 
-        # merge with the existing bbox
+        # delete bbox at check_i
         index.delete(check_i, bbox)
         deleted_mask[check_i] = True
 
-        index.delete(i, bboxes[i])
-        bbox = bboxes[i] = _union_bbox(bbox, bboxes[i])
-        index.insert(i, bbox)
-        dirty_mask[i] = True
-        check_queue.append(i)
+        # merge bbox into i (if it expands it)
+        if _merge_bbox_into_index(index, bboxes, dirty_mask, bbox, i):
+            check_queue.append(i)
 
     # combine results
-    result: list[Polygon] = (
+    result = (
         [
             box(*bboxes[i]) if dirty_mask[i] else poly  # type: ignore
             for i, poly in enumerate(bounds.geoms)
@@ -108,40 +101,115 @@ def extend_changeset_bounds(
 
 
 @cython.cfunc
-def _cluster_points(points: list[Point]) -> list[NDArray[np.float64]]:
-    num_points: cython.size_t = len(points)
+def _merge_bbox_into_index(
+    index: Index,
+    bboxes: list[_BBox],
+    dirty_mask: list[bool],
+    bbox: _BBox,
+    i: int,
+) -> cython.bint:
+    existing = bboxes[i]
+    merged = _union_bbox(bbox, existing)
+    if merged == existing:
+        return False
+
+    index.delete(i, existing)
+    bboxes[i] = merged
+    index.insert(i, merged)
+    dirty_mask[i] = True
+    return True
+
+
+@cython.cfunc
+def _cluster_point_bboxes(points: list[Point]) -> list[_BBox]:
+    num_points = len(points)
     assert num_points > 0, 'Clustering requires at least one point'
     coords = get_coordinates(points)
 
     if num_points == 1:
-        return [coords]
+        x, y = coords[0]
+        return [[x, y, x, y]]
 
     if num_points <= CHANGESET_BBOX_LIMIT:
-        n_clusters = None
-        distance_threshold = CHANGESET_NEW_BBOX_MIN_DISTANCE
-    else:
-        n_clusters = CHANGESET_BBOX_LIMIT
-        distance_threshold = None
+        labels = _agglomerative_clustering(
+            coords,
+            num_clusters=None,
+            distance_threshold=CHANGESET_NEW_BBOX_MIN_DISTANCE,
+        )
+        return _labels_to_bboxes(coords, labels)
 
-    labels = _agglomerative_clustering(
-        coords, n_clusters=n_clusters, distance_threshold=distance_threshold
-    )
+    if num_points <= (_FIXED_K_MAX_CANDIDATE_EDGES // 4):
+        labels = _agglomerative_clustering(
+            coords,
+            num_clusters=CHANGESET_BBOX_LIMIT,
+            distance_threshold=None,
+        )
+        return _labels_to_bboxes(coords, labels)
 
-    # Sort points by label
-    sort_idx = np.argsort(labels)
-    sorted_labels = labels[sort_idx]
-    sorted_coords = coords[sort_idx]
+    return _k_center_bboxes(coords, num_clusters=CHANGESET_BBOX_LIMIT)
 
-    # Split the coords at the boundaries
-    split_indices = np.unique(sorted_labels, return_index=True)[1][1:]
-    return np.split(sorted_coords, split_indices)
+
+@cython.cfunc
+def _labels_to_bboxes(
+    coords: NDArray[np.float64], labels: NDArray[np.int64]
+) -> list[_BBox]:
+    return _reduce_labels_to_bboxes_xy(
+        x=coords[:, 0],
+        y=coords[:, 1],
+        labels=labels,
+        num_clusters=int(labels.max()) + 1,
+    ).tolist()
+
+
+@cython.cfunc
+def _reduce_labels_to_bboxes_xy(
+    x: NDArray[np.float64],
+    y: NDArray[np.float64],
+    labels: NDArray[np.integer],
+    num_clusters: int,
+) -> NDArray[np.float64]:
+    minx = np.full(num_clusters, np.inf, dtype=np.float64)
+    miny = np.full(num_clusters, np.inf, dtype=np.float64)
+    maxx = np.full(num_clusters, -np.inf, dtype=np.float64)
+    maxy = np.full(num_clusters, -np.inf, dtype=np.float64)
+
+    np.minimum.at(minx, labels, x)
+    np.minimum.at(miny, labels, y)
+    np.maximum.at(maxx, labels, x)
+    np.maximum.at(maxy, labels, y)
+
+    return np.stack((minx, miny, maxx, maxy), axis=1).tolist()
+
+
+@cython.cfunc
+def _k_center_bboxes(coords: NDArray[np.float64], *, num_clusters: int) -> list[_BBox]:
+    x = coords[:, 0]
+    y = coords[:, 1]
+    labels = np.zeros(len(coords), dtype=np.int8)
+
+    first = np.argmin(x)
+    dist = np.abs(x - x[first])
+    np.maximum(dist, np.abs(y - y[first]), out=dist)
+
+    for n in range(1, num_clusters):
+        next_center = np.argmax(dist)
+        dx = np.abs(x - x[next_center])
+        np.maximum(dx, np.abs(y - y[next_center]), out=dx)
+
+        improved = dx < dist
+        labels[improved] = n
+        dist[improved] = dx[improved]
+
+    counts = np.bincount(labels, minlength=num_clusters)
+    keep = counts > 0
+    return _reduce_labels_to_bboxes_xy(x, y, labels, num_clusters)[keep].tolist()
 
 
 @cython.cfunc
 def _agglomerative_clustering(
     coords: NDArray[np.float64],
     *,
-    n_clusters: int | None,
+    num_clusters: int | None,
     distance_threshold: float | None,
 ) -> NDArray[np.int64]:
     """Agglomerative clustering with single linkage and Chebyshev distance."""
@@ -175,66 +243,52 @@ def _agglomerative_clustering(
                 parent[j] = i
 
     else:
-        assert n_clusters is not None, (
+        assert num_clusters is not None, (
             'One of n_clusters or distance_threshold must be set'
         )
 
         # FIXED K-CLUSTERS
         x = coords[:, 0]
         y = coords[:, 1]
-        window = min(32, int(num_points - 1))
+        window: cython.size_t = min(32, num_points - 1)
+        window_budget: cython.size_t = _FIXED_K_MAX_CANDIDATE_EDGES // (4 * num_points)
+        window = min(window, max(1, window_budget))
 
         # Orders: permutations capture short L∞ neighbors in different orientations.
         # Including x-adjacent pairs makes the candidate graph connected,
         # so we can always reach n_clusters via Kruskal.
-        order_x = np.argsort(x)
-        order_y = np.argsort(y)
-        order_xpy = np.argsort(x + y)
-        order_xmy = np.argsort(x - y)
-        orders_stacked = np.stack(
-            (
-                order_x,
-                order_x[::-1],
-                order_y,
-                order_y[::-1],
-                order_xpy,
-                order_xpy[::-1],
-                order_xmy,
-                order_xmy[::-1],
-            ),
-            axis=0,
-        )  # (8, N)
-        del order_x, order_y, order_xpy, order_xmy
+        orders = (
+            np.argsort(x),
+            np.argsort(y),
+            np.argsort(x + y),
+            np.argsort(x - y),
+        )
 
-        # Sliding windows: per order, take width (window+1). First column is the
-        # source; remaining columns are destinations i+1..i+window.
-        orders_win = np.lib.stride_tricks.sliding_window_view(
-            orders_stacked, window_shape=window + 1, axis=1
-        )  # (8, N-window, window+1)
-        orders_win = np.concatenate(
-            (orders_win[::2], orders_win[1::2, :window]), axis=1
-        )  # (4, N, window+1)
-        del orders_stacked
+        edges_per_order = window * num_points - (window * (window + 1) // 2)
+        num_edges = edges_per_order * len(orders)
+        src_idx = np.empty(num_edges, dtype=np.int64)
+        dst_idx = np.empty(num_edges, dtype=np.int64)
 
-        # Chebyshev distance per (src,dst) pair
-        src_ix = orders_win[..., :1]  # (4, N, 1)
-        dst_ix = orders_win[..., 1:]  # (4, N, window)
-        dx = x[dst_ix]
-        dx -= x[src_ix]
+        pos = 0
+        order: NDArray[np.int64]
+        d: int
+        for order in orders:
+            for d in range(1, window + 1):
+                m = num_points - d
+                src_idx[pos : pos + m] = order[:m]
+                dst_idx[pos : pos + m] = order[d:]
+                pos += m
+
+        dx = x[dst_idx] - x[src_idx]
         np.abs(dx, out=dx)
-        dy = y[dst_ix]
-        dy -= y[src_ix]
+        dy = y[dst_idx] - y[src_idx]
         np.abs(dy, out=dy)
         np.maximum(dx, dy, out=dx)
-        ed = dx.reshape(-1)
-        del x, y, src_ix, dst_ix, dx, dy
 
-        # Kruskal: sort edges by weight
-        order_e = np.argsort(ed)
-        dst_idx = orders_win[..., 1:].reshape(-1)[order_e]
-        order_e //= window
-        src_idx = orders_win[..., 0].reshape(-1)[order_e]
-        del orders_win, ed, order_e
+        order_e = np.argsort(dx)
+        src_idx = src_idx[order_e]
+        dst_idx = dst_idx[order_e]
+        del x, y, dx, dy, order_e
 
         # Make edges undirected by sorting (src,dst)
         keys = np.minimum(src_idx, dst_idx)
@@ -246,16 +300,17 @@ def _agglomerative_clustering(
         keys += dst_idx
         order = np.argsort(keys)
         keys = keys[order]
-        keep_sorted = np.empty(order.size, dtype=bool)
+        keep_sorted = np.empty(len(order), dtype=bool)
         keep_sorted[0] = True
         np.not_equal(keys[1:], keys[:-1], out=keep_sorted[1:])
-        keep = np.empty(order.size, dtype=bool)
+        keep = np.empty(len(order), dtype=bool)
         keep[order] = keep_sorted
         src_idx = src_idx[keep]
         dst_idx = dst_idx[keep]
         del keys, order, keep_sorted, keep
 
         # Union until n_clusters
+        num_components: cython.size_t = num_points
         for i, j in zip(src_idx, dst_idx, strict=True):
             # Find roots with path halving
             while parent[i] != i:
@@ -268,8 +323,8 @@ def _agglomerative_clustering(
             # Union if in different clusters
             if i != j:
                 parent[j] = i
-                num_points -= 1
-                if num_points <= n_clusters:
+                num_components -= 1
+                if num_components <= num_clusters:
                     break
 
     del src_idx, dst_idx
@@ -285,7 +340,7 @@ def _agglomerative_clustering(
 
 
 @cython.cfunc
-def _get_buffer_bbox(bound: list[float]) -> list[float]:
+def _get_buffer_bbox(bound: _BBox, /) -> _BBox:
     minx: cython.double = bound[0]
     miny: cython.double = bound[1]
     maxx: cython.double = bound[2]
@@ -307,7 +362,7 @@ def _get_buffer_bbox(bound: list[float]) -> list[float]:
 
 
 @cython.cfunc
-def _union_bbox(b1: list[float], b2: list[float]) -> list[float]:
+def _union_bbox(b1: _BBox, b2: _BBox, /) -> _BBox:
     return [
         min(b1[0], b2[0]),
         min(b1[1], b2[1]),
