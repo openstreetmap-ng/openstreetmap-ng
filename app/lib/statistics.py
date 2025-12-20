@@ -51,7 +51,9 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     # Calculate activity intensity levels (0-19 scale)
     activity_positive = activity[activity > 0]
     max_activity_clip = (
-        np.percentile(activity_positive, 95) if activity_positive.size else 1
+        np.percentile(activity_positive, 95)
+        if len(activity_positive) > 0  #
+        else 1
     )
     activity_levels = (  #
         np.ceil(np.clip(activity / max_activity_clip, 0, 1) * 19).astype(np.uint8)

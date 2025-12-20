@@ -236,7 +236,7 @@ class TraceQuery:
             # Reconstruct segments to contain only intersecting points
             intersect_mask = intersects_xy(geometry, points)
             new_points = points[intersect_mask]
-            if not new_points.size:
+            if len(new_points) == 0:
                 continue
             new_segment_indices = segment_indices[intersect_mask]
             filtered_traces.append(trace)

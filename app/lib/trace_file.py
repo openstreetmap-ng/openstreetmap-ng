@@ -204,7 +204,7 @@ class _ZipProcessor(_TraceProcessor):
                         file_data = f.read(remaining_size)
                         remaining_size -= len(file_data)
                         result.append(file_data)
-                        if not remaining_size and f.read(1):
+                        if remaining_size == 0 and f.read(1):
                             raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
 
         except BadZipFile:

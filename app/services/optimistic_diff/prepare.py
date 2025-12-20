@@ -228,7 +228,7 @@ class OptimisticDiffPrepare:
             if 'unassigned_typed_id' not in element
         ]
         num_typed_ids: cython.size_t = len(typed_ids)
-        if not num_typed_ids:
+        if num_typed_ids == 0:
             return
 
         logging.debug('Optimistic preloading %d elements', num_typed_ids)
@@ -472,10 +472,12 @@ class OptimisticDiffPrepare:
         full_diff: cython.bint = (
             prev is None
             or prev['tags'] != element['tags']
-            or np.any(
-                (typed_ids_changed >= TYPED_ELEMENT_ID_RELATION_MIN)
-                & (typed_ids_changed <= TYPED_ELEMENT_ID_RELATION_MAX)
-            ).tolist()
+            or bool(
+                np.any(
+                    (typed_ids_changed >= TYPED_ELEMENT_ID_RELATION_MIN)
+                    & (typed_ids_changed <= TYPED_ELEMENT_ID_RELATION_MAX)
+                )
+            )
         )
 
         typed_ids_diff: list[TypedElementId] = (

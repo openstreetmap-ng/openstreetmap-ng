@@ -458,7 +458,7 @@ async def _increase_frequency(state: AppState) -> AppState:
 
     # Binary search for closest replica at new frequency
     while True:
-        if not step:
+        if step == 0:
             raise ValueError(
                 f"Couldn't find {new_frequency!r} replica at {current_created_at!r}"
             )

@@ -183,7 +183,7 @@ async def query_changesets(
                 'Changesets query must be a comma-separated list of integers',
                 status.HTTP_400_BAD_REQUEST,
             )
-        if not ids.size:
+        if len(ids) == 0:
             return Response(
                 'No changesets were given to search for', status.HTTP_400_BAD_REQUEST
             )

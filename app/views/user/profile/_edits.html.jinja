@@ -71,7 +71,7 @@
                     {{ t('action.view_more') }}
                 </a>
             </li>
-            {% elif not changesets_count %}
+            {% elif changesets_count == 0 %}
             <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
             {% endif %}
         </ul>

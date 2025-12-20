@@ -36,7 +36,7 @@ class RequestBodyMiddleware:
 
         async for chunk in req.stream():
             chunk_size: cython.size_t = len(chunk)
-            if not chunk_size:
+            if chunk_size == 0:
                 break
 
             input_size += chunk_size
