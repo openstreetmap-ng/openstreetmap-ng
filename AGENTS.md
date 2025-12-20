@@ -22,6 +22,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 - `app/views/` — Templates (`*.html.jinja`) + feature‑scoped TypeScript/SCSS; shared libs in `app/views/lib/`.
 - `config/locale/` — Locale sources and generated outputs.
 - `scripts/` — Pipelines (locale, proto, raster, replication).
+- `shellscripts/` — Dev shell commands (loaded by `shell.nix`); `*.sh` for plain bash, `*.nix` when Nix features are needed. Command name matches the filename.
 - `speedup/` — Optional Rust extension for hot paths (PyO3/maturin).
 - `tests/` — Pytest suite mirroring `app/` layout.
 - Root configs: `vite.config.ts`, `tsconfig.json`, `package.json`, `pyproject.toml`, `biome.json`, `shell.nix`.
