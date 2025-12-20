@@ -52,7 +52,6 @@ if (isCrashReportingEnabled(config)) {
 
     if (ENV === "test") {
         console.debug("Sentry: Feedback integration")
-        const appTheme = themeStorage.get()
         addIntegration(
             feedbackIntegration({
                 triggerLabel: "Report Issue",
@@ -60,7 +59,8 @@ if (isCrashReportingEnabled(config)) {
                 submitButtonLabel: "Send Report",
                 messagePlaceholder:
                     "What's the problem? How to reproduce it? What's the expected behavior?",
-                colorScheme: appTheme === "auto" ? "system" : appTheme,
+                colorScheme:
+                    themeStorage.value === "auto" ? "system" : themeStorage.value,
                 themeDark: { background: "#212529" },
             }),
         )

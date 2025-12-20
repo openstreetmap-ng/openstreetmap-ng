@@ -50,7 +50,7 @@ const buildLocales = () => {
   return primary ? [primary, ...entries.filter((e) => !e.isPrimary)] : entries
 }
 
-const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) => {
+const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -82,30 +82,30 @@ const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) 
 
   return (
     <div
-      id="languagePickerModal"
-      className="modal fade"
+      id="LanguageSwitcherModal"
+      class="modal fade"
       tabIndex={-1}
       aria-hidden="true"
       ref={modalRef}
     >
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
               {t("language_picker.select_your_preferred_language")}
             </h5>
             <button
-              className="btn-close"
+              class="btn-close"
               aria-label={t("javascripts.close")}
               type="button"
               data-bs-dismiss="modal"
             />
           </div>
 
-          <div className="modal-body">
+          <div class="modal-body">
             <input
               type="text"
-              className="form-control mb-3"
+              class="form-control mb-3"
               placeholder={`${t("language_picker.search_languages")}...`}
               autoComplete="off"
               aria-label={t("language_picker.search_languages")}
@@ -114,7 +114,7 @@ const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) 
               ref={searchInputRef}
             />
             <ul
-              className="language-list list-unstyled mb-3"
+              class="language-list list-unstyled mb-3"
               aria-live="polite"
             >
               {localesFiltered.value.map((locale) => (
@@ -125,19 +125,17 @@ const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) 
                     aria-current={locale.isPrimary ? "true" : undefined}
                     onClick={() => setLanguage(locale.code)}
                   >
-                    {locale.flag ? <span className="flag">{locale.flag}</span> : null}
-                    <span className="name-native">
-                      {locale.native ?? locale.english}
-                    </span>
+                    {locale.flag ? <span class="flag">{locale.flag}</span> : null}
+                    <span class="name-native">{locale.native ?? locale.english}</span>
                     {locale.native ? (
-                      <span className="name-english">{locale.english}</span>
+                      <span class="name-english">{locale.english}</span>
                     ) : null}
                   </button>
                 </li>
               ))}
             </ul>
 
-            <p className="form-text mb-0">
+            <p class="form-text mb-0">
               {tRich("internalization.get_started", {
                 this_guide: () => (
                   <a
@@ -152,10 +150,10 @@ const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) 
             </p>
           </div>
 
-          <div className="modal-footer">
+          <div class="modal-footer">
             <button
               type="button"
-              className="btn btn-secondary"
+              class="btn btn-secondary"
               data-bs-dismiss="modal"
             >
               {t("javascripts.close")}
@@ -167,7 +165,7 @@ const LanguagePickerModal = ({ modalInstance }: { modalInstance: () => Modal }) 
   )
 }
 
-const LanguagePicker = () => {
+const LanguageSwitcher = () => {
   const modalInstanceRef = useRef<Modal | null>(null)
 
   const ensureModal = () => {
@@ -177,7 +175,7 @@ const LanguagePicker = () => {
 
     const modalRoot = document.createElement("div")
     document.body.append(modalRoot)
-    render(<LanguagePickerModal modalInstance={() => modalInstance} />, modalRoot)
+    render(<LanguageSwitcherModal modalInstance={() => modalInstance} />, modalRoot)
 
     const modalElement = modalRoot.querySelector(".modal")!
     const modalInstance = Modal.getOrCreateInstance(modalElement)
@@ -191,21 +189,21 @@ const LanguagePicker = () => {
 
   return (
     <div
-      id="languagePicker"
-      className="d-flex d-lg-inline-flex mt-2 mt-lg-0 ms-lg-1"
+      id="LanguageSwitcher"
+      class="d-flex d-lg-inline-flex mt-2 mt-lg-0 ms-lg-1"
     >
       <button
-        className="btn btn-light btn-bg-initial navbar-color w-100"
+        class="btn btn-light btn-bg-initial navbar-color w-100"
         type="button"
         title={t("settings.choose_language")}
         onClick={showModal}
       >
-        <i className="bi bi-translate" />
-        <span className="d-lg-none ms-2">{t("settings.choose_language")}</span>
+        <i class="bi bi-translate" />
+        <span class="d-lg-none ms-2">{t("settings.choose_language")}</span>
       </button>
     </div>
   )
 }
 
-const root = document.querySelector(".language-picker-root")
-if (root) render(<LanguagePicker />, root)
+const root = document.querySelector(".language-switcher-root")
+if (root) render(<LanguageSwitcher />, root)

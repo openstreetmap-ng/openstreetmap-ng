@@ -1,7 +1,7 @@
-import { getActiveTheme, overlayOpacityStorage } from "@lib/local-storage"
-import { activeTheme } from "@lib/theme"
+import { overlayOpacityStorage } from "@lib/local-storage"
+import { effectiveTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
-import { effect } from "@preact/signals-core"
+import { effect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
@@ -258,7 +258,7 @@ export const addMapLayerSources = (
     kind: "all" | "base" | LayerId,
 ) => {
     const exactConfig = layersConfig.get(kind as LayerId)
-    const isDarkTheme = getActiveTheme() === "dark"
+    const isDarkTheme = effectiveTheme.value === "dark"
     let watchMap = false
     for (const [layerId, config] of exactConfig
         ? [[kind, exactConfig] as [LayerId, LayerConfig]]
@@ -301,9 +301,14 @@ const watchMapsLayerSources: MaplibreMap[] = []
 
 // Listen for theme changes
 effect(() => {
-    const theme = activeTheme.value
-    console.debug("Layers: Theme changed", theme, watchMapsLayerSources.length, "maps")
-    const isDarkTheme = theme === "dark"
+    const isDarkTheme = effectiveTheme.value === "dark"
+    console.debug(
+        "Layers: Set",
+        isDarkTheme ? "dark" : "light",
+        "tiles for",
+        watchMapsLayerSources.length,
+        "maps",
+    )
     for (const map of watchMapsLayerSources) {
         for (const [layerId, config] of layersConfig) {
             const source = map.getSource(layerId)

@@ -10,7 +10,7 @@ import {
     StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
 import { range } from "@lib/utils"
-import { batch, effect, signal } from "@preact/signals-core"
+import { batch, effect, signal } from "@preact/signals"
 import { assert, assertExists } from "@std/assert"
 import i18next from "i18next"
 

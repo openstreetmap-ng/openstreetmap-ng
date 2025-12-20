@@ -1,4 +1,4 @@
-import { effect, signal } from "@preact/signals-core"
+import { effect, signal } from "@preact/signals"
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
 import { LruCache } from "@std/cache/lru-cache"

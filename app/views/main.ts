@@ -10,9 +10,10 @@ if (ENV !== "prod") {
 
 import "@lib/tracking"
 
-import "./navbar/_theme"
-import "@lib/datetime-inputs"
 import "@lib/i18n"
+
+import "./navbar/_theme-switcher"
+import "@lib/datetime-inputs"
 import "@lib/image-proxy"
 
 import "./_unsubscribe-discussion"
@@ -29,7 +30,7 @@ import "./fixthemap"
 import "./follows/index"
 import "./messages/index"
 import "./messages/new"
-import "./navbar/_language-picker"
+import "./navbar/_language-switcher"
 import "./notes"
 import "./oauth2/fragment-callback"
 import "./oauth2/response-form-post"

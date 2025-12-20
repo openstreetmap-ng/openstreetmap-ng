@@ -1,9 +1,9 @@
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import type { LayerId } from "@lib/map/layers/layers"
 import type { MapState } from "@lib/map/state"
-import { getDeviceThemePreference } from "@lib/polyfills"
+import { effect, type Signal, signal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
-import type { AppTheme } from "./theme"
+import type { Theme } from "./theme"
 
 type StorageConfig<T> = {
     defaultValue?: T
@@ -62,13 +62,32 @@ function createScopedStorage<T>(prefix: string, config?: StorageConfig<T>) {
     return memoize((scope: string) => createStorage<T>(`${prefix}-${scope}`, config))
 }
 
-export const themeStorage = createStorage<AppTheme>("theme", {
+export function createStorageSignal<T>(
+    key: string,
+    config: StorageConfig<T> & { defaultValue: T },
+): Signal<T>
+export function createStorageSignal<T>(
+    key: string,
+    config?: StorageConfig<T>,
+): Signal<T | null>
+export function createStorageSignal<T>(key: string, config: StorageConfig<T> = {}) {
+    const storage = createStorage<T>(key, config)
+    const storageSignal = signal(storage.get())
+    let initialized = false
+
+    effect(() => {
+        if (storageSignal.value && initialized) {
+            storage.set(storageSignal.value)
+        }
+        initialized = true
+    })
+
+    return storageSignal
+}
+
+export const themeStorage = createStorageSignal<Theme>("theme", {
     defaultValue: "auto",
 })
-export const getActiveTheme = () => {
-    const appTheme = themeStorage.get()
-    return appTheme === "auto" ? getDeviceThemePreference() : appTheme
-}
 
 export const mapStateStorage = createStorage<MapState>("mapState", {
     validate: (value) =>

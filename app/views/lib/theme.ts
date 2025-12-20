@@ -1,23 +1,24 @@
-import { signal } from "@preact/signals-core"
+import { computed, effect, signal } from "@preact/signals"
 import { themeStorage } from "./local-storage"
-import { getDeviceThemePreference } from "./polyfills"
 
-export type AppTheme = "light" | "dark" | "auto"
+type PrefersColorScheme = "light" | "dark"
 
-/** Compute the active theme from app theme setting */
-const computeActiveTheme = (appTheme: AppTheme) =>
-    appTheme === "auto" ? getDeviceThemePreference() : appTheme
+export type Theme = PrefersColorScheme | "auto"
 
-/** The currently active theme (resolved from user preference or system setting) */
-export const activeTheme = signal(computeActiveTheme(themeStorage.get()))
+const getPrefersColorScheme = () =>
+    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
-/** Update active theme from current storage value */
-export const refreshActiveTheme = () => {
-    activeTheme.value = computeActiveTheme(themeStorage.get())
-}
+const prefersColorScheme = signal<PrefersColorScheme>(getPrefersColorScheme())
 
-// Listen for system color scheme changes
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
     console.debug("Theme: System preference changed")
-    refreshActiveTheme()
+    prefersColorScheme.value = getPrefersColorScheme()
+})
+
+export const effectiveTheme = computed(() =>
+    themeStorage.value === "auto" ? prefersColorScheme.value : themeStorage.value,
+)
+
+effect(() => {
+    document.documentElement.dataset.bsTheme = effectiveTheme.value
 })

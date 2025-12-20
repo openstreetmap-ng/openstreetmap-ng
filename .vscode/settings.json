@@ -45,7 +45,7 @@
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
     ".gitignore": ".gitattributes",
-    "*.html.jinja": "${capture}.*",
+    "*.html.jinja": "${capture}.scss,${capture}.ts",
     "*.tsx": "${capture}.*",
     "package.json": ".npmrc,bunfig.toml",
     "pyproject.toml": "uv.lock",

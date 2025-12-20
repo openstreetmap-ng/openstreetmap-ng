@@ -35,6 +35,3 @@ export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(
         idleCallbackId = requestIdleCallbackPolyfill(() => fn(...args), { timeout })
     }) as T
 }
-
-export const getDeviceThemePreference = () =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"

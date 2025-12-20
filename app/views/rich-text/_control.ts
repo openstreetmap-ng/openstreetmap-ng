@@ -1,4 +1,4 @@
-import { effect, signal } from "@preact/signals-core"
+import { effect, signal } from "@preact/signals"
 import i18next from "i18next"
 
 const richTextContainers = document.querySelectorAll(".rich-text-container")
