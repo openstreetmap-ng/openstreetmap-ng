@@ -15,10 +15,10 @@
     ]
   },
   "formatter": {
+    "attributePosition": "multiline",
     "formatWithErrors": true,
     "lineWidth": 88,
-    "useEditorconfig": true,
-    "attributePosition": "multiline"
+    "useEditorconfig": true
   },
   "javascript": {
     "formatter": {
@@ -35,6 +35,7 @@
         "useWhile": "on"
       },
       "nursery": {
+        "noDuplicatedSpreadProps": "on",
         "noEqualsToNull": "on",
         "noForIn": "on",
         "noProto": "on",
@@ -60,6 +61,7 @@
         "useCollapsedElseIf": "on",
         "useConsistentArrayType": "on",
         "useConsistentBuiltinInstantiation": "on",
+        "useConsistentCurlyBraces": "on",
         "useDefaultParameterLast": "on",
         "useExportType": "on",
         "useForOf": "on",
@@ -78,6 +80,7 @@
         "noDocumentCookie": "off",
         "noEvolvingTypes": "on",
         "noExplicitAny": "off",
+        "noReactSpecificProps": "on",
         "useAwait": "on"
       }
     }
