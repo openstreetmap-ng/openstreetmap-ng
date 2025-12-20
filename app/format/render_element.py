@@ -150,9 +150,8 @@ def _render_nodes(
     member_nodes: set[TypedElementId],
     detailed: cython.bint,
 ) -> list[RenderElementsData.Node]:
-    nodes = list(node_id_map.values())
     nodes = ElementsFilter.filter_nodes_interesting(
-        nodes, member_nodes, detailed=detailed
+        node_id_map.values(), member_nodes, detailed=detailed
     )
     if not nodes:
         return []

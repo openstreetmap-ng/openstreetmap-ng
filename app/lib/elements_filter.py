@@ -1,7 +1,9 @@
+from collections.abc import Iterable
 from typing import TypeVar
 
 import cython
 
+from app.lib.discardable_tags import has_non_discardable_tags
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
 
@@ -11,7 +13,7 @@ _T = TypeVar('_T', bound=ElementInit)
 class ElementsFilter:
     @staticmethod
     def filter_nodes_interesting(
-        nodes: list[_T],
+        nodes: Iterable[_T],
         member_nodes: set[TypedElementId],
         *,
         detailed: cython.bint,
@@ -27,9 +29,9 @@ class ElementsFilter:
     def filter_tags_interesting(elements: list[_T]) -> list[_T]:
         """Return only elements with interesting tags."""
         return [
-            element
+            element  #
             for element in elements
-            if (tags := element['tags']) and _check_tags_interesting(tags)
+            if has_non_discardable_tags(element['tags'])
         ]
 
 
@@ -45,14 +47,7 @@ def _check_node_interesting(
 
     is_member: cython.bint = node['typed_id'] in member_nodes
     return (
-        (not is_member or _check_tags_interesting(node['tags']))  # type: ignore
+        (not is_member or has_non_discardable_tags(node['tags']))
         if detailed
-        else (not is_member and _check_tags_interesting(node['tags']))  # type: ignore
+        else (not is_member and has_non_discardable_tags(node['tags']))
     )
-
-
-@cython.cfunc
-def _check_tags_interesting(tags: dict[str, str]) -> cython.bint:
-    # TODO: consider discardable tags
-    # https://github.com/openstreetmap-ng/openstreetmap-ng/issues/110
-    return bool(tags)
