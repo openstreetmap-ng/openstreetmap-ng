@@ -1,0 +1,1 @@
+static-precompress clean

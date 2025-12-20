@@ -1,0 +1,1 @@
+python scripts/timezone_bbox_update.py

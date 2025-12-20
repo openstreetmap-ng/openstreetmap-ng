@@ -1,0 +1,1 @@
+python scripts/feature_icons_popular_update.py

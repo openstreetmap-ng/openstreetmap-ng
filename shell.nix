@@ -102,17 +102,6 @@ let
           "${lib.makeLibraryPath pythonLibs}"
       '';
     };
-  watchexec' = makeScript "watchexec" ''
-    exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
-  '';
-  parallel' = makeScript "parallel" ''
-    args=(--will-cite)
-    if [ -t 1 ]; then
-      args+=(--bar --eta)
-    fi
-    exec ${pkgs.parallel}/bin/parallel "''${args[@]}" "$@"
-  '';
-
   # https://github.com/NixOS/nixpkgs/blob/nixpkgs-unstable/pkgs/build-support/trivial-builders/default.nix
   makeScript =
     with pkgs;
@@ -134,736 +123,95 @@ let
       meta.mainProgram = name;
     };
 
-  packages' = with pkgs; [
-    b3sum
-    biome
-    brotli
-    bun
-    coreutils
-    curl
-    diffutils
-    fd
-    findutils
-    gettext
-    gnused
-    gnutar
-    gzip
-    jq
-    llvmPackages_latest.lld
-    mailpit
-    nixfmt-rfc-style
-    nodejs-slim_24
-    parallel'
-    patchelf
-    pigz
-    process-compose
-    procps
-    protobuf_33
-    python'
-    ripgrep
-    rsync
-    ruff
-    rustup
-    timescaledb-parallel-copy
-    uv
-    watchexec'
-    zstd
-
-    (postgresql_18_jit.withPackages (ps: [
-      ps.h3-pg
-      ps.pg_hint_plan
-      ps.postgis
-      ps.timescaledb-apache
-    ])).out
-
-    # Scripts:
-    # -- Cython
-    (makeScript "cython-build" ''
-      files=()
-      declare -A BLACKLIST
-
-      # Reason: Unsupported PEP-654 Exception Groups
-      # https://github.com/cython/cython/issues/4993
-      BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
-
-      # Reason: Lambda default arguments fail with embedsignature=True
-      # https://github.com/cython/cython/issues/6880
-      BLACKLIST["app/lib/pydantic_settings_integration.py"]=1
-
-      DIRS=(
-        "app/exceptions" "app/exceptions06" "app/format" "app/lib"
-        "app/middlewares" "app/responses" "app/services"
-        "app/queries" "app/validators"
-      )
-      for dir in "''${DIRS[@]}"; do
-        for file in "$dir"/**/*.py; do
-          if [ -f "$file" ] && [ -z "''${BLACKLIST[$file]:-}" ]; then
-            files+=("$file")
-          fi
-        done
-      done
-
-      EXTRA_PATHS=(
-        "app/db.py" "app/utils.py"
-        "app/models/element.py" "app/models/scope.py" "app/models/tags_format.py"
-        "scripts/preload_convert.py" "scripts/replication_download.py"
-        "scripts/replication_generate.py"
-      )
-      for file in "''${EXTRA_PATHS[@]}"; do
-        if [ -f "$file" ] && [ -z "''${BLACKLIST[$file]:-}" ]; then
-          files+=("$file")
-        fi
-      done
-
-      echo "Found ''${#files[@]} source files"
-
-      CFLAGS="$(python-config --cflags) $CFLAGS \
-        -shared -fPIC \
-        -DCYTHON_PROFILE=1 \
-        -DCYTHON_USE_SYS_MONITORING=0"
-      export CFLAGS
-
-      LDFLAGS="$(python-config --ldflags) $LDFLAGS"
-      export LDFLAGS
-
-      _SUFFIX=$(python-config --extension-suffix)
-      export _SUFFIX
-
-      process_file() {
-        pyfile="$1"
-        module_name="''${pyfile%.py}"  # Remove .py extension
-        module_name="''${module_name//\//.}"  # Replace '/' with '.'
-        c_file="''${pyfile%.py}.c"
-        so_file="''${pyfile%.py}$_SUFFIX"
-
-        # Skip unchanged files
-        if [ "$so_file" -nt "$pyfile" ]; then
-          return 0
-        fi
-
-        (set -x; cython -3 \
-          --annotate \
-          --directive overflowcheck=True,embedsignature=True,profile=True \
-          --module-name "$module_name" \
-          "$pyfile" -o "$c_file")
-
-        # shellcheck disable=SC2086
-        (set -x; $CC $CFLAGS "$c_file" -o "$so_file" $LDFLAGS)
-      }
-      export -f process_file
-
-      parallel process_file ::: "''${files[@]}"
-    '')
-    (makeScript "cython-build-fast" ''
-      CFLAGS="$CFLAGS \
-        -O0 \
-        -fno-lto \
-        -fno-sanitize=all" \
-      LDFLAGS="$LDFLAGS \
-        -fno-lto \
-        -fno-sanitize=all" \
-      cython-build
-    '')
-    (makeScript "cython-clean" ''
-      rm -rf build/
-      fd \
-        --type f \
-        --extension c \
-        --extension html \
-        --extension so \
-        --exclude static \
-        --exclude views \
-        . app scripts \
-        -x rm -f -- {}
-    '')
-    (makeScript "watch-cython" "exec watchexec -o queue -w app --exts py cython-build-fast")
-
-    # -- Static
-    (makeScript "static-img-clean" "rm -rf app/static/img/*/_generated")
-    (makeScript "static-img-pipeline" "python scripts/rasterize.py static-img-pipeline")
-    (makeScript "static-precompress-clean" "static-precompress clean")
-    (makeScript "static-precompress" ''
-      process_file() {
-        file="$1"
-        mode="$2"
-
-        process_file_inner() {
-          dest="$file.$extension"
-          if [ "$mode" = "clean" ]; then
-            rm -f "$dest"
-            return
-          fi
-          if [ ! -f "$dest" ] || [ "$dest" -ot "$file" ]; then
-            tmpfile=$(mktemp -t "$(basename "$dest").XXXXXXXXXX")
-            $compressor "''${args[@]}" "$file" -o "$tmpfile"
-            touch --reference "$file" "$tmpfile"
-            mv -f "$tmpfile" "$dest"
-          fi
-        }
-
-        extension="zst"
-        compressor="zstd"
-        args=(--force --ultra -22 --single-thread --quiet)
-        process_file_inner
-
-        extension="br"
-        compressor="brotli"
-        args=(--force --best)
-        process_file_inner
-      }
-      export -f process_file
-
-      roots=(
-        "app/static"
-        "config/locale/i18next"
-        node_modules/.bun/iD@*/node_modules/iD/dist
-        node_modules/.bun/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist
-      )
-
-      fd -0 \
-        --type f \
-        --size +499b \
-        --exclude "*.xcf" \
-        --exclude "*.gif" \
-        --exclude "*.jpg" \
-        --exclude "*.jpeg" \
-        --exclude "*.png" \
-        --exclude "*.webp" \
-        --exclude "*.ts" \
-        --exclude "*.scss" \
-        --exclude "*.br" \
-        --exclude "*.zst" \
-        . "''${roots[@]}" \
-      | xargs -0 -r stat --printf '%s\t%n\0' -- \
-      | sort -z --numeric-sort --reverse \
-      | cut -z -f2- \
-      | parallel --null \
-        --halt now,fail=1 \
-        process_file {} "$@"
-    '')
-
-    # -- Locale
-    (makeScript "locale-clean" "rm -rf config/locale/*/")
-    (makeScript "locale-download" "python scripts/locale_download.py")
-    (makeScript "locale-postprocess" ''python scripts/locale_postprocess.py "$@"'')
-    (makeScript "locale-make-i18next" "python scripts/locale_make_i18next.py")
-    (makeScript "locale-make-gnu" "python scripts/locale_make_gnu.py")
-    (makeScript "locale-pipeline" ''
-      locale-postprocess
-      locale-make-i18next &
-      locale-make-gnu &
-      wait
-    '')
-    (makeScript "locale-pipeline-with-download" ''
-      set -x
-      locale-download
-      locale-pipeline
-    '')
-    (makeScript "watch-locale" "exec watchexec -o queue -w config/locale/extra_en.yaml locale-pipeline")
-
-    # -- Protobuf
-    (makeScript "proto-pipeline" ''
-      reference_file="app/models/proto/shared_pb2.py"
-      if [ ! -f "$reference_file" ]; then
-        echo "No protobuf outputs found, compiling..."
-      else
-        changed=0
-        while IFS= read -r -d "" proto; do
-          if [ "$proto" -nt "$reference_file" ]; then
-            changed=1
-            break
-          fi
-        done < <(fd -0 --type f --extension proto . app/models/proto)
-
-        ((changed)) || exit 0
-        echo "Proto files have changed, recompiling..."
-      fi
-
-      mkdir -p app/views/lib/proto
-      protoc \
-        -I app/models/proto \
-        --plugin=node_modules/.bin/protoc-gen-es \
-        --es_out app/views/lib/proto \
-        --es_opt target=ts \
-        --python_out app/models/proto \
-        --pyi_out app/models/proto \
-        app/models/proto/*.proto
-      rm app/views/lib/proto/server*
-    '')
-    (makeScript "watch-proto" "exec watchexec -o queue -w app/models/proto --exts proto proto-pipeline")
-
-    # -- Services
-    (makeScript "dev-start" ''
-      if process-compose list -U >/dev/null 2>&1; then
-        echo "Services are already running"
-        exit 0
-      fi
-
-      if [ ! -f data/postgres/PG_VERSION ]; then
-        initdb -D data/postgres \
-          --no-instructions \
-          --locale-provider=icu \
-          --icu-locale=und \
-          --no-locale \
-          --text-search-config=pg_catalog.simple \
-          --auth=trust \
-          --username=postgres
-      fi
-
-      mkdir -p data/mailpit data/postgres_unix data/pcompose
-      echo "Services starting..."
-      process-compose up -U --detached -f "''${1:-${processComposeConf}}" >/dev/null
-      process-compose project is-ready -U --wait
-
-      while read -r name; do
-        if [ -z "$name" ]; then
-          continue
-        fi
-
-        echo -n "Waiting for $name..."
-        while [ "$(process-compose process get "$name" -U --output json | jq -r '.[0].is_ready')" != "Ready" ]; do
-          sleep 1
-          echo -n "."
-        done
-        echo " ready"
-      done < <(process-compose list -U)
-
-      echo "Services started"
-      _dev-upgrade
-    '')
-    (makeScript "dev-stop" ''
-      if [ -S "$PC_SOCKET_PATH" ]; then
-        echo "Services stopping..."
-        process-compose down -U || rm -f "$PC_SOCKET_PATH"
-        echo "Services stopped"
-      else
-        echo "Services are not running"
-      fi
-    '')
-    (makeScript "dev-restart" ''
-      set -x
-      dev-stop
-      dev-start
-    '')
-    (makeScript "dev-clean" ''
-      dev-stop
-      rm -rf data/postgres/ data/postgres_unix/
-    '')
-    (makeScript "dev-logs-postgres" "tail -f data/pcompose/postgres.log")
-    (makeScript "dev-logs-global" "tail -f data/pcompose/global.log")
-    (makeScript "_dev-upgrade" (
-      lib.optionalString enablePostgres ''
-        if cmp -s data/.dev-version <(echo "${pkgsUrl}"); then exit 0; fi
-        echo "Nixpkgs changed, performing services upgrade"
-
-        psql() {
-          PGOPTIONS='-c timescaledb.disable_load=on' \
-            command psql -X "$POSTGRES_URL" "$@"
-        }
-        if [ -n "$(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
-          echo "Upgrading postgres/timescaledb"
-          psql -c "ALTER EXTENSION timescaledb UPDATE"
-
-          echo "Upgrading postgres/postgis"
-          psql -c "SELECT postgis_extensions_upgrade()" || true
-
-          echo "Upgrading postgres/h3"
-          psql -c "ALTER EXTENSION h3 UPDATE"
-          psql -c "ALTER EXTENSION h3_postgis UPDATE"
-        fi
-
-        echo "${pkgsUrl}" > data/.dev-version
-        echo "Services upgrade completed"
-      ''
-    ))
-
-    # -- Preload
-    (makeScript "preload-clean" "rm -rf data/preload/")
-    (makeScript "preload-convert" ''
-      python scripts/preload_convert.py "$@"
-      for file in data/preload/*.csv; do
-        zstd \
-          --rm \
-          --force -19 \
-          --threads "$(( $(nproc) * 2 ))" \
-          "$file"
-      done
-    '')
-    (makeScript "preload-upload" ''
-      read -rp "Preload dataset name: " dataset
-      if [ "$dataset" != "mazowieckie" ]; then
-        echo "Invalid dataset name, must be one of: mazowieckie"
-        exit 1
-      fi
-      mkdir -p "data/preload/$dataset"
-      cp --archive --link --force data/preload/*.csv.zst "data/preload/$dataset/"
-      echo "Computing checksums file"
-      b3sum "data/preload/$dataset/"*.csv.zst > "data/preload/$dataset/checksums.b3"
-      rsync \
-        --verbose \
-        --archive \
-        --checksum \
-        --whole-file \
-        --delay-updates \
-        --human-readable \
-        --progress \
-        "data/preload/$dataset/"*.csv.zst \
-        "data/preload/$dataset/checksums.b3" \
-        edge:"/var/www/files.monicz.dev/openstreetmap-ng/preload/$dataset/"
-    '')
-    (makeScript "preload-download" ''
-      echo "Available preload datasets:"
-      echo "  * mazowieckie: Masovian Voivodeship; 1.6 GB download; 60 GB disk space; 15-30 minutes"
-      read -rp "Preload dataset name [default: mazowieckie]: " dataset
-      dataset="''${dataset:-mazowieckie}"
-      if [ "$dataset" != "mazowieckie" ]; then
-        echo "Invalid dataset name, must be one of: mazowieckie"
-        exit 1
-      fi
-
-      echo "Checking for preload data updates"
-      remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
-      remote_checksums=$(curl -fsSL "$remote_check_url")
-
-      mkdir -p "data/preload/$dataset"
-      while IFS= read -r name; do
-        remote_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$name.csv.zst"
-        local_file="data/preload/$dataset/$name.csv.zst"
-        local_check_file="data/preload/$dataset/$name.csv.zst.b3"
-
-        # recompute checksum if missing but file exists
-        if [ -f "$local_file" ] && [ ! -f "$local_check_file" ]; then
-          b3sum --no-names "$local_file" > "$local_check_file"
-        fi
-
-        # compare with remote checksum
-        remote_checksum=$(
-          rg -P -m 1 -o --replace '$1' "^([0-9a-fA-F]+)\\s+\\Q$local_file\\E$" <<< "$remote_checksums"
-        )
-        if cmp -s "$local_check_file" <(echo "$remote_checksum"); then
-          echo "File $local_file is up to date"
-          continue
-        fi
-
-        echo "Downloading $name preload data"
-        curl -fL "$remote_url" -o "$local_file"
-
-        # recompute checksum
-        local_checksum=$(b3sum --no-names "$local_file")
-        echo "$local_checksum" > "$local_check_file"
-        if [ "$remote_checksum" != "$local_checksum" ]; then
-          echo "[!] Checksum mismatch for $local_file"
-          echo "[!] Please retry this command after a few minutes"
-          exit 1
-        fi
-      done < <(rg -P -o '[^/[:space:]\\]+(?=[.]csv[.]zst$)' <<< "$remote_checksums")
-      cp --archive --link --force "data/preload/$dataset/"*.csv.zst data/preload/
-    '')
-    (makeScript "_db-load" ''
-      set -x
-      : Restarting database in fast-ingest mode :
-      dev-stop
-      dev-start "${processComposeFastIngestConf}"
-      python scripts/db_load.py -m "$1"
-      : Restarting database in normal mode :
-      dev-stop
-      dev-start
-    '')
-    (makeScript "preload-load" "_db-load preload")
-    (makeScript "preload-pipeline" ''
-      set -x
-      preload-download
-      preload-load
-    '')
-    (makeScript "replication-download" "python scripts/replication_download.py")
-    (makeScript "replication-convert" ''python scripts/replication_convert.py "$@"'')
-    (makeScript "replication-load" "_db-load replication")
-    (makeScript "replication-generate" ''python scripts/replication_generate.py "$@"'')
-    (makeScript "ai-models-download" ''
-      hf download Freepik/nsfw_image_detector --local-dir data/models/Freepik/nsfw_image_detector
-    '')
-
-    # -- Testing
-    (makeScript "run-tests" ''
-      if [ ! -S "$PC_SOCKET_PATH" ]; then
-        echo "NOTICE: Services are not running"
-        echo "NOTICE: Run 'dev-start' before executing tests"
-        exit 1
-      fi
-
-      term_output=0
-      args=(
-        --verbose
-        --no-header
-        --randomly-seed="$(date +%s)"
-      )
-
-      for arg in "$@"; do
-        case "$arg" in
-          --term)
-            term_output=1
-            ;;
-          *)
-            args+=("$arg")
-            ;;
-        esac
-      done
-
-      set +e
-      (set -x; python -m coverage run -m pytest "''${args[@]}")
-      result=$?
-      set -e
-
-      if [ "$term_output" = "1" ]; then
-        python -m coverage report --skip-covered
-      else
-        python -m coverage xml --quiet
-      fi
-      python -m coverage erase
-      exit $result
-    '')
-    (makeScript "watch-tests" "exec watchexec -w app -w tests --exts py run-tests")
-
-    # -- Frontend
-    (makeScript "vite-build" ''
-      manifest_file="app/static/vite/.vite/manifest.json"
-      if [ ! -f "$manifest_file" ]; then
-        echo "No Vite manifest found, building..."
-      else
-        changed=0
-        while IFS= read -r -d "" src; do
-          if [ "$src" -nt "$manifest_file" ]; then
-            changed=1
-            break
-          fi
-        done < <(fd -0 --type f --exclude "*.jinja" . app/views)
-
-        ((changed)) || exit 0
-        echo "Source files have changed, rebuilding..."
-      fi
-      exec vite build
-    '')
-    (makeScript "_scripts-postinstall" (
-      ''
-        rm -rf node_modules/bootstrap/dist/css
-
-        static-img-pipeline &
-
-        if [ ! data/cache/browserslist_versions.json -nt bun.lock ]; then
-          echo "Regenerating browserslist cache"
-          mkdir -p data/cache
-          bunx browserslist | jq -Rnc '
-            [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
-            group_by(.browser) |
-            map({(.[0].browser): (map(.version) | min)}) |
-            add
-          ' > data/cache/browserslist_versions.json
-        fi
-      ''
-      + lib.optionalString stdenv.isLinux ''
-        interpreter="${stdenv.cc.bintools.dynamicLinker}"
-        sass_dirs=(node_modules/.bun/sass-embedded*)
-        ((''${#sass_dirs[@]})) && while IFS= read -r -d "" bin; do
-          curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
-          if [ "$curr" != "$interpreter" ]; then
-            patchelf --set-interpreter "$interpreter" "$bin"
-            echo "Patched $bin interpreter to $interpreter"
-          fi
-        done < <(fd -0 -t x "^dart$" "''${sass_dirs[@]}")
-      ''
-      + ''
-        wait
-      ''
-    ))
-
-    # -- Misc
-    (makeScript "run" (
-      if isDevelopment then
-        ''
-          exec python -m uvicorn app.main:main \
-            --reload \
-            --reload-include "*.mo" \
-            --reload-exclude scripts \
-            --reload-exclude tests \
-            --reload-exclude typings
-        ''
-      else
-        ''
-          exec python -m gunicorn app.main:main \
-            --bind localhost:${toString gunicornPort} \
-            --workers ${toString gunicornWorkers} \
-            --worker-class uvicorn.workers.UvicornWorker \
-            --max-requests 10000 \
-            --max-requests-jitter 1000 \
-            --graceful-timeout 5 \
-            --keep-alive 300 \
-            --access-logfile -
-        ''
-    ))
-    (makeScript "format" ''
-      if [ "$1" = "--staged" ]; then
-        list_files() { git diff --cached --name-only --diff-filter=ACMR -z -- "$@"; }
-      else
-        list_files() {
-          while IFS= read -r -d ''' file; do
-            test -e "$file" && printf '%s\0' "$file"
-          done < <(git ls-files -z "$@")
-        }
-      fi
-
-      # format_files <patterns...> -- <command...>
-      format_files() {
-        local patterns=()
-        while [ "$1" != "--" ]; do
-          patterns+=("$1")
-          shift
-        done
-        shift  # Skip the --
-        echo "Formatting ''${patterns[*]} files..."
-        list_files "''${patterns[@]}" | xargs -0 -r "$@"
-      }
-
-      # Run formatters
-      format_files '*.nix' -- nixfmt
-      format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
-      format_files '*.py' '*.pyi' -- ruff format --force-exclude
-      format_files '*.scss' -- bunx prettier --cache --write
-      format_files '*.sql' -- bunx sql-formatter --fix
-      format_files '*.ts' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
-      (cd speedup && cargo fmt)
-
-      if [ "$1" = "--staged" ]; then
-        # Stage changes
-        while IFS= read -r -d ''' file; do
-          if ! git diff --quiet -- "$file"; then
-            printf '%s\0' "$file"
-          fi
-        done < <(git diff --cached --name-only --diff-filter=ACMR -z --) \
-          | git add --pathspec-from-file=- --pathspec-file-nul --
-      else
-        # Run linters
-        status=0
-        echo "Linting files..."
-        ruff check --fix || status=1
-        biome check --fix --formatter-enabled=false || status=1
-        bunx typescript --noEmit || status=1
-        (cd speedup && cargo clippy --locked -- -D warnings) || status=1
-        exit $status
-      fi
-    '')
-    (makeScript "pyright" "bunx basedpyright")
-    (makeScript "feature-icons-popular-update" "python scripts/feature_icons_popular_update.py")
-    (makeScript "timezone-bbox-update" "python scripts/timezone_bbox_update.py")
-    (makeScript "wiki-pages-update" "python scripts/wiki_pages_update.py")
-    (makeScript "aaguid-update" ''
-      url="https://raw.githubusercontent.com/passkeydeveloper/passkey-authenticator-aaguids/main/combined_aaguid.json"
-      data=$(curl -fsSL --compressed "$url")
-
-      if [ "$(echo "$data" | jq 'length')" -eq 0 ]; then
-        echo "Error: AAGUID database is empty"
-        exit 1
-      fi
-
-      echo "$data" | jq --sort-keys . > config/aaguid.json
-      echo "Saved $(echo "$data" | jq 'length') AAGUID entries"
-    '')
-    (makeScript "browser-logos-update" ''
-      version=75.0.1
-      dest=app/static/img/browser
-
-      [ "$(cat "$dest/.version" 2>/dev/null)" = "$version" ] && exit 0
-      echo "Downloading browser logos (v$version)..."
-
-      tmp=$(mktemp -d)
-      trap 'rm -rf "$tmp"' EXIT
-      curl -fL "https://github.com/alrra/browser-logos/archive/refs/tags/$version.tar.gz" \
-        | tar -xz -C "$tmp"
-
-      src="$tmp/browser-logos-$version/src"
-
-      rm -rf "$dest"
-      mkdir -p "$dest"
-      count=0
-
-      for browser_dir in "$src"/*/; do
-        name=$(basename "$browser_dir")
-
-        # Prefer SVG
-        svg=$(fd -t f -d 1 -e svg --max-results 1 . "$browser_dir")
-        if [ -n "$svg" ]; then
-          cp "$svg" "$dest/$name.svg"
-          count=$((count + 1))
-          continue
-        fi
-
-        # Fallback to 128x128 PNG
-        png=$(fd -t f -d 1 -g '*_128x128.png' --max-results 1 . "$browser_dir")
-        if [ -n "$png" ]; then
-          cp "$png" "$dest/$name.png"
-          count=$((count + 1))
-          continue
-        fi
-      done
-
-      echo "Downloaded $count browser logos"
-      echo "$version" > "$dest/.version"
-    '')
-    (makeScript "vector-styles-update" ''
-      dir=app/views/lib/vector-styles
-      mkdir -p "$dir"
-      styles=(
-        "liberty+https://tiles.openfreemap.org/styles/liberty"
-      )
-      for style in "''${styles[@]}"; do
-        name="''${style%%+*}"
-        url="''${style#*+}"
-        file="$dir/$name.json"
-        echo "Updating $name vector style"
-        curl -fsSL --compressed "$url" | jq --sort-keys . > "$file"
-      done
-    '')
-    (makeScript "open-mailpit" "python -m webbrowser http://localhost:49566")
-    (makeScript "open-app" "python -m webbrowser http://localhost:8000")
-    (makeScript "git-restore-mtimes" ''
-      # shellcheck disable=SC2016
-      (if [ -t 0 ]; then git ls-files; else cat; fi) | parallel \
-        --no-run-if-empty \
-        --halt now,fail=1 '
-          timestamp=$(git log -1 --format=%ct -- {})
-          touch -d "@$timestamp" {}
-        '
-    '')
-    (makeScript "_patch-shebang" ''
-      while IFS= read -r -d "" script; do
-        if ! head -n 1 "$script" | rg -q -F ".venv/bin/python"; then continue; fi
-
-        module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script")
-        if [ -z "$module_name" ]; then
-          echo "Warning: Could not extract module name from $script"
-          continue
-        fi
-
-        temp_file=$(mktemp)
-        {
-          printf '%s\n' "#!${runtimeShell}"
-          printf 'exec python -m "%s" "$@"\n' "$module_name"
-        } > "$temp_file"
-        chmod --reference="$script" "$temp_file"
-        mv "$temp_file" "$script"
-
-        echo "Patched $script"
-      done < <(fd -0 -t x -d 1 . .venv/bin)
-    '')
-    (makeScript "nixpkgs-update" ''
-      hash=$(
-        curl -fsSL \
-          https://prometheus.nixos.org/api/v1/query \
-          -d 'query=channel_revision{channel="nixpkgs-unstable"}' \
-        | jq -r ".data.result[0].metric.revision")
-      sed -i "s|nixpkgs/archive/[0-9a-f]\\{40\\}|nixpkgs/archive/$hash|" shell.nix
-      echo "Nixpkgs updated to $hash"
-    '')
-  ];
+  scriptsDir = ./shellscripts;
+  scriptsCtx = {
+    inherit
+      pkgs
+      isDevelopment
+      processComposeConf
+      processComposeFastIngestConf
+      gunicornPort
+      gunicornWorkers
+      enablePostgres
+      pkgsUrl
+      ;
+  };
+  scriptsFiles =
+    let
+      files = pkgs.lib.filesystem.listFilesRecursive scriptsDir;
+      scriptPaths = builtins.filter (
+        path: pkgs.lib.hasSuffix ".sh" (toString path) || pkgs.lib.hasSuffix ".nix" (toString path)
+      ) files;
+    in
+    pkgs.lib.sort (a: b: (toString a) < (toString b)) scriptPaths;
+  scriptNameFor =
+    path:
+    let
+      rel = pkgs.lib.removePrefix "${toString scriptsDir}/" (toString path);
+      noExt =
+        if pkgs.lib.hasSuffix ".sh" rel then
+          pkgs.lib.removeSuffix ".sh" rel
+        else
+          pkgs.lib.removeSuffix ".nix" rel;
+    in
+    pkgs.lib.replaceStrings [ "/" ] [ "-" ] noExt;
+  scriptTextFor =
+    path:
+    let
+      text =
+        if pkgs.lib.hasSuffix ".nix" (toString path) then
+          import path scriptsCtx
+        else
+          builtins.readFile path;
+    in
+    assert pkgs.lib.isString text;
+    text;
+  scriptPackages = map (path: makeScript (scriptNameFor path) (scriptTextFor path)) scriptsFiles;
+
+  packages' =
+    with pkgs;
+    [
+      b3sum
+      biome
+      brotli
+      bun
+      coreutils
+      curl
+      diffutils
+      fd
+      findutils
+      gettext
+      gnused
+      gnutar
+      gzip
+      jq
+      llvmPackages_latest.lld
+      mailpit
+      nixfmt-rfc-style
+      nodejs-slim_24
+      patchelf
+      pigz
+      process-compose
+      procps
+      protobuf_33
+      python'
+      ripgrep
+      rsync
+      ruff
+      rustup
+      shfmt
+      timescaledb-parallel-copy
+      uv
+      zstd
+
+      (postgresql_18_jit.withPackages (ps: [
+        ps.h3-pg
+        ps.pg_hint_plan
+        ps.postgis
+        ps.timescaledb-apache
+      ])).out
+    ]
+    ++ scriptPackages;
 
   shell' =
     with pkgs;
@@ -975,7 +323,7 @@ let
 
       if [ -d .git ]; then
         echo "Installing git hooks"
-        ln -sf ${makeScript "pre-commit" "exec format --staged"}/bin/pre-commit .git/hooks/pre-commit
+        ln -sf "$(command -v _pre-commit)" .git/hooks/pre-commit
       fi
     ''
     + lib.optionalString stdenv.isDarwin ''
