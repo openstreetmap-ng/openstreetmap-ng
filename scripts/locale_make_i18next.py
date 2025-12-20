@@ -22,7 +22,7 @@ _INCLUDE_PREFIXES_DOT = tuple(f'{prefix}.' for prefix in _INCLUDE_PREFIXES)
 _FIND_USED_KEYS_OPTIONS = re2.Options()
 _FIND_USED_KEYS_OPTIONS.dot_nl = True
 _FIND_USED_KEYS_RE = re2.compile(
-    r'(?:\bi18next\.t|(?:^|[^.\w])t)\s*\(\s*'
+    r'(?:\bi18next\.t|(?:^|[^.\w])tRich|(?:^|[^.\w])t)\s*\(\s*'
     r'(?:"((?:\\.|[^"\\])*)"|\'((?:\\.|[^\'\\])*)\')'
     r'\s*[,)]',
     _FIND_USED_KEYS_OPTIONS,
@@ -34,7 +34,11 @@ def find_used_keys() -> tuple[set[str], float]:
     result = set()
     mtime = 0
 
-    for source in Path('app/views').rglob('*.ts'):
+    for source in (
+        source
+        for ext in ('.ts', '.tsx')
+        for source in Path('app/views').rglob(f'*{ext}')
+    ):
         found = False
         for match in _FIND_USED_KEYS_RE.finditer(source.read_text()):
             found = True

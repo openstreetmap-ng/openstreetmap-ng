@@ -5,6 +5,7 @@
     "includes": [
       "*.js",
       "**/*.ts",
+      "**/*.tsx",
       "**/*.json",
       "!!app/views/lib/standard-form.ts",
       "!app/views/lib/timezone-bbox.ts",
@@ -16,7 +17,8 @@
   "formatter": {
     "formatWithErrors": true,
     "lineWidth": 88,
-    "useEditorconfig": true
+    "useEditorconfig": true,
+    "attributePosition": "multiline"
   },
   "javascript": {
     "formatter": {
@@ -70,6 +72,7 @@
         "useTrimStartEnd": "on"
       },
       "suspicious": {
+        "noAssignInExpressions": "off",
         "noConfusingVoidType": "off",
         "noConstantBinaryExpressions": "on",
         "noDocumentCookie": "off",

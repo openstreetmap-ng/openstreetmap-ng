@@ -20,6 +20,9 @@
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "autoDocstring.docstringFormat": "sphinx-notypes",
   "cmake.sourceDirectory": "${workspaceFolder}/speedup",
   "coverage-gutters.ignoredPathGlobs": "**/{node_modules,.venv,data}/**",
@@ -43,6 +46,7 @@
   "explorer.fileNesting.patterns": {
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
+    "*.tsx": "${capture}.*",
     "package.json": ".npmrc,bunfig.toml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"

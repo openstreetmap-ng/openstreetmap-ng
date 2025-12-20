@@ -17,7 +17,11 @@ import { browserslist } from "./package.json"
 const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
 
 // Content paths scanned for class usage
-const CONTENT_PATHS = ["app/views/**/*.html.jinja", "app/views/**/*.ts"]
+const CONTENT_PATHS = [
+    "app/views/**/*.html.jinja",
+    "app/views/**/*.ts",
+    "app/views/**/*.tsx",
+]
 
 // Dynamic icons from config/socials.toml
 const SOCIALS_ICONS = Object.entries(

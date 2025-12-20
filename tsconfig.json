@@ -5,6 +5,9 @@
     "moduleDetection": "force",
     "allowJs": true,
 
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -31,5 +34,10 @@
     ]
   },
   "exclude": ["app/views/lib/_generated/**/*", "app/views/lib/proto/**/*"],
-  "include": ["app/views/**/**.ts", "vite.config.ts", "typings/**/*.d.ts"]
+  "include": [
+    "app/views/**/*.ts",
+    "app/views/**/*.tsx",
+    "vite.config.ts",
+    "typings/**/*.d.ts"
+  ]
 }

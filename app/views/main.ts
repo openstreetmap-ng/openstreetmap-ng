@@ -2,6 +2,12 @@ import "./main.scss"
 
 import "@lib/polyfills"
 
+import { ENV } from "@lib/config"
+
+if (ENV !== "prod") {
+    import("preact/debug")
+}
+
 import "@lib/tracking"
 
 import "./navbar/_theme"
@@ -23,7 +29,7 @@ import "./fixthemap"
 import "./follows/index"
 import "./messages/index"
 import "./messages/new"
-import "./navbar/_language-picker-modal"
+import "./navbar/_language-picker"
 import "./notes"
 import "./oauth2/fragment-callback"
 import "./oauth2/response-form-post"

@@ -1,4 +1,4 @@
-.navbar-language-picker {
+#languagePicker {
     .btn {
         border: unset;
 
@@ -8,6 +8,58 @@
 
         .bi {
             opacity: 0.85;
+        }
+    }
+}
+
+#languagePickerModal {
+    .language-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.25rem;
+
+        button {
+            @extend .btn;
+
+            &[aria-current="true"] {
+                @extend .btn-primary;
+                @extend .fw-bold;
+            }
+
+            &:not([aria-current="true"]) {
+                @extend .btn-light;
+                @extend .btn-bg-initial;
+                @extend .border;
+            }
+
+            display: flex;
+            align-items: center;
+            text-align: left;
+            overflow: hidden;
+            width: 100%;
+
+            .flag {
+                margin-right: 0.375rem;
+                font-size: 1.2em;
+                line-height: 1;
+                flex-shrink: 0;
+            }
+
+            .name-native {
+                font-weight: 500;
+                flex-shrink: 0;
+            }
+
+            .name-english {
+                margin-left: 0.375rem;
+                font-size: 0.875em;
+                padding-top: 0.0625rem;
+                color: var(--bs-secondary-color);
+                font-weight: 400;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
         }
     }
 }

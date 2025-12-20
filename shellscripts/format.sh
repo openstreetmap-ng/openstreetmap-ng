@@ -35,7 +35,7 @@ run_formatters() {
   format_files '*.py' '*.pyi' -- ruff format --force-exclude
   format_files '*.scss' -- bunx prettier --cache --write
   format_files '*.sql' -- bunx sql-formatter --fix
-  format_files '*.ts' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
+  format_files '*.ts' '*.tsx' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
   (cd speedup && cargo fmt)
 }
 
