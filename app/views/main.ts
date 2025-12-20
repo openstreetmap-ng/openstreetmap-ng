@@ -12,7 +12,8 @@ import "@lib/tracking"
 
 import "@lib/i18n"
 
-import "./navbar/_theme-switcher"
+import "./navbar/navbar-right"
+
 import "@lib/datetime-inputs"
 import "@lib/image-proxy"
 
@@ -30,7 +31,6 @@ import "./fixthemap"
 import "./follows/index"
 import "./messages/index"
 import "./messages/new"
-import "./navbar/_language-switcher"
 import "./notes"
 import "./oauth2/fragment-callback"
 import "./oauth2/response-form-post"

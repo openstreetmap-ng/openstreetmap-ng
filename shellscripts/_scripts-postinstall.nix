@@ -25,7 +25,7 @@
         patchelf --set-interpreter "$interpreter" "$bin"
         echo "Patched $bin interpreter to $interpreter"
       fi
-    done < <(fd -0 -t x "^dart$" "''${sass_dirs[@]}")
+    done < <(fd -I0 -t x "^dart$" "''${sass_dirs[@]}")
   ''
   + ''
     wait

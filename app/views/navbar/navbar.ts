@@ -7,6 +7,7 @@ import type { OSMObject } from "@lib/types"
 import { isHrefCurrentPage, NON_DIGIT_RE, wrapMessageEventValidator } from "@lib/utils"
 import { assert } from "@std/assert"
 import { Collapse, Dropdown, Tooltip } from "bootstrap"
+import { messagesCountUnread } from "./navbar-right"
 
 const MIN_EDIT_ZOOM = 13
 const navbar = document.querySelector(".navbar")!
@@ -23,21 +24,12 @@ const navbarCollapseInstance = Collapse.getOrCreateInstance(
  */
 export const collapseNavbar = () => navbarCollapseInstance.hide()
 
-// Messages badge
-const newUnreadMessagesBadge = navbar.querySelector(".new-unread-messages-badge")!
-const unreadMessagesBadge = navbar.querySelector(".unread-messages-badge")!
-
 /** Update the unread messages badge in the navbar */
 export const changeUnreadMessagesBadge = (change: number) => {
-    const current =
-        Number.parseInt(
-            newUnreadMessagesBadge.textContent.replace(NON_DIGIT_RE, ""),
-            10,
-        ) || 0
-    const newCount = current + change
-    console.debug("Navbar: Message badge changed", current, "->", newCount)
-    newUnreadMessagesBadge.textContent = newCount > 0 ? newCount.toString() : ""
-    unreadMessagesBadge.textContent = newCount.toString()
+    const oldCount = messagesCountUnread.value
+    const newCount = oldCount + change
+    console.debug("Navbar: Message badge changed", oldCount, "->", newCount)
+    messagesCountUnread.value = newCount
 }
 
 // Initialize active nav link

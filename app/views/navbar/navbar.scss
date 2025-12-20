@@ -71,6 +71,17 @@
     }
 
     .profile-dropdown {
+        .profile-name {
+            max-width: calc(100vw - 8rem);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            @include media-breakpoint-up(lg) {
+                max-width: 18ch;
+            }
+        }
+
         .badge {
             font-weight: 400;
         }
@@ -85,10 +96,6 @@
             > :last-child {
                 margin-bottom: 0.5rem;
             }
-        }
-
-        .profile-btn::after {
-            margin-left: auto;
         }
 
         border-bottom: 0 solid transparent;
@@ -143,6 +150,25 @@
 .navbar-nav-more {
     .btn {
         --bs-btn-font-size: 0.875em;
+    }
+}
+
+.navbar-right-root {
+    width: 100%;
+    min-width: 0;
+
+    @include media-breakpoint-down(lg) {
+        align-items: flex-end;
+    }
+
+    @include media-breakpoint-up(lg) {
+        width: auto;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    .navbar-nav {
+        align-self: stretch;
     }
 }
 

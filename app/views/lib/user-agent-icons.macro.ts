@@ -1,4 +1,5 @@
 import { existsSync, readdirSync } from "node:fs"
+import { toKebabCase } from "@std/text/to-kebab-case"
 import { BROWSER_ALIASES_MAP, OS_MAP } from "bowser/src/constants.js"
 
 // Semantic aliases only (where we want a different icon than the name suggests)
@@ -36,7 +37,7 @@ export function getBrowserIconMap() {
     // Map bowser display names to icon suffixes
     for (const [displayName, normalizedKey] of Object.entries(BROWSER_ALIASES_MAP)) {
         // Convert snake_case to kebab-case (browser-logos convention)
-        const iconKey = normalizedKey.replace(/_/g, "-")
+        const iconKey = toKebabCase(normalizedKey)
         const suffix = available.get(iconKey)
         if (suffix) map[displayName] = suffix
     }

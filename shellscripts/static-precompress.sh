@@ -35,19 +35,19 @@ roots=(
   node_modules/.bun/@rapideditor+rapid@*/node_modules/@rapideditor/rapid/dist
 )
 
-fd -0 \
-  --type f \
-  --size +499b \
-  --exclude "*.xcf" \
-  --exclude "*.gif" \
-  --exclude "*.jpg" \
-  --exclude "*.jpeg" \
-  --exclude "*.png" \
-  --exclude "*.webp" \
-  --exclude "*.ts" \
-  --exclude "*.scss" \
-  --exclude "*.br" \
-  --exclude "*.zst" \
+fd -I0 \
+  -t f \
+  -S +499b \
+  -E "*.xcf" \
+  -E "*.gif" \
+  -E "*.jpg" \
+  -E "*.jpeg" \
+  -E "*.png" \
+  -E "*.webp" \
+  -E "*.ts" \
+  -E "*.scss" \
+  -E "*.br" \
+  -E "*.zst" \
   . "${roots[@]}" |
   xargs -0 -r stat --printf '%s\t%n\0' -- |
   sort -z --numeric-sort --reverse |

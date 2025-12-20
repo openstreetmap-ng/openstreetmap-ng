@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        <a class="navbar-brand fw-semibold" href="/">
+        <a class="navbar-brand fw-semibold py-1" href="/">
             <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo', name=t('project_name')) }}">
             {{ t('project_name') }}
         </a>
@@ -86,123 +86,9 @@
                 <a class="btn map-link" href="/export">{{ t('site.export.title') }}</a>
             </div>
 
-            <ul class="navbar-nav my-2 my-lg-0">
-                <li class="nav-item"><a class="nav-link" href="/traces"
-                        title="{{ t('layouts.gps_traces_tooltip') }}">{{ t('layouts.gps_traces') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="/diary"
-                        title="{{ t('layouts.user_diaries_tooltip') }}">{{ t('layouts.user_diaries') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="/communities">{{ t('site.communities.title') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="/copyright"
-                        rel="license">{{ t('layouts.copyright') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="/help">{{ t('layouts.help') }}</a></li>
-                <li class="nav-item"><a class="nav-link" href="/about">{{ t('layouts.about') }}</a></li>
-            </ul>
-
-            <div class="btn-group navbar-nav-more d-none">
-                <button class="btn btn-light btn-bg-initial navbar-color border-0 dropdown-toggle" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ t('layouts.more') }}
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end"></ul>
+            <div
+                class="navbar-right-root d-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-center">
             </div>
-
-            <div class="theme-switcher-root"></div>
-
-            {% if user is not none %}
-            <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
-                <button
-                    class="profile-btn btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center flex-grow-1"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="avatar me-2" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}">
-                    {{ user.display_name }}
-                    {% if MESSAGES_COUNT_UNREAD or REPORTS_COUNT_MODERATOR or REPORTS_COUNT_ADMINISTRATOR %}
-                    <span class="d-inline-flex gap-1 ms-2">
-                        <span class="new-unread-messages-badge badge text-bg-light-green">
-                            {%- if MESSAGES_COUNT_UNREAD %}{{ MESSAGES_COUNT_UNREAD }}{% endif -%}
-                        </span>
-                        <span class="badge text-bg-primary">
-                            {%- if REPORTS_COUNT_MODERATOR %}{{ REPORTS_COUNT_MODERATOR }}{% endif -%}
-                        </span>
-                        <span class="badge text-bg-danger">
-                            {%- if REPORTS_COUNT_ADMINISTRATOR %}{{ REPORTS_COUNT_ADMINISTRATOR }}{% endif -%}
-                        </span>
-                    </span>
-                    {% endif %}
-                </button>
-                <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/dashboard">
-                            {{ t('dashboards.show.title') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center" href="/messages/inbox">
-                            {{ t('users.show.my messages') }}
-                            <span class="unread-messages-badge badge text-bg-light-green ms-2">
-                                {{ MESSAGES_COUNT_UNREAD }}
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/user/{{ user.display_name }}">
-                            {{ t('users.show.my profile') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/settings">
-                            {{ t('accounts.edit.my settings') }}
-                        </a>
-                    </li>
-                    {% if user_is_moderator(user) %}
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center" href="/reports">
-                            Reports
-                            <span class="d-inline-flex gap-1 ms-auto">
-                                <span class="badge text-bg-primary">
-                                    {%- if REPORTS_COUNT_MODERATOR %}{{ REPORTS_COUNT_MODERATOR }}{% endif -%}
-                                </span>
-                                <span class="badge text-bg-danger">
-                                    {%- if REPORTS_COUNT_ADMINISTRATOR %}{{ REPORTS_COUNT_ADMINISTRATOR }}{% endif -%}
-                                </span>
-                            </span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    {% if user.home_point is not none %}
-                    <li class="find-home-container d-none">
-                        <button class="dropdown-item">
-                            {{ t('layouts.home') }}
-                        </button>
-                    </li>
-                    {% endif %}
-                    <li>
-                        <form method="POST" action="/api/web/user/logout">
-                            <button class="dropdown-item" type="submit">
-                                {{ t('layouts.logout') }}
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-            {% else %}
-            <div class="btn-group d-flex d-lg-inline-flex" role="group">
-                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                    data-bs-target="#loginModal">
-                    {{ t('login.sign_in') }}
-                </button>
-                <a class="btn btn-outline-secondary" href="/signup">
-                    {{ t('users.new.title') | capitalize }}
-                </a>
-            </div>
-
-            <div class="language-switcher-root"></div>
-            {% endif %}
 
         </div>
     </div>

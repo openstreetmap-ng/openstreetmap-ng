@@ -63,9 +63,13 @@ message WebConfig {
 
         uint64 id = 1; // User ID
         string display_name = 2; // User display name
-        bool activity_tracking = 3; // Enable usage analytics
-        bool crash_reporting = 4; // Enable automatic error reports
-        optional HomePoint home_point = 5;  // User's home point
+        string avatar_url = 3; // User avatar URL
+        optional HomePoint home_point = 4;  // User's home point
+        bool activity_tracking = 5; // Enable usage analytics
+        bool crash_reporting = 6; // Enable automatic error reports
+        uint32 messages_count_unread = 7; // Unread messages count
+        optional uint32 reports_count_moderator = 8;  // Reports requiring moderator attention
+        optional uint32 reports_count_administrator = 9;  // Reports requiring admin attention
     }
 
     optional UserConfig user_config = 1;  // User preferences override

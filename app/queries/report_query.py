@@ -12,7 +12,7 @@ from app.models.types import ReportId
 
 class _ReportCountResult(NamedTuple):
     moderator: int
-    administrator: int
+    administrator: int | None
 
 
 class ReportQuery:
@@ -64,7 +64,7 @@ class ReportQuery:
                 COUNT(*) FILTER (
                     WHERE lc.visible_to = 'moderator'
                 ),
-                0
+                NULL
             """)
 
         query = SQL("""

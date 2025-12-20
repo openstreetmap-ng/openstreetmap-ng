@@ -10,6 +10,7 @@ from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_locales
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
+from app.models.db.user import user_avatar_url
 from app.models.proto.shared_pb2 import WebConfig
 
 _CONFIG_BASE = WebConfig()
@@ -34,6 +35,7 @@ async def render_response(
         user_config = WebConfig.UserConfig(
             id=user['id'],
             display_name=user['display_name'],
+            avatar_url=user_avatar_url(user),
             activity_tracking=user['activity_tracking'],
             crash_reporting=user['crash_reporting'],
         )
@@ -43,21 +45,18 @@ async def render_response(
             x, y = get_coordinates(user_home_point)[0].tolist()
             user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
 
+        messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
+        user_config.messages_count_unread = messages_count_unread or 0
+
+        reports_count = await ParallelTasksMiddleware.reports_count_attention()
+        if reports_count is not None:
+            user_config.reports_count_moderator = reports_count.moderator
+            if reports_count.administrator is not None:
+                user_config.reports_count_administrator = reports_count.administrator
+
         web_config = WebConfig(user_config=user_config)
         web_config.MergeFrom(_CONFIG_BASE)
-
         data['WEB_CONFIG'] = urlsafe_b64encode(web_config.SerializeToString()).decode()
-
-        messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
-        if messages_count_unread is not None:
-            data['MESSAGES_COUNT_UNREAD'] = messages_count_unread
-
-        reports_count_attention = (
-            await ParallelTasksMiddleware.reports_count_attention()
-        )
-        if reports_count_attention is not None:
-            data['REPORTS_COUNT_MODERATOR'] = reports_count_attention.moderator
-            data['REPORTS_COUNT_ADMINISTRATOR'] = reports_count_attention.administrator
 
     if template_data is not None:
         data.update(template_data)

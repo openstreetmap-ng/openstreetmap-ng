@@ -1,5 +1,6 @@
 import { unquotePlus } from "@lib/utils"
 import { assert } from "@std/assert"
+import { trimEndBy } from "@std/text/unstable-trim-by"
 
 // Router interfaces
 export type RouteLoadReason = "navigation" | "popstate"
@@ -35,11 +36,7 @@ export const makeRoute = (pattern: string, controller: IndexController) => {
     }
 }
 
-const removeTrailingSlash = (s: string) => {
-    let end = s.length
-    while (end > 1 && s[end - 1] === "/") end--
-    return end < s.length ? s.slice(0, end) : s
-}
+const removeTrailingSlash = (s: string) => trimEndBy(s, "/") || "/"
 
 export const routerNavigate = (newPath: string) => {
     console.debug("Router: Navigate", newPath)

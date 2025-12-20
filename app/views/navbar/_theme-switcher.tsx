@@ -1,7 +1,6 @@
 import { themeStorage } from "@lib/local-storage"
 import type { Theme } from "@lib/theme"
 import { t } from "i18next"
-import { render } from "preact"
 
 type ThemeOption = {
   value: Theme
@@ -17,7 +16,7 @@ const themeOptions: ThemeOption[] = [
 
 const BUTTON_LABEL = t("theme.toggle_theme")
 
-const ThemeSwitcher = () => {
+export const ThemeSwitcher = () => {
   const buttonIcon = themeOptions.find((o) => o.value === themeStorage.value)!.icon
 
   return (
@@ -56,6 +55,3 @@ const ThemeSwitcher = () => {
     </fieldset>
   )
 }
-
-const root = document.querySelector(".theme-switcher-root")
-if (root) render(<ThemeSwitcher />, root)

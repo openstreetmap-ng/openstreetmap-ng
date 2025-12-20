@@ -19,7 +19,7 @@ for browser_dir in "$src"/*/; do
   name=$(basename "$browser_dir")
 
   # Prefer SVG
-  svg=$(fd -t f -d 1 -e svg --max-results 1 . "$browser_dir")
+  svg=$(fd -I -t f -d 1 -e svg --max-results 1 . "$browser_dir")
   if [ -n "$svg" ]; then
     cp "$svg" "$dest/$name.svg"
     count=$((count + 1))
@@ -27,7 +27,7 @@ for browser_dir in "$src"/*/; do
   fi
 
   # Fallback to 128x128 PNG
-  png=$(fd -t f -d 1 -g '*_128x128.png' --max-results 1 . "$browser_dir")
+  png=$(fd -I -t f -d 1 -g '*_128x128.png' --max-results 1 . "$browser_dir")
   if [ -n "$png" ]; then
     cp "$png" "$dest/$name.png"
     count=$((count + 1))

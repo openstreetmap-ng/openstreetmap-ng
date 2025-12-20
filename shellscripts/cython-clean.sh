@@ -1,10 +1,10 @@
 rm -rf build/
-fd \
-  --type f \
-  --extension c \
-  --extension html \
-  --extension so \
-  --exclude static \
-  --exclude views \
+fd -I \
+  -t f \
+  -e c \
+  -e html \
+  -e so \
+  -E static \
+  -E views \
   . app scripts \
   -x rm -f -- {}

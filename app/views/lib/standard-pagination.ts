@@ -12,6 +12,7 @@ import {
 import { range } from "@lib/utils"
 import { batch, effect, signal } from "@preact/signals"
 import { assert, assertExists } from "@std/assert"
+import { LruCache } from "@std/cache/lru-cache"
 import i18next from "i18next"
 
 const SP_HEADER = "X-StandardPagination"
@@ -65,7 +66,10 @@ export const configureStandardPagination = (
     const activePage = signal(initialPage)
     const state = signal<StandardPaginationState | null>(null)
 
-    const cache = new Map<string, { html: string; state: StandardPaginationState }>()
+    const cache = new LruCache<
+        string,
+        { html: string; state: StandardPaginationState }
+    >(100)
     let lastRenderedKey: string | undefined
     let firstLoad = true
     let didInitialJump = false

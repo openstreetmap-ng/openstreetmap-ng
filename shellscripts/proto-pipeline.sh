@@ -8,7 +8,7 @@ else
       changed=1
       break
     fi
-  done < <(fd -0 --type f --extension proto . app/models/proto)
+  done < <(fd -0 -t f -e proto . app/models/proto)
 
   ((changed)) || exit 0
   echo "Proto files have changed, recompiling..."

@@ -18,5 +18,5 @@
     mv "$temp_file" "$script"
 
     echo "Patched $script"
-  done < <(fd -0 -t x -d 1 . .venv/bin)
+  done < <(fd -I0 -t x -d 1 . .venv/bin)
 ''

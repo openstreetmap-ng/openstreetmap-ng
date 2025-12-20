@@ -8,7 +8,7 @@ else
       changed=1
       break
     fi
-  done < <(fd -0 --type f --exclude "*.jinja" . app/views)
+  done < <(fd -0 -t f -E "*.jinja" . app/views)
 
   ((changed)) || exit 0
   echo "Source files have changed, rebuilding..."

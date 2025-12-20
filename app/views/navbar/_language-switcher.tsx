@@ -165,7 +165,7 @@ const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }
   )
 }
 
-const LanguageSwitcher = () => {
+export const LanguageSwitcher = () => {
   const modalInstanceRef = useRef<Modal | null>(null)
 
   const ensureModal = () => {
@@ -204,6 +204,3 @@ const LanguageSwitcher = () => {
     </div>
   )
 }
-
-const root = document.querySelector(".language-switcher-root")
-if (root) render(<LanguageSwitcher />, root)
