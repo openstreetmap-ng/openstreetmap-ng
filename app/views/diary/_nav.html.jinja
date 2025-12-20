@@ -36,12 +36,12 @@
         {% endif %}
         <li class="nav-item ms-auto">
             {% if user is not none %}
-            <a class="btn btn-light border" href="/diary/new">
+            <a class="btn btn-soft" href="/diary/new">
                 <i class="bi bi-journal-plus me-2"></i>
                 {{- t('diary.new_entry') | capitalize }}
             </a>
             {% endif %}
-            <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+            <a class="btn btn-soft" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
                 <i class="bi bi-rss-fill rss-color"></i>
             </a>
         </li>

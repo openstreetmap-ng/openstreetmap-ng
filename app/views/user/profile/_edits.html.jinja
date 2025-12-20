@@ -6,7 +6,7 @@
                 {{ nt('changeset.count', changesets_count) }}
             </a>
             <span class="dropdown">
-                <button class="btn btn-sm btn-light border py-0" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-sm btn-soft py-0" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-three-dots"></i>
                 </button>
                 <ul class="dropdown-menu">
@@ -67,7 +67,7 @@
             {% endfor %}
             {% if changesets_count > USER_RECENT_ACTIVITY_ENTRIES %}
             <li class="view-more">
-                <a class="btn btn-sm btn-light border" href="/user/{{ profile.display_name }}/history">
+                <a class="btn btn-sm btn-soft" href="/user/{{ profile.display_name }}/history">
                     {{ t('action.view_more') }}
                 </a>
             </li>

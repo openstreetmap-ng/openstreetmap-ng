@@ -193,7 +193,7 @@ export const LanguageSwitcher = () => {
       class="d-flex d-lg-inline-flex mt-2 mt-lg-0 ms-lg-1"
     >
       <button
-        class="btn btn-light btn-bg-initial navbar-color w-100"
+        class="btn btn-light btn-bg-initial text-navbar w-100"
         type="button"
         title={t("settings.choose_language")}
         onClick={showModal}

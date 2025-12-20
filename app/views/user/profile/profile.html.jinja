@@ -11,7 +11,7 @@
 
         {% if is_self %}
         <div class="dropdown">
-            <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            <button class="btn btn-sm btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 <i class="bi bi-image text-muted me-1-5"></i>
                 {{- t('user.edit_background') }}
@@ -47,7 +47,7 @@
 
                     {% if is_self %}
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button"
+                        <button class="btn btn-sm btn-soft dropdown-toggle" type="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle text-muted me-1-5"></i>
                             {{- t('layouts.edit') }}
@@ -115,7 +115,7 @@
                     <div class="user-actions mb-2">
                         {% if user is not none and not is_self %}
                         <address>
-                            <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-light border">
+                            <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-soft">
                                 <i class="bi bi-envelope-plus me-2"></i>
                                 {{- t('action.send_a_message') }}
                             </a>
@@ -135,12 +135,12 @@
                 <h3 class="ms-1 {% if user_profile.socials %}mb-2{% else %}mb-3{% endif %} d-flex align-items-center">
                     {{ t('user.about_me') }}
                     {% if is_self %}
-                    <button class="btn btn-sm btn-light border ms-3" data-bs-toggle="modal"
+                    <button class="btn btn-sm btn-soft ms-3" data-bs-toggle="modal"
                         data-bs-target="#profileSocialsModal">
                         <i class="bi bi-pencil-square me-1-5"></i>
                         {{- t('user.edit_socials') }}
                     </button>
-                    <button class="btn btn-sm btn-light border ms-2" data-bs-toggle="modal"
+                    <button class="btn btn-sm btn-soft ms-2" data-bs-toggle="modal"
                         data-bs-target="#profileDescriptionModal">
                         <i class="bi bi-pencil-square me-1-5"></i>
                         {{- t('user.edit_description') }}
@@ -154,14 +154,14 @@
                     {% set _config = SOCIALS_CONFIG[social.service] %}
                     {% set _service_title = t('service.' + social.service.replace('-', '_') + '.title') %}
                     {% if _config.template is defined and not _config.template %}
-                    <span class="btn btn-sm btn-light border d-flex align-items-center" title="{{ _service_title }}">
+                    <span class="btn btn-sm btn-soft d-flex align-items-center" title="{{ _service_title }}">
                         <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
                         {{- social.value -}}
                     </span>
                     {% else %}
                     {% set _url = _config.template.format(social.value) if _config.template else social.value %}
                     <a href="{{ _url }}" target="_blank" rel="noopener nofollow" title="{{ _service_title }}"
-                        class="btn btn-sm btn-light border d-flex align-items-center">
+                        class="btn btn-sm btn-soft d-flex align-items-center">
                         <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
                         {{- social.value -}}
                     </a>
@@ -192,7 +192,7 @@
                 {% if user is not none and not is_self %}
                 <form class="follow-form" method="POST"
                     action="/api/web/follows/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}">
-                    <button type="submit" class="btn btn-light border w-100 mt-4">
+                    <button type="submit" class="btn btn-soft w-100 mt-4">
                         {% if is_following %}
                         {{ t('action.unfollow_user') -}}
                         <i class="bi bi-bookmark-dash ms-1-5"></i>

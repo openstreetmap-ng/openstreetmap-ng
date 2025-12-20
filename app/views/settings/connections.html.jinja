@@ -25,12 +25,12 @@
                     <form class="d-flex justify-content-end align-items-center" method="POST"
                         action="/api/web/settings/connections/{{ service }}/disconnect">
                         <i class="bi bi-link-45deg me-2" title="{{ t('state.connected') }}"></i>
-                        <button type="submit" class="btn btn-light border">{{ t('action.disconnect') }}</button>
+                        <button type="submit" class="btn btn-soft">{{ t('action.disconnect') }}</button>
                     </form>
                     {% else %}
                     <form class="d-flex justify-content-end align-items-center" method="POST"
                         action="/oauth2/{{ service }}/authorize">
-                        <button type="submit" class="btn btn-light border" name="action"
+                        <button type="submit" class="btn btn-soft" name="action"
                             value="settings">{{ t('action.connect') }}</button>
                     </form>
                     {% endif %}

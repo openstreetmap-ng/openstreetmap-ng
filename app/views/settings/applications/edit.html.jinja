@@ -34,7 +34,7 @@
                 <input type="text" class="form-control font-monospace bg-body-tertiary"
                     value="{% if app.client_secret_preview is not none %}{{ app.client_secret_preview }}...{% endif %}"
                     readonly>
-                <button class="btn btn-light border reset-secret-btn" type="button">
+                <button class="btn btn-soft reset-secret-btn" type="button">
                     <i class="bi bi-arrow-clockwise"></i>
                     {{ t('settings.new_client_secret') }}
                 </button>
@@ -161,7 +161,7 @@
                 <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
                 <img class="avatar" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}">
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    <button class="btn btn-sm btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
                         {{ t('layouts.edit') }}
                     </button>

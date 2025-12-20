@@ -25,7 +25,7 @@
                     </a>
                 </li>
                 <li class="nav-item ms-auto">
-                    <a class="btn btn-light border" href="/message/new">
+                    <a class="btn btn-soft" href="/message/new">
                         <i class="bi bi-envelope-plus me-2"></i>
                         {{- t('action.send_a_message') }}
                     </a>
@@ -68,21 +68,21 @@
                                     <div class="message-recipients"></div>
                                 </div>
                                 <div class="btn-group" role="group">
-                                    <a class="reply-link btn btn-sm btn-light border">
+                                    <a class="reply-link btn btn-sm btn-soft">
                                         <i class="bi bi-reply me-2"></i>
                                         {{- t('messages.message_summary.reply_button') }}
                                     </a>
                                     {% if inbox %}
-                                    <a class="reply-all-link btn btn-sm btn-light border">
+                                    <a class="reply-all-link btn btn-sm btn-soft">
                                         <i class="bi bi-reply-all me-2"></i>
                                         {{- t('messages.reply_all') }}
                                     </a>
-                                    <button class="unread-btn btn btn-sm btn-light border">
+                                    <button class="unread-btn btn btn-sm btn-soft">
                                         <i class="bi bi-envelope me-2"></i>
                                         {{- t('messages.message_summary.unread_button') }}
                                     </button>
                                     {% endif %}
-                                    <button class="delete-btn btn btn-sm btn-light border">
+                                    <button class="delete-btn btn btn-sm btn-soft">
                                         <i class="bi bi-trash me-2"></i>
                                         {{- t('messages.message_summary.destroy_button') }}
                                     </button>

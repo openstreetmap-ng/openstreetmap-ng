@@ -83,7 +83,7 @@
                 <div class="btn-group">
 
                     <div class="share btn-group dropdown">
-                        <button class="btn btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        <button class="btn btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
                             <i class="bi bi-share me-2"></i>{{ t('javascripts.share.title') }}
                         </button>
@@ -148,7 +148,7 @@
                     </div>
 
                     {% if entry_mode == 'details' %}
-                    <a class="btn btn-light border diary-comments-btn" href="/diary/{{ diary.id }}#comments">
+                    <a class="btn btn-soft diary-comments-btn" href="/diary/{{ diary.id }}#comments">
                         {{- t('diary.comments') -}}
                         <span
                             class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
@@ -156,7 +156,7 @@
                         </span>
                     </a>
                     {% else %}
-                    <button type="button" class="btn btn-light border diary-comments-btn dropdown-toggle collapsed"
+                    <button type="button" class="btn btn-soft diary-comments-btn dropdown-toggle collapsed"
                         aria-expanded="false" aria-controls="diary-comments-{{ diary.id }}" data-bs-toggle="collapse"
                         data-bs-target="#diary-comments-{{ diary.id }}">
                         {{- t('diary.comments') -}}
@@ -168,7 +168,7 @@
                     {% endif %}
 
                     {% if user is not none %}
-                    <button type="button" class="btn btn-light border dropdown-toggle dropdown-toggle-split"
+                    <button type="button" class="btn btn-soft dropdown-toggle dropdown-toggle-split"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="visually-hidden">{{ t('action.show_more') }}</span>
                     </button>
@@ -212,7 +212,7 @@
             {% if user is not none %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/user-subscription/diary/{{ diary.id }}{% if diary.is_subscribed %}/unsubscribe{% else %}/subscribe{% endif %}">
-                <button class="btn btn-sm btn-light border" type="submit">
+                <button class="btn btn-sm btn-soft" type="submit">
                     {% if diary.is_subscribed %}
                     <i class="bi bi-bookmark-check me-1"></i>
                     {{ t('javascripts.changesets.show.unsubscribe') }}

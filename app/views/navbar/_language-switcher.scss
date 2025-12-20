@@ -1,9 +1,7 @@
 #LanguageSwitcher {
     .btn {
-        border: unset;
-
         @include media-breakpoint-down(lg) {
-            border: 1px solid $secondary;
+            border: 1px solid $border-color-dark;
         }
 
         .bi {
@@ -27,8 +25,7 @@
             }
 
             &:not([aria-current="true"]) {
-                @extend .btn-light;
-                @extend .btn-bg-initial;
+                @extend .btn-soft;
                 @extend .border;
             }
 

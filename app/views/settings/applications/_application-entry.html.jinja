@@ -103,9 +103,9 @@
                     {% elif token %}
                     <form class="revoke-application-form {% if not _is_system %}btn-group{% endif %}" method="POST"
                         action="/api/web/settings/revoke-application">
-                        <button class="btn btn-light border" type="submit">{{ t('action.revoke_access') }}</button>
+                        <button class="btn btn-soft" type="submit">{{ t('action.revoke_access') }}</button>
                         {% if not _is_system %}
-                        <button class="btn btn-light border dropdown-toggle dropdown-toggle-split" type="button"
+                        <button class="btn btn-soft dropdown-toggle dropdown-toggle-split" type="button"
                             data-bs-toggle="dropdown" aria-expanded="{{ _expanded | lower }}">
                             <span class="visually-hidden">{{ t('action.show_more') }}</span>
                         </button>
@@ -122,7 +122,7 @@
                         <input type="hidden" name="app_id" value="{{ app.id }}">
                     </form>
                     {% else %}
-                    <a class="btn btn-light border" href="/settings/applications/admin/{{ app.id }}/edit">
+                    <a class="btn btn-soft" href="/settings/applications/admin/{{ app.id }}/edit">
                         {{ t('layouts.edit') }}
                     </a>
                     {% endif %}

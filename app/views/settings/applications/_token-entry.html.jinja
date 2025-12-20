@@ -42,7 +42,7 @@
                         value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
                         readonly>
                     {% if not _readonly %}
-                    <button class="btn btn-light border reset-secret-btn" type="button">
+                    <button class="btn btn-soft reset-secret-btn" type="button">
                         <i class="bi bi-arrow-clockwise"></i>
                         {{ t('settings.new_access_token') }}
                     </button>
@@ -95,7 +95,7 @@
                 <div class="col-md-auto align-self-end text-end">
                     <form class="revoke-application-form" method="POST"
                         action="/api/web/settings/applications/token/{{ token.id }}/revoke">
-                        <button class="btn btn-light border" type="submit">{{ t('action.revoke_key') }}</button>
+                        <button class="btn btn-soft" type="submit">{{ t('action.revoke_key') }}</button>
                     </form>
                 </div>
                 {% endif %}

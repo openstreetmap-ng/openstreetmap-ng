@@ -87,7 +87,7 @@
             {% if is_subscribed %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/user-subscription/note/{{ note.id }}/unsubscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
+                <button class="btn btn-sm btn-soft" type="submit">
                     <i class="bi bi-bookmark-check me-1"></i>
                     {{ t('javascripts.changesets.show.unsubscribe') }}
                 </button>
@@ -95,7 +95,7 @@
             {% else %}
             <form class="col-auto subscription-form" method="POST"
                 action="/api/web/user-subscription/note/{{ note.id }}/subscribe">
-                <button class="btn btn-sm btn-light border" type="submit">
+                <button class="btn btn-sm btn-soft" type="submit">
                     {{ t('javascripts.changesets.show.subscribe') }}
                 </button>
             </form>
@@ -129,7 +129,7 @@
             <div class="row g-1">
                 <div class="col">
                     {% if user_is_moderator(user) %}
-                    <button class="btn btn-light border" type="submit" data-event="hidden">
+                    <button class="btn btn-soft" type="submit" data-event="hidden">
                         {{ t('notes.show.hide') }}
                     </button>
                     {% endif %}
@@ -150,7 +150,7 @@
             <div class="row g-1 mt-3">
                 <div class="col">
                     {% if user_is_moderator(user) %}
-                    <button class="btn btn-light border" type="submit" data-event="hidden">
+                    <button class="btn btn-soft" type="submit" data-event="hidden">
                         {{ t('notes.show.hide') }}
                     </button>
                     {% endif %}
@@ -163,7 +163,7 @@
             </div>
             {% elif status == 'hidden' %}
             <div class="mt-3">
-                <button class="btn btn-light border" type="submit" data-event="reopened">
+                <button class="btn btn-soft" type="submit" data-event="reopened">
                     {{ t('action.unhide') }}
                 </button>
             </div>

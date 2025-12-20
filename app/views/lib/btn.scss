@@ -25,6 +25,11 @@
     --bs-btn-bg: initial;
 }
 
+.btn-soft {
+    @extend .btn-light;
+    @extend .border;
+}
+
 .location-container {
     @extend .bg-body-tertiary;
     @extend .rounded-2;

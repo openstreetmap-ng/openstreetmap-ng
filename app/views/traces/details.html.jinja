@@ -22,7 +22,7 @@
 
         <div class="text-end me-1">
             {% if user is not none and trace.user_id == user.id %}
-            <a class="btn btn-light border" href="/trace/{{ trace.id }}/edit">
+            <a class="btn btn-soft" href="/trace/{{ trace.id }}/edit">
                 {{ t('layouts.edit') }}
             </a>
             {% endif %}

@@ -103,7 +103,7 @@
             <div class="col-sm-auto text-end">
                 {% if passkeys | length < PASSKEY_LIMIT %}
                 <form class="add-passkey-form d-inline" method="POST" action="/api/web/settings/passkey/register">
-                    <button class="btn btn-light border" type="submit">
+                    <button class="btn btn-soft" type="submit">
                         {{ t('action.configure') }}
                     </button>
                 </form>
@@ -138,13 +138,13 @@
             </div>
             <div class="col-sm-auto text-end">
                 {% if totp_created_at %}
-                <button class="btn btn-light border" type="button" data-auth-action="/api/web/settings/totp/remove"
+                <button class="btn btn-soft" type="button" data-auth-action="/api/web/settings/totp/remove"
                     data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
                     data-bs-target="#disableAuthMethodModal">
                     {{ t('action.disable') }}
                 </button>
                 {% else %}
-                <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                <button class="btn btn-soft" type="button" data-bs-toggle="modal"
                     data-bs-target="#setupTotpModal">
                     {{ t('action.configure') }}
                 </button>
@@ -181,7 +181,7 @@
                 </div>
             </div>
             <div class="col-sm-auto text-end">
-                <button class="btn btn-light border" type="button" data-bs-toggle="modal"
+                <button class="btn btn-soft" type="button" data-bs-toggle="modal"
                     data-bs-target="#generateRecoveryCodesModal">
                     {% if recovery_codes_status.num_remaining %}
                     {{ t('action.regenerate') }}
@@ -245,7 +245,7 @@
             <div class="col-sm-auto align-self-center text-end">
                 <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
                     <input type="hidden" name="token_id" value="{{ session.id }}">
-                    <button class="btn btn-sm btn-light border" type="submit">
+                    <button class="btn btn-sm btn-soft" type="submit">
                         {{ t('action.end_session') }}
                     </button>
                 </form>

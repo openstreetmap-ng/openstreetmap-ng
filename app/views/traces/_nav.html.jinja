@@ -23,13 +23,13 @@
         {% endif %}
         <li class="nav-item ms-auto">
             {% if user is not none %}
-            <a class="btn btn-light border" href="/trace/upload">
+            <a class="btn btn-soft" href="/trace/upload">
                 <i class="bi bi-pin-map me-2"></i>
                 {{- t('traces.index.upload_trace') }}
             </a>
             {% endif %}
             {% if active_tab == 0 %}
-            <a class="btn btn-light border" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
+            <a class="btn btn-soft" href="{{ base_url }}/rss" aria-label="{{ t('alt.rss_feed') }}">
                 <i class="bi bi-rss-fill rss-color"></i>
             </a>
             {% endif %}

@@ -2,10 +2,8 @@
 
 #ThemeSwitcher {
     .dropdown-toggle {
-        border: unset;
-
         @include media-breakpoint-down(lg) {
-            border: 1px solid $secondary;
+            border: 1px solid $border-color-dark;
         }
 
         .bi {

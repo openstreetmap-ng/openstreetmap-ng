@@ -25,7 +25,7 @@ export const ThemeSwitcher = () => {
       class="btn-group dropdown d-flex d-lg-inline-flex mb-2 mb-lg-0 mx-lg-1"
     >
       <button
-        class="btn btn-light btn-bg-initial navbar-color dropdown-toggle"
+        class="btn btn-light text-navbar dropdown-toggle"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"

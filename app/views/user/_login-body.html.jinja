@@ -134,14 +134,14 @@
                     <input type="hidden" name="bypass_2fa">
                     {% endif %}
                 </div>
-                <button class="btn btn-light border w-100" type="button" data-action="cancel-2fa">
+                <button class="btn btn-soft w-100" type="button" data-action="cancel-2fa">
                     {{ t('action.cancel') }}
                 </button>
             </div>
 
             <div data-section="totp recovery">
                 <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-light border" type="button" data-action="cancel-2fa">
+                    <button class="btn btn-soft" type="button" data-action="cancel-2fa">
                         {{ t('action.cancel') }}
                     </button>
                     <button class="btn btn-primary fw-medium flex-grow-1" type="submit">
@@ -160,7 +160,7 @@
             <span class="divider-text">{{ t('login.or_continue_with') }}</span>
         </div>
 
-        <button class="btn btn-light border w-100" type="button" data-action="passkey-login">
+        <button class="btn btn-soft w-100" type="button" data-action="passkey-login">
             <img class="dark-filter-invert" src="/static/img/brand/passkeys-black.webp"
                 alt="{{ t('alt.passkey_icon') }}" draggable="false" loading="lazy">
             {{ t('login.sign_in_with_a_passkey') }}

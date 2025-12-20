@@ -59,7 +59,7 @@ const NavbarNav = () => (
 
     <div class="btn-group navbar-nav-more d-none">
       <button
-        class="btn btn-light btn-bg-initial navbar-color border-0 dropdown-toggle"
+        class="btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"
@@ -85,7 +85,7 @@ const NavbarUser = () => {
   return (
     <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
       <button
-        class="profile-btn btn btn-light btn-bg-initial border dropdown-toggle d-flex align-items-center flex-grow-1"
+        class="profile-btn btn btn-soft btn-bg-initial dropdown-toggle d-flex align-items-center flex-grow-1"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"
@@ -205,7 +205,7 @@ const NavbarGuest = () => (
   <>
     <fieldset class="btn-group d-flex d-lg-inline-flex">
       <button
-        class="btn btn-outline-secondary"
+        class="btn btn-soft text-navbar fw-medium"
         type="button"
         data-bs-toggle="modal"
         data-bs-target="#loginModal"
@@ -213,7 +213,7 @@ const NavbarGuest = () => (
         {t("login.sign_in")}
       </button>
       <a
-        class="btn btn-outline-secondary"
+        class="btn btn-soft text-navbar fw-medium"
         href="/signup"
       >
         {toSentenceCase(t("users.new.title"))}

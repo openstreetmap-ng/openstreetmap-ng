@@ -18,7 +18,7 @@
         {{ t('passwords.new.email address') | capitalize }}
         <div class="input-group mt-2">
             <input type="email" class="form-control bg-body-tertiary" value="{{ user.email }}" readonly>
-            <a class="btn btn-light border" href="/settings/email">
+            <a class="btn btn-soft" href="/settings/email">
                 {{ t('settings.change_email') }}
             </a>
         </div>
@@ -31,7 +31,7 @@
             <div class="form-control bg-body-tertiary">
                 <time datetime="{{ password_updated_at.isoformat() }}" data-style="long"></time>
             </div>
-            <a class="btn btn-light border" href="/settings/security">
+            <a class="btn btn-soft" href="/settings/security">
                 {{ t('settings.change_password') }}
             </a>
         </div>
