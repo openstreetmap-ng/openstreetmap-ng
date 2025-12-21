@@ -13,7 +13,7 @@ class ElementSpatialQuery:
         search_area: Polygon | MultiPolygon,
     ) -> list[ElementSpatial]:
         """Query for elements intersecting the search area."""
-        h3_cells = polygon_to_h3_search(search_area, 11)
+        h3_cells = polygon_to_h3_search(search_area, 10)
 
         async with (
             db() as conn,
@@ -37,7 +37,7 @@ class ElementSpatialQuery:
                     INNER JOIN element e ON e.typed_id = es.typed_id
                         AND e.typed_id >= 1152921504606846976
                         AND e.latest
-                    WHERE h3_geometry_to_compact_cells(es.geom, 11) && %(h3_cells)s::h3index[]
+                    WHERE h3_geometry_to_compact_cells(es.geom, 10) && %(h3_cells)s::h3index[]
                         AND ST_Intersects(es.geom, %(area)s)
 
                     UNION ALL

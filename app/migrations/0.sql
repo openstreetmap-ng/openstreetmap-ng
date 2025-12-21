@@ -543,7 +543,7 @@ CREATE TABLE element_spatial (
     bounds_area real GENERATED ALWAYS AS (ST_Area (ST_Envelope (geom))) STORED
 );
 
-CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (h3_geometry_to_compact_cells (geom, 11))
+CREATE INDEX element_spatial_geom_h3_idx ON element_spatial USING gin (h3_geometry_to_compact_cells (geom, 10))
 WITH
     (fastupdate = FALSE);
 
