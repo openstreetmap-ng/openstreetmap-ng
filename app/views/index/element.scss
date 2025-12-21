@@ -22,42 +22,6 @@
         }
     }
 
-    .parents,
-    .elements {
-        td {
-            padding: 0;
-        }
-
-        tr {
-            // Style the elements icons
-            td:first-child {
-                width: 2em;
-                line-height: 1;
-
-                img {
-                    display: inline-block;
-                    width: 2em;
-                    height: 1.5em;
-                    padding: 0.1em 0;
-                    object-fit: contain;
-                }
-            }
-
-            // Style the elements links
-            td:last-child {
-                padding-left: 0.5rem;
-            }
-        }
-
-        .pagination {
-            text-align: center;
-
-            .page-link {
-                min-width: calc(2ch + 16px + 2px);
-            }
-        }
-    }
-
     .tags {
         tr[data-status="added"] > td {
             background: color.mix($green, $body-bg, 20%);
@@ -164,5 +128,67 @@
 
     .version-section:hover {
         background: var(--bs-highlight-bg);
+    }
+}
+
+.elements-list {
+    @extend .rounded-2;
+    border: 1px solid $table-border-color;
+    overflow: hidden;
+}
+
+.elements-list > table {
+    @extend .table;
+    @extend .table-sm;
+    @extend .table-borderless;
+    @extend .table-striped;
+    @extend .mb-0;
+
+    tr.deleted {
+        td:first-child img {
+            filter: grayscale(0.5) opacity(0.4);
+        }
+
+        .element-row-title {
+            text-decoration: line-through;
+        }
+    }
+
+    td:first-child {
+        @extend .p-0;
+
+        width: 2em;
+        line-height: 1;
+
+        img {
+            padding: 3px 0;
+            width: 2em;
+            height: 1.5em;
+            object-fit: contain;
+        }
+    }
+
+    .element-row-title {
+        margin-bottom: 0.375rem;
+        line-height: 1;
+
+        a {
+            @extend .text-decoration-none;
+            @extend .fw-medium;
+            @extend .text-break;
+
+            font-size: 0.875em;
+        }
+    }
+
+    .element-row-meta {
+        @extend .text-muted;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        align-items: center;
+        font-size: 0.8em;
+        line-height: 1;
     }
 }

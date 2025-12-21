@@ -73,17 +73,21 @@
 {% set table %}
 {% if compact %}
 <details>
-    <table class="table table-borderless mb-2">
-        <tbody></tbody>
-    </table>
+    <div class="elements-list mb-2">
+        <table>
+            <tbody></tbody>
+        </table>
+    </div>
     <nav aria-label="{{ t('alt.elements_page_navigation') }}">
         <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0"></ul>
     </nav>
 </details>
 {% else %}
-<table class="table table-borderless mb-2">
-    <tbody></tbody>
-</table>
+<div class="elements-list mb-2">
+    <table>
+        <tbody></tbody>
+    </table>
+</div>
 <nav aria-label="{{ t('alt.elements_page_navigation') }}">
     <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0"></ul>
 </nav>
@@ -95,12 +99,6 @@
 <div class="parents mt-4 mb-1">
     <h4 class="title"></h4>
     {{ table }}
-    <template class="entry">
-        <tr>
-            <td><img loading="lazy"></td>
-            <td></td>
-        </tr>
-    </template>
 </div>
 {% endif %}
 
@@ -109,11 +107,5 @@
 <div class="elements mt-4 mb-1">
     <h4 class="title"></h4>
     {{ table }}
-    <template class="entry">
-        <tr>
-            <td><img loading="lazy"></td>
-            <td></td>
-        </tr>
-    </template>
 </div>
 {% endif %}
