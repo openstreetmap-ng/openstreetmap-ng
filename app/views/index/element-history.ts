@@ -65,6 +65,7 @@ export const getElementHistoryController = (map: MaplibreMap) => {
             let disposeElementContent: (() => void) | undefined
 
             const disposePagination = configureStandardPagination(sidebarContent, {
+                rangeDir: "desc",
                 loadCallback: (renderContainer) => {
                     const versionSections =
                         renderContainer.querySelectorAll("div.version-section")

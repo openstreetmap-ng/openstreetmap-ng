@@ -56,7 +56,7 @@
 
 {# Tags #}
 {% if tags %}
-<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson | forceescape }}"{% endif %}>
+<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson | forceescape }}" {% endif %}>
     <table class="table table-sm">
         <tbody dir="auto">
             {%- for key, value in tags | dictsort -%}
@@ -77,7 +77,7 @@
         <tbody></tbody>
     </table>
     <nav aria-label="{{ t('alt.elements_page_navigation') }}">
-        <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
+        <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0"></ul>
     </nav>
 </details>
 {% else %}
@@ -85,7 +85,7 @@
     <tbody></tbody>
 </table>
 <nav aria-label="{{ t('alt.elements_page_navigation') }}">
-    <ul class="pagination pagination-sm justify-content-end mb-0"></ul>
+    <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0"></ul>
 </nav>
 {% endif %}
 {% endset %}

@@ -34,6 +34,7 @@
   "editor.formatOnSaveMode": "file",
   "editor.rulers": [88],
   "editor.unicodeHighlight.allowedCharacters": {
+    "‐": true,
     "›": true,
     "»": true,
     "′": true,

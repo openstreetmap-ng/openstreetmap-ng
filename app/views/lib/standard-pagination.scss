@@ -1,0 +1,7 @@
+.pagination-2ch {
+    text-align: center;
+
+    .page-link {
+        min-width: calc(2ch + var(--bs-pagination-padding-x) * 2 + 2px);
+    }
+}

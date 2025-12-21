@@ -18,38 +18,57 @@ import i18next from "i18next"
 const SP_HEADER = "X-StandardPagination"
 
 export const configureStandardPagination = (
-    container: ParentNode | null,
+    container: Element | null,
     options?: {
         initialPage?: number
         customLoader?: (renderContainer: HTMLElement, page: number) => void
         loadCallback?: (renderContainer: HTMLElement, page: number) => void
+        rangeDir?: "asc" | "desc"
     },
 ) => {
     if (!container) return () => {}
 
-    const actionCandidates = Array.from(
-        container.querySelectorAll("ul.pagination"),
-    ).filter((ul) => ul.dataset.action || ul.dataset.pages)
-    assert(actionCandidates.length, "Pagination: Missing action pagination")
+    const actionPagination = (() => {
+        const actionCandidates = Array.from(
+            container.querySelectorAll(
+                "ul.pagination[data-action], ul.pagination[data-pages]",
+            ),
+        )
+        assert(actionCandidates.length, "Pagination: Missing action pagination")
 
-    const directCandidates =
-        actionCandidates.length === 1
-            ? actionCandidates
-            : actionCandidates.filter(
-                  (ul) => ul.closest("nav")?.parentNode === container,
-              )
+        let best = actionCandidates[0]!
+        let bestDepth = Number.POSITIVE_INFINITY
 
-    const actionPagination = directCandidates[0]
+        for (const ul of actionCandidates) {
+            const root = ul.closest("nav")!.parentElement!
+            let depth = 0
+            for (
+                let el: Element | null = root;
+                el && el !== container;
+                el = el.parentElement
+            )
+                depth++
+            if (depth < bestDepth) {
+                bestDepth = depth
+                best = ul
+            }
+        }
+        return best
+    })()
+
     const actionNav = actionPagination.closest("nav")!
-    const paginationRoot = actionNav.parentNode as ParentNode
-
+    const paginationRoot = actionNav.parentElement!
     const paginationContainers = Array.from(
-        paginationRoot.querySelectorAll("ul.pagination"),
-    ).filter((ul) => ul.closest("nav")?.parentNode === paginationRoot)
-    assert(paginationContainers.length, "Pagination: Missing pagination controls")
+        paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
+    )
 
-    const renderSibling = actionNav.previousElementSibling! as HTMLElement
-    const renderContainer = renderSibling.querySelector("tbody") ?? renderSibling
+    const renderSibling = (actionNav.previousElementSibling ??
+        paginationRoot.previousElementSibling) as HTMLElement | null
+    assert(renderSibling, "Pagination: Missing render container")
+
+    const renderContainer = renderSibling.matches("tbody, ul.list-unstyled")
+        ? renderSibling
+        : (renderSibling.querySelector("tbody, ul.list-unstyled") ?? renderSibling)
 
     const customLoader = options?.customLoader
     const dataset = actionPagination.dataset
@@ -336,7 +355,9 @@ export const configureStandardPagination = (
                     )
                     button.textContent =
                         itemMax !== itemMin
-                            ? `${itemMin}...${itemMax}`
+                            ? options?.rangeDir === "desc"
+                                ? `${itemMax}‐${itemMin}`
+                                : `${itemMin}‐${itemMax}`
                             : itemMax.toString()
                 } else {
                     button.textContent = pageNumber.toString()
