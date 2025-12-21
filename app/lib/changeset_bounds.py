@@ -178,7 +178,7 @@ def _reduce_labels_to_bboxes_xy(
     np.maximum.at(maxx, labels, x)
     np.maximum.at(maxy, labels, y)
 
-    return np.stack((minx, miny, maxx, maxy), axis=1).tolist()
+    return np.stack((minx, miny, maxx, maxy), axis=1)
 
 
 @cython.cfunc
