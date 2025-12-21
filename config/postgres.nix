@@ -20,7 +20,10 @@
 }:
 
 let
-  postgresSharedBuffersMb = builtins.floor (hostMemoryMb * postgresSharedBuffersPerc);
+  floor = builtins.floor;
+  postgresSharedBuffersMb = floor (hostMemoryMb * postgresSharedBuffersPerc);
+  availableMemoryMb = hostMemoryMb - postgresSharedBuffersMb;
+  osCacheMb = floor (availableMemoryMb / 3);
 in
 with pkgs;
 writeText "postgres.conf" (
@@ -31,27 +34,19 @@ writeText "postgres.conf" (
 
     # increase buffers and memory usage
     shared_buffers = ${toString postgresSharedBuffersMb}MB
-    effective_cache_size = ${
-      toString (
-        postgresSharedBuffersMb + builtins.floor (hostMemoryMb * (1 - postgresSharedBuffersPerc) / 3)
-      )
-    }MB
+    effective_cache_size = ${toString (postgresSharedBuffersMb + osCacheMb)}MB
     work_mem = ${toString postgresWorkMemMb}MB
     hash_mem_multiplier = 4.0
     maintenance_work_mem = ${
       toString (
-        builtins.floor (
-          (hostMemoryMb - postgresSharedBuffersMb)
-          / (
-            postgresParallelWorkers
-            + (postgresParallelWorkers / postgresParallelMaintenanceWorkers)
-            + postgresAutovacuumWorkers
-          )
+        floor (
+          availableMemoryMb
+          / ((postgresParallelWorkers / postgresParallelMaintenanceWorkers) + postgresAutovacuumWorkers)
           * 0.6
         )
       )
     }MB
-    vacuum_buffer_usage_limit = ${toString (builtins.floor (postgresSharedBuffersMb / 8))}MB
+    vacuum_buffer_usage_limit = ${toString (floor (postgresSharedBuffersMb / 8))}MB
 
     # use UTC timezone
     timezone = UTC
