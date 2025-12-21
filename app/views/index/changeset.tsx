@@ -22,7 +22,7 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
 
@@ -199,7 +199,7 @@ const ChangesetElementsGroup = ({ title }: { title: string }) => (
         <tbody />
       </table>
     </div>
-    <nav aria-label={i18next.t("alt.elements_page_navigation")}>
+    <nav aria-label={t("alt.elements_page_navigation")}>
       <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0" />
     </nav>
   </>
@@ -249,12 +249,12 @@ const getElementsGroupTitle = (
 
   if (type === ElementType.node) {
     // @ts-expect-error
-    return i18next.t("browse.changeset.node", { count })
+    return t("browse.changeset.node", { count })
   }
   if (type === ElementType.way) {
     // @ts-expect-error
-    return i18next.t("browse.changeset.way", { count })
+    return t("browse.changeset.way", { count })
   }
   // @ts-expect-error
-  return i18next.t("browse.changeset.relation", { count })
+  return t("browse.changeset.relation", { count })
 }

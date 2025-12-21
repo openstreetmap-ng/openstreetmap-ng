@@ -14,7 +14,7 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import { memoize } from "@std/cache/memoize"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, render } from "preact"
 
@@ -218,23 +218,23 @@ const getElementsContainerTitle = (
   const count = getPaginationCountLabel(page, elementsLength)
 
   if (type === "parents") {
-    return `${i18next.t("browse.part_of")} (${count})`
+    return `${t("browse.part_of")} (${count})`
   }
   if (type === "way") {
     // @ts-expect-error
-    return i18next.t("browse.changeset.node", { count })
+    return t("browse.changeset.node", { count })
   }
-  return `${i18next.t("browse.relation.members")} (${count})`
+  return `${t("browse.relation.members")} (${count})`
 }
 
 export const getElementTypeLabel = memoize((type: ElementType) => {
   if (type === ElementType.node) {
-    return i18next.t("javascripts.query.node")
+    return t("javascripts.query.node")
   }
   if (type === ElementType.way) {
-    return i18next.t("javascripts.query.way")
+    return t("javascripts.query.way")
   }
-  return i18next.t("javascripts.query.relation")
+  return t("javascripts.query.relation")
 })
 
 export const configureElementsPagination = <T,>(
@@ -268,7 +268,7 @@ export const getPaginationCountLabel = (page: number, totalItems: number) => {
   if (totalItems > ELEMENTS_PER_PAGE) {
     const from = (page - 1) * ELEMENTS_PER_PAGE + 1
     const to = Math.min(page * ELEMENTS_PER_PAGE, totalItems)
-    return i18next.t("pagination.range", {
+    return t("pagination.range", {
       x: `${from}-${to}`,
       y: totalItems,
     })
