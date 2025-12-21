@@ -32,8 +32,8 @@ _PREVIEW_MAX_LENGTH = max(
 
 @router.post('')
 async def preview(
-    text: Annotated[str, Form(max_length=_PREVIEW_MAX_LENGTH)],
     _: Annotated[User, web_user()],
+    text: Annotated[str, Form(max_length=_PREVIEW_MAX_LENGTH)] = '',
 ):
     html = (await rich_text(text, None, 'markdown'))[0]
     if html:
