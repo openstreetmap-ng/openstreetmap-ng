@@ -83,7 +83,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
   const helpDisabled = isHelp
 
   return (
-    <div class="rich-text-container row flex-column-reverse flex-md-row">
+    <div class="row flex-column-reverse flex-md-row">
       <div class="col-md-8">
         <div class="edit-preview-container">
           <textarea
@@ -98,7 +98,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
           />
           {showPreview ? (
             <div
-              class="rich-text rich-text-preview"
+              class="RichTextPreview rich-text"
               dangerouslySetInnerHTML={{ __html: previewHtml.value }}
             />
           ) : null}
@@ -159,7 +159,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
 }
 
 const RichTextHelp = ({ class: extraClass }: { class?: string }) => (
-  <div class={`rich-text-tips p-2 p-md-0 ${extraClass ?? ""}`}>
+  <div class={`RichTextHelp p-2 p-md-0 ${extraClass ?? ""}`}>
     <h5>
       <img
         class="markdown-logo me-2"
