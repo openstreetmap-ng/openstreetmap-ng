@@ -236,10 +236,8 @@
             action="/api/web/diary/{{ diary.id }}/comment">
             <label class="form-label d-block">{{ t('diary_entries.show.leave_a_comment') }}</label>
             <div class="mb-3">
-                {% set rich_text_name = 'body' %}
-                {% set rich_text_maxlength = DIARY_COMMENT_BODY_MAX_LENGTH %}
-                {% set rich_text_required = True %}
-                {% include 'rich-text/_control' %}
+                <div class="rich-text-root" data-name="body" data-maxlength="{{ DIARY_COMMENT_BODY_MAX_LENGTH }}"
+                    data-required="true"></div>
             </div>
             <div class="text-end">
                 <button class="btn btn-primary" type="submit">{{ t('action.comment') }}</button>

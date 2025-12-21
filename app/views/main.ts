@@ -14,6 +14,7 @@ import "@lib/i18n"
 
 import "./navbar/navbar-right"
 
+import "./rich-text/_control"
 import "@lib/datetime-inputs"
 import "@lib/image-proxy"
 
@@ -57,7 +58,6 @@ import "@lib/timezone-update"
 
 import "@lib/map/main-map"
 
-import "./rich-text/_control"
 import "@lib/auth-switcher"
 import "@lib/bootstrap"
 import "@lib/copy-group"

@@ -7,10 +7,9 @@
                     data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                {% set rich_text_name = 'description' %}
-                {% set rich_text_value = user_profile.description %}
-                {% set rich_text_maxlength = USER_DESCRIPTION_MAX_LENGTH %}
-                {% include 'rich-text/_control' %}
+                <div class="rich-text-root" data-name="description"
+                    data-value="{{ user_profile.description | default('') }}"
+                    data-maxlength="{{ USER_DESCRIPTION_MAX_LENGTH }}"></div>
             </div>
             <div class="modal-footer d-flex justify-content-between">
                 <div>
