@@ -7,7 +7,7 @@ from typing import TypeVar
 
 import cython
 from blake3 import blake3
-from Crypto.Cipher import AES
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from pydantic import SecretBytes
 
 from app.config import (
@@ -91,11 +91,22 @@ def hash_s256_code_challenge(verifier: str) -> str:
 
 def encrypt(s: SecretBytes) -> bytes:
     """Encrypt a string using AES-CTR."""
-    assert s, 'Empty string must not be encrypted'
+    s_len = len(s)
+    assert s_len, 'Empty string must not be encrypted'
+    if s_len > 16 * 256:
+        raise OverflowError('The counter has wrapped around in CTR mode')
+
     nonce = buffered_randbytes(15)  # +1 byte for the counter
-    cipher = AES.new(key=SECRET_32.get_secret_value(), mode=AES.MODE_CTR, nonce=nonce)
-    cipher_text_bytes = cipher.encrypt(s.get_secret_value())
-    return b''.join((b'\x00', nonce, cipher_text_bytes))
+    encryptor = Cipher(
+        algorithms.AES(SECRET_32.get_secret_value()),
+        modes.CTR(nonce + b'\x00'),
+    ).encryptor()
+    return b''.join((
+        b'\x00',
+        nonce,
+        encryptor.update(s.get_secret_value()),
+        encryptor.finalize(),
+    ))
 
 
 def decrypt(buffer: bytes) -> SecretBytes:
@@ -107,11 +118,10 @@ def decrypt(buffer: bytes) -> SecretBytes:
     if marker == 0x00:
         nonce_bytes = buffer[1:16]
         cipher_text_bytes = buffer[16:]
-        cipher = AES.new(
-            key=SECRET_32.get_secret_value(),
-            mode=AES.MODE_CTR,
-            nonce=nonce_bytes,
-        )
-        return SecretBytes(cipher.decrypt(cipher_text_bytes))
+        decryptor = Cipher(
+            algorithms.AES(SECRET_32.get_secret_value()),
+            modes.CTR(nonce_bytes + b'\x00'),
+        ).decryptor()
+        return SecretBytes(decryptor.update(cipher_text_bytes) + decryptor.finalize())
 
     raise NotImplementedError(f'Unsupported encryption marker {marker!r}')

@@ -15,6 +15,7 @@ dependencies = [
   "cairosvg",
   "cbor2",
   "coverage",
+  "cryptography",
   "cython",
   "dnspython",
   "duckdb",
@@ -45,7 +46,6 @@ dependencies = [
   "psycopg[binary,pool]",
   "pyarrow",
   "pyarrow-stubs",
-  "pycryptodome",
   "pydantic",
   "pydantic-settings",
   "pyinstrument",
@@ -191,6 +191,7 @@ ignore = [
   "S101",  # assert
   "S105",  # hardcoded-password-string
   "S110",  # try-except-pass
+  "S305",  # suspicious-insecure-cipher-mode-usage
   "S311",  # suspicious-non-cryptographic-random-usage
   "S404",  # suspicious-subprocess-import
   "S6",

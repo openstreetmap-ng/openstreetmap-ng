@@ -7,9 +7,14 @@ from uuid import UUID
 import cbor2
 import cython
 import orjson
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import ECC
-from Crypto.Signature import DSS, eddsa
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric.ec import (
+    ECDSA,
+    SECP256R1,
+    EllipticCurvePublicKey,
+)
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from starlette import status
 from starlette.exceptions import HTTPException
 
@@ -66,8 +71,6 @@ _COSE_ALG_ES256 = -7
 _COSE_ALG_EDDSA = -8
 _COSE_CRV_P256 = 1
 _COSE_CRV_ED25519 = 6
-
-_ED25519_DER_PREFIX = b'\x30\x2a\x30\x05\x06\x03\x2b\x65\x70\x03\x21\x00'
 
 
 def parse_client_data(
@@ -147,10 +150,9 @@ def verify_assertion(
             _AUTH_DATA_SIGN_COUNT_OFFSET : _AUTH_DATA_SIGN_COUNT_OFFSET + 4
         ]
     )
-    if (stored_sign_count or new_sign_count) and new_sign_count <= stored_sign_count:
+    if stored_sign_count and new_sign_count and new_sign_count <= stored_sign_count:
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            f'Assertion: Invalid sign count ({new_sign_count} <= {stored_sign_count})',
+            status.HTTP_400_BAD_REQUEST, 'Assertion: Invalid sign count'
         )
 
     if not _verify_signature(
@@ -160,7 +162,7 @@ def verify_assertion(
     ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Assertion: Bad signature')
 
-    return new_sign_count
+    return max(stored_sign_count, new_sign_count)
 
 
 @cython.cfunc
@@ -200,26 +202,20 @@ def _verify_signature(
     algorithm = passkey['algorithm']
     public_key = passkey['public_key']
 
-    if algorithm == _COSE_ALG_EDDSA:
-        der = _ED25519_DER_PREFIX + public_key
-        key = ECC.import_key(der)
-        verifier = eddsa.new(key, 'rfc8032')
-        try:
-            verifier.verify(data, signature)
-        except ValueError:
-            return False
-        return True
+    try:
+        if algorithm == _COSE_ALG_EDDSA:
+            verifier = Ed25519PublicKey.from_public_bytes(public_key)
+            verifier.verify(signature, data)
+            return True
 
-    if algorithm == _COSE_ALG_ES256:
-        x = int.from_bytes(public_key[:32])
-        y = int.from_bytes(public_key[32:])
-        key = ECC.construct(curve='P-256', point_x=x, point_y=y)
-        verifier = DSS.new(key, 'fips-186-3', 'der')
-        msg_hash = SHA256.new(data)
-        try:
-            verifier.verify(msg_hash, signature)
-        except ValueError:
-            return False
-        return True
+        if algorithm == _COSE_ALG_ES256:
+            verifier = EllipticCurvePublicKey.from_encoded_point(
+                SECP256R1(), b'\x04' + public_key
+            )
+            verifier.verify(signature, data, ECDSA(hashes.SHA256()))
+            return True
+
+    except (InvalidSignature, ValueError):
+        return False
 
     raise NotImplementedError(f'Unsupported algorithm {algorithm!r}')
