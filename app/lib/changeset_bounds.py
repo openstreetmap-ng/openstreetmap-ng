@@ -1,7 +1,6 @@
 import cython
 import numpy as np
 from numpy.typing import NDArray
-from rtree.index import Index
 from shapely import (
     MultiPolygon,
     Point,
@@ -34,30 +33,33 @@ def extend_changeset_bounds(
     num_bounds: cython.size_t = num_bboxes
     dirty_mask = [False] * CHANGESET_BBOX_LIMIT
 
-    # create index
-    index = Index()
-    i: int | None
-    for i, bbox in enumerate(bboxes):
-        index.insert(i, bbox)
-
     # process clusters
     for bbox in _cluster_point_bboxes(points):
         buffer_bbox = _get_buffer_bbox(bbox)
 
-        # below the limit, find the intersection, otherwise find the nearest
-        i = (
-            next(index.intersection(buffer_bbox, False), None)
-            if num_bboxes < CHANGESET_BBOX_LIMIT
-            else next(index.nearest(buffer_bbox, 1, False))
-        )
+        if num_bboxes < CHANGESET_BBOX_LIMIT:
+            for j, existing in enumerate(bboxes):
+                if _bbox_intersects(buffer_bbox, existing):
+                    i = j
+                    break
+            else:
+                i = None
+        else:
+            best_d2: cython.double = float('inf')
+            best_i = None
+            for j, existing in enumerate(bboxes):
+                d2 = _bbox_distance2(buffer_bbox, existing)
+                if d2 < best_d2:
+                    best_d2 = d2
+                    best_i = j
+            i = best_i
 
         if i is not None:
             # merge with the existing bbox
-            _merge_bbox_into_index(index, bboxes, dirty_mask, bbox, i)
+            _merge_bbox(bboxes, dirty_mask, bbox, i)
         else:
             # add new bbox
             bboxes.append(bbox)
-            index.insert(num_bboxes, bbox)
             num_bboxes += 1
 
     # recheck dirty bboxes
@@ -66,20 +68,22 @@ def extend_changeset_bounds(
     while check_queue:
         check_i = check_queue.pop()
         bbox = bboxes[check_i]
+
         buffer_bbox = _get_buffer_bbox(bbox)
-        i = next(
-            (idx for idx in index.intersection(buffer_bbox, False) if idx != check_i),
-            None,
-        )
-        if i is None:
+        for j, existing in enumerate(bboxes):
+            if j == check_i or deleted_mask[j]:
+                continue
+            if _bbox_intersects(buffer_bbox, existing):
+                i = j
+                break
+        else:
             continue
 
         # delete bbox at check_i
-        index.delete(check_i, bbox)
         deleted_mask[check_i] = True
 
         # merge bbox into i (if it expands it)
-        if _merge_bbox_into_index(index, bboxes, dirty_mask, bbox, i):
+        if _merge_bbox(bboxes, dirty_mask, bbox, i):
             check_queue.append(i)
 
     # combine results
@@ -101,8 +105,7 @@ def extend_changeset_bounds(
 
 
 @cython.cfunc
-def _merge_bbox_into_index(
-    index: Index,
+def _merge_bbox(
     bboxes: list[_BBox],
     dirty_mask: list[bool],
     bbox: _BBox,
@@ -113,9 +116,7 @@ def _merge_bbox_into_index(
     if merged == existing:
         return False
 
-    index.delete(i, existing)
     bboxes[i] = merged
-    index.insert(i, merged)
     dirty_mask[i] = True
     return True
 
@@ -359,6 +360,42 @@ def _get_buffer_bbox(bound: _BBox, /) -> _BBox:
         maxx + distx,
         maxy + disty,
     ]
+
+
+@cython.cfunc
+def _bbox_intersects(a: _BBox, b: _BBox, /) -> cython.bint:
+    return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a[3] >= b[1]
+
+
+@cython.cfunc
+def _bbox_distance2(a: _BBox, b: _BBox, /) -> cython.double:
+    a0: cython.double
+    a1: cython.double
+    a2: cython.double
+    a3: cython.double
+    b0: cython.double
+    b1: cython.double
+    b2: cython.double
+    b3: cython.double
+
+    dx: cython.double
+    dy: cython.double
+
+    if (b2 := b[2]) < (a0 := a[0]):
+        dx = a0 - b2
+    elif (a2 := a[2]) < (b0 := b[0]):
+        dx = b0 - a2
+    else:
+        dx = 0
+
+    if (b3 := b[3]) < (a1 := a[1]):
+        dy = a1 - b3
+    elif (a3 := a[3]) < (b1 := b[1]):
+        dy = b1 - a3
+    else:
+        dy = 0
+
+    return dx * dx + dy * dy
 
 
 @cython.cfunc

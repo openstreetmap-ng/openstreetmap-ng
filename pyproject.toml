@@ -60,7 +60,6 @@ dependencies = [
   "python-multipart",
   "pyyaml",
   "rfc3986",
-  "rtree",
   "sentry-sdk[aiohttp,fastapi,httpx,pure-eval]",
   "shapely",
   "sizestr",
