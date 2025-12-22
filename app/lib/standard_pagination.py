@@ -67,6 +67,21 @@ async def sp_render_response(
     return response
 
 
+def sp_render_response_bytes(
+    body: bytes,
+    state: StandardPaginationState,
+    *,
+    media_type: str = 'application/x-protobuf',
+) -> Response:
+    """Render a binary response and attach the updated StandardPaginationState."""
+    state.DiscardUnknownFields()  # type: ignore
+    response = Response(body, media_type=media_type)
+    response.headers['X-StandardPagination'] = (
+        urlsafe_b64encode(state.SerializeToString()).rstrip(b'=').decode()
+    )
+    return response
+
+
 def _dt_to_us(value: datetime) -> int:
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
