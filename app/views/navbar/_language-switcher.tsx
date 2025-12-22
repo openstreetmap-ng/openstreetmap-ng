@@ -125,11 +125,11 @@ const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }
                     aria-current={locale.isPrimary ? "true" : undefined}
                     onClick={() => setLanguage(locale.code)}
                   >
-                    {locale.flag ? <span class="flag">{locale.flag}</span> : null}
+                    {locale.flag && <span class="flag">{locale.flag}</span>}
                     <span class="name-native">{locale.native ?? locale.english}</span>
-                    {locale.native ? (
+                    {locale.native && (
                       <span class="name-english">{locale.english}</span>
-                    ) : null}
+                    )}
                   </button>
                 </li>
               ))}

@@ -158,7 +158,7 @@ export const ElementsListRow = ({
 }) => (
   <tr class={extraClass}>
     <td>
-      {icon ? (
+      {icon && (
         <img
           loading="lazy"
           src={`/static/img/element/${icon.icon}`}
@@ -166,7 +166,7 @@ export const ElementsListRow = ({
           alt=""
           aria-hidden="true"
         />
-      ) : null}
+      )}
     </td>
 
     <td>

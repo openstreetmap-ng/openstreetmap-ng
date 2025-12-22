@@ -96,12 +96,12 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
             ref={textAreaRef}
             hidden={!showEditor}
           />
-          {showPreview ? (
+          {showPreview && (
             <div
               class="RichTextPreview rich-text"
               dangerouslySetInnerHTML={{ __html: previewHtml.value }}
             />
-          ) : null}
+          )}
         </div>
       </div>
       <div class="col-md-4">
@@ -150,7 +150,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
               {t("rich_text.formatting_tips")}
             </button>
           </fieldset>
-          {showHelp ? <RichTextHelp class="d-md-none" /> : null}
+          {showHelp && <RichTextHelp class="d-md-none" />}
           <RichTextHelp class="d-none d-md-block" />
         </div>
       </div>

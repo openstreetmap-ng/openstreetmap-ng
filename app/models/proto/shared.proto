@@ -198,7 +198,7 @@ message RenderChangesetsData {
         optional User user = 2;  // Author information
         repeated SharedBounds bounds = 3; // Affected map areas
         bool closed = 4; // Whether changeset is closed
-        string timeago = 5; // Human-readable timestamp HTML
+        uint64 timeago = 5; // Timestamp in seconds
         optional string comment = 6;  // Commit message
         uint32 num_create = 7; // Number of created elements
         uint32 num_modify = 8; // Number of modified elements

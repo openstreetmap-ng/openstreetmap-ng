@@ -6,9 +6,9 @@ import {
     configurePasswordsForm,
     handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
+import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { Alert } from "bootstrap"
 import i18next from "i18next"
-import { assert, assertExists, assertFalse, unreachable } from "@std/assert"
 
 export interface APIDetail {
     type: "success" | "info" | "error"
@@ -43,7 +43,9 @@ export const configureStandardForm = <T = any>(
     // disables maxlength and other browser checks: form.noValidate = true
     form.classList.add("needs-validation")
 
-    const submitElements = form.querySelectorAll<HTMLInputElement | HTMLButtonElement>("[type=submit]")
+    const submitElements = form.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
+        "[type=submit]",
+    )
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
     let abortController: AbortController | undefined
@@ -186,7 +188,10 @@ export const configureStandardForm = <T = any>(
 
         feedback.classList.toggle("alert-success", type === "success")
         feedback.classList.toggle("alert-info", type === "info")
-        feedback.classList.toggle("alert-danger", type === "error" || type === "missing")
+        feedback.classList.toggle(
+            "alert-danger",
+            type === "error" || type === "missing",
+        )
 
         feedback.firstElementChild!.textContent = message
 
@@ -334,7 +339,10 @@ export const configureStandardForm = <T = any>(
             })
             const contentType = resp.headers.get("Content-Type") ?? ""
             assertFalse(
-                resp.ok && contentType && Boolean(options?.protobuf) !== (contentType === "application/x-protobuf"),
+                resp.ok &&
+                    contentType &&
+                    Boolean(options?.protobuf) !==
+                        (contentType === "application/x-protobuf"),
                 `Mismatched response content type: ${contentType}`,
             )
 

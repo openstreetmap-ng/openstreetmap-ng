@@ -38,17 +38,14 @@ def _encode_changeset(changeset: Changeset):
     ]
 
     closed_at = changeset['closed_at']
-    timeago_date = closed_at or changeset['created_at']
-    timeago_html = (
-        f'<time datetime="{timeago_date.isoformat()}" data-style="long"></time>'
-    )
+    timeago = int((closed_at or changeset['created_at']).timestamp())
 
     return RenderChangesetsData.Changeset(
         id=changeset['id'],
         user=params_user,
         bounds=params_bounds,
         closed=closed_at is not None,
-        timeago=timeago_html,
+        timeago=timeago,
         comment=changeset['tags'].get('comment'),
         num_create=changeset['num_create'],
         num_modify=changeset['num_modify'],

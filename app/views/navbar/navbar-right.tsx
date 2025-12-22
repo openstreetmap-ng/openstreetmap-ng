@@ -78,9 +78,10 @@ const reportsCountAdministrator = user?.reportsCountAdministrator ?? 0
 
 const NavbarUser = () => {
   assertExists(user)
-  const showBadges =
-    messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator
-  const showReports = reportsCountModerator || reportsCountAdministrator
+  const showBadges = Boolean(
+    messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator,
+  )
+  const showReports = Boolean(reportsCountModerator || reportsCountAdministrator)
 
   return (
     <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
@@ -101,7 +102,7 @@ const NavbarUser = () => {
         >
           {user.displayName}
         </span>
-        {showBadges ? (
+        {showBadges && (
           <span class="d-inline-flex gap-1 ms-2">
             <span class="badge text-bg-light-green">
               {messagesCountUnread.value || ""}
@@ -109,7 +110,7 @@ const NavbarUser = () => {
             <span class="badge text-bg-primary">{reportsCountModerator || ""}</span>
             <span class="badge text-bg-danger">{reportsCountAdministrator || ""}</span>
           </span>
-        ) : null}
+        )}
       </button>
       <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
         <li>
@@ -147,7 +148,7 @@ const NavbarUser = () => {
             {t("accounts.edit.my settings")}
           </a>
         </li>
-        {showReports ? (
+        {showReports && (
           <>
             <li>
               <hr class="dropdown-divider" />
@@ -169,11 +170,11 @@ const NavbarUser = () => {
               </a>
             </li>
           </>
-        ) : null}
+        )}
         <li>
           <hr class="dropdown-divider" />
         </li>
-        {user.homePoint ? (
+        {user.homePoint && (
           <li class="find-home-container d-none">
             <button
               class="dropdown-item"
@@ -182,7 +183,7 @@ const NavbarUser = () => {
               {t("layouts.home")}
             </button>
           </li>
-        ) : null}
+        )}
         <li>
           <form
             method="POST"

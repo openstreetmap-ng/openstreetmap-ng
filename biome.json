@@ -7,7 +7,6 @@
       "**/*.ts",
       "**/*.tsx",
       "**/*.json",
-      "!!app/views/lib/standard-form.ts",
       "!app/views/lib/timezone-bbox.ts",
       "!app/views/lib/vector-styles/*",
       "!config/aaguid.json",
