@@ -1,13 +1,17 @@
 from datetime import UTC, date, datetime
 from typing import overload
 
-import arrow
 import cython
 import dateutil.parser
 import re2
+from babel import Locale
+from babel.core import UnknownLocaleError
+from babel.dates import format_datetime
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
+from app.lib.locale import DEFAULT_LOCALE
 from app.lib.translation import primary_translation_locale
+from app.models.types import LocaleCode
 
 # ISO-ish datetime gate for the fast path in parse_date().
 # We intentionally keep this conservative: if a string doesn't look like ISO 8601,
@@ -57,17 +61,28 @@ def format_sql_date(dt: datetime | None, /) -> str:
 
 
 @cython.cfunc
-def _format_with_locale(dt: date | datetime, fmt: str, /) -> str:
-    date_ = arrow.get(dt)
+def _babel_locale(locale: LocaleCode, /, _CACHE: dict[str, Locale] = {}) -> Locale:
+    if (cached := _CACHE.get(locale)) is not None:
+        return cached
+
     try:
-        return date_.format(fmt, locale=primary_translation_locale())
-    except ValueError:
-        return date_.format(fmt)
+        parsed = Locale.parse(locale.replace('-', '_'))
+    except (UnknownLocaleError, ValueError):
+        parsed = Locale.parse(DEFAULT_LOCALE.replace('-', '_'))
+
+    _CACHE[locale] = parsed
+    return parsed
 
 
 def format_rfc2822_date(dt: date | datetime, /) -> str:
-    """Format a datetime object as an RFC2822 date string."""
-    return _format_with_locale(dt, 'ddd, DD MMM YYYY HH:mm:ss Z')
+    """Format a date/datetime similar to RFC2822, using the active translation locale."""
+    if isinstance(dt, datetime):
+        dt = dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
+    else:
+        dt = datetime(dt.year, dt.month, dt.day, tzinfo=UTC)
+
+    locale = _babel_locale(primary_translation_locale())
+    return format_datetime(dt, 'EEE, dd MMM yyyy HH:mm:ss Z', locale=locale)
 
 
 def utcnow() -> datetime:

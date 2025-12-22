@@ -39,7 +39,7 @@ def test_format_sql_date_non_utc():
     [
         ('en', 'Fri, 31 Dec 2021 15:30:45 +0000'),
         ('NonExistent', 'Fri, 31 Dec 2021 15:30:45 +0000'),
-        ('pl', 'Pt, 31 gru 2021 15:30:45 +0000'),
+        ('pl', 'pt., 31 gru 2021 15:30:45 +0000'),
     ],
 )
 def test_format_rfc2822_date(locale, expected):

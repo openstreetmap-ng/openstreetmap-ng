@@ -3,11 +3,11 @@ name = "openstreetmap-ng"
 version = "0.0.0"
 requires-python = "~=3.13.0"
 dependencies = [
+  "Babel",
   "aioboto3",
   "aiohttp[speedups]",
   "aiosmtplib",
   "argon2-cffi",
-  "arrow",
   "authlib",
   "blake3",
   "blurhash-rs",
@@ -271,7 +271,6 @@ inline-quotes = "single"
 multiline-quotes = "double"
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
-"arrow.utcnow".msg = "You were likely intending to import `utcnow` from `app.lib.date_utils`."
 "multiprocessing.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
 "os.cpu_count".msg = "Please use `os.process_cpu_count()` instead."
 "re".msg = "Please use `re2` (google-re2) instead."
