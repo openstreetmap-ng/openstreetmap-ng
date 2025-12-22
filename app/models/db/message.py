@@ -4,7 +4,8 @@ from email.message import EmailMessage, MIMEPart
 from typing import NotRequired, TypedDict
 
 import cython
-from bs4 import BeautifulSoup
+from lxml import html as lxml_html
+from lxml.etree import ParserError
 from zid import zid
 
 from app.lib.rich_text import resolve_rich_text
@@ -56,15 +57,7 @@ def message_from_email(
     if subject is None:
         raise ValueError('Email message has no subject')
 
-    if mail.is_multipart():
-        body = None
-        for part in mail.iter_parts():
-            body = _get_body(part)
-            if body is not None:
-                break
-    else:
-        body = _get_body(mail)
-
+    body = _get_message_body(mail)
     if body is None:
         raise ValueError(f'Email message {subject!r} has no body')
 
@@ -80,17 +73,70 @@ def message_from_email(
 
 
 @cython.cfunc
-def _get_body(part: MIMEPart):
-    content_type: str = part.get_content_type()
-    if content_type not in {'text/plain', 'text/html'}:
+def _get_message_body(mail: EmailMessage) -> str | None:
+    html_part: MIMEPart | None = None
+
+    for part in mail.walk():
+        if part.is_multipart():
+            continue
+        if part.get_content_disposition() == 'attachment':
+            continue
+
+        content_type = part.get_content_type()
+
+        if content_type == 'text/plain':
+            payload: bytes | None = part.get_payload(decode=True)  # type: ignore
+            if payload is None:
+                continue
+
+            text = _decode_payload(payload, part.get_content_charset())
+            if text.strip():
+                logging.debug('Extracted email message body from text')
+                return text
+
+        elif content_type == 'text/html':
+            html_part = part
+
+    if html_part is None:
         return None
 
-    payload_bytes: bytes | None = part.get_payload(decode=True)  # type: ignore
-    if payload_bytes is None:
+    payload: bytes | None = html_part.get_payload(decode=True)  # type: ignore
+    if payload is None:
         return None
 
-    logging.debug('Extracted email message body from %r mime part', content_type)
-    if content_type == 'text/html':
-        return BeautifulSoup(payload_bytes, 'lxml').get_text(separator=' ').strip()
-    else:
-        return payload_bytes.decode()
+    html = _decode_payload(payload, html_part.get_content_charset())
+    text = _html_to_text(html)
+    if text.strip():
+        logging.debug('Extracted email message body from HTML')
+        return text
+
+    return None
+
+
+@cython.cfunc
+def _decode_payload(payload: bytes, charset: str | None) -> str:
+    if charset is not None:
+        try:
+            return payload.decode(charset)
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    try:
+        return payload.decode()
+    except UnicodeDecodeError:
+        return payload.decode('latin-1', errors='replace')
+
+
+@cython.cfunc
+def _html_to_text(html: str) -> str:
+    try:
+        document = lxml_html.document_fromstring(html)
+    except (ParserError, ValueError):
+        return ''
+
+    body = document.find('body')
+    root = body if body is not None else document
+    for el in list(root.iter('script', 'style')):
+        el.drop_tree()
+
+    return ' '.join(root.itertext()).strip()
