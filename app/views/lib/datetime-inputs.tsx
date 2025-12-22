@@ -166,14 +166,10 @@ export const configureDatetimeInputs = (
     input.addEventListener("input", sync)
 
     // Convert existing UTC value to local time for display
-    const serverValue = input.dataset.value ?? ""
-    if (serverValue === "") {
-      input.value = ""
-    } else {
-      input.valueAsNumber = utcStringToLocalInputValue(serverValue)
-    }
-    sync()
+    const dataValue = input.dataset.value
+    if (dataValue) input.valueAsNumber = utcStringToLocalInputValue(dataValue)
     input.removeAttribute("data-value")
+    sync()
   }
 }
 
