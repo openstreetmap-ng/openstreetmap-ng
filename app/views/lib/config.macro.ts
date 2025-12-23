@@ -12,6 +12,7 @@ from app.lib.sentry import *
 print(json.dumps({
     'API_URL': API_URL,
     'ENV': ENV,
+    'REPORT_COMMENT_BODY_MAX_LENGTH': REPORT_COMMENT_BODY_MAX_LENGTH,
     'STANDARD_PAGINATION_DISTANCE': STANDARD_PAGINATION_DISTANCE,
     'STANDARD_PAGINATION_MAX_FULL_PAGES': STANDARD_PAGINATION_MAX_FULL_PAGES,
     'MAP_QUERY_AREA_MAX_SIZE': MAP_QUERY_AREA_MAX_SIZE,
@@ -27,6 +28,8 @@ print(json.dumps({
 
 export const _API_URL: string = pythonConfig.API_URL
 export const _ENV: "dev" | "test" | "prod" = pythonConfig.ENV
+export const _REPORT_COMMENT_BODY_MAX_LENGTH: number =
+    pythonConfig.REPORT_COMMENT_BODY_MAX_LENGTH
 export const _STANDARD_PAGINATION_DISTANCE: number =
     pythonConfig.STANDARD_PAGINATION_DISTANCE
 export const _STANDARD_PAGINATION_MAX_FULL_PAGES: number =
