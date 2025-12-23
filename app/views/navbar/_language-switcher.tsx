@@ -2,9 +2,10 @@ import { primaryLanguage } from "@lib/config"
 import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { useComputed, useSignal } from "@preact/signals"
+import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
-import { render } from "preact"
+import { createRef, type RefObject, render } from "preact"
 import { useLayoutEffect, useRef } from "preact/hooks"
 
 const GUIDE_HREF =
@@ -50,7 +51,7 @@ const buildLocales = () => {
   return primary ? [primary, ...entries.filter((e) => !e.isPrimary)] : entries
 }
 
-const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }) => {
+const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> }) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -77,7 +78,7 @@ const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }
       return
     }
 
-    modalInstance().hide()
+    instanceRef.current!.hide()
   }
 
   return (
@@ -165,28 +166,21 @@ const LanguageSwitcherModal = ({ modalInstance }: { modalInstance: () => Modal }
   )
 }
 
+const getModal = memoize(() => {
+  const instanceRef = createRef<Modal>()
+
+  const root = document.createElement("div")
+  render(<LanguageSwitcherModal instanceRef={instanceRef} />, root)
+  document.body.append(root)
+
+  const modal = root.firstElementChild as HTMLElement
+
+  const instance = Modal.getOrCreateInstance(modal)
+  instanceRef.current = instance
+  return instance
+})
+
 export const LanguageSwitcher = () => {
-  const modalInstanceRef = useRef<Modal | null>(null)
-
-  const ensureModal = () => {
-    if (modalInstanceRef.current) {
-      return modalInstanceRef.current
-    }
-
-    const modalRoot = document.createElement("div")
-    document.body.append(modalRoot)
-    render(<LanguageSwitcherModal modalInstance={() => modalInstance} />, modalRoot)
-
-    const modalElement = modalRoot.querySelector(".modal")!
-    const modalInstance = Modal.getOrCreateInstance(modalElement)
-    modalInstanceRef.current = modalInstance
-    return modalInstance
-  }
-
-  const showModal = () => {
-    ensureModal().show()
-  }
-
   return (
     <div
       id="LanguageSwitcher"
@@ -196,7 +190,7 @@ export const LanguageSwitcher = () => {
         class="btn btn-light btn-bg-initial text-navbar w-100"
         type="button"
         title={t("settings.choose_language")}
-        onClick={showModal}
+        onClick={() => getModal().show()}
       >
         <i class="bi bi-translate" />
         <span class="d-lg-none ms-2">{t("settings.choose_language")}</span>
