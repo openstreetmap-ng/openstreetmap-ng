@@ -8,7 +8,7 @@ import {
     focusObjects,
 } from "@lib/map/layers/focus-layer.ts"
 import { PartialNoteParamsSchema } from "@lib/proto/shared_pb"
-import { configureReportButtonsLazy } from "@lib/report-modal"
+import { configureReportButtons } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
@@ -77,7 +77,7 @@ export const getNoteController = (map: MaplibreMap) => {
         })
 
         // Configure report buttons
-        configureReportButtonsLazy(sidebarContent)
+        configureReportButtons(sidebarContent)
 
         const disposePagination = configureStandardPagination(
             sidebarContent.querySelector("div.note-comments-pagination"),

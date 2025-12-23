@@ -16,7 +16,7 @@ import {
   type PartialChangesetParams,
   PartialChangesetParamsSchema,
 } from "@lib/proto/shared_pb"
-import { configureReportButtonsLazy } from "@lib/report-modal"
+import { configureReportButtons } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { configureTagsFormat } from "@lib/tags-format"
@@ -39,7 +39,7 @@ export const getChangesetController = (map: MaplibreMap) => {
 
   const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
     configureTagsFormat(sidebarContent.querySelector("div.tags"))
-    configureReportButtonsLazy(sidebarContent)
+    configureReportButtons(sidebarContent)
 
     const sidebarTitleElement =
       sidebarContent.querySelector<HTMLElement>(".sidebar-title")!
