@@ -1,30 +1,33 @@
 process_file() {
-  file="$1"
-  mode="$2"
+  local file="$1"
+  local mode="$2"
 
   process_file_inner() {
-    dest="$file.$extension"
-    if [ "$mode" = "clean" ]; then
-      rm -f "$dest"
-      return
-    fi
-    if [ ! -f "$dest" ] || [ "$dest" -ot "$file" ]; then
-      tmpfile=$(mktemp -t "$(basename "$dest").XXXXXXXXXX")
-      $compressor "${args[@]}" "$file" -o "$tmpfile"
-      touch --reference "$file" "$tmpfile"
-      mv -f "$tmpfile" "$dest"
+    local extension="$1"
+    local compressor="$2"
+    shift 2
+    local -a args=("$@")
+
+    local dest="$file$extension"
+    [[ $mode == clean ]] && {
+      rm -f -- "$dest"
+      return 0
+    }
+
+    if [[ ! -f $dest || $dest -ot $file ]]; then
+      local tmpfile
+      tmpfile=$(mktemp -t "${dest##*/}.XXXXXXXXXX")
+      "$compressor" "${args[@]}" "$file" -o "$tmpfile" || {
+        rm -f -- "$tmpfile"
+        return 1
+      }
+      touch --reference="$file" "$tmpfile"
+      mv -f -- "$tmpfile" "$dest"
     fi
   }
 
-  extension="zst"
-  compressor="zstd"
-  args=(--force --ultra -22 --single-thread --quiet)
-  process_file_inner
-
-  extension="br"
-  compressor="brotli"
-  args=(--force --best)
-  process_file_inner
+  process_file_inner .zst zstd --force --ultra -22 --single-thread --quiet
+  process_file_inner .br brotli --force --best
 }
 export -f process_file
 

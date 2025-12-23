@@ -1,14 +1,13 @@
 reference_file="app/models/proto/shared_pb2.py"
-if [ ! -f "$reference_file" ]; then
+if [[ ! -f $reference_file ]]; then
   echo "No protobuf outputs found, compiling..."
 else
   changed=0
-  while IFS= read -r -d "" proto; do
-    if [ "$proto" -nt "$reference_file" ]; then
-      changed=1
-      break
-    fi
-  done < <(fd -0 -t f -e proto . app/models/proto)
+  for proto in app/models/proto/*.proto; do
+    [[ $proto -nt $reference_file ]] || continue
+    changed=1
+    break
+  done
 
   ((changed)) || exit 0
   echo "Proto files have changed, recompiling..."

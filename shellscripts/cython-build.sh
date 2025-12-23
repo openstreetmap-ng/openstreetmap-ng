@@ -16,9 +16,8 @@ DIRS=(
 )
 for dir in "${DIRS[@]}"; do
   for file in "$dir"/**/*.py; do
-    if [ -f "$file" ] && [ -z "${BLACKLIST[$file]:-}" ]; then
-      files+=("$file")
-    fi
+    [[ -f $file && -z ${BLACKLIST[$file]:-} ]] || continue
+    files+=("$file")
   done
 done
 
@@ -29,9 +28,8 @@ EXTRA_PATHS=(
   "scripts/replication_generate.py"
 )
 for file in "${EXTRA_PATHS[@]}"; do
-  if [ -f "$file" ] && [ -z "${BLACKLIST[$file]:-}" ]; then
-    files+=("$file")
-  fi
+  [[ -f $file && -z ${BLACKLIST[$file]:-} ]] || continue
+  files+=("$file")
 done
 
 echo "Found ${#files[@]} source files"
@@ -56,9 +54,7 @@ process_file() {
   so_file="${pyfile%.py}$_SUFFIX"
 
   # Skip unchanged files
-  if [ "$so_file" -nt "$pyfile" ]; then
-    return 0
-  fi
+  [[ $so_file -nt $pyfile ]] && return 0
 
   (
     set -x

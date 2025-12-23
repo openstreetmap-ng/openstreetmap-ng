@@ -5,14 +5,16 @@
   ...
 }:
 (pkgs.lib.optionalString enablePostgres ''
-  if cmp -s data/.dev-version <(echo "${pkgsUrl}"); then exit 0; fi
+  current_pkgs_url=
+  { read -r current_pkgs_url <data/.dev-version; } 2>/dev/null || true
+  [[ $current_pkgs_url == "${pkgsUrl}" ]] && exit 0
   echo "Nixpkgs changed, performing services upgrade"
 
   psql() {
     PGOPTIONS='-c timescaledb.disable_load=on' \
       command psql -X "$POSTGRES_URL" "$@"
   }
-  if [ -n "$(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'")" ]; then
+  if [[ -n $(psql -tAc "SELECT 1 FROM information_schema.tables WHERE table_name = 'migration'") ]]; then
     echo "Upgrading postgres/timescaledb"
     psql -c "ALTER EXTENSION timescaledb UPDATE"
 

@@ -1,4 +1,4 @@
-if [ -S "$PC_SOCKET_PATH" ]; then
+if [[ -S $PC_SOCKET_PATH ]]; then
   echo "Services stopping..."
   process-compose down -U || rm -f "$PC_SOCKET_PATH"
   echo "Services stopped"

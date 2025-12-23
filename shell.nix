@@ -112,7 +112,8 @@ let
       destination = "/bin/${name}";
       text = ''
         #!${runtimeShell} -e
-        shopt -s extglob nullglob globstar
+        shopt -s extglob nullglob globstar lastpipe
+        [[ -v GLOBSORT ]] || GLOBSORT=nosort
         cd "${projectDir}"
         ${text}
       '';

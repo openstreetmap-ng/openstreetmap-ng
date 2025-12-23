@@ -5,7 +5,7 @@
     exit 0
   fi
 
-  if [ ! -f data/postgres/PG_VERSION ]; then
+  if [[ ! -f data/postgres/PG_VERSION ]]; then
     initdb -D data/postgres \
       --no-instructions \
       --locale-provider=icu \
@@ -22,12 +22,10 @@
   process-compose project is-ready -U --wait
 
   while read -r name; do
-    if [ -z "$name" ]; then
-      continue
-    fi
+    [[ -z $name ]] && continue
 
     echo -n "Waiting for $name..."
-    while [ "$(process-compose process get "$name" -U --output json | jq -r '.[0].is_ready')" != "Ready" ]; do
+    while [[ $(process-compose process get "$name" -U --output json | jq -r '.[0].is_ready') != Ready ]]; do
       sleep 1
       echo -n "."
     done

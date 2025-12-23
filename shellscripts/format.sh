@@ -1,8 +1,8 @@
 staged=0
-if [ "${1:-}" = "--staged" ]; then
+[[ ${1-} == --staged ]] && {
   staged=1
   shift
-fi
+}
 
 list_files() {
   if ((staged)); then
@@ -10,7 +10,7 @@ list_files() {
   else
     local file
     while IFS= read -r -d '' file; do
-      test -e "$file" && printf '%s\0' "$file"
+      [[ -e $file ]] && printf '%s\0' "$file"
     done < <(git ls-files -z -- "$@")
   fi
 }
@@ -18,7 +18,7 @@ list_files() {
 # format_files <patterns...> -- <command...>
 format_files() {
   local patterns=()
-  while [ "$1" != "--" ]; do
+  while [[ $1 != -- ]]; do
     patterns+=("$1")
     shift
   done
@@ -60,19 +60,19 @@ if ((staged)); then
     fi
   done < <(git diff --cached --name-only --diff-filter=ACMR -z --)
 
-  if ((${#partial_files[@]})); then
+  ((${#partial_files[@]})) && {
     echo "Skipping partially-staged files:" >&2
     printf '  - %s\n' "${partial_files[@]}" >&2
-  fi
+  }
 fi
 
 run_formatters
 
 if ((staged)); then
-  if ((${#restage_files[@]})); then
+  ((${#restage_files[@]})) && {
     printf '%s\0' "${restage_files[@]}" |
       git add --pathspec-from-file=- --pathspec-file-nul --
-  fi
+  }
 else
   run_linters
 fi

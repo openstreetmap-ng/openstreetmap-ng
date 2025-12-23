@@ -1,13 +1,15 @@
 { pkgs, ... }:
 ''
-  while IFS= read -r -d "" script; do
-    if ! head -n 1 "$script" | rg -q -F ".venv/bin/python"; then continue; fi
+  for script in .venv/bin/*; do
+    [[ -f $script && -x $script ]] || continue
 
-    module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script")
-    if [ -z "$module_name" ]; then
+    read -r first_line <"$script" || continue
+    [[ $first_line == *".venv/bin/python"* ]] || continue
+
+    module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script") || {
       echo "Warning: Could not extract module name from $script"
       continue
-    fi
+    }
 
     temp_file=$(mktemp)
     {
@@ -18,5 +20,5 @@
     mv "$temp_file" "$script"
 
     echo "Patched $script"
-  done < <(fd -I0 -t x -d 1 . .venv/bin)
+  done
 ''
