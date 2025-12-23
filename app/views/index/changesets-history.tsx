@@ -158,7 +158,6 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
   let sidebarHoverId: string | null = null
   let shouldFitOnInitialLoad = false
   let hoveredChangesetId: string | null = null
-  let renderedChangesetsCount = 0
   let removeEntryHoverHandlers: (() => void) | null = null
 
   const cancelSidebarHoverFit = () => {
@@ -204,10 +203,8 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
   }
 
   const clearSidebar = () => {
-    for (const element of idSidebarMap.values()) render(null, element)
     idSidebarMap.clear()
-    entryContainer.replaceChildren()
-    renderedChangesetsCount = 0
+    render(null, entryContainer)
   }
 
   const resetChangesets = () => {
@@ -427,70 +424,32 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
   }
 
   const updateSidebar = () => {
-    const createdText = t("browse.created").toLowerCase()
-    const closedText = t("browse.closed").toLowerCase()
-    const noCommentText = t("browse.no_comment")
+    render(
+      changesets.map((changeset) => (
+        <ChangesetEntry
+          changeset={changeset}
+          key={changeset.id}
+        />
+      )),
+      entryContainer,
+    )
 
-    const fragment = document.createDocumentFragment()
-
-    for (let i = renderedChangesetsCount; i < changesets.length; i++) {
-      const changeset = changesets[i]
-      const changesetId = changeset.id.toString()
-      if (idSidebarMap.has(changesetId)) continue
-
-      const element = document.createElement("li")
-      element.className = "social-entry clickable"
-      element.dataset.changesetId = changesetId
-      idSidebarMap.set(changesetId, element)
-      const hasComments = changeset.numComments > 0n
-      render(
-        <>
-          <p class="header text-muted d-flex justify-content-between">
-            <span>
-              <span class="user me-1">{renderUser(changeset.user)}</span>
-              <span class="date">
-                {changeset.closed ? closedText : createdText}{" "}
-                <Time
-                  unix={changeset.timeago}
-                  relativeStyle="long"
-                />
-              </span>
-            </span>
-            <a
-              class="stretched-link"
-              href={`/changeset/${changesetId}`}
-            >
-              {changesetId}
-            </a>
-          </p>
-          <div class="body">
-            <div class="d-flex justify-content-between">
-              <div class="comment">{changeset.comment || noCommentText}</div>
-              <div class={`num-comments ${hasComments ? "" : "no-comments"}`}>
-                {changeset.numComments.toString()}
-                <i class={`bi ${hasComments ? "bi-chat-left-text" : "bi-chat-left"}`} />
-              </div>
-            </div>
-            <div class="changeset-stats">
-              {changeset.numCreate > 0 && (
-                <span class="stat-create">{changeset.numCreate}</span>
-              )}
-              {changeset.numModify > 0 && (
-                <span class="stat-modify">{changeset.numModify}</span>
-              )}
-              {changeset.numDelete > 0 && (
-                <span class="stat-delete">{changeset.numDelete}</span>
-              )}
-            </div>
-          </div>
-        </>,
-        element,
-      )
-      fragment.append(element)
+    idSidebarMap.clear()
+    for (const entry of entryContainer.querySelectorAll(
+      ":scope > li[data-changeset-id]",
+    )) {
+      const changesetId = entry.dataset.changesetId
+      if (changesetId) idSidebarMap.set(changesetId, entry)
     }
 
-    renderedChangesetsCount = changesets.length
-    entryContainer.append(fragment)
+    if (hoveredFeature) {
+      setHover(hoveredFeature.properties, true)
+    }
+    if (hoveredChangesetId) {
+      const changeset = idChangesetMap.get(hoveredChangesetId)
+      if (changeset)
+        setHover({ id: hoveredChangesetId, numBounds: changeset.bounds.length }, true)
+    }
   }
 
   const addEntryHoverHandlers = () => {
@@ -631,24 +590,15 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     const fetchDate = params.date
     if (fetchDate !== renderedDateFilter) {
       renderedDateFilter = fetchDate
-      if (fetchDate) {
-        const textSpan = document.createElement("span")
-        textSpan.textContent = t("changeset.viewing_edits_from_date", {
-          date: fetchDate,
-        })
-        textSpan.classList.add("date-filter-text")
-
-        const closeLink = document.createElement("a")
-        closeLink.href = `${window.location.pathname}${qsEncode({
-          ...params,
-          date: undefined,
-        })}`
-        closeLink.classList.add("btn", "btn-sm", "btn-link", "btn-close")
-        closeLink.title = t("action.remove_filter")
-        dateFilterElement.replaceChildren(textSpan, closeLink)
-      } else {
-        dateFilterElement.replaceChildren()
-      }
+      render(
+        fetchDate ? (
+          <DateFilter
+            date={fetchDate}
+            params={params}
+          />
+        ) : null,
+        dateFilterElement,
+      )
     }
 
     if (lngLatBoundsEqual(fetchedBounds, fetchBounds) && fetchedDate === fetchDate) {
@@ -808,5 +758,90 @@ const renderUser = (user: RenderChangesetsData_Changeset_User | undefined) => {
       />
       {user.name}
     </a>
+  )
+}
+
+const ChangesetEntry = ({
+  changeset,
+}: {
+  changeset: RenderChangesetsData_Changeset
+}) => {
+  const changesetId = changeset.id.toString()
+  const hasComments = changeset.numComments > 0n
+
+  return (
+    <li
+      class="social-entry clickable"
+      data-changeset-id={changesetId}
+    >
+      <p class="header text-muted d-flex justify-content-between">
+        <span>
+          <span class="user me-1">{renderUser(changeset.user)}</span>
+          <span class="date">
+            {changeset.closed
+              ? t("browse.closed").toLowerCase()
+              : t("browse.created").toLowerCase()}{" "}
+            <Time
+              unix={changeset.timeago}
+              relativeStyle="long"
+            />
+          </span>
+        </span>
+        <a
+          class="stretched-link"
+          href={`/changeset/${changesetId}`}
+        >
+          {changesetId}
+        </a>
+      </p>
+      <div class="body">
+        <div class="d-flex justify-content-between">
+          <div class="comment">{changeset.comment || t("browse.no_comment")}</div>
+          <div class={`num-comments${hasComments ? "" : " no-comments"}`}>
+            {changeset.numComments.toString()}
+            <i class={`bi ${hasComments ? "bi-chat-left-text" : "bi-chat-left"}`} />
+          </div>
+        </div>
+        <div class="changeset-stats">
+          {changeset.numCreate > 0 && (
+            <span class="stat-create">{changeset.numCreate}</span>
+          )}
+          {changeset.numModify > 0 && (
+            <span class="stat-modify">{changeset.numModify}</span>
+          )}
+          {changeset.numDelete > 0 && (
+            <span class="stat-delete">{changeset.numDelete}</span>
+          )}
+        </div>
+      </div>
+    </li>
+  )
+}
+
+const DateFilter = ({
+  date,
+  params,
+}: {
+  date: string
+  params: Record<string, string | undefined>
+}) => {
+  const href = `${window.location.pathname}${qsEncode({
+    ...params,
+    date: undefined,
+  })}`
+
+  return (
+    <>
+      <span class="date-filter-text">
+        {t("changeset.viewing_edits_from_date", { date })}
+      </span>
+      <a
+        class="btn btn-sm btn-link btn-close"
+        href={href}
+        title={t("action.remove_filter")}
+      >
+        <span class="visually-hidden">{t("action.remove_filter")}</span>
+      </a>
+    </>
   )
 }
