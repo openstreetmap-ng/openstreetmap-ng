@@ -14,11 +14,11 @@ from app.lib.auth_context import web_user
 from app.lib.standard_pagination import (
     StandardPaginationStateBody,
     sp_paginate_table,
-    sp_render_response,
+    sp_render_response_bytes,
 )
 from app.models.db.message import Message, messages_resolve_rich_text
-from app.models.db.user import User, user_avatar_url
-from app.models.proto.shared_pb2 import MessageRead
+from app.models.db.user import User, UserDisplay, user_avatar_url
+from app.models.proto.shared_pb2 import MessagePage, MessageRead
 from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -26,6 +26,22 @@ from app.services.message_service import MessageService
 from app.validators.display_name import DisplayNameNormalizing
 
 router = APIRouter(prefix='/api/web/messages')
+
+_MESSAGE_BODY_PREVIEW_MAX = 250
+
+
+def _message_body_preview(value: str) -> str:
+    if len(value) <= _MESSAGE_BODY_PREVIEW_MAX:
+        return value
+    trimmed = value[: _MESSAGE_BODY_PREVIEW_MAX - 3].rstrip()
+    return f'{trimmed}...'
+
+
+def _message_user_summary(user: UserDisplay) -> MessagePage.Summary.User:
+    return MessagePage.Summary.User(
+        display_name=user['display_name'],
+        avatar_url=user_avatar_url(user),
+    )
 
 
 @router.post('')
@@ -71,8 +87,8 @@ async def read_message(
         if user_recipient is not None and not user_recipient['read']:
             tg.create_task(MessageService.set_state(message_id, read=True))
 
-    from_user = message['from_user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
-    time_html = f'<time datetime="{message["created_at"].isoformat()}" data-date="long" data-time="short"></time>'
+    from_user = message['from_user']  # type: ignore
+    time_unix = int(message['created_at'].timestamp())
 
     result = MessageRead(
         sender=MessageRead.Sender(
@@ -82,15 +98,15 @@ async def read_message(
         ),
         recipients=[
             MessageRead.Recipient(
-                display_name=r['user']['display_name'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
-                avatar_url=user_avatar_url(r['user']),  # pyright: ignore [reportTypedDictNotRequiredAccess]
+                display_name=r['user']['display_name'],  # type: ignore
+                avatar_url=user_avatar_url(r['user']),  # type: ignore
             )
             for r in message['recipients']
         ],
         is_recipient=user_recipient is not None,
-        time=time_html,
+        time=time_unix,
         subject=message['subject'],
-        body_rich=message['body_rich'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        body_rich=message['body_rich'],  # type: ignore
     )
     return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
@@ -145,11 +161,23 @@ async def inbox_page(
             )
         )
 
-    return await sp_render_response(
-        'messages/page',
-        {'messages': messages, 'inbox': True},
-        state,
-    )
+    summaries = []
+    for message in messages:
+        from_user = message['from_user']  # type: ignore
+        user_recipient = message.get('user_recipient')
+        summaries.append(
+            MessagePage.Summary(
+                id=message['id'],
+                sender=_message_user_summary(from_user),
+                unread=bool(user_recipient and not user_recipient['read']),
+                time=int(message['created_at'].timestamp()),
+                subject=message['subject'],
+                body_preview=_message_body_preview(message['body']),
+            )
+        )
+
+    payload = MessagePage(messages=summaries)
+    return sp_render_response_bytes(payload.SerializeToString(), state)
 
 
 @router.post('/outbox')
@@ -169,15 +197,27 @@ async def outbox_page(
         order_dir='desc',
     )
 
-    await MessageQuery.resolve_recipients(user['id'], messages)
+    await MessageQuery.resolve_recipients(None, messages)
     await UserQuery.resolve_users([
         r
         for m in messages
         for r in m['recipients']  # type: ignore
     ])
 
-    return await sp_render_response(
-        'messages/page',
-        {'messages': messages, 'inbox': False},
-        state,
-    )
+    summaries = []
+    for message in messages:
+        recipients = message['recipients']  # type: ignore
+        summaries.append(
+            MessagePage.Summary(
+                id=message['id'],
+                recipients=[_message_user_summary(r['user']) for r in recipients[:3]],  # type: ignore
+                recipients_count=len(recipients),
+                unread=False,
+                time=int(message['created_at'].timestamp()),
+                subject=message['subject'],
+                body_preview=_message_body_preview(message['body']),
+            )
+        )
+
+    payload = MessagePage(messages=summaries)
+    return sp_render_response_bytes(payload.SerializeToString(), state)

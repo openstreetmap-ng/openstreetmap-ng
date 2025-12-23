@@ -126,6 +126,27 @@ message LoginResponse {
 // Messages
 // =============================================
 
+// Messages list pagination payload
+message MessagePage {
+    message Summary {
+        message User {
+            string display_name = 1; // Display name
+            string avatar_url = 2; // Profile image URL
+        }
+
+        uint64 id = 1;
+        optional User sender = 2;
+        repeated User recipients = 3;
+        uint32 recipients_count = 4;
+        bool unread = 5;
+        uint64 time = 6; // Timestamp in seconds (UTC)
+        string subject = 7;
+        string body_preview = 8;
+    }
+
+    repeated Summary messages = 1;
+}
+
 // Message read response
 message MessageRead {
     message Sender {
@@ -142,7 +163,7 @@ message MessageRead {
     Sender sender = 1; // Message author
     repeated Recipient recipients = 2; // Message recipients
     bool is_recipient = 3; // Whether current user is a recipient
-    string time = 4; // HTML time element
+    uint64 time = 4; // Timestamp in seconds (UTC)
     string subject = 5; // Message subject
     string body_rich = 6; // Rich text HTML body
 }
