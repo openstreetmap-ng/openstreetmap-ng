@@ -5,3 +5,16 @@
         min-width: calc(2ch + var(--bs-pagination-padding-x) * 2 + 2px);
     }
 }
+
+.pagination-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 2rem;
+}
+
+.pagination-spinner .spinner-border {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-width: 0.25em;
+}
