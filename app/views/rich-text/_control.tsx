@@ -2,6 +2,7 @@ import { useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
 import { t } from "i18next"
 import { render } from "preact"
+import { memo } from "preact/compat"
 import { useRef } from "preact/hooks"
 
 type RichTextMode = "idle" | "edit" | "preview" | "help"
@@ -38,6 +39,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
   const previewHtml = useSignal("")
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Effect: Fetch preview HTML when in preview mode
   useSignalEffect(() => {
     if (mode.value !== "preview") {
       previewHtml.value = ""
@@ -57,7 +59,9 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
           signal: abortController.signal,
           priority: "high",
         })
-        previewHtml.value = await resp.text()
+        const respText = await resp.text()
+        abortController.signal.throwIfAborted()
+        previewHtml.value = respText
       } catch (error) {
         if (error.name === "AbortError") return
         console.error("RichTextControl: Preview fetch failed", error)
@@ -158,7 +162,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
   )
 }
 
-const RichTextHelp = ({ class: extraClass }: { class?: string }) => (
+const RichTextHelp = memo(({ class: extraClass }: { class?: string }) => (
   <div class={`RichTextHelp p-2 p-md-0 ${extraClass ?? ""}`}>
     <h5>
       <img
@@ -215,7 +219,7 @@ const RichTextHelp = ({ class: extraClass }: { class?: string }) => (
       </a>
     </p>
   </div>
-)
+))
 
 const roots = document.querySelectorAll<HTMLElement>(".rich-text-root")
 console.debug("RichTextControl: Initializing", roots.length, "containers")
