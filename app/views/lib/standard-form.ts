@@ -230,8 +230,10 @@ export const configureStandardForm = <T = any>(
             console.debug("StandardForm: Processing field feedback", field, type)
 
             if (
-                !(input instanceof HTMLInputElement) &&
-                !(input instanceof HTMLTextAreaElement)
+                !(
+                    input instanceof HTMLInputElement ||
+                    input instanceof HTMLTextAreaElement
+                )
             ) {
                 handleFormFeedback(type, msg)
                 continue
