@@ -1,3 +1,5 @@
+import type { NoteStatus } from "@lib/proto/shared_pb"
+
 export interface OSMNode {
     type: "node"
     id: bigint
@@ -24,7 +26,7 @@ export interface OSMNote {
     id: bigint | null
     geom: [number, number]
     text: string
-    status: "open" | "closed" | "hidden"
+    status: NoteStatus
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

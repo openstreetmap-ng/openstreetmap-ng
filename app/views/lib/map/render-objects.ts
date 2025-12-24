@@ -13,6 +13,7 @@ import type {
     OSMWay,
 } from "@lib/types"
 import type { Feature, FeatureCollection } from "geojson"
+import { NOTE_STATUS_MARKERS } from "./image"
 
 interface RenderOptions {
     renderAreas: boolean // default: true
@@ -113,8 +114,8 @@ export const renderObjects = (
             id: featureIdCounter++,
             properties: {
                 type: "note",
-                id: note.id?.toString(),
-                icon: `marker-${note.status}`,
+                id: note.id?.toString() ?? "",
+                icon: NOTE_STATUS_MARKERS[note.status],
                 text: note.text,
             },
             geometry: {
@@ -190,7 +191,7 @@ export const convertRenderNotesData = (render: RenderNotesData) => {
             type: "note",
             id: note.id,
             geom: [note.lon, note.lat],
-            status: note.status as "open" | "closed" | "hidden",
+            status: note.status,
             text: note.text,
         })
     }
