@@ -1,4 +1,4 @@
-import { config } from "@lib/config"
+import { isLoggedIn } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { timezoneUpdateTimeStorage } from "@lib/local-storage"
 import { requestIdleCallbackPolyfill } from "@lib/polyfills"
@@ -32,7 +32,7 @@ const timezoneUpdate = async () => {
     }
 }
 
-if (config.userConfig)
+if (isLoggedIn)
     setTimeout(() => {
         requestIdleCallbackPolyfill(timezoneUpdate, { timeout: 10 * SECOND })
     }, 10 * SECOND)
