@@ -185,6 +185,64 @@ const MessageRecipients = ({
   </>
 )
 
+const MessageActionsToolbar = ({
+  inbox,
+  messageId,
+  message,
+  onUnread,
+  onDelete,
+}: {
+  inbox: boolean
+  messageId: bigint
+  message: MessageRead | null
+  onUnread: () => void
+  onDelete: () => void
+}) => {
+  const showReplyAll = inbox && (message?.recipients.length ?? 0) > 1
+  const disabledGroup = message ? inbox && !message.isRecipient : true
+
+  return (
+    <fieldset class={`btn-group border-0 p-0 m-0 ${disabledGroup ? "disabled" : ""}`}>
+      <a
+        class="btn btn-sm btn-soft"
+        href={`/message/new?reply=${messageId}`}
+      >
+        <i class="bi bi-reply me-2" />
+        {t("messages.message_summary.reply_button")}
+      </a>
+      {inbox && (
+        <>
+          {showReplyAll && (
+            <a
+              class="btn btn-sm btn-soft"
+              href={`/message/new?reply_all=${messageId}`}
+            >
+              <i class="bi bi-reply-all me-2" />
+              {t("messages.reply_all")}
+            </a>
+          )}
+          <button
+            class="btn btn-sm btn-soft"
+            type="button"
+            onClick={onUnread}
+          >
+            <i class="bi bi-envelope me-2" />
+            {t("messages.message_summary.unread_button")}
+          </button>
+        </>
+      )}
+      <button
+        class="btn btn-sm btn-soft"
+        type="button"
+        onClick={onDelete}
+      >
+        <i class="bi bi-trash me-2" />
+        {t("messages.message_summary.destroy_button")}
+      </button>
+    </fieldset>
+  )
+}
+
 const MessagePreview = ({
   inbox,
   messageId,
@@ -204,15 +262,13 @@ const MessagePreview = ({
 }) => {
   const message = state.status === "ready" ? state.message : null
   const sender = message?.sender
-  const showReplyAll = inbox && (message?.recipients.length ?? 0) > 1
-  const disabledGroup = message ? inbox && !message.isRecipient : true
 
   return (
     <div
       class="message-preview card sticky-top"
       ref={previewRef}
     >
-      <div class="message-header py-3 card-header">
+      <div class="py-3 card-header">
         <div class="row g-1">
           <div class="col">
             <div class="message-sender d-flex">
@@ -226,12 +282,12 @@ const MessagePreview = ({
                   />
                   <div>
                     <a
-                      class="sender-link d-inline-block"
+                      class="d-inline-block"
                       href={`/user/${sender!.displayName}`}
                     >
                       {sender!.displayName}
                     </a>
-                    <div class="message-time">
+                    <div>
                       <Time
                         unix={message.time}
                         dateStyle="long"
@@ -248,46 +304,13 @@ const MessagePreview = ({
                 {message && <MessageRecipients recipients={message.recipients} />}
               </div>
             </div>
-            <fieldset
-              class={`btn-group border-0 p-0 m-0 ${disabledGroup ? "disabled" : ""}`}
-            >
-              <a
-                class="reply-link btn btn-sm btn-soft"
-                href={`/message/new?reply=${messageId}`}
-              >
-                <i class="bi bi-reply me-2" />
-                {t("messages.message_summary.reply_button")}
-              </a>
-              {inbox && (
-                <>
-                  {showReplyAll && (
-                    <a
-                      class="reply-all-link btn btn-sm btn-soft"
-                      href={`/message/new?reply_all=${messageId}`}
-                    >
-                      <i class="bi bi-reply-all me-2" />
-                      {t("messages.reply_all")}
-                    </a>
-                  )}
-                  <button
-                    class="unread-btn btn btn-sm btn-soft"
-                    type="button"
-                    onClick={onUnread}
-                  >
-                    <i class="bi bi-envelope me-2" />
-                    {t("messages.message_summary.unread_button")}
-                  </button>
-                </>
-              )}
-              <button
-                class="delete-btn btn btn-sm btn-soft"
-                type="button"
-                onClick={onDelete}
-              >
-                <i class="bi bi-trash me-2" />
-                {t("messages.message_summary.destroy_button")}
-              </button>
-            </fieldset>
+            <MessageActionsToolbar
+              inbox={inbox}
+              messageId={messageId}
+              message={message}
+              onUnread={onUnread}
+              onDelete={onDelete}
+            />
           </div>
           <div class="col-auto">
             <button
@@ -300,13 +323,13 @@ const MessagePreview = ({
         </div>
       </div>
       <div class="card-body">
-        <h5 class="message-title mb-3">{message?.subject}</h5>
+        <h5 class="mb-3">{message?.subject}</h5>
         <div
-          class="message-body rich-text"
+          class="rich-text"
           dangerouslySetInnerHTML={{ __html: message?.bodyRich ?? "" }}
         />
         {state.status === "loading" && (
-          <div class="loading text-center mt-4">
+          <div class="text-center mt-4">
             <output
               class="spinner-border text-body-secondary"
               aria-live="polite"
@@ -326,7 +349,7 @@ const MessagePreview = ({
         {inbox && message && (
           <div class="text-end mt-3">
             <ReportButton
-              class="report-btn btn btn-link btn-sm text-muted p-0"
+              class="btn btn-link btn-sm text-muted p-0"
               reportType="user"
               reportTypeId={sender!.id}
               reportAction="user_message"
@@ -364,6 +387,7 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
   const openMessage = (messageId: bigint) => {
     if (openMessageId.value === messageId) {
+      // Reload when clicking the same message
       openMessageId.value = null
       openMessageId.value = messageId
       return
@@ -464,48 +488,46 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   // Effect: Scroll preview into view when opened
   useSignalEffect(() => {
     if (!openMessageId.value) return
-    previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    previewRef.current!.scrollIntoView({ behavior: "smooth", block: "start" })
   })
 
   return (
     <div class="row flex-wrap-reverse">
       <div class="col-lg">
-        <div>
-          <StandardPagination
-            action={action}
-            protobuf={MessagePageSchema}
-            onLoad={(data) => {
-              messages.value = data.messages
+        <StandardPagination
+          action={action}
+          protobuf={MessagePageSchema}
+          onLoad={(data) => {
+            messages.value = data.messages
 
-              const messageId = openMessageId.peek() ?? getMessageFromPageUrl()
-              if (messageId) {
-                if (data.messages.some((message) => message.id === messageId)) {
-                  openMessage(messageId)
-                } else {
-                  closeMessage()
-                }
+            const messageId = openMessageId.peek() ?? getMessageFromPageUrl()
+            if (messageId) {
+              if (data.messages.some((message) => message.id === messageId)) {
+                openMessage(messageId)
+              } else {
+                closeMessage()
               }
-            }}
-          >
-            {() => (
-              <ul class="messages-list social-list list-unstyled mb-2">
-                {messages.value.length ? (
-                  messages.value.map((message) => (
-                    <MessagesListItem
-                      message={message}
-                      inbox={inbox}
-                      openMessageId={openMessageId.value}
-                      onOpen={openMessage}
-                      key={message.id}
-                    />
-                  ))
-                ) : (
-                  <MessagesEmpty />
-                )}
-              </ul>
-            )}
-          </StandardPagination>
-        </div>
+            }
+          }}
+        >
+          {() => (
+            <ul class="messages-list social-list list-unstyled mb-2">
+              {messages.value.length ? (
+                messages.value.map((message) => (
+                  <MessagesListItem
+                    message={message}
+                    inbox={inbox}
+                    openMessageId={openMessageId.value}
+                    onOpen={openMessage}
+                    key={message.id}
+                  />
+                ))
+              ) : (
+                <MessagesEmpty />
+              )}
+            </ul>
+          )}
+        </StandardPagination>
       </div>
       {openMessageId.value && (
         <div class="col-lg mb-3">
@@ -524,8 +546,8 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   )
 }
 
-mount("messages-index-body", (body) => {
-  const root = body.querySelector<HTMLElement>(".messages-index-root")!
+mount("messages-index-body", () => {
+  const root = document.getElementById("MessagesIndex")!
   const { inbox, action } = root.dataset
   render(
     <MessagesIndex
