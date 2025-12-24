@@ -26,6 +26,9 @@
   },
   "linter": {
     "rules": {
+      "a11y": {
+        "noLabelWithoutControl": "off"
+      },
       "complexity": {
         "noForEach": "on",
         "noUselessStringConcat": "on",
