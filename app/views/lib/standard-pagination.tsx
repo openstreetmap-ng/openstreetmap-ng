@@ -28,13 +28,13 @@ import { useRef } from "preact/hooks"
 
 const SP_HEADER = "X-StandardPagination"
 
-type RangeDir = "asc" | "desc"
+type PageOrder = "asc" | "asc-range" | "desc" | "desc-range"
 
 type StandardPaginationOptions = {
   initialPage?: number
   customLoader?: (renderContainer: HTMLElement, page: number) => void
   loadCallback?: (renderContainer: HTMLElement, page: number) => void
-  rangeDir?: RangeDir
+  pageOrder?: PageOrder
 }
 
 type StandardPaginationElements = {
@@ -70,15 +70,15 @@ const PaginationItems = ({
   activePage,
   state,
   pages,
-  rangeDir,
+  pageOrder,
 }: {
   requestedPage: Signal<number>
   activePage: Signal<number>
   state: Signal<StandardPaginationState | null>
   pages: number | null
-  rangeDir: RangeDir | undefined
+  pageOrder: PageOrder
 }) => {
-  const currentPageValue = activePage.value
+  const actualPage = activePage.value
   const currentState = state.value
   const numPagesValue = pages ?? currentState?.numPages
   const maxKnownPageValue = pages ?? currentState?.maxKnownPage ?? 1
@@ -87,9 +87,19 @@ const PaginationItems = ({
   const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
   if (resolvedMaxPage <= 1) return null
 
+  // For desc mode, invert page numbers: display = numPages - actual + 1
+  const isDesc = pageOrder.startsWith("desc")
+  const showRange = pageOrder.endsWith("-range")
+  const toDisplay = (actual: number) =>
+    isDesc && numPagesValue ? numPagesValue - actual + 1 : actual
+  const toActual = (display: number) =>
+    isDesc && numPagesValue ? numPagesValue - display + 1 : display
+
+  const displayPage = toDisplay(actualPage)
+
   const pagesToRender = computePagesToRender(
-    currentPageValue,
-    maxKnownPageValue,
+    displayPage,
+    isDesc ? toDisplay(1) : maxKnownPageValue,
     numPagesValue,
   )
   const tokens: Array<number | "gap"> = []
@@ -99,7 +109,7 @@ const PaginationItems = ({
     tokens.push(pageNumber)
     previousPage = pageNumber
   }
-  if (showTailEllipsis) tokens.push("gap")
+  if (showTailEllipsis && !isDesc) tokens.push("gap")
 
   const numItemsValue = currentState?.numItems
   const pageSizeValue = currentState?.pageSize
@@ -119,18 +129,19 @@ const PaginationItems = ({
           )
         }
 
-        const pageNumber = token
+        const displayPageNum = token
+        const actualPageNum = toActual(displayPageNum)
         const label =
-          pageSizeValue && numItemsValue !== undefined
-            ? formatPageLabel(pageNumber, pageSizeValue, numItemsValue, rangeDir)
-            : pageNumber.toString()
+          showRange && pageSizeValue && numItemsValue !== undefined
+            ? formatPageLabel(actualPageNum, pageSizeValue, numItemsValue, isDesc)
+            : displayPageNum.toString()
 
-        if (pageNumber === currentPageValue) {
+        if (displayPageNum === displayPage) {
           return (
             <li
               class="page-item active"
               aria-current="page"
-              key={pageNumber}
+              key={displayPageNum}
             >
               <span class="page-link">{label}</span>
             </li>
@@ -140,13 +151,13 @@ const PaginationItems = ({
         return (
           <li
             class="page-item"
-            key={pageNumber}
+            key={displayPageNum}
           >
             <button
               type="button"
               class="page-link"
               onClick={() => {
-                requestedPage.value = pageNumber
+                requestedPage.value = actualPageNum
               }}
             >
               {label}
@@ -162,22 +173,28 @@ export const StandardPagination = <TData,>({
   action,
   label = t("alt.page_navigation"),
   initialPage = 1,
+  pageOrder = "asc",
+  small = false,
+  navTop = false,
+  navClassTop = "mb-2",
+  navBottom = true,
+  navClassBottom = "",
   protobuf,
-  rangeDir,
   onLoad,
   children,
-  navClassTop = "mb-2",
-  navClassBottom = "mb-0",
 }: {
   action: string
   label?: string
   initialPage?: number
+  pageOrder?: PageOrder
+  small?: boolean
+  navTop?: boolean
+  navClassTop?: string
+  navBottom?: boolean
+  navClassBottom?: string
   protobuf?: GenMessage<TData & Message>
-  rangeDir?: RangeDir
   onLoad?: (data: TData, page: number) => void
   children: (data: TData) => ComponentChildren
-  navClassTop?: string
-  navClassBottom?: string
 }) => {
   const requestedPage = useSignal(initialPage)
   const activePage = useSignal(initialPage)
@@ -195,10 +212,8 @@ export const StandardPagination = <TData,>({
     const isStale = () =>
       abortController.signal.aborted || requestedPage.value !== requestedPageValue
 
-    batch(() => {
-      error.value = null
-      data.value = null
-    })
+    error.value = null
+    data.value = null
 
     const fetchPage = async () => {
       try {
@@ -254,7 +269,7 @@ export const StandardPagination = <TData,>({
   const resolvedMaxPage = currentState?.numPages ?? currentState?.maxKnownPage ?? 1
   const showNav = resolvedMaxPage > 1
 
-  const paginationListClass = "pagination justify-content-end"
+  const paginationListClass = `pagination justify-content-end ${small ? "pagination-sm" : ""}`
   const nav = (extraClass: string) => (
     <nav aria-label={label}>
       <ul class={`${paginationListClass} ${extraClass}`}>
@@ -263,7 +278,7 @@ export const StandardPagination = <TData,>({
           activePage={activePage}
           state={state}
           pages={null}
-          rangeDir={rangeDir}
+          pageOrder={pageOrder}
         />
       </ul>
     </nav>
@@ -271,7 +286,7 @@ export const StandardPagination = <TData,>({
 
   return (
     <>
-      {showNav && nav(navClassTop)}
+      {showNav && navTop && nav(navClassTop)}
       {error.value ? (
         <PaginationError error={error.value} />
       ) : data.value === null ? (
@@ -279,7 +294,7 @@ export const StandardPagination = <TData,>({
       ) : (
         children(data.value)
       )}
-      {showNav && nav(navClassBottom)}
+      {showNav && navBottom && nav(navClassBottom)}
     </>
   )
 }
@@ -310,7 +325,6 @@ const configureStandardPaginationElements = (
   const dataset = actionPagination.dataset
   const fetchUrl = dataset.action
   const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
-  const rangeDir = options?.rangeDir
   if (customLoader) {
     assert(dataset.pages, "Pagination: Missing data-pages for custom loader")
   }
@@ -366,7 +380,7 @@ const configureStandardPaginationElements = (
 
     if (customLoader) {
       const resolvedPage = Math.min(requestedPageValue, customNumPages!)
-      if (activePage.peek() !== resolvedPage) activePage.value = resolvedPage
+      activePage.value = resolvedPage
       customLoader(renderContainer, resolvedPage)
       afterLoad(resolvedPage)
       console.debug("Pagination: Page loaded (custom)", requestedPageString)
@@ -453,7 +467,7 @@ const configureStandardPaginationElements = (
           activePage={activePage}
           state={state}
           pages={customNumPages}
-          rangeDir={rangeDir}
+          pageOrder={options?.pageOrder ?? "asc"}
         />,
         paginationContainer,
       )
@@ -565,13 +579,13 @@ const formatPageLabel = (
   pageNumber: number,
   pageSize: number,
   numItems: number,
-  rangeDir: RangeDir | undefined,
+  isDesc: boolean,
 ) => {
   const offset = (pageNumber - 1) * pageSize
   const itemMax = numItems - offset
   const itemMin = itemMax - Math.min(pageSize, itemMax) + 1
   if (itemMax === itemMin) return itemMax.toString()
-  return rangeDir === "desc" ? `${itemMax}‐${itemMin}` : `${itemMin}‐${itemMax}`
+  return isDesc ? `${itemMax}‐${itemMin}` : `${itemMin}‐${itemMax}`
 }
 
 const buildFetchInit = (
