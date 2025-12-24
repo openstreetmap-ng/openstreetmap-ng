@@ -236,7 +236,7 @@
             action="/api/web/diary/{{ diary.id }}/comment">
             <label class="form-label d-block">{{ t('diary_entries.show.leave_a_comment') }}</label>
             <div class="mb-3">
-                <div class="rich-text-root" data-name="body" data-maxlength="{{ DIARY_COMMENT_BODY_MAX_LENGTH }}"
+                <div class="RichTextControl" data-name="body" data-maxlength="{{ DIARY_COMMENT_BODY_MAX_LENGTH }}"
                     data-required="true"></div>
             </div>
             <div class="text-end">

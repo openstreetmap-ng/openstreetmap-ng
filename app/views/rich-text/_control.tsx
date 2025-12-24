@@ -48,7 +48,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
 
     const abortController = new AbortController()
     const formData = new FormData()
-    formData.append("text", textAreaRef.current?.value ?? "")
+    formData.append("text", textAreaRef.current!.value)
     previewHtml.value = t("browse.start_rjs.loading")
 
     const fetchPreview = async () => {
@@ -73,56 +73,45 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
     return () => abortController.abort()
   })
 
-  const isIdle = mode.value === "idle"
-  const isEdit = mode.value === "edit"
-  const isPreview = mode.value === "preview"
+  const isEditing = mode.value === "idle" || mode.value === "edit"
+  const isPreviewing = mode.value === "preview"
   const isHelp = mode.value === "help"
-
-  const showEditor = isIdle || isEdit
-  const showPreview = isPreview
-  const showHelp = isHelp
-
-  const editDisabled = isEdit || isIdle
-  const previewDisabled = isPreview
-  const helpDisabled = isHelp
 
   return (
     <div class="row flex-column-reverse flex-md-row">
       <div class="col-md-8">
-        <div class="edit-preview-container">
-          <textarea
-            class="rich-text-source form-control"
-            name={config.name}
-            rows={config.rows}
-            maxLength={config.maxLength}
-            required={config.required}
-            defaultValue={config.value}
-            ref={textAreaRef}
-            hidden={!showEditor}
+        <textarea
+          class="form-control"
+          name={config.name}
+          rows={config.rows}
+          maxLength={config.maxLength}
+          required={config.required}
+          defaultValue={config.value}
+          ref={textAreaRef}
+          hidden={!isEditing}
+        />
+        {isPreviewing && (
+          <div
+            class="RichTextPreview rich-text"
+            dangerouslySetInnerHTML={{ __html: previewHtml.value }}
           />
-          {showPreview && (
-            <div
-              class="RichTextPreview rich-text"
-              dangerouslySetInnerHTML={{ __html: previewHtml.value }}
-            />
-          )}
-        </div>
+        )}
       </div>
       <div class="col-md-4">
         <div class="sticky-top pt-md-2">
           <fieldset class="btn-group mb-4 d-none d-md-inline-flex border-0 p-0 m-0">
             <button
-              class="edit-btn btn btn-primary"
+              class="btn btn-primary"
               type="button"
-              disabled={editDisabled}
+              disabled={isEditing}
               onClick={() => (mode.value = "edit")}
             >
               {t("layouts.edit")}
             </button>
             <button
-              class="preview-btn btn btn-primary"
+              class="btn btn-primary"
               type="button"
-              disabled={previewDisabled}
+              disabled={isPreviewing}
               onClick={() => (mode.value = "preview")}
             >
               {t("shared.richtext_field.preview")}
@@ -130,31 +119,31 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
           </fieldset>
           <fieldset class="btn-group mb-2 d-flex d-sm-inline-flex d-md-none border-0 p-0 m-0">
             <button
-              class="edit-btn btn btn-primary px-sm-3"
+              class="btn btn-primary px-sm-3"
               type="button"
-              disabled={editDisabled}
+              disabled={isEditing}
               onClick={() => (mode.value = "edit")}
             >
               {t("layouts.edit")}
             </button>
             <button
-              class="preview-btn btn btn-primary px-sm-3"
+              class="btn btn-primary px-sm-3"
               type="button"
-              disabled={previewDisabled}
+              disabled={isPreviewing}
               onClick={() => (mode.value = "preview")}
             >
               {t("shared.richtext_field.preview")}
             </button>
             <button
-              class="help-btn btn btn-soft px-sm-3"
+              class="btn btn-soft px-sm-3"
               type="button"
-              disabled={helpDisabled}
+              disabled={isHelp}
               onClick={() => (mode.value = "help")}
             >
               {t("rich_text.formatting_tips")}
             </button>
           </fieldset>
-          {showHelp && <RichTextHelp class="d-md-none" />}
+          {isHelp && <RichTextHelp class="d-md-none" />}
           <RichTextHelp class="d-none d-md-block" />
         </div>
       </div>
@@ -221,7 +210,7 @@ const RichTextHelp = memo(({ class: extraClass }: { class?: string }) => (
   </div>
 ))
 
-const roots = document.querySelectorAll<HTMLElement>(".rich-text-root")
+const roots = document.querySelectorAll<HTMLElement>(".RichTextControl")
 console.debug("RichTextControl: Initializing", roots.length, "containers")
 for (const root of roots) {
   render(<RichTextControl config={getConfig(root)} />, root)
