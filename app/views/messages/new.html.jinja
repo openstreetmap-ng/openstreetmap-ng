@@ -33,7 +33,7 @@
             <label class="form-label d-block">
                 <span class="required">{{ t('messages.compose.body') }}</span>
             </label>
-            <div class="rich-text-root" data-name="body" data-value="{{ body | default('') }}"
+            <div class="RichTextControl" data-name="body" data-value="{{ body | default('') }}"
                 data-maxlength="{{ MESSAGE_BODY_MAX_LENGTH }}" data-required="true"></div>
 
             <div class="mt-3">
