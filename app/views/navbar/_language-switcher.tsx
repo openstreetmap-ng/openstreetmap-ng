@@ -1,12 +1,12 @@
 import { primaryLanguage } from "@lib/config"
 import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
-import { useComputed, useSignal } from "@preact/signals"
+import { useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import { createRef, type RefObject, render } from "preact"
-import { useLayoutEffect, useRef } from "preact/hooks"
+import { useRef } from "preact/hooks"
 
 const GUIDE_HREF =
   "https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
@@ -31,7 +31,7 @@ const normalizeSearch = (value: string) =>
     .replace(MULTISPACE_RE, " ")
     .trim()
 
-const buildLocales = () => {
+const LOCALES = memoize(() => {
   const entries = LOCALE_OPTIONS.map((locale) => {
     const [code, english, native, flag] = locale
     const search = normalizeSearch([code, english, native].filter(Boolean).join(" "))
@@ -49,7 +49,7 @@ const buildLocales = () => {
 
   const primary = entries.find((e) => e.isPrimary)
   return primary ? [primary, ...entries.filter((e) => !e.isPrimary)] : entries
-}
+})
 
 const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> }) => {
   const modalRef = useRef<HTMLDivElement>(null)
@@ -58,18 +58,19 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
   const search = useSignal("")
   const searchNormalized = useComputed(() => normalizeSearch(search.value))
 
-  const locales = useComputed(() => buildLocales())
   const localesFiltered = useComputed(() =>
     searchNormalized.value
-      ? locales.value.filter((locale) => locale.search.includes(searchNormalized.value))
-      : locales.value,
+      ? LOCALES().filter((locale) => locale.search.includes(searchNormalized.value))
+      : LOCALES(),
   )
 
-  useLayoutEffect(() => {
-    modalRef.current!.addEventListener("shown.bs.modal", () => {
-      searchInputRef.current!.focus()
-    })
-  }, [])
+  // Effect: Focus search on modal open
+  useSignalEffect(() => {
+    const el = modalRef.current!
+    const onShown = () => searchInputRef.current!.focus()
+    el.addEventListener("shown.bs.modal", onShown)
+    return () => el.removeEventListener("shown.bs.modal", onShown)
+  })
 
   const setLanguage = (code: string) => {
     if (code !== primaryLanguage) {

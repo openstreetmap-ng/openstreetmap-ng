@@ -235,5 +235,4 @@ const NavbarRight = () => {
   )
 }
 
-const root = document.querySelector(".navbar-right-root")
-if (root) render(<NavbarRight />, root)
+render(<NavbarRight />, document.getElementById("NavbarRight")!)
