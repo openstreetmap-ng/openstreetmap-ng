@@ -352,45 +352,39 @@ const NoteSidebar = ({
 
     const nid = id.value
     if (!(active.value && nid)) {
-      batch(() => {
-        data.value = null
-        loading.value = false
-        error.value = null
-      })
+      data.value = null
+      loading.value = false
+      error.value = null
       return
     }
 
-    let stale = false
-    batch(() => {
-      loading.value = true
-      error.value = null
-    })
+    loading.value = true
+    error.value = null
     const abortController = new AbortController()
 
     fetch(`/api/web/note/${nid}`, { signal: abortController.signal, priority: "high" })
       .then(async (resp) => {
-        if (stale) return
         if (resp.status === 404) {
           error.value = t("browse.not_found.title")
           return
         }
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
+
         const buffer = await resp.arrayBuffer()
+        abortController.signal.throwIfAborted()
         data.value = fromBinary(NoteDataSchema, new Uint8Array(buffer))
+
         setPageTitle(`${t("note.title")}: ${nid}`)
       })
       .catch((err) => {
-        if (stale || err.name === "AbortError") return
+        if (err.name === "AbortError") return
         error.value = err.message
       })
       .finally(() => {
-        if (!stale) loading.value = false
+        if (!abortController.signal.aborted) loading.value = false
       })
 
-    return () => {
-      stale = true
-      abortController.abort()
-    }
+    return () => abortController.abort()
   })
 
   // Effect: Map focus

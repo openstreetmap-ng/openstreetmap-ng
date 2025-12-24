@@ -454,8 +454,6 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
     previewState.value = { status: "loading" }
     const abortController = new AbortController()
-    const isStale = () =>
-      abortController.signal.aborted || openMessageId.value !== messageId
 
     const fetchMessage = async () => {
       try {
@@ -466,13 +464,13 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
         const buffer = await resp.arrayBuffer()
+        abortController.signal.throwIfAborted()
         const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
         assert(message.sender, "Messages: Missing sender in read response")
-        if (isStale()) return
 
         previewState.value = { status: "ready", message }
       } catch (error) {
-        if (error.name === "AbortError" || isStale()) return
+        if (error.name === "AbortError") return
         console.error("Messages: Failed to fetch", messageId, error)
         previewState.value = {
           status: "error",
