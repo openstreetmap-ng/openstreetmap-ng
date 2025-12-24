@@ -55,6 +55,12 @@ export const isCrashReportingEnabled = (cfg: typeof config) =>
             (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
     )
 
+export const isLoggedIn = Boolean(config.userConfig)
+export const isModerator =
+    isLoggedIn && config.userConfig!.reportsCountModerator !== undefined
+export const isAdministrator =
+    isLoggedIn && config.userConfig!.reportsCountAdministrator !== undefined
+
 /**
  * User's primary translation language
  * @example "pl"
