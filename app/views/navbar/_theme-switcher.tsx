@@ -1,5 +1,6 @@
 import { themeStorage } from "@lib/local-storage"
 import type { Theme } from "@lib/theme"
+import { useComputed } from "@preact/signals"
 import { t } from "i18next"
 
 type ThemeOption = {
@@ -17,7 +18,9 @@ const themeOptions: ThemeOption[] = [
 const BUTTON_LABEL = t("theme.toggle_theme")
 
 export const ThemeSwitcher = () => {
-  const buttonIcon = themeOptions.find((o) => o.value === themeStorage.value)!.icon
+  const buttonIcon = useComputed(
+    () => themeOptions.find((o) => o.value === themeStorage.value)!.icon,
+  )
 
   return (
     <fieldset
@@ -31,7 +34,7 @@ export const ThemeSwitcher = () => {
         aria-expanded="false"
         title={BUTTON_LABEL}
       >
-        <i class={`bi ${buttonIcon}`} />
+        <i class={`bi ${buttonIcon.value}`} />
         <span class="d-lg-none ms-2">{BUTTON_LABEL}</span>
       </button>
 
