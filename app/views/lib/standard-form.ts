@@ -34,7 +34,7 @@ export const configureStandardForm = <T = any>(
         ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
         errorCallback?: (error: Error) => void
     },
-) => {
+): (() => void) | undefined => {
     if (!form || form.classList.contains("needs-validation")) return
     let formAction = form.getAttribute("action") ?? ""
     console.debug("StandardForm: Initializing", formAction)
@@ -48,7 +48,7 @@ export const configureStandardForm = <T = any>(
     )
     const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
     if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
-    let abortController: AbortController | undefined
+    let abortController = new AbortController()
 
     const setPendingState = (state: boolean) => {
         const currentState = form.classList.contains("pending")
@@ -255,7 +255,7 @@ export const configureStandardForm = <T = any>(
         }
     }
 
-    form.addEventListener("submit", async (e) => {
+    const onSubmit = async (e: SubmitEvent) => {
         console.debug("StandardForm: Submit", formAction)
         e.preventDefault()
 
@@ -269,12 +269,13 @@ export const configureStandardForm = <T = any>(
 
         // Stage 2: Handle concurrent submissions
         if (options?.abortSignal) {
-            abortController?.abort()
+            abortController.abort()
             abortController = new AbortController()
         } else if (form.classList.contains("pending")) {
             console.debug("StandardForm: Already pending, ignoring submit", formAction)
             return
         }
+        const currentAbortController = abortController
 
         // Stage 3: Serialize form data
         setPendingState(true)
@@ -336,7 +337,7 @@ export const configureStandardForm = <T = any>(
             const resp = await fetch(url, {
                 method,
                 body,
-                signal: abortController?.signal ?? null,
+                signal: options?.abortSignal ? currentAbortController.signal : null,
                 priority: "high",
             })
             const contentType = resp.headers.get("Content-Type") ?? ""
@@ -359,6 +360,7 @@ export const configureStandardForm = <T = any>(
             } else if (contentType) {
                 data = { detail: await resp.text() }
             }
+            currentAbortController.signal.throwIfAborted()
 
             // Process form feedback if present
             const detail = data?.detail ?? ""
@@ -376,9 +378,17 @@ export const configureStandardForm = <T = any>(
             handleFormFeedback("error", error.message)
             options?.errorCallback?.(error)
         } finally {
-            setPendingState(false)
+            if (!currentAbortController.signal.aborted) setPendingState(false)
         }
-    })
+    }
+    form.addEventListener("submit", onSubmit)
+
+    return () => {
+        console.debug("StandardForm: Disposing", formAction)
+        abortController.abort()
+        form.removeEventListener("submit", onSubmit)
+        form.classList.remove("needs-validation", "was-validated", "pending")
+    }
 }
 
 /** Find the scrollable container for the form */
