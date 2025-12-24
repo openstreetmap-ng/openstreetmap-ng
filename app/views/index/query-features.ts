@@ -181,7 +181,9 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
                     })}`,
                     { signal: abortSignal, priority: "high" },
                 )
-                onSidebarLoaded(await resp.text())
+                const html = await resp.text()
+                abortSignal.throwIfAborted()
+                onSidebarLoaded(html)
             } catch (error) {
                 if (error.name === "AbortError") return
                 console.error("QueryFeatures: Failed to fetch", error)
