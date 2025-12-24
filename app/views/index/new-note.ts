@@ -6,7 +6,7 @@ import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { type LayerId, layersConfig } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { getMapState, setMapState } from "@lib/map/state"
-import { IdResponseSchema } from "@lib/proto/shared_pb"
+import { IdResponseSchema, NoteStatus } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
@@ -88,7 +88,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
                             type: "note",
                             id: null,
                             geom: [lngLat.lng, lngLat.lat],
-                            status: "open",
+                            status: NoteStatus.open,
                             text: "",
                         },
                     ],

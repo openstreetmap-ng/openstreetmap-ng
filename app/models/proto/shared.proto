@@ -230,6 +230,12 @@ message RenderChangesetsData {
     repeated Changeset changesets = 1; // Changesets in current query
 }
 
+enum NoteStatus {
+    open = 0;
+    closed = 1;
+    hidden = 2;
+}
+
 // OpenStreetMap notes for rendering on map
 message RenderNotesData {
     // Single map note representation
@@ -238,7 +244,7 @@ message RenderNotesData {
         float lon = 2; // Longitude
         float lat = 3; // Latitude
         string text = 4; // Plain-text content
-        string status = 5; // Current status (open, closed, hidden)
+        NoteStatus status = 5; // Current status
     }
 
     repeated Note notes = 1; // Notes in current query
