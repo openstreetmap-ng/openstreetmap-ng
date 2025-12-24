@@ -40,7 +40,12 @@
             top: 0;
             background: #b814ae;
             border-bottom-left-radius: $border-radius-sm;
-            margin-bottom: 2rem;
+            opacity: 0;
+            transition: opacity 0.08s ease-out;
+
+            &.visible {
+                opacity: 1;
+            }
 
             .indicator-text {
                 border-radius: 0 0 4px 4px;
@@ -52,7 +57,12 @@
             bottom: 0;
             background: #14b8a6;
             border-top-left-radius: $border-radius-sm;
-            margin-top: 2rem;
+            opacity: 0;
+            transition: opacity 0.08s ease-out;
+
+            &.visible {
+                opacity: 1;
+            }
 
             .indicator-text {
                 bottom: 100%;
