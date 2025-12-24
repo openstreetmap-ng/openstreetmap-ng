@@ -68,8 +68,8 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
         previewHtml.value = error.message
       }
     }
-    fetchPreview()
 
+    fetchPreview()
     return () => abortController.abort()
   })
 

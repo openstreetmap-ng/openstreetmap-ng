@@ -206,24 +206,18 @@ export const StandardPagination = <TData,>({
 
   // Effect: Fetch current pagination page
   useSignalEffect(() => {
-    const requestedPageValue = requestedPage.value
-
-    const abortController = new AbortController()
-    const isStale = () =>
-      abortController.signal.aborted || requestedPage.value !== requestedPageValue
-
     error.value = null
     data.value = null
+    const abortController = new AbortController()
 
     const fetchPage = async () => {
       try {
         const baseState = state.peek()
         const resp = await fetch(
           action,
-          buildFetchInit(baseState, requestedPageValue, abortController.signal),
+          buildFetchInit(baseState, requestedPage.value, abortController.signal),
         )
         assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
-        if (isStale()) return
 
         const parsed = parsePaginationHeader(resp.headers)
         applyState(parsed, state, activePage)
@@ -244,16 +238,15 @@ export const StandardPagination = <TData,>({
         const payload = protobuf
           ? (fromBinary(protobuf, new Uint8Array(await resp.arrayBuffer())) as TData)
           : ((await resp.text()) as unknown as TData)
+        abortController.signal.throwIfAborted()
 
-        if (isStale()) return
         onLoad?.(payload, parsed.currentPage)
-        if (isStale()) return
         data.value = payload
       } catch (err) {
-        if (err.name === "AbortError" || isStale()) return
+        if (err.name === "AbortError") return
         console.error(
           "Pagination: Failed to load page",
-          requestedPageValue,
+          requestedPage.value,
           action,
           err,
         )

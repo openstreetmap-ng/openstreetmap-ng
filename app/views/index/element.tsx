@@ -175,12 +175,15 @@ const ElementSidebar = ({
           priority: "high",
         })
         assert(resp.ok || resp.status === 404, `${resp.status} ${resp.statusText}`)
-        html.value = await resp.text()
+
+        const respText = await resp.text()
+        abortController.signal.throwIfAborted()
+        html.value = respText
       } catch (error) {
         if (error.name === "AbortError") return
         html.value = `<div class="alert alert-danger">${error.message}</div>`
       } finally {
-        loading.value = false
+        if (!abortController.signal.aborted) loading.value = false
       }
     }
 

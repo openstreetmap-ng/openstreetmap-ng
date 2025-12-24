@@ -5,8 +5,8 @@ from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.element import ElementType, TypedElementId
 from app.models.proto.shared_pb2 import (
+    ChangesetData,
     ElementIcon,
-    PartialChangesetParams,
     PartialElementParams,
 )
 from app.queries.element_query import ElementQuery
@@ -17,7 +17,7 @@ class FormatElementList:
     @staticmethod
     async def changeset_elements(
         elements: list[Element],
-    ) -> dict[ElementType, list[PartialChangesetParams.Element]]:
+    ) -> dict[ElementType, list[ChangesetData.Element]]:
         """Format elements for displaying on the website (icons, strikethrough, sort)."""
         if not elements:
             return {'node': [], 'way': [], 'relation': []}
@@ -98,7 +98,7 @@ def _encode_elements(
     names: list[str | None],
     feature_icons: list[FeatureIcon | None],
 ):
-    result: dict[ElementType, list[PartialChangesetParams.Element]] = {
+    result: dict[ElementType, list[ChangesetData.Element]] = {
         'node': [],
         'way': [],
         'relation': [],
@@ -111,7 +111,7 @@ def _encode_elements(
             else None
         )
         result[type].append(
-            PartialChangesetParams.Element(
+            ChangesetData.Element(
                 id=id,
                 version=element['version'],
                 visible=element['visible'],
@@ -196,5 +196,5 @@ def _encode_members(
 
 
 @cython.cfunc
-def _sort_key(element: PartialChangesetParams.Element) -> tuple:
+def _sort_key(element: ChangesetData.Element) -> tuple:
     return not element.visible, element.id, element.version

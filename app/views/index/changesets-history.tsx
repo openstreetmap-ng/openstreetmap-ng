@@ -829,7 +829,21 @@ const ChangesetEntry = ({
     >
       <p class="header text-muted d-flex justify-content-between">
         <span>
-          <span class="me-1">{User(changeset.user)}</span>
+          <span class="me-1">
+            {changeset.user ? (
+              <a href={`/user/${changeset.user.name}`}>
+                <img
+                  class="avatar"
+                  src={changeset.user.avatarUrl}
+                  alt={t("alt.profile_picture")}
+                  loading="lazy"
+                />
+                {changeset.user.name}
+              </a>
+            ) : (
+              t("browse.anonymous")
+            )}
+          </span>
           <span>
             {changeset.closed
               ? t("browse.closed").toLowerCase()
@@ -868,21 +882,6 @@ const ChangesetEntry = ({
         </div>
       </div>
     </li>
-  )
-}
-
-const User = (user: RenderChangesetsData_Changeset_User | undefined) => {
-  if (!user) return t("browse.anonymous")
-  return (
-    <a href={`/user/${user.name}`}>
-      <img
-        class="avatar"
-        src={user.avatarUrl}
-        alt={t("alt.profile_picture")}
-        loading="lazy"
-      />
-      {user.name}
-    </a>
   )
 }
 

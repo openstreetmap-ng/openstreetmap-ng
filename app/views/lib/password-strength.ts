@@ -347,9 +347,7 @@ for (const input of inputs) {
         }
         lookupAndUpdate()
 
-        return () => {
-            abortController.abort()
-        }
+        return () => abortController.abort()
     })
 }
 

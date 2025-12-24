@@ -315,24 +315,6 @@ message UserActivityChart {
 // Partial Response Structures
 // =============================================
 
-// Partial changeset response params
-message PartialChangesetParams {
-    // Versioned OSM element reference
-    message Element {
-        uint64 id = 1; // Object ID
-        uint64 version = 2; // Object version
-        bool visible = 3; // Whether element is visible
-        optional string name = 4;  // Localized display name
-        optional ElementIcon icon = 5;  // Associated icon visualization
-    }
-
-    uint64 id = 1; // Changeset ID
-    repeated SharedBounds bounds = 2; // Geographical scope
-    repeated Element nodes = 3; // Modified nodes
-    repeated Element ways = 4; // Modified ways
-    repeated Element relations = 5; // Modified relations
-}
-
 // Partial element response params
 message PartialElementParams {
     enum ElementType {
@@ -399,6 +381,57 @@ message NoteCommentPage {
         Event event = 2; // Event type
         uint64 created_at = 3; // Unix timestamp
         string body_rich = 4; // Rendered HTML body (may be empty)
+    }
+
+    repeated Comment comments = 1; // Comments on this page
+}
+
+// Changeset sidebar data
+message ChangesetData {
+    message User {
+        uint64 id = 1; // User ID
+        string display_name = 2; // Display name
+        string avatar_url = 3; // Profile image URL
+    }
+
+    // Versioned OSM element reference
+    message Element {
+        uint64 id = 1; // Object ID
+        uint64 version = 2; // Object version
+        bool visible = 3; // Whether element is visible
+        optional string name = 4;  // Localized display name
+        optional ElementIcon icon = 5;  // Associated icon visualization
+    }
+
+    uint64 id = 1; // Changeset ID
+    optional User user = 2; // Author (anonymous if missing)
+    uint64 created_at = 3; // Unix timestamp
+    optional uint64 closed_at = 4; // Unix timestamp (open if missing)
+    uint32 num_create = 5; // Created elements count
+    uint32 num_modify = 6; // Modified elements count
+    uint32 num_delete = 7; // Deleted elements count
+    string comment_rich = 8; // Rendered HTML comment
+    map<string, string> tags = 9; // Changeset tags (excluding 'comment')
+    repeated SharedBounds bounds = 10; // Geographical scope
+    repeated Element nodes = 11; // Modified nodes
+    repeated Element ways = 12; // Modified ways
+    repeated Element relations = 13; // Modified relations
+    optional uint64 prev_changeset_id = 14; // Previous changeset by same user
+    optional uint64 next_changeset_id = 15; // Next changeset by same user
+    bool is_subscribed = 16; // User is subscribed to this changeset
+}
+
+// Changeset comments pagination page
+message ChangesetCommentPage {
+    message Comment {
+        message User {
+            string display_name = 1; // Display name
+            string avatar_url = 2; // Profile image URL
+        }
+
+        User user = 1; // Comment author (always present for changeset comments)
+        uint64 created_at = 2; // Unix timestamp
+        string body_rich = 3; // Rendered HTML body
     }
 
     repeated Comment comments = 1; // Comments on this page
