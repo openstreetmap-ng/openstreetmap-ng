@@ -1,12 +1,11 @@
 import "./main.scss"
+import { _ENV } from "@lib/config.macro" with { type: "macro" }
 
-import "@lib/polyfills"
-
-import { ENV } from "@lib/config"
-
-if (ENV !== "prod") {
+if (_ENV !== "prod") {
     import("preact/debug")
 }
+
+import "@lib/polyfills"
 
 import "@lib/tracking"
 
