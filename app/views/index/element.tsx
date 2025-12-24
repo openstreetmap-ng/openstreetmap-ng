@@ -1,7 +1,12 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import { getBaseFetchController } from "@index/_base-fetch"
-import type { IndexController } from "@index/router"
+import {
+  configureActionSidebar,
+  getActionSidebar,
+  LoadingSpinner,
+  switchActionSidebar,
+} from "@index/_action-sidebar"
+import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
@@ -10,13 +15,22 @@ import {
   PartialElementParams_ElementType as ElementType,
   PartialElementParamsSchema,
 } from "@lib/proto/shared_pb"
-import { configureStandardPagination } from "@lib/standard-pagination"
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
+import {
+  batch,
+  type Signal,
+  signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
+import { assert } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { type ComponentChildren, render } from "preact"
+import { type ComponentChildren, Fragment, render } from "preact"
+import { useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -33,114 +47,257 @@ const focusPaint: FocusLayerPaint = {
   "circle-stroke-width": 3,
 }
 
-const ELEMENTS_PER_PAGE = 15
+export const ELEMENTS_PER_PAGE = 15
 
-export const getElementController = (map: MaplibreMap): IndexController => {
-  const base = getBaseFetchController(map, "element", (sidebarSection) => {
-    const sidebarContent = sidebarSection.querySelector("div.sidebar-content")!
-    const sidebarTitleElement = sidebarContent.querySelector(".sidebar-title")!
-    setPageTitle(sidebarTitleElement.textContent)
+// Pagination controls
+const Pagination = ({
+  page,
+  totalPages,
+}: {
+  page: Signal<number>
+  totalPages: number
+}) => (
+  <nav aria-label={t("alt.elements_page_navigation")}>
+    <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0">
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+        <li
+          class={`page-item ${p === page.value ? "active" : ""}`}
+          key={p}
+        >
+          <button
+            class="page-link"
+            type="button"
+            onClick={() => (page.value = p)}
+          >
+            {p}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)
 
-    // Handle not found
-    if (!sidebarContent.dataset.params) return
+// Paginated element list section
+export const ElementsSection = <T,>({
+  items,
+  title,
+  renderRow,
+  keyFn,
+  class: extraClass,
+}: {
+  items: T[]
+  title: (count: string) => string
+  renderRow: (item: T) => ComponentChildren
+  keyFn: (item: T) => string
+  class?: string
+}) => {
+  if (!items.length) return null
+  const page = useSignal(1)
+  const totalPages = Math.ceil(items.length / ELEMENTS_PER_PAGE)
+  const pageItems = items.slice(
+    (page.value - 1) * ELEMENTS_PER_PAGE,
+    page.value * ELEMENTS_PER_PAGE,
+  )
 
-    const [renderData, disposeElementContent] = initializeElementContent(
-      map,
-      sidebarContent,
+  return (
+    <div class={extraClass}>
+      <h4 class="mt-3">{title(getPaginationCountLabel(page.value, items.length))}</h4>
+      <div class="elements-list mb-2">
+        <table class="table table-sm align-middle mb-0">
+          <tbody>
+            {pageItems.map((item) => (
+              <Fragment key={keyFn(item)}>{renderRow(item)}</Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+        />
+      )}
+    </div>
+  )
+}
+
+const ElementSidebar = ({
+  map,
+  active,
+  type,
+  id,
+  version,
+  sidebar,
+}: {
+  map: MaplibreMap
+  active: Signal<boolean>
+  type: Signal<string | null>
+  id: Signal<string | null>
+  version: Signal<string | null>
+  sidebar: HTMLElement
+}) => {
+  const html = useSignal<string | null>(null)
+  const loading = useSignal(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  // Derived: Parse params from fetched HTML
+  const params = useComputed(() => {
+    if (!html.value) return null
+    const doc = new DOMParser().parseFromString(html.value, "text/html")
+    const sidebarContent = doc.querySelector(".sidebar-content") as HTMLElement
+    if (!sidebarContent?.dataset.params) return null
+    return fromBinary(
+      PartialElementParamsSchema,
+      base64Decode(sidebarContent.dataset.params),
     )
-    const elements = convertRenderElementsData(renderData)
-    focusObjects(map, elements, focusPaint)
-
-    return () => {
-      disposeElementContent()
-      focusObjects(map)
-    }
   })
+
+  // Effect: Fetch element partial
+  useSignalEffect(() => {
+    const etype = type.value
+    const eid = id.value
+    const v = version.value
+
+    if (!(active.value && etype && eid)) {
+      html.value = null
+      loading.value = false
+      return
+    }
+
+    loading.value = true
+    const abortController = new AbortController()
+    const url = v ? `/partial/${etype}/${eid}/history/${v}` : `/partial/${etype}/${eid}`
+
+    const fetchPartial = async () => {
+      try {
+        const resp = await fetch(url, {
+          signal: abortController.signal,
+          priority: "high",
+        })
+        assert(resp.ok || resp.status === 404, `${resp.status} ${resp.statusText}`)
+        html.value = await resp.text()
+      } catch (error) {
+        if (error.name === "AbortError") return
+        html.value = `<div class="alert alert-danger">${error.message}</div>`
+      } finally {
+        loading.value = false
+      }
+    }
+
+    fetchPartial()
+    return () => abortController.abort()
+  })
+
+  // Effect: Initialize sidebar content
+  useSignalEffect(() => {
+    if (!(html.value && contentRef.current)) return
+
+    const content = contentRef.current
+    resolveDatetimeLazy(content)
+    configureActionSidebar(sidebar)
+
+    const sidebarContent = content.querySelector("div.sidebar-content")!
+    const sidebarTitleEl = sidebarContent.querySelector(".sidebar-title")!
+    setPageTitle(sidebarTitleEl.textContent)
+
+    configureTagsFormat(content.querySelector("div.tags"))
+
+    const locationBtn = content.querySelector(
+      ".location-container button",
+    ) as HTMLButtonElement | null
+    if (!locationBtn) return
+
+    const onLocClick = () => {
+      const { lon, lat } = locationBtn.dataset
+      map.flyTo({
+        center: [Number.parseFloat(lon!), Number.parseFloat(lat!)],
+        zoom: Math.max(map.getZoom(), 15),
+      })
+    }
+    locationBtn.addEventListener("click", onLocClick)
+    return () => locationBtn.removeEventListener("click", onLocClick)
+  })
+
+  // Effect: Map focus
+  useSignalEffect(() => {
+    if (!params.value?.render) {
+      focusObjects(map)
+      return
+    }
+
+    const elements = convertRenderElementsData(params.value.render)
+    focusObjects(map, elements, focusPaint)
+    return () => focusObjects(map)
+  })
+
+  // Effect: Sidebar visibility
+  useSignalEffect(() => {
+    if (active.value) switchActionSidebar(map, sidebar)
+  })
+
+  return (
+    <div ref={contentRef}>
+      {loading.value && <LoadingSpinner />}
+
+      <div dangerouslySetInnerHTML={{ __html: html.value ?? "" }} />
+
+      {params.value && (
+        <div class="elements mt-3">
+          <ElementsSection
+            items={params.value.parents}
+            title={(count) => `${t("browse.part_of")} (${count})`}
+            renderRow={(el) => <ElementRow element={el} />}
+            keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+          />
+          <ElementsSection
+            items={params.value.members}
+            title={(count) =>
+              params.value!.type === ElementType.way
+                ? // @ts-expect-error
+                  t("browse.changeset.node", { count })
+                : `${t("browse.relation.members")} (${count})`
+            }
+            renderRow={(el) => <ElementRow element={el} />}
+            keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export const getElementController = (map: MaplibreMap) => {
+  const sidebar = getActionSidebar("element")
+  const active = signal(false)
+  const type = signal<string | null>(null)
+  const id = signal<string | null>(null)
+  const version = signal<string | null>(null)
+
+  render(
+    <ElementSidebar
+      map={map}
+      active={active}
+      type={type}
+      id={id}
+      version={version}
+      sidebar={sidebar}
+    />,
+    sidebar,
+  )
 
   return {
-    load: ({ type, id, version }) => {
-      base.load(
-        version
-          ? `/partial/${type}/${id}/history/${version}`
-          : `/partial/${type}/${id}`,
-      )
+    load: (matchGroups: Record<string, string>) => {
+      batch(() => {
+        type.value = matchGroups.type
+        id.value = matchGroups.id
+        version.value = matchGroups.version ?? null
+        active.value = true
+      })
     },
-    unload: base.unload,
+    unload: () => {
+      active.value = false
+    },
   }
-}
-
-export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
-  console.debug("Element: Initializing content")
-
-  // Enhance tags table
-  configureTagsFormat(container.querySelector("div.tags"))
-
-  const locationButton = container.querySelector(".location-container button")
-  locationButton?.addEventListener("click", () => {
-    // On location click, pan the map
-    const dataset = locationButton!.dataset
-    console.debug("Element: Location clicked", dataset)
-    const lon = Number.parseFloat(dataset.lon!)
-    const lat = Number.parseFloat(dataset.lat!)
-    map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 15) })
-  })
-
-  const params = fromBinary(
-    PartialElementParamsSchema,
-    base64Decode(container.dataset.params!),
-  )
-  const disposeList: (() => void)[] = []
-
-  const parentsContainer = container.querySelector("div.parents")
-  if (parentsContainer)
-    disposeList.push(
-      renderElementsContainer(parentsContainer, params.parents, "parents"),
-    )
-
-  const membersContainer = container.querySelector("div.elements")
-  if (membersContainer)
-    disposeList.push(
-      renderElementsContainer(
-        membersContainer,
-        params.members,
-        ElementType[params.type] as "way" | "relation",
-      ),
-    )
-
-  return [
-    params.render!,
-    () => {
-      for (const dispose of disposeList) dispose()
-    },
-  ] as const
-}
-
-const renderElementsContainer = (
-  elementsContainer: HTMLElement,
-  elements: ElementEntry[],
-  type: "way" | "relation" | "parents",
-) => {
-  console.debug("Element: Rendering component", elements.length)
-
-  const titleElement = elementsContainer.querySelector(".title")!
-
-  return configureElementsPagination(
-    elementsContainer,
-    elements,
-    (page) => {
-      titleElement.textContent = getElementsContainerTitle(type, elements.length, page)
-    },
-    (renderContainer, pageItems) =>
-      render(
-        pageItems.map((element) => (
-          <ElementRow
-            element={element}
-            key={`${element.type}-${element.id}-${element.role ?? ""}`}
-          />
-        )),
-        renderContainer,
-      ),
-  )
 }
 
 export const ElementsListRow = ({
@@ -195,12 +352,7 @@ const ElementRow = ({ element }: { element: ElementEntry }) => {
           {element.name && <span>{`#${idStr}`}</span>}
           {element.role && (
             <>
-              <span
-                class="element-row-meta-divider"
-                aria-hidden="true"
-              >
-                ·
-              </span>
+              <span aria-hidden="true">·</span>
               <span>{element.role}</span>
             </>
           )}
@@ -210,59 +362,11 @@ const ElementRow = ({ element }: { element: ElementEntry }) => {
   )
 }
 
-const getElementsContainerTitle = (
-  type: "way" | "relation" | "parents",
-  elementsLength: number,
-  page: number,
-) => {
-  const count = getPaginationCountLabel(page, elementsLength)
-
-  if (type === "parents") {
-    return `${t("browse.part_of")} (${count})`
-  }
-  if (type === "way") {
-    // @ts-expect-error
-    return t("browse.changeset.node", { count })
-  }
-  return `${t("browse.relation.members")} (${count})`
-}
-
 export const getElementTypeLabel = memoize((type: ElementType) => {
-  if (type === ElementType.node) {
-    return t("javascripts.query.node")
-  }
-  if (type === ElementType.way) {
-    return t("javascripts.query.way")
-  }
+  if (type === ElementType.node) return t("javascripts.query.node")
+  if (type === ElementType.way) return t("javascripts.query.way")
   return t("javascripts.query.relation")
 })
-
-export const configureElementsPagination = <T,>(
-  container: HTMLElement,
-  items: readonly T[],
-  updateTitle: (page: number) => void,
-  renderPage: (renderContainer: HTMLElement, pageItems: readonly T[]) => void,
-) => {
-  const paginationContainer = container.querySelector("ul.pagination")!
-  const totalPages = Math.ceil(items.length / ELEMENTS_PER_PAGE)
-  paginationContainer.dataset.pages = totalPages.toString()
-
-  if (totalPages <= 1) {
-    paginationContainer.parentElement!.classList.add("d-none")
-  }
-
-  return configureStandardPagination(container, {
-    initialPage: 1,
-    customLoader: (renderContainer: HTMLElement, page: number) => {
-      const startIndex = (page - 1) * ELEMENTS_PER_PAGE
-      const endIndex = Math.min(page * ELEMENTS_PER_PAGE, items.length)
-      const pageItems = items.slice(startIndex, endIndex)
-
-      updateTitle(page)
-      renderPage(renderContainer, pageItems)
-    },
-  })
-}
 
 export const getPaginationCountLabel = (page: number, totalItems: number) => {
   if (totalItems > ELEMENTS_PER_PAGE) {
@@ -274,4 +378,41 @@ export const getPaginationCountLabel = (page: number, totalItems: number) => {
     })
   }
   return totalItems.toString()
+}
+
+/** Initialize element content for version sections in element history */
+export const initializeElementContent = (map: MaplibreMap, container: Element) => {
+  configureTagsFormat(container.querySelector("div.tags"))
+
+  const locationButton = container.querySelector(
+    ".location-container button",
+  ) as HTMLButtonElement | null
+
+  const onLocationClick = locationButton
+    ? () => {
+        const { lon, lat } = locationButton.dataset
+        map.flyTo({
+          center: [Number.parseFloat(lon!), Number.parseFloat(lat!)],
+          zoom: Math.max(map.getZoom(), 15),
+        })
+      }
+    : null
+
+  if (onLocationClick) {
+    locationButton!.addEventListener("click", onLocationClick)
+  }
+
+  const params = fromBinary(
+    PartialElementParamsSchema,
+    base64Decode((container as HTMLElement).dataset.params!),
+  )
+
+  return [
+    params.render!,
+    () => {
+      if (onLocationClick) {
+        locationButton!.removeEventListener("click", onLocationClick)
+      }
+    },
+  ] as const
 }
