@@ -64,7 +64,10 @@ class OSRMQuery:
             )
 
         return RoutingResult(
-            attribution='<a href="https://routing.openstreetmap.de/about.html" target="_blank">OSRM (FOSSGIS)</a>',
+            attribution=RoutingResult.Attribution(
+                href='https://routing.openstreetmap.de/about.html',
+                label='OSRM (FOSSGIS)',
+            ),
             steps=routing_steps,
             line_quality=6,
             line=encode_latlon(points, 6),

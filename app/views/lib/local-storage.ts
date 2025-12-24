@@ -99,7 +99,9 @@ const bannerStorage = createScopedStorage<number>("bannerHidden")
 export const isBannerHidden = (name: string) => bannerStorage(name).get() !== null
 export const markBannerHidden = (name: string) => bannerStorage(name).set(Date.now())
 
-export const routingEngineStorage = createStorage<string>("routingEngine")
+export const routingEngineStorage = createStorageSignal<string>("routingEngine", {
+    defaultValue: "valhalla_auto",
+})
 
 export const globeProjectionStorage = createStorage<boolean>("globeProjection")
 

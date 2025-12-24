@@ -264,6 +264,12 @@ message RoutingResult {
         float lat = 4; // Precise latitude
     }
 
+    // Data provider attribution metadata
+    message Attribution {
+        string href = 1; // Provider URL
+        string label = 2; // Link label
+    }
+
     // Single navigation instruction step
     message Step {
         uint32 num_coords = 1; // Number of coordinates in the polyline (incl. overlapping ends)
@@ -281,7 +287,7 @@ message RoutingResult {
 
     optional Endpoint start = 1;  // Route origin
     optional Endpoint end = 2;  // Route destination
-    string attribution = 3; // Data provider attribution
+    Attribution attribution = 3; // Data provider attribution
     repeated Step steps = 4; // Navigation steps
     uint32 line_quality = 5; // Quality of the polyline encoding
     string line = 6; // Encoded polyline for the route

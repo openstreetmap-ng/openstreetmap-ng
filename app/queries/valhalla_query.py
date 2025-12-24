@@ -64,7 +64,10 @@ class ValhallaQuery:
         ascend = elevations[elevations > 0].sum()
         descend = -elevations[elevations < 0].sum()
         return RoutingResult(
-            attribution='<a href="https://gis-ops.com/global-open-valhalla-server-online/" target="_blank">Valhalla (FOSSGIS)</a>',
+            attribution=RoutingResult.Attribution(
+                href='https://gis-ops.com/global-open-valhalla-server-online/',
+                label='Valhalla (FOSSGIS)',
+            ),
             steps=routing_steps,
             line_quality=6,
             line=leg['shape'],
