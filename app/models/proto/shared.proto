@@ -356,12 +356,52 @@ message PartialElementParams {
     RenderElementsData render = 4; // Visual representation data
 }
 
-// Partial note response params
-message PartialNoteParams {
+// Note sidebar data
+message NoteData {
+    message User {
+        uint64 id = 1; // User ID
+        string display_name = 2; // Display name
+        string avatar_url = 3; // Profile image URL
+    }
+
+    message Header {
+        optional User user = 1; // Note author (can be anonymous)
+        uint64 created_at = 2; // Unix timestamp
+        string body_rich = 3; // Rendered HTML body
+    }
+
     uint64 id = 1; // Note ID
     float lon = 2; // Longitude
     float lat = 3; // Latitude
-    string status = 4; // Current status (open, closed, hidden)
+    NoteStatus status = 4; // Current status
+    Header header = 5; // First comment (note creation)
+    bool is_subscribed = 6; // User is subscribed to this note
+    optional uint32 disappear_days = 7; // Days until note disappears
+}
+
+// Note comments pagination page
+message NoteCommentPage {
+    message Comment {
+        enum Event {
+            opened = 0;
+            closed = 1;
+            reopened = 2;
+            commented = 3;
+            hidden = 4;
+        }
+
+        message User {
+            string display_name = 1; // Display name
+            string avatar_url = 2; // Profile image URL
+        }
+
+        optional User user = 1; // Comment author (can be anonymous)
+        Event event = 2; // Event type
+        uint64 created_at = 3; // Unix timestamp
+        string body_rich = 4; // Rendered HTML body (may be empty)
+    }
+
+    repeated Comment comments = 1; // Comments on this page
 }
 
 // Partial query features response params
