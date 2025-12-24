@@ -1,5 +1,10 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
+import {
+  getActionSidebar,
+  LoadingSpinner,
+  SidebarHeader,
+  switchActionSidebar,
+} from "@index/_action-sidebar"
 import type { RouteLoadReason } from "@index/router"
 import { routerNavigateStrict } from "@index/router"
 import { darkenColor } from "@lib/color"
@@ -33,23 +38,39 @@ import {
 import { qsEncode, qsParse } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
+import {
+  batch,
+  type Signal,
+  signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
 import { throttle } from "@std/async/unstable-throttle"
 import { SECOND } from "@std/datetime/constants"
-import type { GeoJsonProperties } from "geojson"
 import { t } from "i18next"
 import {
   type GeoJSONSource,
   LngLatBounds,
   type MapGeoJSONFeature,
+  type MapLayerMouseEvent,
   type Map as MaplibreMap,
 } from "maplibre-gl"
-import { type ComponentChild, render } from "preact"
+import { render } from "preact"
+import { useRef } from "preact/hooks"
+
+// --- Constants ---
 
 const FADE_SPEED = 0.2
 const THICKNESS_SPEED = FADE_SPEED * 0.6
 const LINE_WIDTH = 3
+const FOCUS_HOVER_DELAY = 1 * SECOND
+const LOAD_MORE_SCROLL_BUFFER = 1000
+const RELOAD_PROPORTION_THRESHOLD = 0.9
+
+// --- Layer Configuration ---
 
 const LAYER_ID = "changesets-history" as LayerId
 const LAYER_ID_BORDERS = "changesets-history-borders" as LayerId
@@ -116,10 +137,6 @@ layersConfig.set(LAYER_ID, {
   priority: 121,
 })
 
-const FOCUS_HOVER_DELAY = 1 * SECOND
-const LOAD_MORE_SCROLL_BUFFER = 1000
-const RELOAD_PROPORTION_THRESHOLD = 0.9
-
 const distanceOpacity = (distance: number) => Math.max(1 - distance * FADE_SPEED, 0)
 
 const pickSmallestBoundsFeature = (features: MapGeoJSONFeature[]) =>
@@ -127,186 +144,101 @@ const pickSmallestBoundsFeature = (features: MapGeoJSONFeature[]) =>
     a.properties.boundsArea <= b.properties.boundsArea ? a : b,
   )
 
-export const getChangesetsHistoryController = (map: MaplibreMap) => {
-  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  const sourceBorders = map.getSource<GeoJSONSource>(LAYER_ID_BORDERS)!
-  const sidebar = getActionSidebar("changesets-history")
-  const parentSidebar = sidebar.closest("div.sidebar")!
-  const sidebarTitleElement = sidebar.querySelector(".sidebar-title")!
-  const dateFilterElement = sidebar.querySelector(".date-filter")!
-  const entryContainer = sidebar.querySelector("ul.changesets-list")!
-  const loadingContainer = sidebar.querySelector(".loading")!
-  const scrollIndicators = sidebar.querySelectorAll(".scroll-indicator")
+const ChangesetsHistorySidebar = ({
+  map,
+  active,
+  scope,
+  displayName,
+  reason,
+  sidebar,
+}: {
+  map: MaplibreMap
+  active: Signal<boolean>
+  scope: Signal<string | undefined>
+  displayName: Signal<string | undefined>
+  reason: Signal<RouteLoadReason | undefined>
+  sidebar: HTMLElement
+}) => {
+  const changesets = useSignal<RenderChangesetsData_Changeset[]>([])
+  const loading = useSignal(false)
+  const noMoreChangesets = useSignal(false)
+  const dateFilter = useSignal<string | undefined>(undefined)
+  const hoveredChangesetId = useSignal<string | null>(null)
+  const showScrollTop = useSignal(false)
+  const showScrollBottom = useSignal(false)
 
-  let abortController: AbortController | undefined
-
-  // Store changesets to allow loading more
-  const changesets: RenderChangesetsData_Changeset[] = []
-  let fetchedBounds: LngLatBounds | null = null
-  let fetchedDate: string | undefined
-  let renderedDateFilter: string | undefined
-  let noMoreChangesets = false
-  let loadScope: string | undefined
-  let loadDisplayName: string | undefined
-  const idChangesetMap = new Map<string, RenderChangesetsData_Changeset>()
-  const idFirstFeatureIdMap = new Map<string, number>()
-  const idSidebarMap = new Map<string, HTMLLIElement>()
-  let visibleChangesetsBounds: LngLatBounds | null = null
-  let hiddenBefore = 0
-  let hiddenAfter = 0
-  let sidebarHoverAbort: AbortController | undefined
-  let sidebarHoverId: string | null = null
-  let shouldFitOnInitialLoad = false
-  let hoveredChangesetId: string | null = null
-  let removeEntryHoverHandlers: (() => void) | null = null
-
-  const cancelSidebarHoverFit = () => {
-    sidebarHoverAbort?.abort()
-    sidebarHoverId = null
-  }
-
-  const changesetIsWithinView = (changesetId: string) => {
-    const cs = idChangesetMap.get(changesetId)
-    if (!cs) return false
-    const mapBounds = map.getBounds()
-    return cs.bounds.some((b) => {
-      const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
-      return checkLngLatBoundsIntersection(mapBounds, csBounds)
-    })
-  }
-
-  const scheduleSidebarFit = async (changesetId: string) => {
-    sidebarHoverAbort?.abort()
-    sidebarHoverAbort = new AbortController()
-    sidebarHoverId = changesetId
-
-    try {
-      await delay(FOCUS_HOVER_DELAY, { signal: sidebarHoverAbort.signal })
-    } catch {
-      return
-    }
-
-    if (
-      // Ensure the item is currently rendered in the map layers
-      !idFirstFeatureIdMap.has(changesetId) ||
-      changesetIsWithinView(changesetId) ||
-      !visibleChangesetsBounds
-    )
-      return
-
-    console.debug("ChangesetsHistory: Fitting after hover")
-    map.fitBounds(
-      padLngLatBounds(visibleChangesetsBounds, 0.3),
-      { maxZoom: 16 },
-      { skipUpdateState: true },
-    )
-  }
-
-  const clearSidebar = () => {
-    idSidebarMap.clear()
-    render(null, entryContainer)
-  }
-
-  const resetChangesets = () => {
-    console.debug("ChangesetsHistory: Reset")
-    onMapMouseLeave()
-    source.setData(emptyFeatureCollection)
-    sourceBorders.setData(emptyFeatureCollection)
-    changesets.length = 0
-    noMoreChangesets = false
-    idChangesetMap.clear()
-    idFirstFeatureIdMap.clear()
-    visibleChangesetsBounds = null
-    cancelSidebarHoverFit()
-    hiddenBefore = 0
-    hiddenAfter = 0
-    hoveredChangesetId = null
-    clearSidebar()
-    for (const indicator of scrollIndicators) {
-      indicator.classList.add("d-none")
-    }
-  }
-
-  /** Update changeset visibility states */
-  const updateLayersVisibility = () => {
-    const sidebarRect = parentSidebar.getBoundingClientRect()
-    const sidebarTop = sidebarRect.top
-    const sidebarBottom = sidebarRect.bottom
-
-    let newHiddenBefore = 0
-    let newHiddenAfter = 0
-    let foundVisible = false
-    const updateFeatureStates: [
-      string,
-      number,
-      "above" | "visible" | "below",
-      number,
-    ][] = []
-
-    for (let i = changesets.length - 1; i >= 0; i--) {
-      const changeset = changesets[i]
-      const changesetId = changeset.id.toString()
-      const numBounds = changeset.bounds.length
-      const element = idSidebarMap.get(changesetId)
-      if (!element) continue
-      const elementRect = element.getBoundingClientRect()
-      const elementTop = elementRect.top
-      const elementBottom = elementRect.bottom
-
-      let state: "above" | "visible" | "below"
-      let distance = 0
-      let hidden = false
-
-      if (elementBottom < sidebarTop) {
-        state = "above"
-        distance = (sidebarTop - elementBottom) / sidebarRect.height
-      } else if (elementTop > sidebarBottom) {
-        state = "below"
-        distance = (elementTop - sidebarBottom) / sidebarRect.height
-      } else {
-        state = "visible"
-        distance = 0
+  const sidebarTitle = useComputed(() => {
+    const dn = displayName.value
+    const sc = scope.value
+    if (dn)
+      return {
+        html: tRich("changesets.index.title_user", {
+          user: () => <a href={`/user/${dn}`}>{dn}</a>,
+        }),
+        plain: t("changesets.index.title_user", { user: dn }),
       }
-
-      if (state !== "visible") {
-        const opacity = distanceOpacity(distance)
-        hidden = opacity < 0.05
-      }
-
-      if (!foundVisible && hidden) {
-        newHiddenAfter++
-      } else if (!hidden) {
-        foundVisible = true
-      } else if (foundVisible && hidden) {
-        newHiddenBefore = i + 1
-        break
-      }
-
-      if (!hidden) updateFeatureStates.push([changesetId, numBounds, state, distance])
-    }
-
-    if (newHiddenBefore !== hiddenBefore || newHiddenAfter !== hiddenAfter) {
-      hiddenBefore = newHiddenBefore
-      hiddenAfter = newHiddenAfter
-      updateLayers()
-    }
-
-    for (const [changesetId, numBounds, state, distance] of updateFeatureStates)
-      updateFeatureState(changesetId, numBounds, state, distance)
-  }
-
-  const throttledUpdateLayersVisibility = throttle(updateLayersVisibility, 50, {
-    ensureLastCall: true,
+    let title: string
+    if (sc === "nearby") title = t("changesets.index.title_nearby")
+    else if (sc === "friends") title = t("changesets.index.title_friend")
+    else title = t("changesets.index.title")
+    return { html: title, plain: title }
   })
 
-  /** Update changeset visibility and calculate consecutive hidden ranges */
+  // Refs - DOM
+  const parentSidebar = sidebar.closest("div.sidebar")! as HTMLElement
+  const loadMoreSentinel = useRef<HTMLDivElement | null>(null)
+
+  // Refs - Data mappings
+  const idSidebarMap = useRef(new Map<string, HTMLLIElement>())
+  const idChangesetMap = useRef(new Map<string, RenderChangesetsData_Changeset>())
+  const idFirstFeatureIdMap = useRef(new Map<string, number>())
+
+  // Refs - Fetch state
+  const fetchAbort = useRef<AbortController | null>(null)
+  const fetchedContext = useRef<{
+    bounds: LngLatBounds | null
+    date: string | undefined
+  }>({ bounds: null, date: undefined })
+
+  // Refs - Visibility tracking
+  const hiddenBefore = useRef(0)
+  const hiddenAfter = useRef(0)
+  const visibleChangesetsBounds = useRef<LngLatBounds | null>(null)
+
+  // Refs - Hover/interaction state
+  const hoveredFeature = useRef<MapGeoJSONFeature | null>(null)
+  const sidebarHoverAbort = useRef<AbortController | null>(null)
+  const scrollDelayAbort = useRef<AbortController | null>(null)
+
+  // --- Core Functions ---
+
+  const resetChangesets = () => {
+    fetchAbort.current?.abort()
+    onMapMouseLeave()
+    batch(() => {
+      changesets.value = []
+      loading.value = false
+      noMoreChangesets.value = false
+      hoveredChangesetId.value = null
+      showScrollTop.value = false
+      showScrollBottom.value = false
+    })
+    idChangesetMap.current.clear()
+    idFirstFeatureIdMap.current.clear()
+    idSidebarMap.current.clear()
+    visibleChangesetsBounds.current = null
+    hiddenBefore.current = 0
+    hiddenAfter.current = 0
+    sidebarHoverAbort.current?.abort()
+  }
+
   const updateFeatureState = (
     changesetId: string,
     numBounds: number,
     state: "above" | "visible" | "below",
     distance: number,
   ) => {
-    const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
+    const firstFeatureId = idFirstFeatureIdMap.current.get(changesetId)
     if (!firstFeatureId) return
 
     let color: string
@@ -322,17 +254,13 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
       width = LINE_WIDTH
       widthHover = width + 2
     } else {
-      color =
-        state === "above"
-          ? "#ed59e4" // ~40% lighten
-          : "#14B8A6"
+      color = state === "above" ? "#ed59e4" : "#14B8A6"
       colorHover = darkenColor(color, 0.15)
       opacity = distanceOpacity(distance)
       width = Math.max(LINE_WIDTH - distance * THICKNESS_SPEED * LINE_WIDTH, 0)
       widthHover = Math.max(width, 1) + 2
     }
 
-    const borderWidthHover = widthHover + 2.5
     const featureState = {
       scrollColor: color,
       scrollColorHover: colorHover,
@@ -341,7 +269,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
       scrollWidth: width,
       scrollWidthHover: widthHover,
       scrollBorderWidth: 0,
-      scrollBorderWidthHover: borderWidthHover,
+      scrollBorderWidthHover: widthHover + 2.5,
     }
 
     for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
@@ -350,20 +278,28 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     }
   }
 
-  const updateLayers = (e?: any) => {
-    let featureIdCounter = 1
-    for (let i = 0; i < hiddenBefore; i++)
-      featureIdCounter += changesets[i].bounds.length * 2
+  const updateLayers = (isFirstLoad = false) => {
+    const source = map.getSource<GeoJSONSource>(LAYER_ID)
+    const sourceBorders = map.getSource<GeoJSONSource>(LAYER_ID_BORDERS)
+    if (!(source && sourceBorders)) return
 
-    idFirstFeatureIdMap.clear()
+    const csList = changesets.value
+    let featureIdCounter = 1
+    for (let i = 0; i < hiddenBefore.current; i++)
+      featureIdCounter += csList[i].bounds.length * 2
+
+    idFirstFeatureIdMap.current.clear()
     const changesetsMinimumSize: OSMChangeset[] = []
     let aggregatedBounds: Bounds | undefined
 
     let firstFeatureId = featureIdCounter
-    for (const changeset of convertRenderChangesetsData(
-      changesets.slice(hiddenBefore, changesets.length - hiddenAfter),
-    )) {
-      idFirstFeatureIdMap.set(changeset.id.toString(), firstFeatureId)
+    const visibleChangesets = csList.slice(
+      hiddenBefore.current,
+      csList.length - hiddenAfter.current,
+    )
+
+    for (const changeset of convertRenderChangesetsData(visibleChangesets)) {
+      idFirstFeatureIdMap.current.set(changeset.id.toString(), firstFeatureId)
       firstFeatureId += changeset.bounds.length * 2
 
       changeset.bounds = changeset.bounds.map((bounds) => {
@@ -374,7 +310,7 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
       changesetsMinimumSize.push(changeset)
     }
 
-    visibleChangesetsBounds = aggregatedBounds
+    visibleChangesetsBounds.current = aggregatedBounds
       ? new LngLatBounds(aggregatedBounds)
       : null
 
@@ -382,264 +318,187 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
     source.setData(data)
     sourceBorders.setData(data)
 
-    // Update layers visibility after map event
-    if (e) updateLayersVisibility()
-
-    // When initial loading for scope/user, focus on the changesets
-    if (!e && shouldFitOnInitialLoad && visibleChangesetsBounds && !idSidebarMap.size) {
-      console.debug("ChangesetsHistory: Fitting to changesets")
-      map.fitBounds(
-        padLngLatBounds(visibleChangesetsBounds, 0.3),
-        { maxZoom: 16, animate: false },
-        { skipUpdateState: true },
-      )
+    // Fit bounds on first load for scoped views (user/nearby/friends)
+    const shouldFit =
+      reason.value === "navigation" && Boolean(scope.value || displayName.value)
+    if (shouldFit && visibleChangesetsBounds.current && isFirstLoad) {
+      map.fitBounds(padLngLatBounds(visibleChangesetsBounds.current, 0.3), {
+        maxZoom: 16,
+        animate: false,
+      })
     }
   }
 
-  const handleEntryMouseEnter = (changesetId: string) => {
-    const changeset = idChangesetMap.get(changesetId)
-    if (!changeset) return
-    scheduleSidebarFit(changesetId)
-    if (hoveredChangesetId && hoveredChangesetId !== changesetId) {
-      const prevChangeset = idChangesetMap.get(hoveredChangesetId)
-      if (prevChangeset)
-        setHover(
-          {
-            id: hoveredChangesetId,
-            numBounds: prevChangeset.bounds.length,
-          },
-          false,
+  type ScrollState = { state: "above" | "visible" | "below"; distance: number }
+
+  const getElementScrollState = (
+    elementRect: DOMRect,
+    sidebarRect: DOMRect,
+  ): ScrollState => {
+    if (elementRect.bottom < sidebarRect.top) {
+      return {
+        state: "above",
+        distance: (sidebarRect.top - elementRect.bottom) / sidebarRect.height,
+      }
+    }
+    if (elementRect.top > sidebarRect.bottom) {
+      return {
+        state: "below",
+        distance: (elementRect.top - sidebarRect.bottom) / sidebarRect.height,
+      }
+    }
+    return { state: "visible", distance: 0 }
+  }
+
+  const updateScrollIndicators = (sidebarRect: DOMRect) => {
+    batch(() => {
+      const csList = changesets.value
+      if (csList.length) {
+        const firstEl = idSidebarMap.current.get(csList[0].id.toString())
+        const lastEl = idSidebarMap.current.get(csList.at(-1)!.id.toString())
+        showScrollTop.value = firstEl
+          ? firstEl.getBoundingClientRect().top < sidebarRect.top
+          : false
+        showScrollBottom.value = lastEl
+          ? lastEl.getBoundingClientRect().bottom > sidebarRect.bottom
+          : false
+      } else {
+        showScrollTop.value = false
+        showScrollBottom.value = false
+      }
+    })
+  }
+
+  const updateLayersVisibility = throttle(
+    () => {
+      if (!active.value) return
+
+      const sidebarRect = parentSidebar.getBoundingClientRect()
+      const csList = changesets.value
+
+      // Calculate visibility for each changeset (backwards for early exit on hidden-above)
+      let newHiddenBefore = 0
+      let newHiddenAfter = 0
+      let foundVisible = false
+      const featureUpdates: [string, number, ScrollState["state"], number][] = []
+
+      for (let i = csList.length - 1; i >= 0; i--) {
+        const changeset = csList[i]
+        const changesetId = changeset.id.toString()
+        const element = idSidebarMap.current.get(changesetId)
+        if (!element) continue
+
+        const { state, distance } = getElementScrollState(
+          element.getBoundingClientRect(),
+          sidebarRect,
         )
-    }
-    setHover({ id: changesetId, numBounds: changeset.bounds.length }, true)
-    hoveredChangesetId = changesetId
-  }
+        const hidden = state !== "visible" && distanceOpacity(distance) < 0.05
 
-  const handleEntryMouseLeave = (changesetId: string) => {
-    if (sidebarHoverId === changesetId) cancelSidebarHoverFit()
-    const changeset = idChangesetMap.get(changesetId)
-    if (changeset)
-      setHover({ id: changesetId, numBounds: changeset.bounds.length }, false)
-    if (hoveredChangesetId === changesetId) hoveredChangesetId = null
-  }
-
-  const updateSidebar = () => {
-    render(
-      changesets.map((changeset) => (
-        <ChangesetEntry
-          changeset={changeset}
-          key={changeset.id}
-        />
-      )),
-      entryContainer,
-    )
-
-    idSidebarMap.clear()
-    for (const entry of entryContainer.querySelectorAll(
-      ":scope > li[data-changeset-id]",
-    )) {
-      const changesetId = entry.dataset.changesetId
-      if (changesetId) idSidebarMap.set(changesetId, entry)
-    }
-
-    if (hoveredFeature) {
-      setHover(hoveredFeature.properties, true)
-    }
-    if (hoveredChangesetId) {
-      const changeset = idChangesetMap.get(hoveredChangesetId)
-      if (changeset)
-        setHover({ id: hoveredChangesetId, numBounds: changeset.bounds.length }, true)
-    }
-  }
-
-  const addEntryHoverHandlers = () => {
-    if (removeEntryHoverHandlers) return
-    const getEntryFromEvent = (event: MouseEvent) => {
-      const target = event.target
-      const element =
-        target instanceof Element
-          ? target
-          : target instanceof Node
-            ? target.parentElement
-            : null
-      if (!element) return null
-      const entry = element.closest("li[data-changeset-id]")
-      if (!(entry instanceof HTMLLIElement)) return null
-      return entry
-    }
-
-    const handleHover = (event: MouseEvent, hover: boolean) => {
-      const entry = getEntryFromEvent(event)
-      const changesetId = entry?.dataset.changesetId
-      if (!changesetId) return
-
-      if (event.relatedTarget instanceof Node && entry.contains(event.relatedTarget))
-        return
-
-      if (hover) handleEntryMouseEnter(changesetId)
-      else handleEntryMouseLeave(changesetId)
-    }
-
-    const onMouseOver = (event: MouseEvent) => handleHover(event, true)
-    const onMouseOut = (event: MouseEvent) => handleHover(event, false)
-
-    entryContainer.addEventListener("mouseover", onMouseOver)
-    entryContainer.addEventListener("mouseout", onMouseOut)
-
-    removeEntryHoverHandlers = () => {
-      entryContainer.removeEventListener("mouseover", onMouseOver)
-      entryContainer.removeEventListener("mouseout", onMouseOut)
-      removeEntryHoverHandlers = null
-    }
-  }
-
-  const setHover = (
-    properties: GeoJsonProperties,
-    hover: boolean,
-    scrollIntoView = false,
-  ) => {
-    const { id, numBounds } = properties!
-    const result = idSidebarMap.get(id)
-    result?.classList.toggle("hover", hover)
-
-    if (hover && scrollIntoView && result)
-      result.scrollIntoView({ behavior: "smooth", block: "center" })
-
-    const firstFeatureId = idFirstFeatureIdMap.get(id)
-    if (!firstFeatureId) return
-    for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
-      map.setFeatureState({ source: LAYER_ID_BORDERS, id: i }, { hover })
-      map.setFeatureState({ source: LAYER_ID, id: i }, { hover })
-    }
-  }
-
-  const LAYER_IDFill = getExtendedLayerId(LAYER_ID, "fill")
-
-  map.on("click", LAYER_IDFill, (e) => {
-    const feature = pickSmallestBoundsFeature(e.features!)
-    const changesetId = feature.properties.id
-    routerNavigateStrict(`/changeset/${changesetId}`)
-  })
-
-  let hoveredFeature: MapGeoJSONFeature | null = null
-  let scrollDelayAbort: AbortController | undefined
-  map.on("mousemove", LAYER_IDFill, async (e) => {
-    const feature = pickSmallestBoundsFeature(e.features!)
-    if (hoveredFeature) {
-      if (hoveredFeature.id === feature.id) return
-      setHover(hoveredFeature.properties, false)
-    } else {
-      setMapHover(map, LAYER_ID)
-    }
-
-    scrollDelayAbort?.abort()
-    scrollDelayAbort = new AbortController()
-    hoveredFeature = feature
-    setHover(hoveredFeature.properties, true)
-
-    // Set delayed scroll
-    try {
-      await delay(FOCUS_HOVER_DELAY, { signal: scrollDelayAbort.signal })
-    } catch {
-      return
-    }
-
-    setHover(hoveredFeature!.properties, true, true)
-  })
-
-  const onMapMouseLeave = () => {
-    if (!hoveredFeature) return
-    scrollDelayAbort?.abort()
-    setHover(hoveredFeature.properties, false)
-    hoveredFeature = null
-    clearMapHover(map, LAYER_ID)
-  }
-  map.on("mouseleave", LAYER_IDFill, onMapMouseLeave)
-
-  const onSidebarScroll = () => {
-    // Update changeset visibility based on scroll position
-    throttledUpdateLayersVisibility()
-
-    // Load more changesets if scrolled to bottom
-    if (
-      noMoreChangesets ||
-      parentSidebar.offsetHeight + parentSidebar.scrollTop <
-        parentSidebar.scrollHeight - LOAD_MORE_SCROLL_BUFFER
-    )
-      return
-    console.debug("ChangesetsHistory: Scrolled to bottom")
-    updateState()
-  }
-
-  /** On map update, fetch the changesets in view and update the changesets layer */
-  const updateState = async (e?: any) => {
-    if (e?.skipUpdateState) return
-
-    // Request full world when initial loading for scope/user
-    const fetchBounds =
-      fetchedBounds || !(loadScope || loadDisplayName) ? map.getBounds() : null
-
-    // During full world view, skip event-based updates
-    if (e && !fetchBounds) {
-      return
-    }
-
-    const params: Record<string, string | undefined> = qsParse(window.location.search)
-
-    // Update date filter element
-    const fetchDate = params.date
-    if (fetchDate !== renderedDateFilter) {
-      renderedDateFilter = fetchDate
-      render(
-        fetchDate ? (
-          <DateFilter
-            date={fetchDate}
-            params={params}
-          />
-        ) : null,
-        dateFilterElement,
-      )
-    }
-
-    if (lngLatBoundsEqual(fetchedBounds, fetchBounds) && fetchedDate === fetchDate) {
-      // Load more changesets
-      if (noMoreChangesets) return
-      if (changesets.length) params.before = changesets.at(-1)!.id.toString()
-    } else {
-      // Ignore small bounds changes
-      if (fetchedBounds && fetchBounds && fetchedDate === fetchDate) {
-        const visibleBounds = getLngLatBoundsIntersection(fetchedBounds, fetchBounds)
-        const visibleArea = getLngLatBoundsSize(visibleBounds)
-        const fetchArea = getLngLatBoundsSize(fetchBounds)
-        const proportion =
-          visibleArea / Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
-        if (proportion > RELOAD_PROPORTION_THRESHOLD) return
+        if (!foundVisible && hidden) {
+          newHiddenAfter++
+        } else if (!hidden) {
+          foundVisible = true
+          featureUpdates.push([changesetId, changeset.bounds.length, state, distance])
+        } else {
+          // foundVisible && hidden → all remaining are hidden above
+          newHiddenBefore = i + 1
+          break
+        }
       }
 
-      // Clear the changesets if the bbox changed
-      resetChangesets()
+      // Update map layers if hidden ranges changed
+      if (
+        newHiddenBefore !== hiddenBefore.current ||
+        newHiddenAfter !== hiddenAfter.current
+      ) {
+        hiddenBefore.current = newHiddenBefore
+        hiddenAfter.current = newHiddenAfter
+        updateLayers()
+      }
+
+      // Apply feature state updates
+      for (const [id, numBounds, state, distance] of featureUpdates)
+        updateFeatureState(id, numBounds, state, distance)
+
+      updateScrollIndicators(sidebarRect)
+    },
+    50,
+    { ensureLastCall: true },
+  )
+
+  // --- Fetch Logic ---
+
+  const shouldReloadForBounds = (oldBounds: LngLatBounds, newBounds: LngLatBounds) => {
+    const intersection = getLngLatBoundsIntersection(oldBounds, newBounds)
+    const proportion =
+      getLngLatBoundsSize(intersection) /
+      Math.max(getLngLatBoundsSize(oldBounds), getLngLatBoundsSize(newBounds))
+    return proportion <= RELOAD_PROPORTION_THRESHOLD
+  }
+
+  const determineFetchAction = (
+    fetchBounds: LngLatBounds | null,
+    fetchDate: string | undefined,
+  ) => {
+    const ctx = fetchedContext.current
+    const boundsMatch = lngLatBoundsEqual(ctx.bounds, fetchBounds)
+    const dateMatch = ctx.date === fetchDate
+
+    if (boundsMatch && dateMatch) {
+      return noMoreChangesets.value ? "skip" : "paginate"
     }
+    if (ctx.bounds && fetchBounds && dateMatch) {
+      return shouldReloadForBounds(ctx.bounds, fetchBounds) ? "reload" : "skip"
+    }
+    return "reload"
+  }
+
+  const buildFetchParams = (fetchBounds: LngLatBounds | null, fetchDate?: string) => {
+    const params: Record<string, string | undefined> = { date: fetchDate }
     if (fetchBounds) {
       const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
         .adjustAntiMeridian()
         .toArray()
       params.bbox = `${minLon},${minLat},${maxLon},${maxLat}`
     }
+    params.scope = scope.value
+    params.display_name = displayName.value
+    return params
+  }
 
-    params.scope = loadScope
-    params.display_name = loadDisplayName
+  const fetchChangesets = async (options?: { fromMapMove?: boolean }) => {
+    if (!active.value) return
 
-    loadingContainer.classList.remove("d-none")
-    parentSidebar.removeEventListener("scroll", onSidebarScroll)
+    // Determine fetch bounds and date
+    const isScoped = Boolean(scope.value || displayName.value)
+    const fetchBounds =
+      fetchedContext.current.bounds || !isScoped ? map.getBounds() : null
+    if (options?.fromMapMove && !fetchBounds) return
 
-    // Abort any pending request
-    abortController?.abort()
-    abortController = new AbortController()
-    const signal = abortController.signal
+    const urlParams = qsParse(window.location.search)
+    const fetchDate = urlParams.date
+    dateFilter.value = fetchDate
+
+    // Determine action based on context change
+    const action = determineFetchAction(fetchBounds, fetchDate)
+    if (action === "skip") return
+    if (action === "reload") resetChangesets()
+
+    // Build request params
+    const params = buildFetchParams(fetchBounds, fetchDate)
+    if (action === "paginate" && changesets.value.length) {
+      params.before = changesets.value.at(-1)!.id.toString()
+    }
+
+    // Execute fetch
+    fetchAbort.current?.abort()
+    const thisAbort = new AbortController()
+    fetchAbort.current = thisAbort
+    loading.value = true
 
     try {
       const resp = await fetch(`/api/web/changeset/map${qsEncode(params)}`, {
-        signal: signal,
+        signal: thisAbort.signal,
         priority: "high",
       })
       assert(resp.ok, `${resp.status} ${resp.statusText}`)
@@ -651,133 +510,327 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
       ).changesets
 
       if (newChangesets.length) {
-        changesets.push(...newChangesets)
-        for (const cs of newChangesets) {
-          idChangesetMap.set(cs.id.toString(), cs)
-        }
-        console.debug(
-          "ChangesetsHistory: Loaded",
-          changesets.length,
-          "changesets,",
-          newChangesets.length,
-          "new",
-        )
-        updateLayers()
-        updateSidebar()
+        const isFirstLoad = !changesets.value.length
+        changesets.value = [...changesets.value, ...newChangesets]
+        for (const cs of newChangesets) idChangesetMap.current.set(cs.id.toString(), cs)
+        updateLayers(isFirstLoad)
         requestAnimationFramePolyfill(updateLayersVisibility)
+        requestAnimationFramePolyfill(checkLoadMore)
       } else {
-        console.debug("ChangesetsHistory: No more changesets")
-        noMoreChangesets = true
+        noMoreChangesets.value = true
       }
 
-      fetchedBounds = fetchBounds
-      fetchedDate = fetchDate
-
-      if (changesets.length)
-        for (const indicator of scrollIndicators) indicator.classList.remove("d-none")
+      fetchedContext.current = { bounds: fetchBounds, date: fetchDate }
     } catch (error) {
       if (error.name === "AbortError") return
       console.error("ChangesetsHistory: Failed to fetch", error)
-      resetChangesets()
     } finally {
-      if (!signal.aborted) {
-        loadingContainer.classList.add("d-none")
-        parentSidebar.addEventListener("scroll", onSidebarScroll)
+      if (fetchAbort.current === thisAbort) {
+        loading.value = false
       }
     }
   }
 
-  return {
-    load: (
-      { scope, displayName }: { scope?: string; displayName?: string },
-      reason?: RouteLoadReason,
-    ) => {
-      loadScope = scope
-      loadDisplayName = displayName
-      shouldFitOnInitialLoad = reason === "navigation" && Boolean(scope || displayName)
+  const checkLoadMore = () => {
+    if (loading.value || noMoreChangesets.value || !loadMoreSentinel.current) return
+    const sentinel = loadMoreSentinel.current
+    const root = parentSidebar
+    const sentinelRect = sentinel.getBoundingClientRect()
+    const rootRect = root.getBoundingClientRect()
+    // Check if sentinel is within buffer distance of visible area
+    if (sentinelRect.top < rootRect.bottom + LOAD_MORE_SCROLL_BUFFER) {
+      fetchChangesets()
+    }
+  }
 
-      switchActionSidebar(map, sidebar)
-      // TODO: handle scope
-      let sidebarTitle: ComponentChild
-      let sidebarTitleText: string
-      if (displayName) {
-        const userLink = <a href={`/user/${displayName}`}>{displayName}</a>
-        sidebarTitle = tRich("changesets.index.title_user", {
-          user: userLink,
-        })
-        sidebarTitleText = t("changesets.index.title_user", {
-          user: displayName,
-        })
-      } else if (scope === "nearby") {
-        const title = t("changesets.index.title_nearby")
-        sidebarTitle = title
-        sidebarTitleText = title
-      } else if (scope === "friends") {
-        const title = t("changesets.index.title_friend")
-        sidebarTitle = title
-        sidebarTitleText = title
-      } else {
-        const title = t("changesets.index.title")
-        sidebarTitle = title
-        sidebarTitleText = title
+  // --- Hover Logic ---
+
+  const setHover = (
+    id: string,
+    numBounds: number,
+    hover: boolean,
+    scrollIntoView = false,
+  ) => {
+    const element = idSidebarMap.current.get(id)
+    element?.classList.toggle("hover", hover)
+
+    if (hover && scrollIntoView && element)
+      element.scrollIntoView({ behavior: "smooth", block: "center" })
+
+    const firstFeatureId = idFirstFeatureIdMap.current.get(id)
+    if (!firstFeatureId) return
+    for (let i = firstFeatureId; i < firstFeatureId + numBounds * 2; i++) {
+      map.setFeatureState({ source: LAYER_ID_BORDERS, id: i }, { hover })
+      map.setFeatureState({ source: LAYER_ID, id: i }, { hover })
+    }
+  }
+
+  const changesetIsWithinView = (changesetId: string) => {
+    const cs = idChangesetMap.current.get(changesetId)
+    if (!cs) return false
+    const mapBounds = map.getBounds()
+    return cs.bounds.some((b) => {
+      const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
+      return checkLngLatBoundsIntersection(mapBounds, csBounds)
+    })
+  }
+
+  const scheduleSidebarFit = async (changesetId: string) => {
+    sidebarHoverAbort.current?.abort()
+    sidebarHoverAbort.current = new AbortController()
+
+    try {
+      await delay(FOCUS_HOVER_DELAY, { signal: sidebarHoverAbort.current.signal })
+    } catch {
+      return
+    }
+
+    if (
+      !idFirstFeatureIdMap.current.has(changesetId) ||
+      changesetIsWithinView(changesetId) ||
+      !visibleChangesetsBounds.current
+    )
+      return
+
+    map.fitBounds(padLngLatBounds(visibleChangesetsBounds.current, 0.3), {
+      maxZoom: 16,
+    })
+  }
+
+  const handleEntryMouseEnter = (changesetId: string) => {
+    const changeset = idChangesetMap.current.get(changesetId)
+    if (!changeset) return
+
+    scheduleSidebarFit(changesetId)
+
+    // Clear previous hover
+    if (hoveredChangesetId.value && hoveredChangesetId.value !== changesetId) {
+      const prev = idChangesetMap.current.get(hoveredChangesetId.value)
+      if (prev) setHover(hoveredChangesetId.value, prev.bounds.length, false)
+    }
+
+    setHover(changesetId, changeset.bounds.length, true)
+    hoveredChangesetId.value = changesetId
+  }
+
+  const handleEntryMouseLeave = (changesetId: string) => {
+    sidebarHoverAbort.current?.abort()
+    const changeset = idChangesetMap.current.get(changesetId)
+    if (changeset) setHover(changesetId, changeset.bounds.length, false)
+    if (hoveredChangesetId.value === changesetId) hoveredChangesetId.value = null
+  }
+
+  const registerEntry = (id: string, el: HTMLLIElement | null) => {
+    if (el) idSidebarMap.current.set(id, el)
+    else idSidebarMap.current.delete(id)
+  }
+
+  // --- Map Event Handlers ---
+
+  const onMapMouseMove = async (e: MapLayerMouseEvent) => {
+    const feature = pickSmallestBoundsFeature(e.features!)
+    const id = feature.properties.id.toString()
+    const numBounds = feature.properties.numBounds
+
+    if (hoveredFeature.current) {
+      if (hoveredFeature.current.id === feature.id) return
+      setHover(
+        hoveredFeature.current.properties.id.toString(),
+        hoveredFeature.current.properties.numBounds,
+        false,
+      )
+    } else {
+      // Clear any sidebar hover when entering map hover
+      if (hoveredChangesetId.value) {
+        const prev = idChangesetMap.current.get(hoveredChangesetId.value)
+        if (prev) setHover(hoveredChangesetId.value, prev.bounds.length, false)
+        hoveredChangesetId.value = null
       }
-      render(sidebarTitle, sidebarTitleElement)
-      setPageTitle(sidebarTitleText)
+      setMapHover(map, LAYER_ID)
+    }
 
-      addEntryHoverHandlers()
+    scrollDelayAbort.current?.abort()
+    scrollDelayAbort.current = new AbortController()
+    hoveredFeature.current = feature
+    setHover(id, numBounds, true)
 
-      addMapLayer(map, LAYER_ID)
-      addMapLayer(map, LAYER_ID_BORDERS)
-      map.on("zoomend", updateLayers)
-      map.on("moveend", updateState)
-      updateState()
-    },
-    unload: () => {
-      map.off("moveend", updateState)
-      map.off("zoomend", updateLayers)
-      parentSidebar.removeEventListener("scroll", onSidebarScroll)
-      removeEntryHoverHandlers?.()
+    try {
+      await delay(FOCUS_HOVER_DELAY, { signal: scrollDelayAbort.current.signal })
+    } catch {
+      return
+    }
+    setHover(id, numBounds, true, true)
+  }
+
+  const onMapMouseLeave = () => {
+    if (!hoveredFeature.current) return
+    scrollDelayAbort.current?.abort()
+    setHover(
+      hoveredFeature.current.properties.id.toString(),
+      hoveredFeature.current.properties.numBounds,
+      false,
+    )
+    hoveredFeature.current = null
+    clearMapHover(map, LAYER_ID)
+  }
+
+  // Effect: Page title
+  useSignalEffect(() => {
+    if (active.value) setPageTitle(sidebarTitle.value.plain)
+  })
+
+  // Effect: Map lifecycle and event handlers
+  useSignalEffect(() => {
+    if (!active.value) {
       removeMapLayer(map, LAYER_ID)
       removeMapLayer(map, LAYER_ID_BORDERS)
       resetChangesets()
-      fetchedBounds = null
-    },
-  }
-}
+      fetchedContext.current = { bounds: null, date: undefined }
+      return
+    }
 
-const renderUser = (user: RenderChangesetsData_Changeset_User | undefined) => {
-  if (!user) return t("browse.anonymous")
+    switchActionSidebar(map, sidebar)
+    addMapLayer(map, LAYER_ID)
+    addMapLayer(map, LAYER_ID_BORDERS)
+
+    const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
+
+    const onMoveEnd = () => fetchChangesets({ fromMapMove: true })
+    const onZoomEnd = () => updateLayers()
+    const onMapClick = (e: MapLayerMouseEvent) => {
+      routerNavigateStrict(
+        `/changeset/${pickSmallestBoundsFeature(e.features!).properties.id}`,
+      )
+    }
+
+    map.on("moveend", onMoveEnd)
+    map.on("zoomend", onZoomEnd)
+    map.on("mousemove", fillLayerId, onMapMouseMove)
+    map.on("mouseleave", fillLayerId, onMapMouseLeave)
+    map.on("click", fillLayerId, onMapClick)
+
+    return () => {
+      map.off("moveend", onMoveEnd)
+      map.off("zoomend", onZoomEnd)
+      map.off("mousemove", fillLayerId, onMapMouseMove)
+      map.off("mouseleave", fillLayerId, onMapMouseLeave)
+      map.off("click", fillLayerId, onMapClick)
+    }
+  })
+
+  // Effect: Initial data fetch (triggers on scope/displayName change)
+  useSignalEffect(() => {
+    if (!active.value) return
+    scope.value
+    displayName.value
+    fetchChangesets()
+  })
+
+  // Effect: Infinite scroll observer
+  useSignalEffect(() => {
+    if (!(active.value && loadMoreSentinel.current)) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading.value && !noMoreChangesets.value) {
+          fetchChangesets()
+        }
+      },
+      { root: parentSidebar, rootMargin: `${LOAD_MORE_SCROLL_BUFFER}px` },
+    )
+    observer.observe(loadMoreSentinel.current)
+    return () => observer.disconnect()
+  })
+
+  // Effect: Scroll-based visibility updates
+  useSignalEffect(() => {
+    if (!active.value) return
+    parentSidebar.addEventListener("scroll", updateLayersVisibility)
+    return () => parentSidebar.removeEventListener("scroll", updateLayersVisibility)
+  })
 
   return (
-    <a href={`/user/${user.name}`}>
-      <img
-        class="avatar"
-        src={user.avatarUrl}
-        alt={t("alt.profile_picture")}
-        loading="lazy"
-      />
-      {user.name}
-    </a>
+    <div class="sidebar-content">
+      <div class="section">
+        <SidebarHeader title={sidebarTitle.value.html} />
+
+        {dateFilter.value && (
+          <div class="alert alert-info py-2 px-3 mb-3 date-filter">
+            <DateFilter date={dateFilter.value} />
+          </div>
+        )}
+
+        <div class={`scroll-indicator top ${showScrollTop.value ? "visible" : ""}`}>
+          <span class="indicator-text">{t("changesets_history.changesets_above")}</span>
+        </div>
+
+        <ul class="changesets-list social-list list-unstyled mb-0">
+          {changesets.value.map((cs) => (
+            <ChangesetEntry
+              changeset={cs}
+              key={cs.id}
+              onRef={registerEntry}
+              onMouseEnter={handleEntryMouseEnter}
+              onMouseLeave={handleEntryMouseLeave}
+            />
+          ))}
+        </ul>
+        <div ref={loadMoreSentinel} />
+
+        {loading.value && <LoadingSpinner />}
+
+        <div
+          class={`scroll-indicator bottom ${showScrollBottom.value ? "visible" : ""}`}
+        >
+          <span class="indicator-text">{t("changesets_history.changesets_below")}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const DateFilter = ({ date }: { date: string }) => {
+  const params = qsParse(window.location.search)
+  const href = `${window.location.pathname}${qsEncode({ ...params, date: undefined })}`
+  return (
+    <>
+      <span>{t("changeset.viewing_edits_from_date", { date })}</span>
+      <a
+        class="btn btn-sm btn-link btn-close"
+        href={href}
+        title={t("action.remove_filter")}
+      >
+        <span class="visually-hidden">{t("action.remove_filter")}</span>
+      </a>
+    </>
   )
 }
 
 const ChangesetEntry = ({
   changeset,
+  onRef,
+  onMouseEnter,
+  onMouseLeave,
 }: {
   changeset: RenderChangesetsData_Changeset
+  onRef: (id: string, el: HTMLLIElement | null) => void
+  onMouseEnter: (id: string) => void
+  onMouseLeave: (id: string) => void
 }) => {
   const changesetId = changeset.id.toString()
   const hasComments = changeset.numComments > 0n
 
   return (
     <li
+      ref={(el) => onRef(changesetId, el)}
       class="social-entry clickable"
-      data-changeset-id={changesetId}
+      onMouseEnter={() => onMouseEnter(changesetId)}
+      onMouseLeave={() => onMouseLeave(changesetId)}
     >
       <p class="header text-muted d-flex justify-content-between">
         <span>
-          <span class="user me-1">{renderUser(changeset.user)}</span>
-          <span class="date">
+          <span class="me-1">{User(changeset.user)}</span>
+          <span>
             {changeset.closed
               ? t("browse.closed").toLowerCase()
               : t("browse.created").toLowerCase()}{" "}
@@ -818,30 +871,51 @@ const ChangesetEntry = ({
   )
 }
 
-const DateFilter = ({
-  date,
-  params,
-}: {
-  date: string
-  params: Record<string, string | undefined>
-}) => {
-  const href = `${window.location.pathname}${qsEncode({
-    ...params,
-    date: undefined,
-  })}`
-
+const User = (user: RenderChangesetsData_Changeset_User | undefined) => {
+  if (!user) return t("browse.anonymous")
   return (
-    <>
-      <span class="date-filter-text">
-        {t("changeset.viewing_edits_from_date", { date })}
-      </span>
-      <a
-        class="btn btn-sm btn-link btn-close"
-        href={href}
-        title={t("action.remove_filter")}
-      >
-        <span class="visually-hidden">{t("action.remove_filter")}</span>
-      </a>
-    </>
+    <a href={`/user/${user.name}`}>
+      <img
+        class="avatar"
+        src={user.avatarUrl}
+        alt={t("alt.profile_picture")}
+        loading="lazy"
+      />
+      {user.name}
+    </a>
   )
+}
+
+export const getChangesetsHistoryController = (map: MaplibreMap) => {
+  const sidebar = getActionSidebar("changesets-history")
+  const active = signal(false)
+  const scope = signal<string | undefined>(undefined)
+  const displayName = signal<string | undefined>(undefined)
+  const reason = signal<RouteLoadReason | undefined>(undefined)
+
+  render(
+    <ChangesetsHistorySidebar
+      map={map}
+      active={active}
+      scope={scope}
+      displayName={displayName}
+      reason={reason}
+      sidebar={sidebar}
+    />,
+    sidebar,
+  )
+
+  return {
+    load: (matchGroups: Record<string, string>, r?: RouteLoadReason) => {
+      batch(() => {
+        scope.value = matchGroups.scope
+        displayName.value = matchGroups.displayName
+        reason.value = r
+        active.value = true
+      })
+    },
+    unload: () => {
+      active.value = false
+    },
+  }
 }
