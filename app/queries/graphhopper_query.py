@@ -62,7 +62,10 @@ class GraphHopperQuery:
         ]
 
         return RoutingResult(
-            attribution='<a href="https://www.graphhopper.com" target="_blank">GraphHopper</a>',
+            attribution=RoutingResult.Attribution(
+                href='https://www.graphhopper.com',
+                label='GraphHopper',
+            ),
             steps=routing_steps,
             line_quality=5,
             line=path['points'],

@@ -128,9 +128,12 @@ async def _resolve_name(
         )
 
     x, y = get_coordinates(result.point)[0].tolist()
+    min_lon, min_lat, max_lon, max_lat = result.bounds
     return RoutingResult.Endpoint(
         name=result.display_name,
-        bounds=SharedBounds(*result.bounds),
+        bounds=SharedBounds(
+            min_lon=min_lon, min_lat=min_lat, max_lon=max_lon, max_lat=max_lat
+        ),
         lon=x,
         lat=y,
     )
