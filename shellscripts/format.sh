@@ -72,7 +72,7 @@ if ((staged)); then
   ((${#restage_files[@]})) && {
     printf '%s\0' "${restage_files[@]}" |
       git add --pathspec-from-file=- --pathspec-file-nul --
-  }
+  } || true
 else
   run_linters
 fi
