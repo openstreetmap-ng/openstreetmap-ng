@@ -11,9 +11,9 @@
 
 <div class="main-map-container">
     <div class="sidebar sidebar-overlay">
-        {% include 'index/search-form' %}
+        <div id="SearchForm"></div>
 
-        {% include 'index/banner' %}
+        <div class="action-sidebar index d-none" data-sidebar-overlay="1"></div>
         <div class="action-sidebar changeset d-none"></div>
         <div class="action-sidebar changesets-history d-none"></div>
         {% include 'index/distance' %}

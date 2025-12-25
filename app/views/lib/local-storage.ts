@@ -109,9 +109,9 @@ export const mapStateStorage = createStorage<MapState>("mapState", {
     logOperations: false,
 })
 
-const bannerStorage = createScopedStorage<number>("bannerHidden")
-export const isBannerHidden = (name: string) => bannerStorage(name).get() !== null
-export const markBannerHidden = (name: string) => bannerStorage(name).set(Date.now())
+export const bannerHidden = createScopedStorageSignal<boolean>("bannerHidden", {
+    defaultValue: false,
+})
 
 export const routingEngineStorage = createStorageSignal<string>("routingEngine", {
     defaultValue: "valhalla_auto",
