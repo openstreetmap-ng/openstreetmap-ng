@@ -5,6 +5,7 @@ import {
   SidebarHeader,
   switchActionSidebar,
 } from "@index/_action-sidebar"
+import { ChangesetStats } from "@index/changeset"
 import type { RouteLoadReason } from "@index/router"
 import { routerNavigateStrict } from "@index/router"
 import { darkenColor } from "@lib/color"
@@ -32,7 +33,6 @@ import { convertRenderChangesetsData, renderObjects } from "@lib/map/render-obje
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import {
   type RenderChangesetsData_Changeset,
-  type RenderChangesetsData_Changeset_User,
   RenderChangesetsDataSchema,
 } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
@@ -869,17 +869,11 @@ const ChangesetEntry = ({
             <i class={`bi ${hasComments ? "bi-chat-left-text" : "bi-chat-left"}`} />
           </div>
         </div>
-        <div class="changeset-stats">
-          {changeset.numCreate > 0 && (
-            <span class="stat-create">{changeset.numCreate}</span>
-          )}
-          {changeset.numModify > 0 && (
-            <span class="stat-modify">{changeset.numModify}</span>
-          )}
-          {changeset.numDelete > 0 && (
-            <span class="stat-delete">{changeset.numDelete}</span>
-          )}
-        </div>
+        <ChangesetStats
+          numCreate={changeset.numCreate}
+          numModify={changeset.numModify}
+          numDelete={changeset.numDelete}
+        />
       </div>
     </li>
   )

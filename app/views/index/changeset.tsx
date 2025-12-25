@@ -5,7 +5,12 @@ import {
   SidebarHeader,
   switchActionSidebar,
 } from "@index/_action-sidebar"
-import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
+import {
+  ElementsListRow,
+  ElementsSection,
+  getElementTypeLabel,
+  TagsTable,
+} from "@index/element"
 import { API_URL, config, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
@@ -36,6 +41,22 @@ const focusPaint: FocusLayerPaint = {
   "line-opacity": 1,
   "line-width": 3,
 }
+
+export const ChangesetStats = ({
+  numCreate,
+  numModify,
+  numDelete,
+}: {
+  numCreate: number
+  numModify: number
+  numDelete: number
+}) => (
+  <div class="changeset-stats">
+    {numCreate > 0 && <span class="stat-create">{numCreate}</span>}
+    {numModify > 0 && <span class="stat-modify">{numModify}</span>}
+    {numDelete > 0 && <span class="stat-delete">{numDelete}</span>}
+  </div>
+)
 
 const getChangesetElementsTitle = (type: ElementType) => {
   if (type === ElementType.node)
@@ -93,33 +114,13 @@ const ChangesetHeader = ({ data }: { data: ChangesetData }) => {
         </p>
         <div class="body">
           <span dangerouslySetInnerHTML={{ __html: data.commentRich }} />
-          <div class="changeset-stats">
-            {data.numCreate > 0 && <span class="stat-create">{data.numCreate}</span>}
-            {data.numModify > 0 && <span class="stat-modify">{data.numModify}</span>}
-            {data.numDelete > 0 && <span class="stat-delete">{data.numDelete}</span>}
-          </div>
+          <ChangesetStats
+            numCreate={data.numCreate}
+            numModify={data.numModify}
+            numDelete={data.numDelete}
+          />
         </div>
       </div>
-    </div>
-  )
-}
-
-const TagsTable = ({ tags }: { tags: Record<string, string> }) => {
-  const sortedTags = Object.entries(tags).sort(([a], [b]) => a.localeCompare(b))
-  if (!sortedTags.length) return null
-
-  return (
-    <div class="tags">
-      <table class="table table-sm">
-        <tbody dir="auto">
-          {sortedTags.map(([key, value]) => (
-            <tr key={key}>
-              <td>{key}</td>
-              <td>{value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   )
 }
@@ -434,7 +435,10 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
-            <TagsTable tags={d.tags} />
+            <TagsTable
+              tags={d.tags}
+              format={false}
+            />
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.id !== d.user.id && (
