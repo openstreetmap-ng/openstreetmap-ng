@@ -246,7 +246,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
               >
                 « {data.prevChangesetId.toString()}
               </a>
-              ·
+              <span aria-hidden="true"> · </span>
             </>
           )}
           <a
@@ -257,7 +257,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
           </a>
           {data.nextChangesetId !== undefined && (
             <>
-              ·
+              <span aria-hidden="true"> · </span>
               <a
                 href={`/changeset/${data.nextChangesetId}`}
                 rel="next"
@@ -272,7 +272,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}`}>
           {t("browse.changeset.changesetxml")}
         </a>
-        ·
+        <span aria-hidden="true"> · </span>
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}/download`}>
           {t("browse.changeset.osmchangexml")}
         </a>
@@ -300,7 +300,7 @@ const ChangesetElementRow = ({
         <>
           <span>{getElementTypeLabel(type)}</span>
           {element.name && <span>{`#${idStr}`}</span>}
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true"> · </span>
           <a
             href={`/${typeSlug}/${idStr}/history/${element.version}`}
           >{`v${element.version}`}</a>
