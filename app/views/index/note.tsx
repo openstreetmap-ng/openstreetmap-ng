@@ -197,9 +197,7 @@ const CommentForm = ({
           class="form-control mb-3"
           name="text"
           rows={5}
-          onInput={(e) => {
-            commentText.value = (e.target as HTMLTextAreaElement).value.trim()
-          }}
+          onInput={(e) => (commentText.value = e.currentTarget.value.trim())}
         />
         <div class="row g-1">
           <div class="col">
