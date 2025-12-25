@@ -107,6 +107,8 @@ const configureMainMap = (container: HTMLElement) => {
         findHomeContainer.classList.remove("d-none")
     }
 
+    configureSearchForm(map)
+
     configureRouter(
         new Map<string, IndexController>([
             ["/", getIndexController(map)],
@@ -133,7 +135,6 @@ const configureMainMap = (container: HTMLElement) => {
         ]),
     )
 
-    configureSearchForm(map)
     handleEditRemotePath()
 }
 
