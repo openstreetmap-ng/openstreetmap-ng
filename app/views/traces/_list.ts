@@ -2,7 +2,8 @@ import { decodeLonLat } from "@lib/polyline"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
 const configureTracesListElement = (tracesList: HTMLUListElement) => {
-    const linesElement = tracesList.querySelector("li.traces-lines")!
+    const linesElement = tracesList.querySelector("li.traces-lines")
+    if (!linesElement) return
     const tracesLines = linesElement.dataset.lines!.split(";")
     linesElement.remove()
 
