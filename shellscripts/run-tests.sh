@@ -1,8 +1,8 @@
-[[ -S $PC_SOCKET_PATH ]] || {
+if [[ ! -S $PC_SOCKET_PATH ]]; then
   echo "NOTICE: Services are not running"
   echo "NOTICE: Run 'dev-start' before executing tests"
   exit 1
-}
+fi
 
 term_output=0
 args=(

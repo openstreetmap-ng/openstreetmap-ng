@@ -7,7 +7,9 @@
 (pkgs.lib.optionalString enablePostgres ''
   current_pkgs_url=
   { read -r current_pkgs_url <data/.dev-version; } 2>/dev/null || true
-  [[ $current_pkgs_url == "${pkgsUrl}" ]] && exit 0
+  if [[ $current_pkgs_url == "${pkgsUrl}" ]]; then
+    exit 0
+  fi
   echo "Nixpkgs changed, performing services upgrade"
 
   psql() {

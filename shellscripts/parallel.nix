@@ -1,6 +1,8 @@
 { pkgs, ... }:
 ''
   args=(--will-cite)
-  [[ -t 1 ]] && args+=(--bar --eta)
+  if [[ -t 1 ]]; then
+    args+=(--bar --eta)
+  fi
   exec ${pkgs.parallel}/bin/parallel "''${args[@]}" "$@"
 ''

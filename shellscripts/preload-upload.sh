@@ -1,8 +1,8 @@
 read -rp "Preload dataset name: " dataset
-[[ $dataset == mazowieckie ]] || {
+if [[ $dataset != mazowieckie ]]; then
   echo "Invalid dataset name, must be one of: mazowieckie"
   exit 1
-}
+fi
 mkdir -p "data/preload/$dataset"
 cp --archive --link --force data/preload/*.csv.zst "data/preload/$dataset/"
 echo "Computing checksums file"

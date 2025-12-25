@@ -54,7 +54,9 @@ process_file() {
   so_file="${pyfile%.py}$_SUFFIX"
 
   # Skip unchanged files
-  [[ $so_file -nt $pyfile ]] && return 0
+  if [[ $so_file -nt $pyfile ]]; then
+    return 0
+  fi
 
   (
     set -x

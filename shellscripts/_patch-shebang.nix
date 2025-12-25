@@ -6,10 +6,10 @@
     read -r first_line <"$script" || continue
     [[ $first_line == *".venv/bin/python"* ]] || continue
 
-    module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script") || {
+    if ! module_name=$(rg -m 1 -o --replace '$1' '^from ([^[:space:]]+)' "$script"); then
       echo "Warning: Could not extract module name from $script"
       continue
-    }
+    fi
 
     temp_file=$(mktemp)
     {
