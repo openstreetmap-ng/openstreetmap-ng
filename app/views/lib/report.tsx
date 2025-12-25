@@ -1,12 +1,12 @@
 import { REPORT_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
 import { configureStandardForm } from "@lib/standard-form"
-import { signal, useSignalEffect } from "@preact/signals"
+import { computed, signal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import type { HTMLAttributes, TargetedMouseEvent } from "preact"
 import { render } from "preact"
-import { useRef } from "preact/hooks"
+import { useId, useRef } from "preact/hooks"
 
 type ReportType = "anonymous_note" | "user"
 
@@ -32,15 +32,21 @@ interface ReportData {
 }
 
 const reportData = signal<ReportData | null>(null)
+const isSelfReport = computed(() => reportData.value?.action === "user_account")
 
 const ReportModal = () => {
   const modalRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const modalBodyRef = useRef<HTMLDivElement>(null)
   const instanceRef = useRef<Modal | null>(null)
+  const categoryId = useId()
+  const bodyId = useId()
+  const bodyHelpId = useId()
 
   // Effect: Handle bootstrap modal instance
   useSignalEffect(() => {
+    const { type, typeId, action, actionId } = reportData.value!
+
     const modal = modalRef.current!
     const instance = Modal.getOrCreateInstance(modal)
     instanceRef.current = instance
@@ -56,47 +62,17 @@ const ReportModal = () => {
         removeEmptyFields: true,
         formBody: modalBodyRef.current!,
         validationCallback: (formData) => {
-          const data = reportData.peek()
-          if (!data) return null
-          formData.set("type", data.type)
-          formData.set("type_id", data.typeId.toString())
-          formData.set("action", data.action)
-          if (data.actionId) formData.set("action_id", data.actionId.toString())
+          formData.set("type", type)
+          formData.set("type_id", typeId.toString())
+          formData.set("action", action)
+          if (actionId) formData.set("action_id", actionId.toString())
           return null
         },
       },
     )
 
-    const onHidden = () => {
-      reportData.value = null
-    }
-    modal.addEventListener("hidden.bs.modal", onHidden)
-
-    return () => {
-      disposeForm?.()
-      modal.removeEventListener("hidden.bs.modal", onHidden)
-    }
-  })
-
-  // Effect: Sync report data to modal visibility and fields
-  useSignalEffect(() => {
-    const data = reportData.value
-    if (!data) {
-      instanceRef.current?.hide()
-      return
-    }
-
-    const form = formRef.current!
-    const restrict = data.action === "user_account"
-    const categorySelect = form.elements.namedItem("category") as HTMLSelectElement
-
-    for (const option of categorySelect.options) {
-      option.hidden = restrict
-        ? !(!option.value || option.value === "privacy" || option.value === "other")
-        : false
-    }
-
-    instanceRef.current?.show()
+    instance.show()
+    return () => disposeForm?.()
   })
 
   return (
@@ -128,34 +104,52 @@ const ReportModal = () => {
               class="modal-body"
               ref={modalBodyRef}
             >
-              <label class="form-label d-block mb-3">
-                <span class="required">{t("report.category")}</span>
-                <select
-                  name="category"
-                  class="form-select mt-2"
-                  required
-                >
-                  <option value="">{t("report.select_a_category")}</option>
-                  <option value="vandalism">{t("report.category_vandalism")}</option>
-                  <option value="spam">{t("report.category_spam")}</option>
-                  <option value="harassment">{t("report.category_harassment")}</option>
-                  <option value="privacy">{t("report.category_privacy_issue")}</option>
-                  <option value="other">{t("report.category_o_ther")}</option>
-                </select>
+              <label
+                class="form-label required"
+                for={categoryId}
+              >
+                {t("report.category")}
               </label>
+              <select
+                id={categoryId}
+                name="category"
+                class="form-select mb-3"
+                required
+              >
+                <option value="">{t("report.select_a_category")}</option>
+                {!isSelfReport.value && (
+                  <>
+                    <option value="vandalism">{t("report.category_vandalism")}</option>
+                    <option value="spam">{t("report.category_spam")}</option>
+                    <option value="harassment">
+                      {t("report.category_harassment")}
+                    </option>
+                  </>
+                )}
+                <option value="privacy">{t("report.category_privacy_issue")}</option>
+                <option value="other">{t("report.category_o_ther")}</option>
+              </select>
 
-              <label class="form-label d-block">
-                <span class="required">{t("report.description")}</span>
-                <textarea
-                  name="body"
-                  class="form-control mt-2"
-                  rows={4}
-                  placeholder={t("report.please_describe_the_issue")}
-                  maxLength={REPORT_COMMENT_BODY_MAX_LENGTH}
-                  required
-                />
+              <label
+                class="form-label required"
+                for={bodyId}
+              >
+                {t("report.description")}
               </label>
-              <div class="form-text">
+              <textarea
+                id={bodyId}
+                name="body"
+                class="form-control mb-2"
+                rows={4}
+                placeholder={t("report.please_describe_the_issue")}
+                maxLength={REPORT_COMMENT_BODY_MAX_LENGTH}
+                aria-describedby={bodyHelpId}
+                required
+              />
+              <div
+                id={bodyHelpId}
+                class="form-text"
+              >
                 {t("report.provide_details_to_help_us_understand_the_problem")}
               </div>
             </div>
@@ -183,15 +177,15 @@ const ReportModal = () => {
   )
 }
 
-const ensureModalMounted = memoize(() => {
+const mountModal = memoize(() => {
   const root = document.createElement("div")
   render(<ReportModal />, root)
   document.body.append(root)
 })
 
 const showReportModal = (data: ReportData) => {
-  ensureModalMounted()
   reportData.value = data
+  mountModal()
 }
 
 export const ReportButton = ({
