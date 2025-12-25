@@ -315,7 +315,6 @@ export const ElementsListRow = ({
           loading="lazy"
           src={`/static/img/element/${icon.icon}`}
           title={icon.title}
-          alt=""
           aria-hidden="true"
         />
       )}
@@ -347,7 +346,7 @@ const ElementRow = ({ element }: { element: ElementEntry }) => {
           {element.name && <span>{`#${idStr}`}</span>}
           {element.role && (
             <>
-              <span aria-hidden="true">·</span>
+              <span aria-hidden="true"> · </span>
               <span>{element.role}</span>
             </>
           )}
