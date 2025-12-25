@@ -161,8 +161,10 @@ async def get_element_data(
     if (point := element['point']) is not None:
         x, y = get_coordinates(point)[0].tolist()
         place = f'{y:.7f}, {x:.7f}'
+        location = (x, y)
     else:
         place = None
+        location = None
 
     prev_version = version - 1 if version > 1 else None
     next_version = version + 1 if not element['latest'] else None
@@ -177,9 +179,12 @@ async def get_element_data(
         render=render_data,
     )
 
+    params_bytes = param.SerializeToString()
+
     return {
         'element': element,
         'place': place,
+        'location': location,
         'changeset': changeset,
         'prev_version': prev_version,
         'next_version': next_version,
@@ -189,5 +194,6 @@ async def get_element_data(
         'comment_html': comment_html,
         'show_elements': bool(element_members),
         'show_parents': bool(element_parents),
-        'params': urlsafe_b64encode(param.SerializeToString()).decode(),
+        'params': urlsafe_b64encode(params_bytes).decode(),
+        'params_proto': param,
     }

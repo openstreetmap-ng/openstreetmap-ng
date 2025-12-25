@@ -338,6 +338,47 @@ message PartialElementParams {
     RenderElementsData render = 4; // Visual representation data
 }
 
+// Element sidebar data
+message ElementData {
+    message User {
+        uint64 id = 1; // User ID
+        string display_name = 2; // Display name
+        string avatar_url = 3; // Profile image URL
+    }
+
+    message Changeset {
+        uint64 id = 1; // Changeset ID
+        optional User user = 2; // Author (can be anonymous)
+        uint64 created_at = 3; // Unix timestamp
+        string comment_rich = 4; // Rendered HTML comment
+    }
+
+    message Location {
+        float lon = 1; // Longitude
+        float lat = 2; // Latitude
+    }
+
+    PartialElementParams.ElementType type = 1; // Element type
+    uint64 id = 2; // Object ID
+    uint64 version = 3; // Object version
+    bool visible = 4; // Whether element is visible
+    optional string name = 5;  // Localized display name
+    optional ElementIcon icon = 6;  // Associated icon visualization
+    map<string, string> tags = 7; // Element tags
+    PartialElementParams params = 8; // Related elements + render data
+    Changeset changeset = 9; // Changeset metadata
+    optional uint64 prev_version = 10; // Previous element version
+    optional uint64 next_version = 11; // Next element version
+    optional Location location = 12; // Element location
+    map<string, string> tags_old = 13; // Previous tags (diff mode)
+}
+
+// Element history pagination page
+message ElementHistoryPage {
+    repeated ElementData elements = 1; // Elements on this page
+    bool not_found = 2; // Element does not exist
+}
+
 // Note sidebar data
 message NoteData {
     message User {

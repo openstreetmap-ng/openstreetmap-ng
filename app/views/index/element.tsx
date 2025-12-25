@@ -1,19 +1,20 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { base64Decode } from "@bufbuild/protobuf/wire"
 import {
-  configureActionSidebar,
   getActionSidebar,
   LoadingSpinner,
+  SidebarHeader,
   switchActionSidebar,
 } from "@index/_action-sidebar"
-import { resolveDatetimeLazy } from "@lib/datetime-inputs"
+import { API_URL } from "@lib/config"
+import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
+  type ElementData,
+  ElementDataSchema,
   type PartialElementParams_Entry as ElementEntry,
   type ElementIcon,
   PartialElementParams_ElementType as ElementType,
-  PartialElementParamsSchema,
 } from "@lib/proto/shared_pb"
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
@@ -32,7 +33,7 @@ import { type ComponentChildren, Fragment, render } from "preact"
 import { useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
-const focusPaint: FocusLayerPaint = {
+export const elementFocusPaint: FocusLayerPaint = {
   "fill-color": THEME_COLOR,
   "fill-opacity": 0.5,
   "line-color": THEME_COLOR,
@@ -120,6 +121,265 @@ export const ElementsSection = <T,>({
   )
 }
 
+type ElementTypeSlug = "node" | "way" | "relation"
+type ElementLocationData = NonNullable<ElementData["location"]>
+
+export const getElementTypeSlug = (type: ElementType) =>
+  ElementType[type] as ElementTypeSlug
+
+export const parseElementType = (value: string | null): ElementType | null => {
+  if (value === "node") return ElementType.node
+  if (value === "way") return ElementType.way
+  if (value === "relation") return ElementType.relation
+  return null
+}
+
+const formatElementLocation = (location: ElementLocationData) =>
+  `${location.lat.toFixed(7)}, ${location.lon.toFixed(7)}`
+
+const getElementTitleText = (data: ElementData) => {
+  const idText = data.id.toString()
+  const typeLabel = getElementTypeLabel(data.type)
+  return data.name
+    ? `${typeLabel}: ${data.name} (${idText})`
+    : `${typeLabel}: ${idText}`
+}
+
+const ElementHeader = ({ data }: { data: ElementData }) => {
+  const idText = data.id.toString()
+  const typeLabel = getElementTypeLabel(data.type)
+  const versionText = data.version.toString()
+  const isLatest = data.nextVersion === undefined
+  const badgeTitle = isLatest
+    ? `${t("browse.version")} ${versionText} (${t("state.latest")})`
+    : `${t("browse.version")} ${versionText}`
+
+  return (
+    <SidebarHeader class="mb-1">
+      <h2>
+        {data.icon && (
+          <img
+            class="sidebar-title-icon"
+            src={`/static/img/element/${data.icon.icon}`}
+            title={data.icon.title}
+            aria-hidden="true"
+          />
+        )}
+        <span class="sidebar-title">
+          {typeLabel}:{" "}
+          {data.name ? (
+            <>
+              <bdi>{data.name}</bdi> ({idText})
+            </>
+          ) : (
+            idText
+          )}
+        </span>
+        <span
+          class={`version-badge badge ${isLatest ? "is-latest" : ""}`}
+          title={badgeTitle}
+        >
+          v{versionText}
+        </span>
+      </h2>
+    </SidebarHeader>
+  )
+}
+
+export const ElementMeta = ({ data }: { data: ElementData }) => {
+  const changeset = data.changeset
+  assert(changeset, "ElementData.changeset")
+  const user = changeset.user
+  return (
+    <div class="social-entry">
+      <p class="header text-muted d-flex justify-content-between">
+        <span>
+          {user ? (
+            <a href={`/user/${user.displayName}`}>
+              <img
+                class="avatar"
+                src={user.avatarUrl}
+                alt={t("alt.profile_picture")}
+                loading="lazy"
+              />
+              {user.displayName}
+            </a>
+          ) : (
+            t("browse.anonymous")
+          )}{" "}
+          {data.visible ? t("action.edited") : t("action.deleted")}{" "}
+          <Time
+            unix={changeset.createdAt}
+            relativeStyle="long"
+          />
+        </span>
+        {!data.visible && (
+          <span class="badge text-bg-secondary">
+            <i class="bi bi-trash-fill" />
+          </span>
+        )}
+      </p>
+      <div class="body">
+        <p class="position-relative mb-1">
+          {t("browse.in_changeset")} #
+          <a href={`/changeset/${changeset.id.toString()}`}>
+            {changeset.id.toString()}
+          </a>
+        </p>
+        <div
+          class="fst-italic"
+          dangerouslySetInnerHTML={{ __html: changeset.commentRich }}
+        />
+      </div>
+    </div>
+  )
+}
+
+export const ElementLocation = ({
+  map,
+  location,
+}: {
+  map: MaplibreMap
+  location: ElementLocationData
+}) => (
+  <p class="location-container mb-2">
+    {t("diary_entries.form.location")}:{" "}
+    <button
+      class="btn btn-link stretched-link"
+      type="button"
+      onClick={() => {
+        map.flyTo({
+          center: [location.lon, location.lat],
+          zoom: Math.max(map.getZoom(), 15),
+        })
+      }}
+    >
+      {formatElementLocation(location)}
+    </button>
+  </p>
+)
+
+export const TagsTable = ({
+  tags,
+  tagsOld,
+  diff = false,
+  format = true,
+}: {
+  tags: Record<string, string>
+  tagsOld?: Record<string, string>
+  diff?: boolean
+  format?: boolean
+}) => {
+  const tagsEntries = Object.entries(tags).sort(([a], [b]) => a.localeCompare(b))
+  const oldTags = tagsOld && Object.keys(tagsOld).length > 0 ? tagsOld : null
+  const tagsOldEntries = oldTags ? Object.entries(oldTags) : []
+  const hasTags = tagsEntries.length > 0
+  const hasOldTags = diff && tagsOldEntries.length > 0
+  if (!(hasTags || hasOldTags)) return null
+
+  const shouldFormat = format || diff
+  const containerRef = useRef<HTMLDivElement>(null)
+  const lastFormatKey = useRef("")
+  const formatKey = shouldFormat
+    ? `${tagsEntries
+        .map(([key, value]) => `${key}=${value}`)
+        .join("|")}|${diff ? JSON.stringify(oldTags ?? {}) : ""}`
+    : ""
+
+  useSignalEffect(() => {
+    if (!shouldFormat || !formatKey) return
+    if (lastFormatKey.current === formatKey) return
+    lastFormatKey.current = formatKey
+    configureTagsFormat(containerRef.current)
+  })
+
+  return (
+    <div
+      class="tags"
+      ref={containerRef}
+      data-tags-old={diff && oldTags ? JSON.stringify(oldTags) : undefined}
+    >
+      <table class="table table-sm">
+        <tbody dir="auto">
+          {tagsEntries.map(([key, value]) => (
+            <tr key={key}>
+              <td>{key}</td>
+              <td>{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
+  const idText = data.id.toString()
+  const typeSlug = getElementTypeSlug(data.type)
+  const prev = data.prevVersion
+  const next = data.nextVersion
+
+  return (
+    <div class="section text-center">
+      {(prev !== undefined || next !== undefined) && (
+        <div class="mb-2">
+          {prev !== undefined && (
+            <a
+              href={`/${typeSlug}/${idText}/history/${prev.toString()}`}
+              rel="prev"
+            >
+              « v{prev.toString()}
+            </a>
+          )}
+          {prev !== undefined && " · "}
+          <a href={`/${typeSlug}/${idText}/history`}>{t("browse.view_history")}</a>
+          {next !== undefined && (
+            <>
+              {" "}
+              ·{" "}
+              <a
+                href={`/${typeSlug}/${idText}/history/${next.toString()}`}
+                rel="next"
+              >
+                v{next.toString()} »
+              </a>
+            </>
+          )}
+        </div>
+      )}
+      {data.visible && (
+        <small>
+          <a
+            href={`${API_URL}/api/0.6/${typeSlug}/${idText}/${data.version.toString()}`}
+          >
+            {t("browse.download_xml")}
+          </a>
+        </small>
+      )}
+    </div>
+  )
+}
+
+export const ElementNotFound = ({
+  type,
+  id,
+}: {
+  type: ElementType | null
+  id: string
+}) => {
+  const typeLabel = type !== null ? getElementTypeLabel(type).toLowerCase() : ""
+  return (
+    <div class="section">
+      <SidebarHeader title={t("browse.not_found.title")} />
+      <p>
+        {type !== null
+          ? t("browse.not_found.sorry", { type: typeLabel, id })
+          : t("browse.not_found.title")}
+      </p>
+    </div>
+  )
+}
+
 const ElementSidebar = ({
   map,
   type,
@@ -133,100 +393,87 @@ const ElementSidebar = ({
   version: Signal<string | null>
   sidebar: HTMLElement
 }) => {
-  const html = useSignal<string | null>(null)
+  const data = useSignal<ElementData | null>(null)
   const loading = useSignal(false)
-  const contentRef = useRef<HTMLDivElement>(null)
-
-  // Derived: Parse params from fetched HTML
+  const error = useSignal<string | null>(null)
+  const notFound = useSignal(false)
   const params = useComputed(() => {
-    if (!html.value) return null
-    const doc = new DOMParser().parseFromString(html.value, "text/html")
-    const sidebarContent = doc.querySelector(".sidebar-content") as HTMLElement
-    if (!sidebarContent?.dataset.params) return null
-    return fromBinary(
-      PartialElementParamsSchema,
-      base64Decode(sidebarContent.dataset.params),
-    )
+    const current = data.value
+    if (!current) return null
+    const currentParams = current.params
+    assert(currentParams, "ElementData.params")
+    return currentParams
+  })
+  const renderElements = useComputed(() => {
+    const currentParams = params.value
+    if (!currentParams?.render) return null
+    return convertRenderElementsData(currentParams.render)
   })
 
-  // Effect: Fetch element partial
+  // Effect: Fetch element data
   useSignalEffect(() => {
     const etype = type.value
     const eid = id.value
     const v = version.value
 
     if (!(etype && eid)) {
-      html.value = null
+      data.value = null
       loading.value = false
+      error.value = null
+      notFound.value = false
       return
     }
 
     loading.value = true
+    error.value = null
+    notFound.value = false
     const abortController = new AbortController()
-    const url = v ? `/partial/${etype}/${eid}/history/${v}` : `/partial/${etype}/${eid}`
+    const url = v
+      ? `/api/web/element/${etype}/${eid}/history/${v}`
+      : `/api/web/element/${etype}/${eid}`
 
-    const fetchPartial = async () => {
-      try {
-        const resp = await fetch(url, {
-          signal: abortController.signal,
-          priority: "high",
-        })
-        assert(resp.ok || resp.status === 404, `${resp.status} ${resp.statusText}`)
+    fetch(url, { signal: abortController.signal, priority: "high" })
+      .then(async (resp) => {
+        if (resp.status === 404) {
+          notFound.value = true
+          data.value = null
+          return
+        }
+        assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
-        const respText = await resp.text()
+        const buffer = await resp.arrayBuffer()
         abortController.signal.throwIfAborted()
-        html.value = respText
-      } catch (error) {
-        if (error.name === "AbortError") return
-        html.value = `<div class="alert alert-danger">${error.message}</div>`
-      } finally {
+        data.value = fromBinary(ElementDataSchema, new Uint8Array(buffer))
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return
+        error.value = err.message
+      })
+      .finally(() => {
         if (!abortController.signal.aborted) loading.value = false
-      }
-    }
+      })
 
-    fetchPartial()
     return () => abortController.abort()
   })
 
-  // Effect: Initialize sidebar content
+  // Effect: Page title
   useSignalEffect(() => {
-    if (!(html.value && contentRef.current)) return
-
-    const content = contentRef.current
-    resolveDatetimeLazy(content)
-    configureActionSidebar(sidebar)
-
-    const sidebarContent = content.querySelector("div.sidebar-content")!
-    const sidebarTitleEl = sidebarContent.querySelector(".sidebar-title")!
-    setPageTitle(sidebarTitleEl.textContent)
-
-    configureTagsFormat(content.querySelector("div.tags"))
-
-    const locationBtn = content.querySelector(
-      ".location-container button",
-    ) as HTMLButtonElement | null
-    if (!locationBtn) return
-
-    const onLocClick = () => {
-      const { lon, lat } = locationBtn.dataset
-      map.flyTo({
-        center: [Number.parseFloat(lon!), Number.parseFloat(lat!)],
-        zoom: Math.max(map.getZoom(), 15),
-      })
+    if (notFound.value) {
+      setPageTitle(t("browse.not_found.title"))
+      return
     }
-    locationBtn.addEventListener("click", onLocClick)
-    return () => locationBtn.removeEventListener("click", onLocClick)
+    if (data.value) setPageTitle(getElementTitleText(data.value))
   })
 
   // Effect: Map focus
   useSignalEffect(() => {
-    if (!params.value?.render) {
+    const elements = renderElements.value
+    if (!elements) {
       focusObjects(map)
       return
     }
 
-    const elements = convertRenderElementsData(params.value.render)
-    focusObjects(map, elements, focusPaint)
+    focusObjects(map, elements, elementFocusPaint)
     return () => focusObjects(map)
   })
 
@@ -235,32 +482,73 @@ const ElementSidebar = ({
     if (id.value) switchActionSidebar(map, sidebar)
   })
 
+  const notFoundId = version.value
+    ? `${id.value} ${t("browse.version").toLowerCase()} ${version.value}`
+    : (id.value ?? "")
+  const notFoundType = parseElementType(type.value)
+
+  const d = data.value
+  const paramsValue = params.value
+  const hasRelations = paramsValue
+    ? paramsValue.parents.length > 0 || paramsValue.members.length > 0
+    : false
+
   return (
-    <div ref={contentRef}>
+    <div class="sidebar-content">
       {loading.value && <LoadingSpinner />}
-
-      <div dangerouslySetInnerHTML={{ __html: html.value ?? "" }} />
-
-      {params.value && (
-        <div class="elements mt-3">
-          <ElementsSection
-            items={params.value.parents}
-            title={(count) => `${t("browse.part_of")} (${count})`}
-            renderRow={(el) => <ElementRow element={el} />}
-            keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
-          />
-          <ElementsSection
-            items={params.value.members}
-            title={(count) =>
-              params.value!.type === ElementType.way
-                ? // @ts-expect-error
-                  t("browse.changeset.node", { count })
-                : `${t("browse.relation.members")} (${count})`
-            }
-            renderRow={(el) => <ElementRow element={el} />}
-            keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
-          />
+      {error.value && (
+        <div
+          class="alert alert-danger"
+          role="alert"
+        >
+          {error.value}
         </div>
+      )}
+      {notFound.value && (
+        <ElementNotFound
+          type={notFoundType}
+          id={notFoundId}
+        />
+      )}
+      {d && (
+        <>
+          <div class="section">
+            <ElementHeader data={d} />
+            <ElementMeta data={d} />
+
+            {d.location && (
+              <ElementLocation
+                map={map}
+                location={d.location}
+              />
+            )}
+
+            <TagsTable tags={d.tags} />
+
+            {paramsValue && hasRelations && (
+              <div class="elements mt-3">
+                <ElementsSection
+                  items={paramsValue.parents}
+                  title={(count) => `${t("browse.part_of")} (${count})`}
+                  renderRow={(el) => <ElementRow element={el} />}
+                  keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                />
+                <ElementsSection
+                  items={paramsValue.members}
+                  title={(count) =>
+                    paramsValue.type === ElementType.way
+                      ? // @ts-expect-error
+                        t("browse.changeset.node", { count })
+                      : `${t("browse.relation.members")} (${count})`
+                  }
+                  renderRow={(el) => <ElementRow element={el} />}
+                  keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                />
+              </div>
+            )}
+          </div>
+          <ElementHistoryLinks data={d} />
+        </>
       )}
     </div>
   )
@@ -333,7 +621,7 @@ export const ElementsListRow = ({
 
 const ElementRow = ({ element }: { element: ElementEntry }) => {
   const idStr = element.id.toString()
-  const href = `/${ElementType[element.type]}/${idStr}`
+  const href = `/${getElementTypeSlug(element.type)}/${idStr}`
 
   return (
     <ElementsListRow
@@ -372,41 +660,4 @@ export const getPaginationCountLabel = (page: number, totalItems: number) => {
     })
   }
   return totalItems.toString()
-}
-
-/** Initialize element content for version sections in element history */
-export const initializeElementContent = (map: MaplibreMap, container: Element) => {
-  configureTagsFormat(container.querySelector("div.tags"))
-
-  const locationButton = container.querySelector(
-    ".location-container button",
-  ) as HTMLButtonElement | null
-
-  const onLocationClick = locationButton
-    ? () => {
-        const { lon, lat } = locationButton.dataset
-        map.flyTo({
-          center: [Number.parseFloat(lon!), Number.parseFloat(lat!)],
-          zoom: Math.max(map.getZoom(), 15),
-        })
-      }
-    : null
-
-  if (onLocationClick) {
-    locationButton!.addEventListener("click", onLocationClick)
-  }
-
-  const params = fromBinary(
-    PartialElementParamsSchema,
-    base64Decode((container as HTMLElement).dataset.params!),
-  )
-
-  return [
-    params.render!,
-    () => {
-      if (onLocationClick) {
-        locationButton!.removeEventListener("click", onLocationClick)
-      }
-    },
-  ] as const
 }
