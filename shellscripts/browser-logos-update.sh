@@ -3,7 +3,9 @@ dest=app/static/img/browser
 
 current_version=
 { read -r current_version <"$dest/.version"; } 2>/dev/null || true
-[[ $current_version == "$version" ]] && exit 0
+if [[ $current_version == "$version" ]]; then
+  exit 0
+fi
 
 echo "Downloading browser logos (v$version)..."
 
@@ -24,19 +26,19 @@ for browser_dir in "$src"/*/; do
 
   # Prefer SVG
   svgs=("$browser_dir"/*.svg)
-  ((${#svgs[@]})) && {
+  if ((${#svgs[@]})); then
     cp -f -- "${svgs[0]}" "$dest/$name.svg"
     ((count++))
     continue
-  }
+  fi
 
   # Fallback to 128x128 PNG
   pngs=("$browser_dir"/*_128x128.png)
-  ((${#pngs[@]})) && {
+  if ((${#pngs[@]})); then
     cp -f -- "${pngs[0]}" "$dest/$name.png"
     ((count++))
     continue
-  }
+  fi
 done
 
 echo "Downloaded $count browser logos"

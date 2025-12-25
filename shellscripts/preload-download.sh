@@ -2,10 +2,10 @@ echo "Available preload datasets:"
 echo "  * mazowieckie: Masovian Voivodeship; 1.6 GB download; 60 GB disk space; 15-30 minutes"
 read -rp "Preload dataset name [default: mazowieckie]: " dataset
 dataset="${dataset:-mazowieckie}"
-[[ $dataset == mazowieckie ]] || {
+if [[ $dataset != mazowieckie ]]; then
   echo "Invalid dataset name, must be one of: mazowieckie"
   exit 1
-}
+fi
 
 echo "Checking for preload data updates"
 remote_check_url="https://files.monicz.dev/openstreetmap-ng/preload/$dataset/checksums.b3"
@@ -17,7 +17,9 @@ mkdir -p "$local_dir"
 while read -r remote_checksum remote_file; do
   remote_file=${remote_file#\*}
   basename=${remote_file##*/}
-  [[ $basename == *.csv.zst ]] || continue
+  if [[ $basename != *.csv.zst ]]; then
+    continue
+  fi
 
   name=${basename%.csv.zst}
   remote_url=https://files.monicz.dev/openstreetmap-ng/preload/$dataset/$basename
@@ -31,21 +33,21 @@ while read -r remote_checksum remote_file; do
 
   local_checksum=
   { read -r local_checksum <"$local_check_file"; } 2>/dev/null || true
-  [[ -f $local_file && $local_checksum == "$remote_checksum" ]] && {
+  if [[ -f $local_file && $local_checksum == "$remote_checksum" ]]; then
     echo "File $local_file is up to date"
     continue
-  }
+  fi
 
   echo "Downloading $name preload data"
   curl -fL "$remote_url" -o "$local_file"
 
   local_checksum=$(b3sum --no-names "$local_file")
   echo "$local_checksum" >"$local_check_file"
-  [[ $local_checksum == "$remote_checksum" ]] || {
+  if [[ $local_checksum != "$remote_checksum" ]]; then
     echo "[!] Checksum mismatch for $local_file"
     echo "[!] Please retry this command after a few minutes"
     exit 1
-  }
+  fi
 done <<<"$remote_checksums"
 
 cp --archive --link --force "$local_dir/"*.csv.zst data/preload/

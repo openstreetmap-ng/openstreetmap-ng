@@ -9,18 +9,18 @@ process_file() {
     local -a args=("$@")
 
     local dest="$file$extension"
-    [[ $mode == clean ]] && {
+    if [[ $mode == clean ]]; then
       rm -f -- "$dest"
       return 0
-    }
+    fi
 
     if [[ ! -f $dest || $dest -ot $file ]]; then
       local tmpfile
       tmpfile=$(mktemp -t "${dest##*/}.XXXXXXXXXX")
-      "$compressor" "${args[@]}" "$file" -o "$tmpfile" || {
+      if ! "$compressor" "${args[@]}" "$file" -o "$tmpfile"; then
         rm -f -- "$tmpfile"
         return 1
-      }
+      fi
       touch --reference="$file" "$tmpfile"
       mv -f -- "$tmpfile" "$dest"
     fi

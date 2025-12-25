@@ -5,7 +5,7 @@
 
     static-img-pipeline &
 
-    [[ data/cache/browserslist_versions.json -nt bun.lock ]] || {
+    if [[ ! data/cache/browserslist_versions.json -nt bun.lock ]]; then
       echo "Regenerating browserslist cache"
       mkdir -p data/cache
       bunx browserslist | jq -Rnc '
@@ -14,7 +14,7 @@
         map({(.[0].browser): (map(.version) | min)}) |
         add
       ' > data/cache/browserslist_versions.json
-    }
+    fi
   ''
   + pkgs.lib.optionalString pkgs.stdenv.isLinux ''
     interpreter="${pkgs.stdenv.cc.bintools.dynamicLinker}"
@@ -23,10 +23,10 @@
       for bin in "$dir"/**/dart; do
         [[ -f $bin && -x $bin ]] || continue
         curr=$(patchelf --print-interpreter "$bin" 2>/dev/null || true)
-        [[ $curr == "$interpreter" ]] || {
+        if [[ $curr != "$interpreter" ]]; then
           patchelf --set-interpreter "$interpreter" "$bin"
           echo "Patched $bin interpreter to $interpreter"
-        }
+        fi
       done
     done
   ''

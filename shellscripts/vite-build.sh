@@ -9,7 +9,9 @@ else
     break
   done
 
-  ((changed)) || exit 0
+  if ((changed == 0)); then
+    exit 0
+  fi
   echo "Source files have changed, rebuilding..."
 fi
 exec vite build

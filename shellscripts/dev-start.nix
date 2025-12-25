@@ -22,7 +22,7 @@
   process-compose project is-ready -U --wait
 
   while read -r name; do
-    [[ -z $name ]] && continue
+    [[ -n $name ]] || continue
 
     echo -n "Waiting for $name..."
     while [[ $(process-compose process get "$name" -U --output json | jq -r '.[0].is_ready') != Ready ]]; do
