@@ -1,7 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { getBaseFetchController } from "@index/_base-fetch"
-import { setSearchFormQuery } from "@index/search-form"
+import { searchFormQuery } from "@index/search-form"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { getMapAlert } from "@lib/map/alert"
 import {
@@ -292,7 +292,7 @@ export const getSearchController = (map: MaplibreMap) => {
 
             if (!query && lon && lat) {
                 setPageTitle(whereIsThisTitle)
-                setSearchFormQuery("")
+                searchFormQuery.value = ""
 
                 const zoom = (
                     Number(options?.zoom ?? searchParams.zoom ?? map.getZoom()) | 0
@@ -300,7 +300,7 @@ export const getSearchController = (map: MaplibreMap) => {
                 base.load(`/partial/where-is-this${qsEncode({ lon, lat, zoom })}`)
             } else {
                 setPageTitle(query || searchTitle)
-                setSearchFormQuery(query)
+                searchFormQuery.value = query
 
                 // Load empty sidebar to ensure proper bbox
                 base.load(null)
