@@ -1,8 +1,8 @@
 import { unquotePlus } from "@lib/utils"
+import { batch, computed, effect, signal } from "@preact/signals"
 import { assert } from "@std/assert"
 import { trimEndBy } from "@std/text/unstable-trim-by"
 
-// Router interfaces
 export type RouteLoadReason = "navigation" | "popstate"
 
 export interface IndexController {
@@ -10,45 +10,41 @@ export interface IndexController {
     unload: (newPath?: string) => void
 }
 
-export interface Route {
+interface Route {
     match: (path: string) => boolean
     load: (path: string, reason: RouteLoadReason) => void
     unload: (newPath?: string) => void
 }
 
-// Router state
-let routes: Route[] = []
-let currentPath: string | undefined
-let currentRoute: Route | null = null
+let routes: Route[]
+let loadReason: RouteLoadReason
+const currentPath = signal<string>("")
+const currentRoute = computed(() => {
+    const p = currentPath.value
+    return p ? routes.find((r) => r.match(p)) : null
+})
 
-const findRoute = (p: string) => routes.find((r) => r.match(p)) ?? null
+const removeTrailingSlash = (s: string) => trimEndBy(s, "/") || "/"
 
-export const makeRoute = (pattern: string, controller: IndexController) => {
-    const re = new RegExp(`^${pattern}(?:$|\\?)`) // match pattern, allow query string
+const getCurrentPath = () =>
+    unquotePlus(removeTrailingSlash(window.location.pathname) + window.location.search)
 
+export const makeRoute = (pattern: string, controller: IndexController): Route => {
+    const re = new RegExp(`^${pattern}(?:$|\\?)`)
     return {
-        match: (path: string) => re.test(path),
-        load: (path: string, reason: RouteLoadReason) => {
-            const matchGroups = re.exec(path)!.groups ?? {}
-            controller.load(matchGroups, reason)
-        },
+        match: (path) => re.test(path),
+        load: (path, reason) => controller.load(re.exec(path)!.groups ?? {}, reason),
         unload: controller.unload,
     }
 }
 
-const removeTrailingSlash = (s: string) => trimEndBy(s, "/") || "/"
-
 export const routerNavigate = (newPath: string) => {
     console.debug("Router: Navigate", newPath)
-    const newRoute = findRoute(newPath)
-    if (!newRoute) return false
+    if (!routes.some((r) => r.match(newPath))) return false
 
-    // Ensure unload hooks fire before history change
-    currentRoute?.unload(newPath)
     history.pushState(null, "", newPath + location.hash)
-    currentPath = newPath
-    currentRoute = newRoute
-    currentRoute.load(currentPath, "navigation")
+    loadReason = "navigation"
+    currentPath.value = newPath
     return true
 }
 
@@ -61,26 +57,18 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
     routes = Array.from(pathControllerMap, ([p, c]) => makeRoute(p, c))
     console.debug("Router: Loaded routes", routes.length)
 
-    const getCurrentPath = () =>
-        unquotePlus(
-            removeTrailingSlash(window.location.pathname) + window.location.search,
-        )
-
-    // Handle browser back/forward navigation
+    // Browser navigation
     window.addEventListener("popstate", () => {
         console.debug("Router: Browser navigation", location)
-        const newPath = getCurrentPath()
-        if (newPath === currentPath) return
+        const path = getCurrentPath()
+        if (path === currentPath.value) return
 
-        // Ensure unload hooks fire before state change
-        currentRoute?.unload(newPath)
-        currentPath = newPath
-        currentRoute = findRoute(newPath)
-        currentRoute?.load(currentPath, "popstate")
+        loadReason = "popstate"
+        currentPath.value = path
     })
 
-    // Intercept same-origin anchor clicks to route internally
-    window.addEventListener("click", (e: MouseEvent) => {
+    // Anchor click interception
+    window.addEventListener("click", (e) => {
         if (
             e.defaultPrevented ||
             e.button !== 0 ||
@@ -94,13 +82,26 @@ export const configureRouter = (pathControllerMap: Map<string, IndexController>)
         const target = (e.target as Element).closest("a")
         if (!target?.href || target.origin !== location.origin) return
 
-        const newPath = removeTrailingSlash(target.pathname) + target.search
-        console.debug("Router: Anchor click", newPath)
-        if (routerNavigate(newPath)) e.preventDefault()
+        const path = removeTrailingSlash(target.pathname) + target.search
+        console.debug("Router: Anchor click", path)
+        if (routerNavigate(path)) e.preventDefault()
     })
 
-    // Initial load
-    currentPath = getCurrentPath()
-    currentRoute = findRoute(currentPath)
-    currentRoute?.load(currentPath, "navigation")
+    // Effect: route lifecycle
+    let prevPath = currentPath.value
+    let prevRoute = currentRoute.value
+    loadReason = "navigation"
+    currentPath.value = getCurrentPath()
+    effect(() => {
+        const path = currentPath.value
+        if (path === prevPath) return
+
+        batch(() => {
+            const route = currentRoute.value
+            prevRoute?.unload(path)
+            prevPath = path
+            prevRoute = route
+            route?.load(path, loadReason)
+        })
+    })
 }
