@@ -38,7 +38,7 @@ mount("settings-application-edit-body", (body) => {
     )!
 
     const onIsConfidentialChange = (e: Event) => {
-        const radio = e.target as HTMLInputElement
+        const radio = e.currentTarget as HTMLInputElement
         console.debug("AppEdit: Confidential changed", radio.value)
         resetSecretControl.classList.toggle("d-none", radio.value === "false")
     }
