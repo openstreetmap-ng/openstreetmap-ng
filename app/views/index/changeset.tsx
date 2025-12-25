@@ -23,7 +23,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { StandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import type { OSMChangeset } from "@lib/types"
-import { batch, type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
+import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -127,16 +127,16 @@ const TagsTable = ({ tags }: { tags: Record<string, string> }) => {
 const SubscriptionForm = ({
   changesetId,
   isSubscribed,
-  onSuccess,
 }: {
   changesetId: bigint
-  isSubscribed: boolean
-  onSuccess: () => void
+  isSubscribed: Signal<boolean>
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
   useSignalEffect(() => {
-    const disposeForm = configureStandardForm(formRef.current, onSuccess)
+    const disposeForm = configureStandardForm(formRef.current, () => {
+      isSubscribed.value = !isSubscribed.value
+    })
     return () => disposeForm?.()
   })
 
@@ -145,14 +145,14 @@ const SubscriptionForm = ({
       ref={formRef}
       class="col-auto subscription-form"
       method="POST"
-      action={`/api/web/user-subscription/changeset/${changesetId}/${isSubscribed ? "unsubscribe" : "subscribe"}`}
+      action={`/api/web/user-subscription/changeset/${changesetId}/${isSubscribed.value ? "unsubscribe" : "subscribe"}`}
     >
       <button
         class="btn btn-sm btn-soft"
         type="submit"
       >
-        {isSubscribed && <i class="bi bi-bookmark-check me-1" />}
-        {isSubscribed
+        {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
+        {isSubscribed.value
           ? t("javascripts.changesets.show.unsubscribe")
           : t("javascripts.changesets.show.subscribe")}
       </button>
@@ -312,12 +312,10 @@ const ChangesetElementRow = ({
 
 const ChangesetSidebar = ({
   map,
-  active,
   id,
   sidebar,
 }: {
   map: MaplibreMap
-  active: Signal<boolean>
   id: Signal<string | null>
   sidebar: HTMLElement
 }) => {
@@ -325,6 +323,7 @@ const ChangesetSidebar = ({
   const loading = useSignal(false)
   const error = useSignal<string | null>(null)
   const refreshKey = useSignal(0)
+  const isSubscribed = useSignal(false)
 
   const reload = () => {
     refreshKey.value++
@@ -348,7 +347,7 @@ const ChangesetSidebar = ({
     refreshKey.value
 
     const cid = id.value
-    if (!(active.value && cid)) {
+    if (!cid) {
       data.value = null
       loading.value = false
       error.value = null
@@ -372,7 +371,9 @@ const ChangesetSidebar = ({
 
         const buffer = await resp.arrayBuffer()
         abortController.signal.throwIfAborted()
-        data.value = fromBinary(ChangesetDataSchema, new Uint8Array(buffer))
+        const d = fromBinary(ChangesetDataSchema, new Uint8Array(buffer))
+        data.value = d
+        isSubscribed.value = d.isSubscribed
 
         setPageTitle(`${t("browse.in_changeset")}: ${cid}`)
       })
@@ -406,8 +407,7 @@ const ChangesetSidebar = ({
 
   // Effect: Sidebar visibility
   useSignalEffect(() => {
-    if (!active.value) return
-    switchActionSidebar(map, sidebar)
+    if (id.value) switchActionSidebar(map, sidebar)
   })
 
   const d = data.value
@@ -464,8 +464,7 @@ const ChangesetSidebar = ({
               {isLoggedIn && (
                 <SubscriptionForm
                   changesetId={d.id}
-                  isSubscribed={d.isSubscribed}
-                  onSuccess={reload}
+                  isSubscribed={isSubscribed}
                 />
               )}
             </div>
@@ -544,13 +543,11 @@ const ChangesetSidebar = ({
 
 export const getChangesetController = (map: MaplibreMap) => {
   const sidebar = getActionSidebar("changeset")
-  const active = signal(false)
   const id = signal<string | null>(null)
 
   render(
     <ChangesetSidebar
       map={map}
-      active={active}
       id={id}
       sidebar={sidebar}
     />,
@@ -559,13 +556,10 @@ export const getChangesetController = (map: MaplibreMap) => {
 
   return {
     load: (matchGroups: Record<string, string>) => {
-      batch(() => {
-        id.value = matchGroups.id
-        active.value = true
-      })
+      id.value = matchGroups.id
     },
     unload: () => {
-      active.value = false
+      id.value = null
     },
   }
 }

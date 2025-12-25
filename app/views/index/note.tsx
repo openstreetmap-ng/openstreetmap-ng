@@ -25,7 +25,7 @@ import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import { StandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
-import { batch, type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
+import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
@@ -291,16 +291,16 @@ const CommentForm = ({
 const SubscriptionForm = ({
   noteId,
   isSubscribed,
-  onSuccess,
 }: {
   noteId: bigint
-  isSubscribed: boolean
-  onSuccess: () => void
+  isSubscribed: Signal<boolean>
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
   useSignalEffect(() => {
-    const disposeForm = configureStandardForm(formRef.current, onSuccess)
+    const disposeForm = configureStandardForm(formRef.current, () => {
+      isSubscribed.value = !isSubscribed.value
+    })
     return () => disposeForm?.()
   })
 
@@ -309,14 +309,14 @@ const SubscriptionForm = ({
       ref={formRef}
       class="col-auto subscription-form"
       method="POST"
-      action={`/api/web/user-subscription/note/${noteId}/${isSubscribed ? "unsubscribe" : "subscribe"}`}
+      action={`/api/web/user-subscription/note/${noteId}/${isSubscribed.value ? "unsubscribe" : "subscribe"}`}
     >
       <button
         class="btn btn-sm btn-soft"
         type="submit"
       >
-        {isSubscribed && <i class="bi bi-bookmark-check me-1" />}
-        {isSubscribed
+        {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
+        {isSubscribed.value
           ? t("javascripts.changesets.show.unsubscribe")
           : t("javascripts.changesets.show.subscribe")}
       </button>
@@ -326,12 +326,10 @@ const SubscriptionForm = ({
 
 const NoteSidebar = ({
   map,
-  active,
   id,
   sidebar,
 }: {
   map: MaplibreMap
-  active: Signal<boolean>
   id: Signal<string | null>
   sidebar: HTMLElement
 }) => {
@@ -339,6 +337,7 @@ const NoteSidebar = ({
   const loading = useSignal(false)
   const error = useSignal<string | null>(null)
   const refreshKey = useSignal(0)
+  const isSubscribed = useSignal(false)
 
   const reload = () => {
     map.fire("reloadnoteslayer")
@@ -350,7 +349,7 @@ const NoteSidebar = ({
     refreshKey.value
 
     const nid = id.value
-    if (!(active.value && nid)) {
+    if (!nid) {
       data.value = null
       loading.value = false
       error.value = null
@@ -371,7 +370,9 @@ const NoteSidebar = ({
 
         const buffer = await resp.arrayBuffer()
         abortController.signal.throwIfAborted()
-        data.value = fromBinary(NoteDataSchema, new Uint8Array(buffer))
+        const d = fromBinary(NoteDataSchema, new Uint8Array(buffer))
+        data.value = d
+        isSubscribed.value = d.isSubscribed
 
         setPageTitle(`${t("note.title")}: ${nid}`)
       })
@@ -408,8 +409,7 @@ const NoteSidebar = ({
 
   // Effect: Sidebar visibility
   useSignalEffect(() => {
-    if (!active.value) return
-    switchActionSidebar(map, sidebar)
+    if (id.value) switchActionSidebar(map, sidebar)
   })
 
   const d = data.value
@@ -503,8 +503,7 @@ const NoteSidebar = ({
             {isLoggedIn && (
               <SubscriptionForm
                 noteId={d.id}
-                isSubscribed={d.isSubscribed}
-                onSuccess={reload}
+                isSubscribed={isSubscribed}
               />
             )}
           </div>
@@ -568,13 +567,11 @@ const NoteSidebar = ({
 
 export const getNoteController = (map: MaplibreMap) => {
   const sidebar = getActionSidebar("note")
-  const active = signal(false)
   const id = signal<string | null>(null)
 
   render(
     <NoteSidebar
       map={map}
-      active={active}
       id={id}
       sidebar={sidebar}
     />,
@@ -583,13 +580,10 @@ export const getNoteController = (map: MaplibreMap) => {
 
   return {
     load: (matchGroups: Record<string, string>) => {
-      batch(() => {
-        id.value = matchGroups.id
-        active.value = true
-      })
+      id.value = matchGroups.id
     },
     unload: () => {
-      active.value = false
+      id.value = null
     },
   }
 }

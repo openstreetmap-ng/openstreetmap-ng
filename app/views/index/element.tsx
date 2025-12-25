@@ -18,7 +18,6 @@ import {
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import {
-  batch,
   type Signal,
   signal,
   useComputed,
@@ -123,14 +122,12 @@ export const ElementsSection = <T,>({
 
 const ElementSidebar = ({
   map,
-  active,
   type,
   id,
   version,
   sidebar,
 }: {
   map: MaplibreMap
-  active: Signal<boolean>
   type: Signal<string | null>
   id: Signal<string | null>
   version: Signal<string | null>
@@ -158,7 +155,7 @@ const ElementSidebar = ({
     const eid = id.value
     const v = version.value
 
-    if (!(active.value && etype && eid)) {
+    if (!(etype && eid)) {
       html.value = null
       loading.value = false
       return
@@ -235,7 +232,7 @@ const ElementSidebar = ({
 
   // Effect: Sidebar visibility
   useSignalEffect(() => {
-    if (active.value) switchActionSidebar(map, sidebar)
+    if (id.value) switchActionSidebar(map, sidebar)
   })
 
   return (
@@ -271,7 +268,6 @@ const ElementSidebar = ({
 
 export const getElementController = (map: MaplibreMap) => {
   const sidebar = getActionSidebar("element")
-  const active = signal(false)
   const type = signal<string | null>(null)
   const id = signal<string | null>(null)
   const version = signal<string | null>(null)
@@ -279,7 +275,6 @@ export const getElementController = (map: MaplibreMap) => {
   render(
     <ElementSidebar
       map={map}
-      active={active}
       type={type}
       id={id}
       version={version}
@@ -290,15 +285,12 @@ export const getElementController = (map: MaplibreMap) => {
 
   return {
     load: (matchGroups: Record<string, string>) => {
-      batch(() => {
-        type.value = matchGroups.type
-        id.value = matchGroups.id
-        version.value = matchGroups.version ?? null
-        active.value = true
-      })
+      type.value = matchGroups.type
+      id.value = matchGroups.id
+      version.value = matchGroups.version ?? null
     },
     unload: () => {
-      active.value = false
+      id.value = null
     },
   }
 }

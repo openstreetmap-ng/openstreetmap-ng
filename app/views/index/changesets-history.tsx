@@ -906,12 +906,10 @@ export const getChangesetsHistoryController = (map: MaplibreMap) => {
 
   return {
     load: (matchGroups: Record<string, string>, r?: RouteLoadReason) => {
-      batch(() => {
-        scope.value = matchGroups.scope
-        displayName.value = matchGroups.displayName
-        reason.value = r
-        active.value = true
-      })
+      scope.value = matchGroups.scope
+      displayName.value = matchGroups.displayName
+      reason.value = r
+      active.value = true
     },
     unload: () => {
       active.value = false
