@@ -28,7 +28,7 @@ for browser_dir in "$src"/*/; do
   svgs=("$browser_dir"/*.svg)
   if ((${#svgs[@]})); then
     cp -f -- "${svgs[0]}" "$dest/$name.svg"
-    ((count++))
+    ((count += 1))
     continue
   fi
 
@@ -36,7 +36,7 @@ for browser_dir in "$src"/*/; do
   pngs=("$browser_dir"/*_128x128.png)
   if ((${#pngs[@]})); then
     cp -f -- "${pngs[0]}" "$dest/$name.png"
-    ((count++))
+    ((count += 1))
     continue
   fi
 done
