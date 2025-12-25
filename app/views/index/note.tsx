@@ -168,11 +168,10 @@ const CommentForm = ({
   const commentText = useSignal("")
 
   useSignalEffect(() => {
-    const form = formRef.current!
     const disposeForm = configureStandardForm(
-      form,
+      formRef.current,
       () => {
-        form.reset()
+        formRef.current!.reset()
         onSuccess()
       },
       {

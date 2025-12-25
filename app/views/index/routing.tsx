@@ -557,11 +557,9 @@ const RoutingSidebar = ({
     setPageTitle(t("javascripts.directions.directions"))
     addMapLayer(map, LAYER_ID)
 
-    const form = formRef.current!
-
     // Form configuration
     const disposeForm = configureStandardForm<RoutingResult>(
-      form,
+      formRef.current,
       (data) => {
         if (!active.value) return
         loading.value = false
@@ -608,7 +606,7 @@ const RoutingSidebar = ({
     }
     onMapZoomOrMoveEnd()
 
-    parseUrlParams(form)
+    parseUrlParams(formRef.current!)
     submitFormIfFilled()
 
     // Event listeners
