@@ -85,6 +85,20 @@ export function createStorageSignal<T>(key: string, config: StorageConfig<T> = {
     return storageSignal
 }
 
+function createScopedStorageSignal<T>(
+    prefix: string,
+    config: StorageConfig<T> & { defaultValue: T },
+): (scope: string) => Signal<T>
+function createScopedStorageSignal<T>(
+    prefix: string,
+    config?: StorageConfig<T>,
+): (scope: string) => Signal<T | null>
+function createScopedStorageSignal<T>(prefix: string, config?: StorageConfig<T>) {
+    return memoize((scope: string) =>
+        createStorageSignal<T>(`${prefix}-${scope}`, config),
+    )
+}
+
 export const themeStorage = createStorageSignal<Theme>("theme", {
     defaultValue: "auto",
 })
