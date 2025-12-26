@@ -113,26 +113,29 @@ type RouteView = {
   timeText: string
   elevation: RouteElevationView | null
   steps: RouteStepView[]
-  attribution: RoutingResult_Attribution | undefined
+  attribution: RoutingResult_Attribution
 }
 
 const RoutingAttribution = ({
   attribution,
 }: {
-  attribution: RoutingResult_Attribution | undefined
+  attribution: RoutingResult_Attribution
 }) => {
-  if (!attribution) return null
-  return tRich("javascripts.directions.instructions.courtesy", {
-    link: () => (
-      <a
-        href={attribution.href}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {attribution.label}
-      </a>
-    ),
-  })
+  return (
+    <div class="attribution">
+      {tRich("javascripts.directions.instructions.courtesy", {
+        link: () => (
+          <a
+            href={attribution.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {attribution.label}
+          </a>
+        ),
+      })}
+    </div>
+  )
 }
 
 const RoutingPopupContent = ({
@@ -368,7 +371,7 @@ const RoutingSidebar = ({
           }
         : null,
       steps,
-      attribution: route.attribution,
+      attribution: route.attribution!,
     }
 
     const source = map.getSource<GeoJSONSource>(LAYER_ID)
@@ -458,16 +461,14 @@ const RoutingSidebar = ({
     const step = route?.steps[stepIndex]
     if (!step) return
 
-    if (!popupRoot.current) popupRoot.current = document.createElement("div")
-    if (!popup.current) {
-      popup.current = new Popup({
-        closeButton: false,
-        closeOnClick: false,
-        closeOnMove: true,
-        anchor: "bottom",
-        className: "route-steps",
-      })
-    }
+    popupRoot.current ??= document.createElement("div")
+    popup.current ??= new Popup({
+      closeButton: false,
+      closeOnClick: false,
+      closeOnMove: true,
+      anchor: "bottom",
+      className: "route-steps",
+    })
 
     render(
       <RoutingPopupContent
@@ -850,9 +851,7 @@ const RoutingSidebar = ({
               </tbody>
             </table>
 
-            <div class="attribution">
-              <RoutingAttribution attribution={routeValue.attribution} />
-            </div>
+            <RoutingAttribution attribution={routeValue.attribution} />
           </>
         )}
       </div>

@@ -5,12 +5,7 @@ import {
   SidebarHeader,
   switchActionSidebar,
 } from "@index/_action-sidebar"
-import {
-  ElementsListRow,
-  ElementsSection,
-  getElementTypeLabel,
-  TagsTable,
-} from "@index/element"
+import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { API_URL, config, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
@@ -26,6 +21,7 @@ import {
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import { StandardPagination } from "@lib/standard-pagination"
+import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import type { OSMChangeset } from "@lib/types"
 import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
@@ -435,10 +431,7 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
-            <TagsTable
-              tags={d.tags}
-              format={false}
-            />
+            <Tags tags={d.tags} />
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.id !== d.user.id && (

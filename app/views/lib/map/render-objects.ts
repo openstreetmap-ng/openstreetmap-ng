@@ -164,8 +164,9 @@ export const convertRenderChangesetsData = (
     return result
 }
 
-export const convertRenderElementsData = (render: RenderElementsData) => {
+export const convertRenderElementsData = (render: RenderElementsData | undefined) => {
     const result: (OSMNode | OSMWay)[] = []
+    if (!render) return result
     for (const way of render.ways) {
         result.push({
             type: "way",

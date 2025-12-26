@@ -428,8 +428,7 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
   const deleteMessage = async () => {
     const messageId = openMessageId.value
-    if (!messageId) return
-    if (!confirm(t("messages.delete_confirmation"))) return
+    if (!(messageId && confirm(t("messages.delete_confirmation")))) return
     try {
       const resp = await fetch(`/api/web/messages/${messageId}/delete`, {
         method: "POST",
@@ -466,7 +465,6 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
         const buffer = await resp.arrayBuffer()
         abortController.signal.throwIfAborted()
         const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
-        assert(message.sender, "Messages: Missing sender in read response")
 
         previewState.value = { status: "ready", message }
       } catch (error) {

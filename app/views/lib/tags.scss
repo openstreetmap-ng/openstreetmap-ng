@@ -1,0 +1,131 @@
+.tags {
+    @extend .rounded-2;
+    border: 1px solid $table-border-color;
+    overflow: hidden;
+
+    table {
+        table-layout: fixed;
+        vertical-align: middle;
+        margin-bottom: unset;
+
+        word-wrap: break-word;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    td {
+        padding: 0.25em 0.55em;
+
+        .tag-value {
+            white-space: pre-wrap;
+        }
+    }
+
+    td:first-child {
+        @extend .bg-body-tertiary;
+        border-right: 1px solid $table-border-color;
+    }
+
+    td:last-child {
+        // Style the color preview box
+        // (used with colour, roof:colour, etc.)
+        .color-preview {
+            @extend .border;
+            @extend .rounded-1;
+            display: inline-block;
+            width: 1.1em;
+            height: 1.1em;
+            position: relative;
+            top: 0.2em;
+            margin-right: 0.1em;
+        }
+    }
+
+    tr:last-child td {
+        border-bottom: unset;
+    }
+
+    tr[data-status="added"] > td {
+        background: color.mix($green, $body-bg, 20%);
+    }
+
+    tr[data-status="modified"] > td {
+        background: color.mix($orange, $body-bg, 20%);
+    }
+
+    tr[data-status="modified"] > td:nth-child(2) {
+        padding-top: 0;
+        padding-bottom: 0;
+
+        > div {
+            display: flex;
+        }
+
+        .tag-values,
+        .tag-previous {
+            padding-top: 0.25em;
+            padding-bottom: 0.25em;
+            flex-grow: 1;
+        }
+
+        .tag-previous {
+            padding-left: 0.55em;
+            border-left: 1px solid $table-border-color;
+
+            .tag-value {
+                color: $red-600;
+                text-decoration: line-through;
+                text-decoration-color: rgba($red-600, 0.55);
+            }
+        }
+    }
+
+    tr[data-status="deleted"] > td {
+        background: color.mix($red, $body-bg, 20%);
+
+        .tag-value {
+            color: $red-600;
+            text-decoration: line-through;
+            text-decoration-color: rgba($red-600, 0.55);
+        }
+    }
+}
+
+.tag-value {
+    &:not(:last-child) {
+        &::after {
+            content: ";";
+            color: var(--bs-body-color);
+        }
+    }
+}
+
+@include color-mode(dark) {
+    .tags {
+        tr[data-status="added"] > td {
+            background: color.mix($green, $body-bg-dark, 20%);
+        }
+
+        tr[data-status="modified"] > td {
+            background: color.mix($orange, $body-bg-dark, 20%);
+        }
+
+        tr[data-status="modified"] > td:nth-child(2) {
+            .tag-previous {
+                .tag-value {
+                    color: $red-400;
+                    text-decoration-color: rgba($red-400, 0.55);
+                }
+            }
+        }
+
+        tr[data-status="deleted"] > td {
+            background: color.mix($red, $body-bg-dark, 20%);
+
+            .tag-value {
+                color: $red-400;
+                text-decoration-color: rgba($red-400, 0.55);
+            }
+        }
+    }
+}

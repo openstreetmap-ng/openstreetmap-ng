@@ -16,7 +16,7 @@ import {
   type ElementIcon,
   PartialElementParams_ElementType as ElementType,
 } from "@lib/proto/shared_pb"
-import { configureTagsFormat } from "@lib/tags-format"
+import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
   type Signal,
@@ -30,7 +30,6 @@ import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, Fragment, render } from "preact"
-import { useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 export const elementFocusPaint: FocusLayerPaint = {
@@ -187,8 +186,7 @@ const ElementHeader = ({ data }: { data: ElementData }) => {
 }
 
 export const ElementMeta = ({ data }: { data: ElementData }) => {
-  const changeset = data.changeset
-  assert(changeset, "ElementData.changeset")
+  const changeset = data.changeset!
   const user = changeset.user
   return (
     <div class="social-entry">
@@ -258,60 +256,6 @@ export const ElementLocation = ({
     </button>
   </p>
 )
-
-export const TagsTable = ({
-  tags,
-  tagsOld,
-  diff = false,
-  format = true,
-}: {
-  tags: Record<string, string>
-  tagsOld?: Record<string, string>
-  diff?: boolean
-  format?: boolean
-}) => {
-  const tagsEntries = Object.entries(tags).sort(([a], [b]) => a.localeCompare(b))
-  const oldTags = tagsOld && Object.keys(tagsOld).length > 0 ? tagsOld : null
-  const tagsOldEntries = oldTags ? Object.entries(oldTags) : []
-  const hasTags = tagsEntries.length > 0
-  const hasOldTags = diff && tagsOldEntries.length > 0
-  if (!(hasTags || hasOldTags)) return null
-
-  const shouldFormat = format || diff
-  const containerRef = useRef<HTMLDivElement>(null)
-  const lastFormatKey = useRef("")
-  const formatKey = shouldFormat
-    ? `${tagsEntries
-        .map(([key, value]) => `${key}=${value}`)
-        .join("|")}|${diff ? JSON.stringify(oldTags ?? {}) : ""}`
-    : ""
-
-  useSignalEffect(() => {
-    if (!shouldFormat || !formatKey) return
-    if (lastFormatKey.current === formatKey) return
-    lastFormatKey.current = formatKey
-    configureTagsFormat(containerRef.current)
-  })
-
-  return (
-    <div
-      class="tags"
-      ref={containerRef}
-      data-tags-old={diff && oldTags ? JSON.stringify(oldTags) : undefined}
-    >
-      <table class="table table-sm">
-        <tbody dir="auto">
-          {tagsEntries.map(([key, value]) => (
-            <tr key={key}>
-              <td>{key}</td>
-              <td>{value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
   const idText = data.id.toString()
@@ -397,18 +341,10 @@ const ElementSidebar = ({
   const loading = useSignal(false)
   const error = useSignal<string | null>(null)
   const notFound = useSignal(false)
-  const params = useComputed(() => {
-    const current = data.value
-    if (!current) return null
-    const currentParams = current.params
-    assert(currentParams, "ElementData.params")
-    return currentParams
-  })
-  const renderElements = useComputed(() => {
-    const currentParams = params.value
-    if (!currentParams?.render) return null
-    return convertRenderElementsData(currentParams.render)
-  })
+  const params = useComputed(() => data.value?.params ?? null)
+  const renderElements = useComputed(() =>
+    convertRenderElementsData(params.value?.render),
+  )
 
   // Effect: Fetch element data
   useSignalEffect(() => {
@@ -467,13 +403,7 @@ const ElementSidebar = ({
 
   // Effect: Map focus
   useSignalEffect(() => {
-    const elements = renderElements.value
-    if (!elements) {
-      focusObjects(map)
-      return
-    }
-
-    focusObjects(map, elements, elementFocusPaint)
+    focusObjects(map, renderElements.value, elementFocusPaint)
     return () => focusObjects(map)
   })
 
@@ -523,7 +453,7 @@ const ElementSidebar = ({
               />
             )}
 
-            <TagsTable tags={d.tags} />
+            <Tags tags={d.tags} />
 
             {paramsValue && hasRelations && (
               <div class="elements mt-3">

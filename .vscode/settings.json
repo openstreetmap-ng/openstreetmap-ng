@@ -47,7 +47,8 @@
   "explorer.fileNesting.patterns": {
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
-    "*.tsx": "${capture}.scss",
+    "*.tsx": "${capture}.macro.ts,${capture}.scss",
+    "*.ts": "${capture}.macro.ts,${capture}.scss",
     "package.json": ".npmrc,bunfig.toml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"
