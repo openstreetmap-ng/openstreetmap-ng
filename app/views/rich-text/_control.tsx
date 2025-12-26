@@ -1,5 +1,5 @@
 import { useSignal, useSignalEffect } from "@preact/signals"
-import { assert } from "@std/assert"
+import { assert, assertExists } from "@std/assert"
 import { t } from "i18next"
 import { render } from "preact"
 import { memo } from "preact/compat"
@@ -23,7 +23,7 @@ const parseBoolean = (value: string | undefined) =>
 
 const getConfig = (root: HTMLElement): RichTextConfig => {
   const { name, value, maxlength, rows, required } = root.dataset
-  assert(name, "RichTextControl: Missing data-name")
+  assertExists(name, "RichTextControl: Missing data-name")
 
   return {
     name,

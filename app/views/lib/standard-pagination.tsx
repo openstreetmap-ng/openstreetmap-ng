@@ -19,7 +19,7 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assert } from "@std/assert"
+import { assert, assertExists } from "@std/assert"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { render } from "preact"
@@ -319,7 +319,7 @@ const configureStandardPaginationElements = (
   const fetchUrl = dataset.action
   const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
   if (customLoader) {
-    assert(dataset.pages, "Pagination: Missing data-pages for custom loader")
+    assertExists(dataset.pages, "Pagination: Missing data-pages for custom loader")
   }
 
   console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
@@ -386,7 +386,7 @@ const configureStandardPaginationElements = (
 
     const fetchPage = async () => {
       try {
-        assert(fetchUrl, "Pagination: Missing data-action")
+        assertExists(fetchUrl, "Pagination: Missing data-action")
         const baseState = state.peek()
         const resp = await fetch(
           fetchUrl,
@@ -498,18 +498,18 @@ const resolvePaginationElements = (container: Element): StandardPaginationElemen
   const actionPagination = container.querySelector(
     "ul.pagination[data-action], ul.pagination[data-pages]",
   )
-  assert(actionPagination, "Pagination: Missing action pagination")
+  assertExists(actionPagination, "Pagination: Missing action pagination")
   const actionNav = actionPagination.closest("nav")
-  assert(actionNav, "Pagination: Missing action nav")
+  assertExists(actionNav, "Pagination: Missing action nav")
   const paginationRoot = actionNav.parentElement
-  assert(paginationRoot, "Pagination: Missing pagination root")
+  assertExists(paginationRoot, "Pagination: Missing pagination root")
   const paginationContainers = Array.from(
     paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
   )
 
   const renderSibling = (actionNav.previousElementSibling ??
     paginationRoot.previousElementSibling) as HTMLElement | null
-  assert(renderSibling, "Pagination: Missing render container")
+  assertExists(renderSibling, "Pagination: Missing render container")
 
   const renderContainer = renderSibling.matches("tbody, ul.list-unstyled")
     ? renderSibling
@@ -612,6 +612,6 @@ const buildFetchInit = (
 
 const parsePaginationHeader = (headers: Headers) => {
   const header = headers.get(SP_HEADER)
-  assert(header, `Pagination: Missing ${SP_HEADER} header`)
+  assertExists(header, `Pagination: Missing ${SP_HEADER} header`)
   return fromBinary(StandardPaginationStateSchema, base64Decode(header))
 }

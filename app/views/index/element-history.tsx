@@ -10,13 +10,13 @@ import {
   elementFocusPaint,
   getElementTypeSlug,
   parseElementType,
-  TagsTable,
 } from "@index/element"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import { type ElementData, ElementHistoryPageSchema } from "@lib/proto/shared_pb"
 import { StandardPagination } from "@lib/standard-pagination"
+import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
   type Signal,
@@ -25,7 +25,6 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assert } from "@std/assert"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -55,14 +54,11 @@ const ElementHistoryEntry = ({
   const versionText = data.version.toString()
   const isLatest = data.nextVersion === undefined
   const location = data.location
-  const params = data.params
-  assert(params, "ElementData.params")
-  const renderData = params.render
+  const params = data.params!
+  const renderData = params.render!
 
   const getElements = () => {
-    if (!renderData) return null
-    if (!elementsRef.current)
-      elementsRef.current = convertRenderElementsData(renderData)
+    elementsRef.current ??= convertRenderElementsData(renderData)
     return elementsRef.current
   }
 
@@ -72,8 +68,7 @@ const ElementHistoryEntry = ({
         class="stretched-link"
         href={`/${typeSlug}/${idText}/history/${versionText}`}
         onMouseEnter={() => {
-          const elements = getElements()
-          if (elements) focusObjects(map, elements, elementFocusPaint)
+          focusObjects(map, getElements(), elementFocusPaint)
         }}
         onMouseLeave={() => focusObjects(map)}
       />
@@ -90,10 +85,10 @@ const ElementHistoryEntry = ({
         />
       )}
 
-      <TagsTable
+      <Tags
         tags={data.tags}
+        tagsOld={data.tagsOld}
         diff={tagsDiff}
-        {...(tagsDiff && data.tagsOld ? { tagsOld: data.tagsOld } : {})}
       />
     </div>
   )

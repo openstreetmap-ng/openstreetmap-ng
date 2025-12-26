@@ -186,7 +186,7 @@ const ChangesetsHistorySidebar = ({
 
   // Refs - DOM
   const parentSidebar = sidebar.closest("div.sidebar")! as HTMLElement
-  const loadMoreSentinel = useRef<HTMLDivElement | null>(null)
+  const loadMoreSentinel = useRef<HTMLDivElement>(null)
 
   // Refs - Data mappings
   const idSidebarMap = useRef(new Map<string, HTMLLIElement>())

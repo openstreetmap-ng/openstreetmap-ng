@@ -147,8 +147,11 @@ export const configureDatetimeInputs = (
   datetimeInputNames: string[],
 ) => {
   for (const inputName of datetimeInputNames) {
-    const input = form.querySelector(`input[type=datetime-local][name="${inputName}"]`)
-    assert(input, `Missing datetime-local input: ${inputName}`)
+    const input = form.elements.namedItem(inputName) as HTMLInputElement | null
+    assert(
+      input && input.type === "datetime-local",
+      `Missing datetime-local input: ${inputName}`,
+    )
 
     // Remove name from visible input so it doesn't get submitted
     input.removeAttribute("name")
