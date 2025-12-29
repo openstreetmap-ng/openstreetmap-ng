@@ -6,8 +6,8 @@ import {
 import {
   ElementLocation,
   ElementMeta,
-  ElementNotFound,
   elementFocusPaint,
+  getElementTypeLabel,
   getElementTypeSlug,
   parseElementType,
 } from "@index/element"
@@ -19,7 +19,7 @@ import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
-  type Signal,
+  type ReadonlySignal,
   signal,
   useComputed,
   useSignal,
@@ -101,8 +101,8 @@ const ElementHistorySidebar = ({
   sidebar,
 }: {
   map: MaplibreMap
-  type: Signal<string | null>
-  id: Signal<string | null>
+  type: ReadonlySignal<string | null>
+  id: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
   const tagsDiff = useSignal(tagsDiffStorage.get() ?? true)
@@ -193,10 +193,17 @@ const ElementHistorySidebar = ({
         >
           {(page) =>
             page.notFound ? (
-              <ElementNotFound
-                type={parseElementType(typeValue)}
-                id={idValue}
-              />
+              <div class="section">
+                <SidebarHeader title={t("browse.not_found.title")} />
+                <p>
+                  {t("browse.not_found.sorry", {
+                    type: getElementTypeLabel(
+                      parseElementType(typeValue)!,
+                    ).toLowerCase(),
+                    id: idValue,
+                  })}
+                </p>
+              </div>
             ) : (
               <div class="section p-0">
                 <div>
