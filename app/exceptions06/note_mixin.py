@@ -12,10 +12,6 @@ from app.models.types import NoteId
 
 class NoteExceptions06Mixin(NoteExceptionsMixin):
     @override
-    def note_not_found(self, note_id: NoteId) -> NoReturn:
-        raise APIError(status.HTTP_404_NOT_FOUND)
-
-    @override
     def note_closed(self, note_id: NoteId, closed_at: datetime) -> NoReturn:
         raise APIError(
             status.HTTP_409_CONFLICT,
