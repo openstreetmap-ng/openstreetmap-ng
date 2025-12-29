@@ -367,10 +367,8 @@ const ElementSidebar = ({
       }}
     >
       {(d) => {
-        const paramsValue = d.params
-        const hasRelations = paramsValue
-          ? paramsValue.parents.length > 0 || paramsValue.members.length > 0
-          : false
+        const params = d.params!
+        const hasRelations = params.parents.length > 0 || params.members.length > 0
 
         return (
           <>
@@ -387,18 +385,18 @@ const ElementSidebar = ({
 
               <Tags tags={d.tags} />
 
-              {paramsValue && hasRelations && (
+              {hasRelations && (
                 <div class="elements mt-3">
                   <ElementsSection
-                    items={paramsValue.parents}
+                    items={params.parents}
                     title={(count) => `${t("browse.part_of")} (${count})`}
                     renderRow={(el) => <ElementRow element={el} />}
                     keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
                   />
                   <ElementsSection
-                    items={paramsValue.members}
+                    items={params.members}
                     title={(count) =>
-                      paramsValue.type === ElementType.way
+                      params.type === ElementType.way
                         ? // @ts-expect-error
                           t("browse.changeset.node", { count })
                         : `${t("browse.relation.members")} (${count})`
