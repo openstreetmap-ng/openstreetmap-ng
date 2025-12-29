@@ -2,13 +2,18 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import NoReturn
 
+from starlette import status
+
+from app.exceptions.api_error import APIError
 from app.models.types import ChangesetCommentId, ChangesetId
 
 
 class ChangesetExceptionsMixin:
-    @abstractmethod
     def changeset_not_found(self, changeset_id: ChangesetId) -> NoReturn:
-        raise NotImplementedError
+        raise APIError(
+            status.HTTP_404_NOT_FOUND,
+            detail=f'changeset/{changeset_id} not found',
+        )
 
     @abstractmethod
     def changeset_access_denied(self) -> NoReturn:
