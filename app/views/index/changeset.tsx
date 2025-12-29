@@ -1,9 +1,9 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import {
   getActionSidebar,
-  LoadingSpinner,
+  SidebarContent,
   SidebarHeader,
   switchActionSidebar,
+  useSidebarFetch,
 } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { API_URL, config, isLoggedIn } from "@lib/config"
@@ -11,8 +11,11 @@ import { Time } from "@lib/datetime-inputs"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
+  type ChangesetCommentPage,
   type ChangesetCommentPage_Comment,
   ChangesetCommentPageSchema,
+  type ChangesetCommentResult,
+  ChangesetCommentResultSchema,
   type ChangesetData,
   ChangesetDataSchema,
   type ChangesetData_Element as Element,
@@ -20,12 +23,23 @@ import {
 } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
-import { StandardPagination } from "@lib/standard-pagination"
+import {
+  type PaginationResponse,
+  StandardPagination,
+  toPaginationResponse,
+} from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import type { OSMChangeset } from "@lib/types"
-import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
-import { assert } from "@std/assert"
+import {
+  batch,
+  type ReadonlySignal,
+  type Signal,
+  signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
@@ -157,20 +171,32 @@ const SubscriptionForm = ({
   )
 }
 
+type CommentResult = {
+  result: ChangesetCommentResult
+  commentsResponse: PaginationResponse<ChangesetCommentPage>
+}
+
 const CommentForm = ({
   changesetId,
   onSuccess,
 }: {
   changesetId: bigint
-  onSuccess: () => void
+  onSuccess: (result: CommentResult) => void
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
   useSignalEffect(() => {
-    const disposeForm = configureStandardForm(formRef.current, () => {
-      formRef.current!.reset()
-      onSuccess()
-    })
+    const disposeForm = configureStandardForm<ChangesetCommentResult>(
+      formRef.current,
+      (result, headers) => {
+        formRef.current!.reset()
+        onSuccess({
+          result,
+          commentsResponse: toPaginationResponse(result.comments!, headers),
+        })
+      },
+      { protobuf: ChangesetCommentResultSchema },
+    )
     return () => disposeForm?.()
   })
 
@@ -313,18 +339,34 @@ const ChangesetSidebar = ({
   sidebar,
 }: {
   map: MaplibreMap
-  id: Signal<string | null>
+  id: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
-  const data = useSignal<ChangesetData | null>(null)
-  const loading = useSignal(false)
-  const error = useSignal<string | null>(null)
-  const refreshKey = useSignal(0)
   const isSubscribed = useSignal(false)
+  const preloadedComments = useSignal<PaginationResponse<ChangesetCommentPage> | null>(
+    null,
+  )
 
-  const reload = () => {
-    refreshKey.value++
-  }
+  const url = useComputed(() => (id.value ? `/api/web/changeset/${id.value}` : null))
+  const { resource, data } = useSidebarFetch(url, ChangesetDataSchema)
+
+  // Effect: Sync derived state
+  useSignalEffect(() => {
+    const r = resource.value
+    if (r.tag === "not-found") {
+      setPageTitle(t("browse.not_found.title"))
+    } else if (r.tag === "ready") {
+      const d = r.data
+      isSubscribed.value = d.isSubscribed
+      setPageTitle(`${t("browse.in_changeset")}: ${d.id}`)
+    }
+  })
+
+  // Effect: Clear preloaded comments on URL change
+  useSignalEffect(() => {
+    url.value
+    preloadedComments.value = null
+  })
 
   const refocus = (initial = false) => {
     const d = data.value
@@ -338,52 +380,6 @@ const ChangesetSidebar = ({
     }
     focusObjects(map, [object], focusPaint, null, { fitBounds: initial })
   }
-
-  // Effect: Fetch changeset data
-  useSignalEffect(() => {
-    refreshKey.value
-
-    const cid = id.value
-    if (!cid) {
-      data.value = null
-      loading.value = false
-      error.value = null
-      return
-    }
-
-    loading.value = true
-    error.value = null
-    const abortController = new AbortController()
-
-    fetch(`/api/web/changeset/${cid}`, {
-      signal: abortController.signal,
-      priority: "high",
-    })
-      .then(async (resp) => {
-        if (resp.status === 404) {
-          error.value = t("browse.not_found.title")
-          return
-        }
-        assert(resp.ok, `${resp.status} ${resp.statusText}`)
-
-        const buffer = await resp.arrayBuffer()
-        abortController.signal.throwIfAborted()
-        const d = fromBinary(ChangesetDataSchema, new Uint8Array(buffer))
-        data.value = d
-        isSubscribed.value = d.isSubscribed
-
-        setPageTitle(`${t("browse.in_changeset")}: ${cid}`)
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return
-        error.value = err.message
-      })
-      .finally(() => {
-        if (!abortController.signal.aborted) loading.value = false
-      })
-
-    return () => abortController.abort()
-  })
 
   // Effect: Map focus
   useSignalEffect(() => {
@@ -407,21 +403,17 @@ const ChangesetSidebar = ({
     if (id.value) switchActionSidebar(map, sidebar)
   })
 
-  const d = data.value
-
   return (
-    <div class="sidebar-content">
-      {loading.value && <LoadingSpinner />}
-      {error.value && (
-        <div
-          class="alert alert-danger"
-          role="alert"
-        >
-          {error.value}
-        </div>
-      )}
-
-      {d && (
+    <SidebarContent
+      resource={resource}
+      notFound={() =>
+        t("browse.not_found.sorry", {
+          type: t("browse.in_changeset").toLowerCase(),
+          id: id.value!,
+        })
+      }
+    >
+      {(d) => (
         <>
           <div class="section">
             <SidebarHeader class="mb-1">
@@ -468,12 +460,13 @@ const ChangesetSidebar = ({
 
             {/* Comments pagination */}
             <StandardPagination
-              key={`${d.id}-${refreshKey.value}`}
+              key={d.id.toString()}
               action={`/api/web/changeset/${d.id}/comments`}
               label={t("alt.comments_page_navigation")}
               small={true}
               pageOrder="desc"
               protobuf={ChangesetCommentPageSchema}
+              responseSignal={preloadedComments}
             >
               {(page) => (
                 <ul class="list-unstyled mb-2">
@@ -491,7 +484,12 @@ const ChangesetSidebar = ({
             {isLoggedIn ? (
               <CommentForm
                 changesetId={d.id}
-                onSuccess={reload}
+                onSuccess={({ result, commentsResponse }) => {
+                  batch(() => {
+                    resource.value = { tag: "ready", data: result.changeset! }
+                    preloadedComments.value = commentsResponse
+                  })
+                }}
               />
             ) : (
               <div class="text-center mb-2">
@@ -534,7 +532,7 @@ const ChangesetSidebar = ({
           <ChangesetFooter data={d} />
         </>
       )}
-    </div>
+    </SidebarContent>
   )
 }
 

@@ -5,7 +5,6 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Form, Query, Response
 from psycopg.sql import SQL
 from shapely import get_coordinates
-from starlette import status
 
 from app.config import (
     NOTE_COMMENT_BODY_MAX_LENGTH,
@@ -34,7 +33,12 @@ from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import User, user_avatar_url
-from app.models.proto.shared_pb2 import NoteCommentPage, NoteData
+from app.models.proto.shared_pb2 import (
+    NoteCommentPage,
+    NoteCommentResult,
+    NoteData,
+    StandardPaginationState,
+)
 from app.models.types import Latitude, Longitude, NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
@@ -64,7 +68,14 @@ async def create_note_comment(
     text: Annotated[str, Form(max_length=NOTE_COMMENT_BODY_MAX_LENGTH)] = '',
 ):
     await NoteService.comment(note_id, text, event)
-    return Response(None, status.HTTP_204_NO_CONTENT)
+
+    async with TaskGroup() as tg:
+        note_t = tg.create_task(_build_note_data(note_id))
+        comments_t = tg.create_task(_build_comments_page(note_id))
+
+    comments_page, state = comments_t.result()
+    result = NoteCommentResult(note=note_t.result(), comments=comments_page)
+    return sp_render_response_bytes(result.SerializeToString(), state)
 
 
 @router.get('/map')
@@ -93,53 +104,7 @@ async def get_map(bbox: Annotated[str, Query()]):
 
 @router.get('/{note_id:int}')
 async def get_note(note_id: NoteId):
-    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
-    note = next(iter(notes), None)
-    if note is None:
-        raise_for.note_not_found(note_id)
-
-    async with TaskGroup() as tg:
-        is_subscribed_t = tg.create_task(
-            UserSubscriptionQuery.is_subscribed('note', note_id)
-        )
-        comments = await NoteCommentQuery.resolve_comments(
-            notes, per_note_sort='asc', per_note_limit=1
-        )
-        tg.create_task(UserQuery.resolve_users(comments))
-        tg.create_task(note_comments_resolve_rich_text(comments))
-
-    header = comments[0]
-    header_user = header.get('user')
-    x, y = get_coordinates(note['point'])[0].tolist()
-    status = note_status(note)
-
-    closed_at = note['closed_at']
-    if closed_at is not None:
-        duration = closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
-        duration_sec = duration.total_seconds()
-        disappear_days = ceil(duration_sec / 86400) if (duration_sec > 0) else None
-    else:
-        disappear_days = None
-
-    result = NoteData(
-        id=note_id,
-        lon=x,
-        lat=y,
-        status=status,
-        header=NoteData.Header(
-            user=NoteData.User(
-                id=header['user_id'],
-                display_name=header_user['display_name'],
-                avatar_url=user_avatar_url(header_user),
-            )
-            if header_user
-            else None,
-            created_at=int(header['created_at'].timestamp()),
-            body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
-        ),
-        is_subscribed=is_subscribed_t.result(),
-        disappear_days=disappear_days,
-    )
+    result = await _build_note_data(note_id)
     return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
@@ -152,41 +117,8 @@ async def comments_page(
     if not notes:
         raise_for.note_not_found(note_id)
 
-    comments, state = await sp_paginate_table(
-        NoteComment,
-        sp_state,
-        table='note_comment',
-        where=SQL("note_id = %s AND event != 'opened'"),
-        params=(note_id,),
-        page_size=NOTE_COMMENTS_PAGE_SIZE,
-        order_dir='desc',
-        display_dir='asc',
-    )
-
-    async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_users(comments))
-        tg.create_task(note_comments_resolve_rich_text(comments))
-
-    result = NoteCommentPage(
-        comments=[
-            NoteCommentPage.Comment(
-                user=(
-                    NoteCommentPage.Comment.User(
-                        display_name=comment_user['display_name'],
-                        avatar_url=user_avatar_url(comment_user),
-                    )
-                    if (comment_user := c.get('user')) is not None
-                    else None
-                ),
-                event=c['event'],
-                created_at=int(c['created_at'].timestamp()),
-                body_rich=c.get('body_rich', ''),
-            )
-            for c in comments
-        ]
-    )
-
-    return sp_render_response_bytes(result.SerializeToString(), state)
+    page, state = await _build_comments_page(note_id, sp_state)
+    return sp_render_response_bytes(page.SerializeToString(), state)
 
 
 @router.post('/user/{user_id:int}')
@@ -228,3 +160,92 @@ async def user_notes_page(
         {'notes': notes},
         state,
     )
+
+
+async def _build_note_data(note_id: NoteId) -> NoteData:
+    notes = await NoteQuery.find(note_ids=[note_id], limit=1)
+    note = next(iter(notes), None)
+    if note is None:
+        raise_for.note_not_found(note_id)
+
+    async with TaskGroup() as tg:
+        is_subscribed_t = tg.create_task(
+            UserSubscriptionQuery.is_subscribed('note', note_id)
+        )
+        comments = await NoteCommentQuery.resolve_comments(
+            notes, per_note_sort='asc', per_note_limit=1
+        )
+        tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(note_comments_resolve_rich_text(comments))
+
+    header = comments[0]
+    header_user = header.get('user')
+    x, y = get_coordinates(note['point'])[0].tolist()
+    status = note_status(note)
+
+    closed_at = note['closed_at']
+    if closed_at is not None:
+        duration = closed_at + NOTE_FRESHLY_CLOSED_TIMEOUT - utcnow()
+        duration_sec = duration.total_seconds()
+        disappear_days = ceil(duration_sec / 86400) if (duration_sec > 0) else None
+    else:
+        disappear_days = None
+
+    return NoteData(
+        id=note_id,
+        lon=x,
+        lat=y,
+        status=status,
+        header=NoteData.Header(
+            user=NoteData.User(
+                id=header['user_id'],
+                display_name=header_user['display_name'],
+                avatar_url=user_avatar_url(header_user),
+            )
+            if header_user
+            else None,
+            created_at=int(header['created_at'].timestamp()),
+            body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
+        ),
+        is_subscribed=is_subscribed_t.result(),
+        disappear_days=disappear_days,
+    )
+
+
+async def _build_comments_page(
+    note_id: NoteId, sp_state: bytes = b''
+) -> tuple[NoteCommentPage, StandardPaginationState]:
+    comments, state = await sp_paginate_table(
+        NoteComment,
+        sp_state,
+        table='note_comment',
+        where=SQL("note_id = %s AND event != 'opened'"),
+        params=(note_id,),
+        page_size=NOTE_COMMENTS_PAGE_SIZE,
+        order_dir='desc',
+        display_dir='asc',
+    )
+
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(note_comments_resolve_rich_text(comments))
+
+    page = NoteCommentPage(
+        comments=[
+            NoteCommentPage.Comment(
+                user=(
+                    NoteCommentPage.Comment.User(
+                        display_name=comment_user['display_name'],
+                        avatar_url=user_avatar_url(comment_user),
+                    )
+                    if (comment_user := c.get('user')) is not None
+                    else None
+                ),
+                event=c['event'],
+                created_at=int(c['created_at'].timestamp()),
+                body_rich=c.get('body_rich', ''),
+            )
+            for c in comments
+        ]
+    )
+    return page, state
