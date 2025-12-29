@@ -17,15 +17,17 @@ class ElementExceptionsMixin:
     ) -> NoReturn:
         if isinstance(element_ref, int):
             type, id = split_typed_element_id(element_ref)
-            # version = None
+            raise APIError(
+                status.HTTP_404_NOT_FOUND,
+                detail=f'{type}/{id} not found',
+            )
         else:
             type, id = split_typed_element_id(element_ref[0])
-            # version = element_ref[1]
-
-        raise APIError(
-            status.HTTP_404_NOT_FOUND,
-            detail=f'{type}/{id} not found',
-        )
+            version = element_ref[1]
+            raise APIError(
+                status.HTTP_404_NOT_FOUND,
+                detail=f'{type}/{id}v{version} not found',
+            )
 
     def element_redacted(self, versioned_ref: tuple[TypedElementId, int]) -> NoReturn:
         type, id = split_typed_element_id(versioned_ref[0])
