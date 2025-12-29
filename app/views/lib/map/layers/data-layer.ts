@@ -248,7 +248,6 @@ export const configureDataLayer = (map: MaplibreMap) => {
             errorDataAlert.classList.add("d-none")
             loadDataAlert.classList.add("d-none")
             abortController?.abort()
-            toggleLayerSpinner(LAYER_ID, false)
             clearData()
         }
     })

@@ -184,7 +184,6 @@ export const configureNotesLayer = (map: MaplibreMap) => {
         } else {
             clearHoverState()
             abortController?.abort()
-            toggleLayerSpinner(LAYER_ID, false)
             source.setData(emptyFeatureCollection)
             fetchedBounds = null
         }
