@@ -1,9 +1,9 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import {
   getActionSidebar,
-  LoadingSpinner,
+  SidebarContent,
   SidebarHeader,
   switchActionSidebar,
+  useSidebarFetch,
 } from "@index/_action-sidebar"
 import { config, isLoggedIn, isModerator } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
@@ -15,18 +15,32 @@ import {
 } from "@lib/map/layers/focus-layer"
 import {
   NoteCommentPage_Comment_Event as Event,
+  type NoteCommentPage,
   type NoteCommentPage_Comment,
   NoteCommentPageSchema,
+  type NoteCommentResult,
+  NoteCommentResultSchema,
   type NoteData,
   NoteDataSchema,
   NoteStatus,
 } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
-import { StandardPagination } from "@lib/standard-pagination"
+import {
+  type PaginationResponse,
+  StandardPagination,
+  toPaginationResponse,
+} from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
-import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
-import { assert } from "@std/assert"
+import {
+  batch,
+  type ReadonlySignal,
+  type Signal,
+  signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -154,6 +168,12 @@ const NoteHeader = ({ data }: { data: NoteData }) => {
   )
 }
 
+type CommentResult = {
+  result: NoteCommentResult
+  commentsResponse: PaginationResponse<NoteCommentPage>
+  deep: boolean
+}
+
 const CommentForm = ({
   noteId,
   status,
@@ -161,20 +181,26 @@ const CommentForm = ({
 }: {
   noteId: bigint
   status: NoteStatus
-  onSuccess: () => void
+  onSuccess: (result: CommentResult) => void
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
-  const eventRef = useRef<"hidden" | "closed" | "reopened" | "commented" | null>(null)
+  const eventRef = useRef<"hidden" | "closed" | "reopened" | "commented">()
   const commentText = useSignal("")
 
   useSignalEffect(() => {
-    const disposeForm = configureStandardForm(
+    const disposeForm = configureStandardForm<NoteCommentResult>(
       formRef.current,
-      () => {
+      (result, headers) => {
         formRef.current!.reset()
-        onSuccess()
+        commentText.value = ""
+        onSuccess({
+          result,
+          commentsResponse: toPaginationResponse(result.comments!, headers),
+          deep: eventRef.current !== "commented",
+        })
       },
       {
+        protobuf: NoteCommentResultSchema,
         validationCallback: (formData) => {
           formData.set("event", eventRef.current!)
           return null
@@ -328,61 +354,31 @@ const NoteSidebar = ({
   sidebar,
 }: {
   map: MaplibreMap
-  id: Signal<string | null>
+  id: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
-  const data = useSignal<NoteData | null>(null)
-  const loading = useSignal(false)
-  const error = useSignal<string | null>(null)
-  const refreshKey = useSignal(0)
   const isSubscribed = useSignal(false)
+  const preloadedComments = useSignal<PaginationResponse<NoteCommentPage> | null>(null)
 
-  const reload = () => {
-    map.fire("reloadnoteslayer")
-    refreshKey.value++
-  }
+  const url = useComputed(() => (id.value ? `/api/web/note/${id.value}` : null))
+  const { resource, data } = useSidebarFetch(url, NoteDataSchema)
 
-  // Effect: Fetch note data
+  // Effect: Sync derived state
   useSignalEffect(() => {
-    refreshKey.value
-
-    const nid = id.value
-    if (!nid) {
-      data.value = null
-      loading.value = false
-      error.value = null
-      return
+    const r = resource.value
+    if (r.tag === "not-found") {
+      setPageTitle(t("browse.not_found.title"))
+    } else if (r.tag === "ready") {
+      const d = r.data
+      isSubscribed.value = d.isSubscribed
+      setPageTitle(`${t("note.title")}: ${d.id}`)
     }
+  })
 
-    loading.value = true
-    error.value = null
-    const abortController = new AbortController()
-
-    fetch(`/api/web/note/${nid}`, { signal: abortController.signal, priority: "high" })
-      .then(async (resp) => {
-        if (resp.status === 404) {
-          error.value = t("browse.not_found.title")
-          return
-        }
-        assert(resp.ok, `${resp.status} ${resp.statusText}`)
-
-        const buffer = await resp.arrayBuffer()
-        abortController.signal.throwIfAborted()
-        const d = fromBinary(NoteDataSchema, new Uint8Array(buffer))
-        data.value = d
-        isSubscribed.value = d.isSubscribed
-
-        setPageTitle(`${t("note.title")}: ${nid}`)
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return
-        error.value = err.message
-      })
-      .finally(() => {
-        if (!abortController.signal.aborted) loading.value = false
-      })
-
-    return () => abortController.abort()
+  // Effect: Clear preloaded comments on URL change
+  useSignalEffect(() => {
+    url.value
+    preloadedComments.value = null
   })
 
   // Effect: Map focus
@@ -410,21 +406,17 @@ const NoteSidebar = ({
     if (id.value) switchActionSidebar(map, sidebar)
   })
 
-  const d = data.value
-
   return (
-    <div class="sidebar-content">
-      {loading.value && <LoadingSpinner />}
-      {error.value && (
-        <div
-          class="alert alert-danger"
-          role="alert"
-        >
-          {error.value}
-        </div>
-      )}
-
-      {d && (
+    <SidebarContent
+      resource={resource}
+      notFound={() =>
+        t("browse.not_found.sorry", {
+          type: t("note.title").toLowerCase(),
+          id: id.value!,
+        })
+      }
+    >
+      {(d) => (
         <div class="section">
           {/* Header */}
           <SidebarHeader class="mb-1">
@@ -439,7 +431,7 @@ const NoteSidebar = ({
                 {d.status === NoteStatus.closed && t("state.resolved")}
                 {d.status === NoteStatus.hidden && (
                   <>
-                    <i class="bi bi-eye-slash-fill" />
+                    <i class="bi bi-eye-slash-fill me-1-5" />
                     {t("state.hidden")}
                   </>
                 )}
@@ -456,7 +448,10 @@ const NoteSidebar = ({
               class="btn btn-link stretched-link"
               type="button"
               onClick={() =>
-                map.flyTo({ center: [d.lon, d.lat], zoom: Math.max(map.getZoom(), 15) })
+                map.flyTo({
+                  center: [d.lon, d.lat],
+                  zoom: Math.max(map.getZoom(), 15),
+                })
               }
             >
               {`${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}`}
@@ -475,7 +470,9 @@ const NoteSidebar = ({
                   reportActionId={d.id}
                 >
                   <i class="bi bi-flag small me-1-5" />
-                  {t("report.report_object", { object: t("note.count", { count: 1 }) })}
+                  {t("report.report_object", {
+                    object: t("note.count", { count: 1 }),
+                  })}
                 </ReportButton>
               ) : (
                 <ReportButton
@@ -485,7 +482,9 @@ const NoteSidebar = ({
                   reportAction="generic"
                 >
                   <i class="bi bi-flag small me-1-5" />
-                  {t("report.report_object", { object: t("note.count", { count: 1 }) })}
+                  {t("report.report_object", {
+                    object: t("note.count", { count: 1 }),
+                  })}
                 </ReportButton>
               )}
             </div>
@@ -508,12 +507,13 @@ const NoteSidebar = ({
 
           {/* Comments pagination */}
           <StandardPagination
-            key={`${d.id}-${refreshKey.value}`}
+            key={d.id.toString()}
             action={`/api/web/note/${d.id}/comments`}
             label={t("alt.comments_page_navigation")}
             small={true}
             pageOrder="desc"
             protobuf={NoteCommentPageSchema}
+            responseSignal={preloadedComments}
           >
             {(page) => (
               <ul class="list-unstyled mb-2">
@@ -543,7 +543,13 @@ const NoteSidebar = ({
             <CommentForm
               noteId={d.id}
               status={d.status}
-              onSuccess={reload}
+              onSuccess={({ result, commentsResponse, deep }) => {
+                batch(() => {
+                  resource.value = { tag: "ready", data: result.note! }
+                  preloadedComments.value = commentsResponse
+                })
+                if (deep) map.fire("reloadnoteslayer")
+              }}
             />
           ) : (
             <div class="text-center">
@@ -559,7 +565,7 @@ const NoteSidebar = ({
           )}
         </div>
       )}
-    </div>
+    </SidebarContent>
   )
 }
 

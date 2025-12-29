@@ -1,9 +1,9 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import {
   getActionSidebar,
-  LoadingSpinner,
+  SidebarContent,
   SidebarHeader,
   switchActionSidebar,
+  useSidebarFetch,
 } from "@index/_action-sidebar"
 import { API_URL } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
@@ -19,13 +19,13 @@ import {
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
+  type ReadonlySignal,
   type Signal,
   signal,
   useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assert } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -304,26 +304,6 @@ const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
   )
 }
 
-export const ElementNotFound = ({
-  type,
-  id,
-}: {
-  type: ElementType | null
-  id: string
-}) => {
-  const typeLabel = type !== null ? getElementTypeLabel(type).toLowerCase() : ""
-  return (
-    <div class="section">
-      <SidebarHeader title={t("browse.not_found.title")} />
-      <p>
-        {type !== null
-          ? t("browse.not_found.sorry", { type: typeLabel, id })
-          : t("browse.not_found.title")}
-      </p>
-    </div>
-  )
-}
-
 const ElementSidebar = ({
   map,
   type,
@@ -332,73 +312,34 @@ const ElementSidebar = ({
   sidebar,
 }: {
   map: MaplibreMap
-  type: Signal<string | null>
-  id: Signal<string | null>
-  version: Signal<string | null>
+  type: ReadonlySignal<string | null>
+  id: ReadonlySignal<string | null>
+  version: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
-  const data = useSignal<ElementData | null>(null)
-  const loading = useSignal(false)
-  const error = useSignal<string | null>(null)
-  const notFound = useSignal(false)
-  const params = useComputed(() => data.value?.params ?? null)
-  const renderElements = useComputed(() =>
-    convertRenderElementsData(params.value?.render),
-  )
-
-  // Effect: Fetch element data
-  useSignalEffect(() => {
+  const url = useComputed(() => {
     const etype = type.value
     const eid = id.value
+    if (!(etype && eid)) return null
     const v = version.value
-
-    if (!(etype && eid)) {
-      data.value = null
-      loading.value = false
-      error.value = null
-      notFound.value = false
-      return
-    }
-
-    loading.value = true
-    error.value = null
-    notFound.value = false
-    const abortController = new AbortController()
-    const url = v
+    return v
       ? `/api/web/element/${etype}/${eid}/history/${v}`
       : `/api/web/element/${etype}/${eid}`
-
-    fetch(url, { signal: abortController.signal, priority: "high" })
-      .then(async (resp) => {
-        if (resp.status === 404) {
-          notFound.value = true
-          data.value = null
-          return
-        }
-        assert(resp.ok, `${resp.status} ${resp.statusText}`)
-
-        const buffer = await resp.arrayBuffer()
-        abortController.signal.throwIfAborted()
-        data.value = fromBinary(ElementDataSchema, new Uint8Array(buffer))
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return
-        error.value = err.message
-      })
-      .finally(() => {
-        if (!abortController.signal.aborted) loading.value = false
-      })
-
-    return () => abortController.abort()
   })
+
+  const { resource, data } = useSidebarFetch(url, ElementDataSchema)
+  const renderElements = useComputed(() =>
+    convertRenderElementsData(data.value?.params?.render),
+  )
 
   // Effect: Page title
   useSignalEffect(() => {
-    if (notFound.value) {
+    if (resource.value.tag === "not-found") {
       setPageTitle(t("browse.not_found.title"))
       return
     }
-    if (data.value) setPageTitle(getElementTitleText(data.value))
+    const d = data.value
+    if (d) setPageTitle(getElementTitleText(d))
   })
 
   // Effect: Map focus
@@ -412,75 +353,67 @@ const ElementSidebar = ({
     if (id.value) switchActionSidebar(map, sidebar)
   })
 
-  const notFoundId = version.value
-    ? `${id.value} ${t("browse.version").toLowerCase()} ${version.value}`
-    : (id.value ?? "")
-  const notFoundType = parseElementType(type.value)
-
-  const d = data.value
-  const paramsValue = params.value
-  const hasRelations = paramsValue
-    ? paramsValue.parents.length > 0 || paramsValue.members.length > 0
-    : false
-
   return (
-    <div class="sidebar-content">
-      {loading.value && <LoadingSpinner />}
-      {error.value && (
-        <div
-          class="alert alert-danger"
-          role="alert"
-        >
-          {error.value}
-        </div>
-      )}
-      {notFound.value && (
-        <ElementNotFound
-          type={notFoundType}
-          id={notFoundId}
-        />
-      )}
-      {d && (
-        <>
-          <div class="section">
-            <ElementHeader data={d} />
-            <ElementMeta data={d} />
+    <SidebarContent
+      resource={resource}
+      notFound={() => {
+        const typeLabel = getElementTypeLabel(
+          parseElementType(type.value)!,
+        ).toLowerCase()
+        const idLabel = version.value
+          ? `${id.value!} ${t("browse.version").toLowerCase()} ${version.value}`
+          : id.value!
+        return t("browse.not_found.sorry", { type: typeLabel, id: idLabel })
+      }}
+    >
+      {(d) => {
+        const paramsValue = d.params
+        const hasRelations = paramsValue
+          ? paramsValue.parents.length > 0 || paramsValue.members.length > 0
+          : false
 
-            {d.location && (
-              <ElementLocation
-                map={map}
-                location={d.location}
-              />
-            )}
+        return (
+          <>
+            <div class="section">
+              <ElementHeader data={d} />
+              <ElementMeta data={d} />
 
-            <Tags tags={d.tags} />
-
-            {paramsValue && hasRelations && (
-              <div class="elements mt-3">
-                <ElementsSection
-                  items={paramsValue.parents}
-                  title={(count) => `${t("browse.part_of")} (${count})`}
-                  renderRow={(el) => <ElementRow element={el} />}
-                  keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+              {d.location && (
+                <ElementLocation
+                  map={map}
+                  location={d.location}
                 />
-                <ElementsSection
-                  items={paramsValue.members}
-                  title={(count) =>
-                    paramsValue.type === ElementType.way
-                      ? // @ts-expect-error
-                        t("browse.changeset.node", { count })
-                      : `${t("browse.relation.members")} (${count})`
-                  }
-                  renderRow={(el) => <ElementRow element={el} />}
-                  keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
-                />
-              </div>
-            )}
-          </div>
-          <ElementHistoryLinks data={d} />
-        </>
-      )}
-    </div>
+              )}
+
+              <Tags tags={d.tags} />
+
+              {paramsValue && hasRelations && (
+                <div class="elements mt-3">
+                  <ElementsSection
+                    items={paramsValue.parents}
+                    title={(count) => `${t("browse.part_of")} (${count})`}
+                    renderRow={(el) => <ElementRow element={el} />}
+                    keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                  />
+                  <ElementsSection
+                    items={paramsValue.members}
+                    title={(count) =>
+                      paramsValue.type === ElementType.way
+                        ? // @ts-expect-error
+                          t("browse.changeset.node", { count })
+                        : `${t("browse.relation.members")} (${count})`
+                    }
+                    renderRow={(el) => <ElementRow element={el} />}
+                    keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                  />
+                </div>
+              )}
+            </div>
+            <ElementHistoryLinks data={d} />
+          </>
+        )
+      }}
+    </SidebarContent>
   )
 }
 

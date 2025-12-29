@@ -427,6 +427,11 @@ message NoteCommentPage {
     repeated Comment comments = 1; // Comments on this page
 }
 
+message NoteCommentResult {
+    NoteData note = 1; // Updated note data
+    NoteCommentPage comments = 2; // Initial page of comments
+}
+
 // Changeset sidebar data
 message ChangesetData {
     message User {
@@ -476,6 +481,11 @@ message ChangesetCommentPage {
     }
 
     repeated Comment comments = 1; // Comments on this page
+}
+
+message ChangesetCommentResult {
+    ChangesetData changeset = 1; // Updated changeset data
+    ChangesetCommentPage comments = 2; // Initial page of comments
 }
 
 // Partial query features response params

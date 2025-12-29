@@ -5,7 +5,6 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Form, Query, Response
 from psycopg.sql import SQL
 from shapely import measurement
-from starlette import status
 
 from app.config import (
     CHANGESET_COMMENT_BODY_MAX_LENGTH,
@@ -31,8 +30,10 @@ from app.models.db.changeset_comment import (
 from app.models.db.user import User, user_avatar_url
 from app.models.proto.shared_pb2 import (
     ChangesetCommentPage,
+    ChangesetCommentResult,
     ChangesetData,
     SharedBounds,
+    StandardPaginationState,
 )
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
@@ -56,83 +57,21 @@ async def create_comment(
     _: Annotated[User, web_user()],
 ):
     await ChangesetCommentService.comment(changeset_id, comment)
-    return Response(None, status.HTTP_204_NO_CONTENT)
+
+    async with TaskGroup() as tg:
+        changeset_t = tg.create_task(_build_changeset_data(changeset_id))
+        comments_t = tg.create_task(_build_comments_page(changeset_id))
+
+    comments_page, state = comments_t.result()
+    result = ChangesetCommentResult(
+        changeset=changeset_t.result(), comments=comments_page
+    )
+    return sp_render_response_bytes(result.SerializeToString(), state)
 
 
 @router.get('/{changeset_id:int}')
 async def get_changeset(changeset_id: ChangesetId):
-    changeset = await ChangesetQuery.find_by_id(changeset_id)
-    if changeset is None:
-        raise_for.changeset_not_found(changeset_id)
-
-    async def elements_task():
-        return await FormatElementList.changeset_elements(
-            await ElementQuery.find_by_changeset(changeset_id, sort_by='typed_id'),
-        )
-
-    async def adjacent_task():
-        changeset_user_id = changeset['user_id']
-        if changeset_user_id is None:
-            return None, None
-        return await ChangesetQuery.find_adjacent_ids(
-            changeset_id, user_id=changeset_user_id
-        )
-
-    async with TaskGroup() as tg:
-        items = [changeset]
-        tg.create_task(UserQuery.resolve_users(items))
-        tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
-        elements_t = tg.create_task(elements_task())
-        adjacent_t = tg.create_task(adjacent_task())
-        is_subscribed_t = tg.create_task(
-            UserSubscriptionQuery.is_subscribed('changeset', changeset_id)
-        )
-
-    elements = elements_t.result()
-    prev_changeset_id, next_changeset_id = adjacent_t.result()
-
-    tags = changeset['tags']
-    comment_text = tags.pop('comment') or t('browse.no_comment')
-    comment_html = process_rich_text_plain(comment_text)
-
-    bboxes: list[list[float]] = (
-        measurement.bounds(bounds.geoms).tolist()  # type: ignore
-        if (bounds := changeset.get('bounds')) is not None
-        else []
-    )
-
-    user = changeset.get('user')
-    result = ChangesetData(
-        id=changeset_id,
-        user=(
-            ChangesetData.User(
-                id=changeset['user_id'],
-                display_name=user['display_name'],
-                avatar_url=user_avatar_url(user),
-            )
-            if user
-            else None
-        ),
-        created_at=int(changeset['created_at'].timestamp()),
-        closed_at=(
-            int(changeset['closed_at'].timestamp()) if changeset['closed_at'] else None
-        ),
-        num_create=changeset['num_create'],
-        num_modify=changeset['num_modify'],
-        num_delete=changeset['num_delete'],
-        comment_rich=comment_html,
-        tags=tags,
-        bounds=[
-            SharedBounds(min_lon=b[0], min_lat=b[1], max_lon=b[2], max_lat=b[3])
-            for b in bboxes
-        ],
-        nodes=elements['node'],
-        ways=elements['way'],
-        relations=elements['relation'],
-        prev_changeset_id=prev_changeset_id,
-        next_changeset_id=next_changeset_id,
-        is_subscribed=is_subscribed_t.result(),
-    )
+    result = await _build_changeset_data(changeset_id)
     return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
@@ -188,6 +127,88 @@ async def comments_page(
     changeset_id: ChangesetId,
     sp_state: StandardPaginationStateBody = b'',
 ):
+    page, state = await _build_comments_page(changeset_id, sp_state)
+    return sp_render_response_bytes(page.SerializeToString(), state)
+
+
+async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
+    changeset = await ChangesetQuery.find_by_id(changeset_id)
+    if changeset is None:
+        raise_for.changeset_not_found(changeset_id)
+
+    async def elements_task():
+        return await FormatElementList.changeset_elements(
+            await ElementQuery.find_by_changeset(changeset_id, sort_by='typed_id'),
+        )
+
+    async def adjacent_task():
+        changeset_user_id = changeset['user_id']
+        if changeset_user_id is None:
+            return None, None
+        return await ChangesetQuery.find_adjacent_ids(
+            changeset_id, user_id=changeset_user_id
+        )
+
+    async with TaskGroup() as tg:
+        items = [changeset]
+        tg.create_task(UserQuery.resolve_users(items))
+        tg.create_task(ChangesetBoundsQuery.resolve_bounds(items))
+        elements_t = tg.create_task(elements_task())
+        adjacent_t = tg.create_task(adjacent_task())
+        is_subscribed_t = tg.create_task(
+            UserSubscriptionQuery.is_subscribed('changeset', changeset_id)
+        )
+
+    elements = elements_t.result()
+    prev_changeset_id, next_changeset_id = adjacent_t.result()
+
+    tags = changeset['tags']
+    comment_text = tags.pop('comment') or t('browse.no_comment')
+    comment_html = process_rich_text_plain(comment_text)
+
+    bboxes: list[list[float]] = (
+        measurement.bounds(bounds.geoms).tolist()  # type: ignore
+        if (bounds := changeset.get('bounds')) is not None
+        else []
+    )
+
+    user = changeset.get('user')
+    return ChangesetData(
+        id=changeset_id,
+        user=(
+            ChangesetData.User(
+                id=changeset['user_id'],
+                display_name=user['display_name'],
+                avatar_url=user_avatar_url(user),
+            )
+            if user
+            else None
+        ),
+        created_at=int(changeset['created_at'].timestamp()),
+        closed_at=(
+            int(changeset['closed_at'].timestamp()) if changeset['closed_at'] else None
+        ),
+        num_create=changeset['num_create'],
+        num_modify=changeset['num_modify'],
+        num_delete=changeset['num_delete'],
+        comment_rich=comment_html,
+        tags=tags,
+        bounds=[
+            SharedBounds(min_lon=b[0], min_lat=b[1], max_lon=b[2], max_lat=b[3])
+            for b in bboxes
+        ],
+        nodes=elements['node'],
+        ways=elements['way'],
+        relations=elements['relation'],
+        prev_changeset_id=prev_changeset_id,
+        next_changeset_id=next_changeset_id,
+        is_subscribed=is_subscribed_t.result(),
+    )
+
+
+async def _build_comments_page(
+    changeset_id: ChangesetId, sp_state: bytes = b''
+) -> tuple[ChangesetCommentPage, StandardPaginationState]:
     comments, state = await sp_paginate_table(
         ChangesetComment,
         sp_state,
@@ -203,7 +224,7 @@ async def comments_page(
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    result = ChangesetCommentPage(
+    page = ChangesetCommentPage(
         comments=[
             ChangesetCommentPage.Comment(
                 user=ChangesetCommentPage.Comment.User(
@@ -216,4 +237,4 @@ async def comments_page(
             for c in comments
         ]
     )
-    return sp_render_response_bytes(result.SerializeToString(), state)
+    return page, state
