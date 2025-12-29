@@ -459,13 +459,13 @@ const NoteSidebar = ({
           </p>
 
           {/* Report button */}
-          {isLoggedIn && config.userConfig!.id !== d.header?.user?.id && (
+          {isLoggedIn && config.userConfig!.id !== d.header!.user?.id && (
             <div class="text-end mt-1 me-1">
-              {d.header?.user ? (
+              {d.header!.user ? (
                 <ReportButton
                   class="btn btn-link btn-sm text-muted p-0"
                   reportType="user"
-                  reportTypeId={d.header.user.id}
+                  reportTypeId={d.header!.user.id}
                   reportAction="user_note"
                   reportActionId={d.id}
                 >
