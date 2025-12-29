@@ -521,13 +521,11 @@ const ChangesetsHistorySidebar = ({
       }
 
       fetchedContext.current = { bounds: fetchBounds, date: fetchDate }
+      loading.value = false
     } catch (error) {
       if (error.name === "AbortError") return
       console.error("ChangesetsHistory: Failed to fetch", error)
-    } finally {
-      if (fetchAbort.current === thisAbort) {
-        loading.value = false
-      }
+      loading.value = false
     }
   }
 
