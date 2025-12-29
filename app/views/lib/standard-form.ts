@@ -22,7 +22,7 @@ export interface APIDetail {
  */
 export const configureStandardForm = <T = any>(
     form: HTMLFormElement | null,
-    successCallback?: (data: T) => void,
+    successCallback?: (data: T, headers: Headers) => void,
     options?: {
         formBody?: Element
         formAppend?: boolean
@@ -368,17 +368,18 @@ export const configureStandardForm = <T = any>(
 
             // If the request was successful, call the callback
             if (resp.ok) {
-                successCallback?.(data)
+                successCallback?.(data, resp.headers)
             } else {
                 options?.errorCallback?.(new Error(detail))
             }
+
+            setPendingState(false)
         } catch (error) {
             if (error.name === "AbortError") return
             console.error("StandardForm: Submit failed", formAction, error)
             handleFormFeedback("error", error.message)
             options?.errorCallback?.(error)
-        } finally {
-            if (!currentAbortController.signal.aborted) setPendingState(false)
+            setPendingState(false)
         }
     }
     form.addEventListener("submit", onSubmit)

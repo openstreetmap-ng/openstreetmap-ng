@@ -14,8 +14,10 @@ import { range } from "@lib/utils"
 import {
   batch,
   effect,
+  type ReadonlySignal,
   type Signal,
   signal,
+  useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
@@ -24,7 +26,6 @@ import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { render } from "preact"
 import { memo } from "preact/compat"
-import { useRef } from "preact/hooks"
 
 const SP_HEADER = "X-StandardPagination"
 
@@ -45,8 +46,21 @@ type StandardPaginationElements = {
   numPagesTargets: HTMLElement[]
 }
 
+// State machine types for pagination resource
+/** Preloaded page response for external injection (e.g., after POST) */
+export type PaginationResponse<TData> = {
+  data: TData
+  state: StandardPaginationState
+}
+
+type PaginationResource<TData> =
+  | { tag: "boot" }
+  | { tag: "loading"; prev: TData | null }
+  | { tag: "ready"; data: TData }
+  | { tag: "error"; error: string; prev: TData | null }
+
 const PaginationSpinner = memo(() => (
-  <div class="pagination-spinner">
+  <div class="sp-spinner">
     <output
       class="spinner-border text-body-secondary"
       aria-live="polite"
@@ -65,20 +79,57 @@ const PaginationError = ({ error }: { error: string }) => (
   </div>
 )
 
+const PaginationContent = <TData,>({
+  resource,
+  children,
+}: {
+  resource: ReadonlySignal<PaginationResource<TData>>
+  children: (data: TData) => ComponentChildren
+}) => {
+  const r = resource.value
+
+  switch (r.tag) {
+    case "boot":
+      return <PaginationSpinner />
+
+    case "loading":
+      return r.prev ? (
+        <div class="sp-content-wrapper">
+          <div class="opacity-50">{children(r.prev)}</div>
+          <div class="sp-loading-overlay">
+            <PaginationSpinner />
+          </div>
+        </div>
+      ) : (
+        <PaginationSpinner />
+      )
+
+    case "ready":
+      return (
+        <div class="sp-content-wrapper">
+          <div>{children(r.data)}</div>
+        </div>
+      )
+
+    case "error":
+      return <PaginationError error={r.error} />
+  }
+}
+
 const PaginationItems = ({
-  requestedPage,
-  activePage,
+  targetPage,
+  currentPage,
   state,
   pages,
   pageOrder,
 }: {
-  requestedPage: Signal<number>
-  activePage: Signal<number>
-  state: Signal<StandardPaginationState | null>
+  targetPage: Signal<number>
+  currentPage: ReadonlySignal<number>
+  state: ReadonlySignal<StandardPaginationState | null>
   pages: number | null
   pageOrder: PageOrder
 }) => {
-  const actualPage = activePage.value
+  const actualPage = currentPage.value
   const currentState = state.value
   const numPagesValue = pages ?? currentState?.numPages
   const maxKnownPageValue = pages ?? currentState?.maxKnownPage ?? 1
@@ -157,7 +208,7 @@ const PaginationItems = ({
               type="button"
               class="page-link"
               onClick={() => {
-                requestedPage.value = actualPageNum
+                targetPage.value = actualPageNum
               }}
             >
               {label}
@@ -167,6 +218,113 @@ const PaginationItems = ({
       })}
     </>
   )
+}
+
+// Hook: manages pagination state machine
+const useStandardPagination = <TData,>({
+  action,
+  initialPage,
+  responseSignal,
+  protobuf,
+  onLoad,
+}: {
+  action: string
+  initialPage: number
+  responseSignal: Signal<PaginationResponse<TData> | null> | undefined
+  protobuf: GenMessage<TData & Message> | undefined
+  onLoad: ((data: TData, page: number) => void) | undefined
+}) => {
+  const initial = responseSignal?.peek()
+  const initialState = initial?.state ?? null
+  const state = useSignal<StandardPaginationState | null>(initialState)
+  const targetPage = useSignal(initialState?.currentPage ?? initialPage)
+  const resource = useSignal<PaginationResource<TData>>(
+    initial ? { tag: "ready", data: initial.data } : { tag: "boot" },
+  )
+
+  // Effect: react to external response updates (e.g., after POST)
+  if (responseSignal)
+    useSignalEffect(() => {
+      const response = responseSignal.value
+      if (!response) return
+
+      targetPage.value = response.state.currentPage
+      state.value = response.state
+      resource.value = { tag: "ready", data: response.data }
+      responseSignal.value = null
+    })
+
+  // Derived: current page from last known pagination state
+  const currentPage = useComputed(() => state.value?.currentPage ?? targetPage.value)
+
+  // Effect: fetch page when targetPage changes
+  useSignalEffect(() => {
+    const page = targetPage.value
+    const current = resource.peek()
+
+    // Skip if already at target page (prevents double-fetch after initial jump)
+    if (current.tag === "ready" && state.peek()!.currentPage === page) {
+      return
+    }
+
+    // Capture prev for stale-while-revalidate
+    const prev =
+      current.tag === "ready"
+        ? current.data
+        : (current.tag === "loading" || current.tag === "error") && current.prev
+          ? current.prev
+          : null
+
+    resource.value = { tag: "loading", prev }
+
+    const abortController = new AbortController()
+
+    const fetchPage = async () => {
+      try {
+        const resp = await fetch(
+          action,
+          buildFetchInit(state.peek(), page, abortController.signal),
+        )
+        assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
+
+        const responseState = parsePaginationHeader(resp.headers)
+
+        // Handle initial jump: if we're booting and target differs from what server returned
+        if (current.tag === "boot" && initialPage !== 1) {
+          const maxPage = responseState.numPages ?? responseState.maxKnownPage
+          const resolvedPage = Math.min(initialPage, maxPage)
+          if (resolvedPage !== responseState.currentPage) {
+            batch(() => {
+              state.value = responseState
+              targetPage.value = resolvedPage
+            })
+            return // Effect will re-run with correct page
+          }
+        }
+
+        const data = protobuf
+          ? (fromBinary(protobuf, new Uint8Array(await resp.arrayBuffer())) as TData)
+          : ((await resp.text()) as unknown as TData)
+
+        abortController.signal.throwIfAborted()
+
+        onLoad?.(data, responseState.currentPage)
+        batch(() => {
+          state.value = responseState
+          resource.value = { tag: "ready", data }
+        })
+      } catch (err) {
+        if (err.name === "AbortError") return
+        console.error("Pagination: Failed to load page", page, action, err)
+        resource.value = { tag: "error", error: err.message, prev }
+      }
+    }
+
+    fetchPage()
+    return () => abortController.abort()
+  })
+
+  return { targetPage, resource, currentPage, state }
 }
 
 export const StandardPagination = <TData,>({
@@ -180,9 +338,11 @@ export const StandardPagination = <TData,>({
   navBottom = true,
   navClassBottom = "",
   protobuf,
+  responseSignal,
   onLoad,
   children,
 }: {
+  // If `action` changes, pass a changing `key` to remount and reset pagination state.
   action: string
   label?: string
   initialPage?: number
@@ -193,82 +353,29 @@ export const StandardPagination = <TData,>({
   navBottom?: boolean
   navClassBottom?: string
   protobuf?: GenMessage<TData & Message>
+  responseSignal?: Signal<PaginationResponse<TData> | null>
   onLoad?: (data: TData, page: number) => void
   children: (data: TData) => ComponentChildren
 }) => {
-  const requestedPage = useSignal(initialPage)
-  const activePage = useSignal(initialPage)
-  const state = useSignal<StandardPaginationState | null>(null)
-  const error = useSignal<string | null>(null)
-  const data = useSignal<TData | null>(null)
-
-  const didInitialJumpRef = useRef(false)
-
-  // Effect: Fetch current pagination page
-  useSignalEffect(() => {
-    error.value = null
-    data.value = null
-    const abortController = new AbortController()
-
-    const fetchPage = async () => {
-      try {
-        const baseState = state.peek()
-        const resp = await fetch(
-          action,
-          buildFetchInit(baseState, requestedPage.value, abortController.signal),
-        )
-        assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
-
-        const parsed = parsePaginationHeader(resp.headers)
-        applyState(parsed, state, activePage)
-
-        if (!didInitialJumpRef.current && initialPage !== 1) {
-          didInitialJumpRef.current = true
-          const maxPage = parsed.numPages ?? parsed.maxKnownPage
-          const resolvedInitialPage = Math.min(initialPage, maxPage)
-          if (resolvedInitialPage !== parsed.currentPage) {
-            batch(() => {
-              activePage.value = resolvedInitialPage
-              requestedPage.value = resolvedInitialPage
-            })
-            return
-          }
-        }
-
-        const payload = protobuf
-          ? (fromBinary(protobuf, new Uint8Array(await resp.arrayBuffer())) as TData)
-          : ((await resp.text()) as unknown as TData)
-        abortController.signal.throwIfAborted()
-
-        onLoad?.(payload, parsed.currentPage)
-        data.value = payload
-      } catch (err) {
-        if (err.name === "AbortError") return
-        console.error(
-          "Pagination: Failed to load page",
-          requestedPage.value,
-          action,
-          err,
-        )
-        error.value = err.message
-      }
-    }
-
-    fetchPage()
-    return () => abortController.abort()
+  const { targetPage, resource, currentPage, state } = useStandardPagination({
+    action,
+    initialPage,
+    responseSignal,
+    protobuf,
+    onLoad,
   })
 
   const currentState = state.value
-  const resolvedMaxPage = currentState?.numPages ?? currentState?.maxKnownPage ?? 1
-  const showNav = resolvedMaxPage > 1
+  const resolvedMaxPage = currentState?.numPages ?? currentState?.maxKnownPage
+  const showNav = resolvedMaxPage && resolvedMaxPage > 1
 
   const paginationListClass = `pagination justify-content-end ${small ? "pagination-sm" : ""}`
   const nav = (extraClass: string) => (
     <nav aria-label={label}>
       <ul class={`${paginationListClass} ${extraClass}`}>
         <PaginationItems
-          requestedPage={requestedPage}
-          activePage={activePage}
+          targetPage={targetPage}
+          currentPage={currentPage}
           state={state}
           pages={null}
           pageOrder={pageOrder}
@@ -280,13 +387,10 @@ export const StandardPagination = <TData,>({
   return (
     <>
       {showNav && navTop && nav(navClassTop)}
-      {error.value ? (
-        <PaginationError error={error.value} />
-      ) : data.value === null ? (
-        <PaginationSpinner />
-      ) : (
-        children(data.value)
-      )}
+      <PaginationContent
+        resource={resource}
+        children={children}
+      />
       {showNav && navBottom && nav(navClassBottom)}
     </>
   )
@@ -325,8 +429,8 @@ const configureStandardPaginationElements = (
   console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
 
   const initialPage = options?.initialPage ?? 1
-  const requestedPage = signal(initialPage)
-  const activePage = signal(initialPage)
+  const targetPage = signal(initialPage)
+  const currentPage = signal(initialPage)
   const state = signal<StandardPaginationState | null>(null)
 
   let firstLoad = true
@@ -366,21 +470,21 @@ const configureStandardPaginationElements = (
     options?.loadCallback?.(renderContainer, page)
   }
 
-  // Effect: Load and render page content when requestedPage changes (fetches or uses cache)
+  // Effect: Load and render page content when targetPage changes (fetches or uses cache)
   const disposeCollectionEffect = effect(() => {
-    const requestedPageValue = requestedPage.value
-    const requestedPageString = requestedPageValue.toString()
+    const targetPageValue = targetPage.value
+    const targetPageString = targetPageValue.toString()
 
     if (customLoader) {
-      const resolvedPage = Math.min(requestedPageValue, customNumPages!)
-      activePage.value = resolvedPage
+      const resolvedPage = Math.min(targetPageValue, customNumPages!)
+      currentPage.value = resolvedPage
       customLoader(renderContainer, resolvedPage)
       afterLoad(resolvedPage)
-      console.debug("Pagination: Page loaded (custom)", requestedPageString)
+      console.debug("Pagination: Page loaded (custom)", targetPageString)
       return
     }
 
-    console.debug("Pagination: Loading page", requestedPageString)
+    console.debug("Pagination: Loading page", targetPageString)
     const abortController = new AbortController()
     setPendingState(true)
 
@@ -390,12 +494,12 @@ const configureStandardPaginationElements = (
         const baseState = state.peek()
         const resp = await fetch(
           fetchUrl,
-          buildFetchInit(baseState, requestedPageValue, abortController.signal),
+          buildFetchInit(baseState, targetPageValue, abortController.signal),
         )
         assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
 
         const parsed = parsePaginationHeader(resp.headers)
-        applyState(parsed, state, activePage)
+        applyState(parsed, state, currentPage)
 
         let skipRender = false
         if (!didInitialJump && initialPage !== 1) {
@@ -406,8 +510,8 @@ const configureStandardPaginationElements = (
             // Avoid rendering an intermediate "page 1" snapshot when we immediately
             // jump to another page after receiving the initial pagination state.
             batch(() => {
-              activePage.value = resolvedInitialPage
-              requestedPage.value = resolvedInitialPage
+              currentPage.value = resolvedInitialPage
+              targetPage.value = resolvedInitialPage
             })
             skipRender = true
           }
@@ -418,12 +522,12 @@ const configureStandardPaginationElements = (
           renderContainer.innerHTML = await resp.text()
           afterLoad(parsed.currentPage)
         }
-        console.debug("Pagination: Page loaded", requestedPageString)
+        console.debug("Pagination: Page loaded", targetPageString)
       } catch (error) {
         if (error.name === "AbortError") return
         console.error(
           "Pagination: Failed to load page",
-          requestedPageString,
+          targetPageString,
           fetchUrl,
           error,
         )
@@ -456,8 +560,8 @@ const configureStandardPaginationElements = (
       paginationContainer.classList.remove("d-none")
       render(
         <PaginationItems
-          requestedPage={requestedPage}
-          activePage={activePage}
+          targetPage={targetPage}
+          currentPage={currentPage}
           state={state}
           pages={customNumPages}
           pageOrder={options?.pageOrder ?? "asc"}
@@ -535,11 +639,11 @@ const resolvePaginationElements = (container: Element): StandardPaginationElemen
 const applyState = (
   value: StandardPaginationState,
   state: Signal<StandardPaginationState | null>,
-  activePage: Signal<number>,
+  currentPageSignal: Signal<number>,
 ) => {
   batch(() => {
     state.value = value
-    activePage.value = value.currentPage
+    currentPageSignal.value = value.currentPage
   })
 }
 
@@ -615,3 +719,11 @@ const parsePaginationHeader = (headers: Headers) => {
   assertExists(header, `Pagination: Missing ${SP_HEADER} header`)
   return fromBinary(StandardPaginationStateSchema, base64Decode(header))
 }
+
+export const toPaginationResponse = <TData,>(
+  data: TData,
+  headers: Headers,
+): PaginationResponse<TData> => ({
+  data,
+  state: parsePaginationHeader(headers),
+})
