@@ -18,6 +18,9 @@ _INCLUDE_PREFIXES = [
 
 _INCLUDE_PREFIXES_DOT = tuple(f'{prefix}.' for prefix in _INCLUDE_PREFIXES)
 
+# i18next plural suffixes to strip when matching used keys
+_PLURAL_SUFFIXES = ('_zero', '_one', '_two', '_few', '_many', '_other')
+
 # Match i18next.t() and t() calls with literal strings
 _FIND_USED_KEYS_OPTIONS = re2.Options()
 _FIND_USED_KEYS_OPTIONS.dot_nl = True
@@ -68,14 +71,15 @@ def filter_unused_keys(
                 filtered[key] = filtered_nested
         # Check if this key should be included
         else:
-            head, sep, tail = current_path.rpartition('.count_')
-            count_candidate = (
-                f'{head}.count' if (sep and '.' not in tail) else current_path
-            )
-            if (
-                count_candidate in used_keys  #
-                or current_path.startswith(_INCLUDE_PREFIXES_DOT)
-            ):
+            # Strip plural suffix from path to match base key in used_keys
+            candidate = current_path
+            if current_path.endswith(_PLURAL_SUFFIXES):
+                for suffix in _PLURAL_SUFFIXES:
+                    if current_path.endswith(suffix):
+                        candidate = current_path[: -len(suffix)]
+                        break
+
+            if candidate in used_keys or current_path.startswith(_INCLUDE_PREFIXES_DOT):
                 filtered[key] = value
 
     return filtered
