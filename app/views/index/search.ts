@@ -5,17 +5,14 @@ import { searchFormQuery } from "@index/search-form"
 import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { getMapAlert } from "@lib/map/alert"
 import {
+    type FitBoundsOptions,
     getLngLatBoundsIntersection,
     getLngLatBoundsSize,
     padLngLatBounds,
 } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import { loadMapImage } from "@lib/map/image"
-import {
-    type FocusLayerPaint,
-    type FocusOptions,
-    focusObjects,
-} from "@lib/map/layers/focus-layer"
+import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
     addMapLayer,
     emptyFeatureCollection,
@@ -75,11 +72,11 @@ const focusPaint: FocusLayerPaint = {
     "circle-stroke-opacity": 1,
     "circle-stroke-width": 3,
 }
-const focusOptions: FocusOptions = {
+const fitOpts: FitBoundsOptions = {
     padBounds: 0.5,
     maxZoom: 14,
     intersects: true,
-    proportionCheck: false,
+    minProportion: 0,
 }
 
 const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
@@ -219,11 +216,13 @@ export const getSearchController = (map: MaplibreMap) => {
 
             if (hover && result) {
                 scrollElementIntoView(sidebar, result)
-                focusObjects(map, elements[id](), focusPaint, null, {
-                    ...focusOptions,
-                    // Focus on hover only during global search
-                    fitBounds: globalMode,
-                })
+                focusObjects(
+                    map,
+                    elements[id](),
+                    focusPaint,
+                    null,
+                    globalMode ? fitOpts : false,
+                )
             } else {
                 focusObjects(map)
             }
@@ -232,7 +231,7 @@ export const getSearchController = (map: MaplibreMap) => {
         if (globalMode) {
             // global mode
             if (results.length) {
-                focusObjects(map, elements[0](), focusPaint, null, focusOptions)
+                focusObjects(map, elements[0](), focusPaint, null, fitOpts)
                 focusObjects(map)
             }
             initialBounds = map.getBounds()
