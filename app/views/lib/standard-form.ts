@@ -6,6 +6,7 @@ import {
     configurePasswordsForm,
     handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
+import { batch } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { Alert } from "bootstrap"
 import i18next from "i18next"
@@ -317,7 +318,7 @@ export const configureStandardForm = <T = any>(
 
         // Stage 4: Run client-side validation
         if (options?.validationCallback) {
-            let result = options.validationCallback(formData)
+            let result = batch(() => options.validationCallback!(formData))
             if (result instanceof Promise) {
                 result = await result
             }
@@ -367,18 +368,24 @@ export const configureStandardForm = <T = any>(
             if (detail) processFormFeedback(detail)
 
             // If the request was successful, call the callback
-            if (resp.ok) {
-                successCallback?.(data, resp.headers)
-            } else {
-                options?.errorCallback?.(new Error(detail))
-            }
+            batch(() => {
+                if (resp.ok) {
+                    successCallback?.(data, resp.headers)
+                } else {
+                    options?.errorCallback?.(new Error(detail))
+                }
+            })
 
             setPendingState(false)
         } catch (error) {
             if (error.name === "AbortError") return
             console.error("StandardForm: Submit failed", formAction, error)
             handleFormFeedback("error", error.message)
-            options?.errorCallback?.(error)
+
+            batch(() => {
+                options?.errorCallback?.(error)
+            })
+
             setPendingState(false)
         }
     }
@@ -387,6 +394,7 @@ export const configureStandardForm = <T = any>(
     return () => {
         console.debug("StandardForm: Disposing", formAction)
         abortController.abort()
+        form.dispatchEvent(new CustomEvent("invalidate"))
         form.removeEventListener("submit", onSubmit)
         form.classList.remove("needs-validation", "was-validated", "pending")
     }

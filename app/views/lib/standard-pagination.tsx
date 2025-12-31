@@ -308,8 +308,8 @@ const useStandardPagination = <TData,>({
 
         abortController.signal.throwIfAborted()
 
-        onLoad?.(data, responseState.currentPage)
         batch(() => {
+          onLoad?.(data, responseState.currentPage)
           state.value = responseState
           resource.value = { tag: "ready", data }
         })
