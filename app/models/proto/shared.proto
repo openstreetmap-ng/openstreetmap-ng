@@ -160,12 +160,13 @@ message MessageRead {
         string avatar_url = 2; // Profile image URL
     }
 
-    Sender sender = 1; // Message author
-    repeated Recipient recipients = 2; // Message recipients
-    bool is_recipient = 3; // Whether current user is a recipient
-    uint64 time = 4; // Timestamp in seconds (UTC)
-    string subject = 5; // Message subject
-    string body_rich = 6; // Rich text HTML body
+    bool was_unread = 1; // Whether this fetch transitioned from unread -> read
+    Sender sender = 2; // Message author
+    repeated Recipient recipients = 3; // Message recipients
+    bool is_recipient = 4; // Whether current user is a recipient
+    uint64 time = 5; // Timestamp in seconds (UTC)
+    string subject = 6; // Message subject
+    string body_rich = 7; // Rich text HTML body
 }
 
 // =============================================

@@ -3,14 +3,14 @@ import { Time } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import {
   type MessagePage_Summary,
-  type MessagePage_Summary_User,
   MessagePageSchema,
   type MessageRead,
   MessageReadSchema,
 } from "@lib/proto/shared_pb"
+import { getSearchParam, updateSearchParams } from "@lib/qs"
 import { ReportButton } from "@lib/report"
 import { StandardPagination } from "@lib/standard-pagination"
-import { useSignal, useSignalEffect } from "@preact/signals"
+import { batch, useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
 import { t } from "i18next"
 import { render } from "preact"
@@ -24,15 +24,8 @@ type PreviewState =
   | { status: "ready"; message: MessageRead }
   | { status: "error"; error: string }
 
-const updatePageUrl = (messageId: bigint | null) => {
-  const url = new URL(window.location.href)
-  if (messageId) url.searchParams.set("show", messageId.toString())
-  else url.searchParams.delete("show")
-  window.history.replaceState(null, "", url)
-}
-
 const getMessageFromPageUrl = () => {
-  const value = new URL(window.location.href).searchParams.get("show")
+  const value = getSearchParam("show")
   if (!value) return null
   try {
     return BigInt(value)
@@ -41,31 +34,37 @@ const getMessageFromPageUrl = () => {
   }
 }
 
-const summaryUserLink = (user: MessagePage_Summary_User) => (
+const UserAvatarImg = ({ avatarUrl, title }: { avatarUrl: string; title?: string }) => (
+  <img
+    class="avatar"
+    src={avatarUrl}
+    alt={t("alt.profile_picture")}
+    loading="lazy"
+    title={title}
+  />
+)
+
+const SummaryUserLink = ({
+  user,
+}: {
+  user: { displayName: string; avatarUrl: string }
+}) => (
   <a href={`/user/${user.displayName}`}>
-    <img
-      class="avatar"
-      src={user.avatarUrl}
-      alt={t("alt.profile_picture")}
-      loading="lazy"
-    />
+    <UserAvatarImg avatarUrl={user.avatarUrl} />
     {user.displayName}
   </a>
 )
 
-const summaryRecipients = (message: MessagePage_Summary) => {
+const SummaryRecipients = ({ message }: { message: MessagePage_Summary }) => {
   if (message.recipientsCount <= 1) {
-    return summaryUserLink(message.recipients[0])
+    return <SummaryUserLink user={message.recipients[0]} />
   }
 
   return (
     <span class="recipients-group">
       {message.recipients.map((recipient) => (
-        <img
-          class="avatar"
-          src={recipient.avatarUrl}
-          alt={t("alt.profile_picture")}
-          loading="lazy"
+        <UserAvatarImg
+          avatarUrl={recipient.avatarUrl}
           title={recipient.displayName}
           key={recipient.displayName}
         />
@@ -100,19 +99,15 @@ const MessagesListItem = ({
   const isUnread = inbox && message.unread
   const isActive = openMessageId === messageId
 
-  const handleOpen = (event: MouseEvent | KeyboardEvent) => {
-    if (event instanceof MouseEvent) {
-      if (
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      )
-        return
-    }
-    if (event instanceof KeyboardEvent && event.key !== "Enter") return
-
+  const handleOpen = (event: MouseEvent) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return
     event.preventDefault()
     if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
     onOpen(messageId)
@@ -127,7 +122,7 @@ const MessagesListItem = ({
       <p class="header text-muted d-flex justify-content-between">
         {inbox ? (
           <span>
-            {summaryUserLink(message.sender!)} {t("messages.action_sent")}{" "}
+            <SummaryUserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
             <Time
               unix={message.time}
               relativeStyle="long"
@@ -135,7 +130,7 @@ const MessagesListItem = ({
           </span>
         ) : (
           <span>
-            {summaryRecipients(message)} {t("messages.action_delivered")}{" "}
+            <SummaryRecipients message={message} /> {t("messages.action_delivered")}{" "}
             <Time
               unix={message.time}
               relativeStyle="long"
@@ -147,7 +142,6 @@ const MessagesListItem = ({
             class="stretched-link"
             href={`?show=${messageId}`}
             onClick={handleOpen}
-            onKeyDown={handleOpen}
           >
             <span class="visually-hidden">{message.subject}</span>
           </a>
@@ -165,26 +159,6 @@ const MessagesListItem = ({
   )
 }
 
-const MessageRecipients = ({
-  recipients,
-}: {
-  recipients: MessageRead["recipients"]
-}) => (
-  <>
-    {recipients.map((recipient) => (
-      <span key={recipient.displayName}>
-        <img
-          class="avatar"
-          alt={t("alt.profile_picture")}
-          src={recipient.avatarUrl}
-          loading="lazy"
-        />
-        <a href={`/user/${recipient.displayName}`}>{recipient.displayName}</a>
-      </span>
-    ))}
-  </>
-)
-
 const MessageActionsToolbar = ({
   inbox,
   messageId,
@@ -194,15 +168,18 @@ const MessageActionsToolbar = ({
 }: {
   inbox: boolean
   messageId: bigint
-  message: MessageRead | null
+  message: MessageRead
   onUnread: () => void
   onDelete: () => void
 }) => {
-  const showReplyAll = inbox && (message?.recipients.length ?? 0) > 1
-  const disabledGroup = message ? inbox && !message.isRecipient : true
+  const disabledGroup = inbox && !message.isRecipient
+  const showReplyAll = inbox && message.recipients.length > 1
 
   return (
-    <fieldset class={`btn-group border-0 p-0 m-0 ${disabledGroup ? "disabled" : ""}`}>
+    <fieldset
+      class="btn-group border-0 p-0 m-0"
+      disabled={disabledGroup}
+    >
       <a
         class="btn btn-sm btn-soft"
         href={`/message/new?reply=${messageId}`}
@@ -271,15 +248,10 @@ const MessagePreview = ({
       <div class="py-3 card-header">
         <div class="row g-1">
           <div class="col">
-            <div class="message-sender d-flex">
-              {message && (
-                <>
-                  <img
-                    class="avatar"
-                    alt={t("alt.profile_picture")}
-                    src={sender!.avatarUrl}
-                    loading="lazy"
-                  />
+            {message && (
+              <>
+                <div class="message-sender d-flex">
+                  <UserAvatarImg avatarUrl={sender!.avatarUrl} />
                   <div>
                     <a
                       class="d-inline-block"
@@ -295,22 +267,26 @@ const MessagePreview = ({
                       />
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-            <div>
-              <span class="small text-muted me-2">{t("messages.to_prefix")}:</span>
-              <div class="message-recipients">
-                {message && <MessageRecipients recipients={message.recipients} />}
-              </div>
-            </div>
-            <MessageActionsToolbar
-              inbox={inbox}
-              messageId={messageId}
-              message={message}
-              onUnread={onUnread}
-              onDelete={onDelete}
-            />
+                </div>
+                <div>
+                  <span class="small text-muted me-2">{t("messages.to_prefix")}:</span>
+                  <div class="message-recipients">
+                    {message.recipients.map((recipient) => (
+                      <span key={recipient.displayName}>
+                        <SummaryUserLink user={recipient} />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <MessageActionsToolbar
+                  inbox={inbox}
+                  messageId={messageId}
+                  message={message}
+                  onUnread={onUnread}
+                  onDelete={onDelete}
+                />
+              </>
+            )}
           </div>
           <div class="col-auto">
             <button
@@ -323,11 +299,6 @@ const MessagePreview = ({
         </div>
       </div>
       <div class="card-body">
-        <h5 class="mb-3">{message?.subject}</h5>
-        <div
-          class="rich-text"
-          dangerouslySetInnerHTML={{ __html: message?.bodyRich ?? "" }}
-        />
         {state.status === "loading" && (
           <div class="text-center mt-4">
             <output
@@ -346,21 +317,30 @@ const MessagePreview = ({
             {state.error}
           </div>
         )}
-        {inbox && message && (
-          <div class="text-end mt-3">
-            <ReportButton
-              class="btn btn-link btn-sm text-muted p-0"
-              reportType="user"
-              reportTypeId={sender!.id}
-              reportAction="user_message"
-              reportActionId={messageId}
-            >
-              <i class="bi bi-flag small me-1-5" />
-              {t("report.report_object", {
-                object: t("activerecord.models.message"),
-              })}
-            </ReportButton>
-          </div>
+        {message && (
+          <>
+            <h5 class="mb-3">{message.subject}</h5>
+            <div
+              class="rich-text"
+              dangerouslySetInnerHTML={{ __html: message.bodyRich }}
+            />
+            {inbox && (
+              <div class="text-end mt-3">
+                <ReportButton
+                  class="btn btn-link btn-sm text-muted p-0"
+                  reportType="user"
+                  reportTypeId={sender!.id}
+                  reportAction="user_message"
+                  reportActionId={messageId}
+                >
+                  <i class="bi bi-flag small me-1-5" />
+                  {t("report.report_object", {
+                    object: t("activerecord.models.message"),
+                  })}
+                </ReportButton>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -369,15 +349,16 @@ const MessagePreview = ({
 
 const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) => {
   const messages = useSignal<MessagePage_Summary[]>([])
-  const openMessageId = useSignal<bigint | null>(null)
+  const openMessageId = useSignal<bigint | null>(getMessageFromPageUrl())
   const previewState = useSignal<PreviewState>({ status: "closed" })
   const previewRef = useRef<HTMLDivElement>(null)
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) => {
     messages.value = messages.value.map((message) => {
-      if (message.id !== messageId) return message
-      if (message.unread === unread) return message
-      return { ...message, unread }
+      if (message.id === messageId && message.unread !== unread) {
+        message.unread = unread
+      }
+      return message
     })
   }
 
@@ -386,40 +367,41 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   }
 
   const openMessage = (messageId: bigint) => {
-    if (openMessageId.value === messageId) {
-      // Reload when clicking the same message
-      openMessageId.value = null
-      openMessageId.value = messageId
-      return
-    }
-
-    const summary = messages.value.find((message) => message.id === messageId)
-    if (summary && inbox && summary.unread) {
-      updateMessageUnread(messageId, false)
-      changeUnreadMessagesBadge(-1)
-    }
+    if (openMessageId.value === messageId) return
 
     openMessageId.value = messageId
-    updatePageUrl(messageId)
+    updateSearchParams((searchParams) => {
+      searchParams.set("show", messageId.toString())
+    })
   }
 
   const closeMessage = () => {
     openMessageId.value = null
-    updatePageUrl(null)
+    updateSearchParams((searchParams) => {
+      searchParams.delete("show")
+    })
   }
 
   const markMessageUnread = async () => {
     const messageId = openMessageId.value
     if (!messageId) return
+
+    const preview = previewState.peek()
+    const message = preview.status === "ready" ? preview.message : null
+    if (!(inbox && message?.isRecipient)) return
+
     try {
       const resp = await fetch(`/api/web/messages/${messageId}/unread`, {
         method: "POST",
         priority: "high",
       })
       assert(resp.ok, `${resp.status} ${resp.statusText}`)
-      changeUnreadMessagesBadge(1)
-      updateMessageUnread(messageId, true)
-      closeMessage()
+
+      batch(() => {
+        updateMessageUnread(messageId, true)
+        changeUnreadMessagesBadge(1)
+        closeMessage()
+      })
     } catch (error) {
       console.error("Messages: Failed to mark unread", messageId, error)
       alert(error.message)
@@ -435,8 +417,11 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
         priority: "high",
       })
       assert(resp.ok, `${resp.status} ${resp.statusText}`)
-      removeMessage(messageId)
-      closeMessage()
+
+      batch(() => {
+        removeMessage(messageId)
+        closeMessage()
+      })
     } catch (error) {
       console.error("Messages: Failed to delete", messageId, error)
       alert(error.message)
@@ -466,10 +451,16 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
         abortController.signal.throwIfAborted()
         const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
 
+        if (inbox && message.isRecipient && message.wasUnread) {
+          changeUnreadMessagesBadge(-1)
+          updateMessageUnread(messageId, false)
+        }
+
         previewState.value = { status: "ready", message }
       } catch (error) {
         if (error.name === "AbortError") return
         console.error("Messages: Failed to fetch", messageId, error)
+
         previewState.value = {
           status: "error",
           error: error.message,
@@ -495,15 +486,6 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
           protobuf={MessagePageSchema}
           onLoad={(data) => {
             messages.value = data.messages
-
-            const messageId = openMessageId.peek() ?? getMessageFromPageUrl()
-            if (messageId) {
-              if (data.messages.some((message) => message.id === messageId)) {
-                openMessage(messageId)
-              } else {
-                closeMessage()
-              }
-            }
           }}
         >
           {() => (
