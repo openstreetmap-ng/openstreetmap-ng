@@ -94,7 +94,7 @@ export const getNewNoteController = (map: MaplibreMap) => {
                     ],
                     focusPaint,
                     null,
-                    { fitBounds: false },
+                    false,
                 )
                 lonInput.value = lngLat.lng.toString()
                 latInput.value = lngLat.lat.toString()
