@@ -43,3 +43,18 @@ export const qsEncode = (
     const str = params.toString()
     return str ? `${prefix}${str}` : ""
 }
+
+export const updateSearchParams = (
+    update: (searchParams: URLSearchParams) => void,
+    mode: "replace" | "push" = "replace",
+) => {
+    const url = new URL(window.location.href)
+    update(url.searchParams)
+
+    if (mode === "replace") window.history.replaceState(null, "", url)
+    else window.history.pushState(null, "", url)
+}
+
+/** Read a single query parameter from the current page URL. */
+export const getSearchParam = (key: string) =>
+    new URL(window.location.href).searchParams.get(key)

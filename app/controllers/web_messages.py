@@ -30,20 +30,6 @@ router = APIRouter(prefix='/api/web/messages')
 _MESSAGE_BODY_PREVIEW_MAX = 250
 
 
-def _message_body_preview(value: str) -> str:
-    if len(value) <= _MESSAGE_BODY_PREVIEW_MAX:
-        return value
-    trimmed = value[: _MESSAGE_BODY_PREVIEW_MAX - 3].rstrip()
-    return f'{trimmed}...'
-
-
-def _message_user_summary(user: UserDisplay) -> MessagePage.Summary.User:
-    return MessagePage.Summary.User(
-        display_name=user['display_name'],
-        avatar_url=user_avatar_url(user),
-    )
-
-
 @router.post('')
 async def send_message(
     _: Annotated[User, web_user()],
@@ -67,11 +53,8 @@ async def read_message(
     message = await MessageQuery.get_by_id(message_id)
     assert 'recipients' in message, 'Message recipients must be set'
 
-    user_recipient = (
-        next((r for r in message['recipients'] if r['user_id'] == user['id']), None)
-        if message['from_user_id'] != user['id']
-        else None
-    )
+    user_recipient = message.get('user_recipient')
+    is_recipient = user_recipient is not None
 
     async with TaskGroup() as tg:
         items = [message]
@@ -83,14 +66,17 @@ async def read_message(
         )
         tg.create_task(UserQuery.resolve_users(message['recipients']))
 
-        # Only mark as read if user is recipient and message is unread
-        if user_recipient is not None and not user_recipient['read']:
-            tg.create_task(MessageService.set_state(message_id, read=True))
+        was_unread = (
+            await MessageService.set_state(message_id, read=True)
+            if is_recipient
+            else False
+        )
 
     from_user = message['from_user']  # type: ignore
     time_unix = int(message['created_at'].timestamp())
 
     result = MessageRead(
+        was_unread=was_unread,
         sender=MessageRead.Sender(
             id=message['from_user_id'],
             display_name=from_user['display_name'],
@@ -103,7 +89,7 @@ async def read_message(
             )
             for r in message['recipients']
         ],
-        is_recipient=user_recipient is not None,
+        is_recipient=is_recipient,
         time=time_unix,
         subject=message['subject'],
         body_rich=message['body_rich'],  # type: ignore
@@ -161,20 +147,7 @@ async def inbox_page(
             )
         )
 
-    summaries = []
-    for message in messages:
-        from_user = message['from_user']  # type: ignore
-        user_recipient = message.get('user_recipient')
-        summaries.append(
-            MessagePage.Summary(
-                id=message['id'],
-                sender=_message_user_summary(from_user),
-                unread=bool(user_recipient and not user_recipient['read']),
-                time=int(message['created_at'].timestamp()),
-                subject=message['subject'],
-                body_preview=_message_body_preview(message['body']),
-            )
-        )
+    summaries = [_build_message_summary(message, inbox=True) for message in messages]
 
     payload = MessagePage(messages=summaries)
     return sp_render_response_bytes(payload.SerializeToString(), state)
@@ -204,20 +177,59 @@ async def outbox_page(
         for r in m['recipients']  # type: ignore
     ])
 
-    summaries = []
-    for message in messages:
-        recipients = message['recipients']  # type: ignore
-        summaries.append(
-            MessagePage.Summary(
-                id=message['id'],
-                recipients=[_message_user_summary(r['user']) for r in recipients[:3]],  # type: ignore
-                recipients_count=len(recipients),
-                unread=False,
-                time=int(message['created_at'].timestamp()),
-                subject=message['subject'],
-                body_preview=_message_body_preview(message['body']),
-            )
-        )
+    summaries = [_build_message_summary(message, inbox=False) for message in messages]
 
     payload = MessagePage(messages=summaries)
     return sp_render_response_bytes(payload.SerializeToString(), state)
+
+
+def _build_message_summary(
+    message: Message,
+    *,
+    inbox: bool,
+) -> MessagePage.Summary:
+
+    if inbox:
+        sender = message['from_user']  # type: ignore
+        unread = not message['user_recipient']['read']  # type: ignore
+        return MessagePage.Summary(
+            id=message['id'],
+            sender=_message_user_summary(sender),
+            recipients=[],
+            recipients_count=0,
+            unread=unread,
+            time=int(message['created_at'].timestamp()),
+            subject=message['subject'],
+            body_preview=_message_body_preview(message['body']),
+        )
+
+    recipients = message['recipients']  # type: ignore
+    recipients_users = [
+        _message_user_summary(r['user'])  # type: ignore
+        for r in recipients[:3]
+        if r.get('user') is not None
+    ]
+    return MessagePage.Summary(
+        id=message['id'],
+        sender=None,
+        recipients=recipients_users,
+        recipients_count=len(recipients),
+        unread=False,
+        time=int(message['created_at'].timestamp()),
+        subject=message['subject'],
+        body_preview=_message_body_preview(message['body']),
+    )
+
+
+def _message_user_summary(user: UserDisplay) -> MessagePage.Summary.User:
+    return MessagePage.Summary.User(
+        display_name=user['display_name'],
+        avatar_url=user_avatar_url(user),
+    )
+
+
+def _message_body_preview(value: str) -> str:
+    if len(value) <= _MESSAGE_BODY_PREVIEW_MAX:
+        return value
+    trimmed = value[: _MESSAGE_BODY_PREVIEW_MAX - 3].rstrip()
+    return f'{trimmed}...'

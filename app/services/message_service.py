@@ -131,7 +131,7 @@ class MessageService:
         return message_id
 
     @staticmethod
-    async def set_state(message_id: MessageId, *, read: bool) -> None:
+    async def set_state(message_id: MessageId, *, read: bool) -> bool:
         """Mark a message as read or unread."""
         user_id = auth_user(required=True)['id']
 
@@ -139,16 +139,19 @@ class MessageService:
             result = await conn.execute(
                 """
                 UPDATE message_recipient
-                SET read = %s
-                WHERE message_id = %s
-                AND user_id = %s
-                AND NOT hidden
+                SET read = %(read)s
+                WHERE message_id = %(message_id)s
+                  AND user_id = %(user_id)s
+                  AND read != %(read)s
+                  AND NOT hidden
                 """,
-                (read, message_id, user_id),
+                {
+                    'read': read,
+                    'message_id': message_id,
+                    'user_id': user_id,
+                },
             )
-
-            if not result.rowcount:
-                raise_for.message_not_found(message_id)
+            return bool(result.rowcount)
 
     @staticmethod
     async def delete_message(message_id: MessageId) -> None:

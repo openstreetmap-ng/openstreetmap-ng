@@ -2,7 +2,7 @@ from asyncio import TaskGroup
 from typing import Annotated
 
 import cython
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -30,14 +30,12 @@ router = APIRouter()
 @router.get('/messages/inbox')
 async def get_inbox(
     _: Annotated[User, web_user()],
-    show: Annotated[MessageId | None, Query()] = None,
 ):
     return await render_response(
         'messages/index',
         {
             'inbox': True,
             'pagination_action': '/api/web/messages/inbox',
-            'active_message_id': show,
         },
     )
 
@@ -45,14 +43,12 @@ async def get_inbox(
 @router.get('/messages/outbox')
 async def get_outbox(
     _: Annotated[User, web_user()],
-    show: Annotated[MessageId | None, Query()] = None,
 ):
     return await render_response(
         'messages/index',
         {
             'inbox': False,
             'pagination_action': '/api/web/messages/outbox',
-            'active_message_id': show,
         },
     )
 
