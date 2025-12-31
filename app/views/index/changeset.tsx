@@ -32,7 +32,6 @@ import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import type { OSMChangeset } from "@lib/types"
 import {
-  batch,
   type ReadonlySignal,
   type Signal,
   signal,
@@ -378,7 +377,7 @@ const ChangesetSidebar = ({
         makeBoundsMinimumSize(map, [b.minLon, b.minLat, b.maxLon, b.maxLat]),
       ),
     }
-    focusObjects(map, [object], focusPaint, null, { fitBounds: initial })
+    focusObjects(map, [object], focusPaint, null, initial ? {} : false)
   }
 
   // Effect: Map focus
@@ -485,10 +484,8 @@ const ChangesetSidebar = ({
               <CommentForm
                 changesetId={d.id}
                 onSuccess={({ result, commentsResponse }) => {
-                  batch(() => {
-                    resource.value = { tag: "ready", data: result.changeset! }
-                    preloadedComments.value = commentsResponse
-                  })
+                  resource.value = { tag: "ready", data: result.changeset! }
+                  preloadedComments.value = commentsResponse
                 }}
               />
             ) : (

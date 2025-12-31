@@ -33,7 +33,6 @@ import {
 } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import {
-  batch,
   type ReadonlySignal,
   type Signal,
   signal,
@@ -395,7 +394,7 @@ const NoteSidebar = ({
       [{ type: "note", id: null, geom: [d.lon, d.lat], status: d.status, text: "" }],
       focusPaint,
       focusLayout,
-      { padBounds: 0, maxZoom: 15, proportionCheck: false },
+      { padBounds: 0, maxZoom: 15, minProportion: 0 },
     )
 
     return () => focusObjects(map)
@@ -544,10 +543,8 @@ const NoteSidebar = ({
               noteId={d.id}
               status={d.status}
               onSuccess={({ result, commentsResponse, deep }) => {
-                batch(() => {
-                  resource.value = { tag: "ready", data: result.note! }
-                  preloadedComments.value = commentsResponse
-                })
+                resource.value = { tag: "ready", data: result.note! }
+                preloadedComments.value = commentsResponse
                 if (deep) map.fire("reloadnoteslayer")
               }}
             />
