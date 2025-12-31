@@ -26,6 +26,7 @@ import {
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import { PartialSearchParamsSchema } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
+import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMObject } from "@lib/types"
 import { memoize } from "@std/cache/memoize"
@@ -217,14 +218,7 @@ export const getSearchController = (map: MaplibreMap) => {
             map.setFeatureState({ source: LAYER_ID, id: id }, { hover })
 
             if (hover && result) {
-                // Scroll result into view
-                const sidebarRect = sidebar.getBoundingClientRect()
-                const resultRect = result.getBoundingClientRect()
-                const isVisible =
-                    resultRect.top >= sidebarRect.top &&
-                    resultRect.bottom <= sidebarRect.bottom
-                if (!isVisible)
-                    result.scrollIntoView({ behavior: "smooth", block: "center" })
+                scrollElementIntoView(sidebar, result)
                 focusObjects(map, elements[id](), focusPaint, null, {
                     ...focusOptions,
                     // Focus on hover only during global search

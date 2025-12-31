@@ -33,6 +33,7 @@ import {
   RoutingResultSchema,
 } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
+import { scrollElementIntoView } from "@lib/scroll"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import { batch, type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
@@ -257,13 +258,7 @@ const RoutingSidebar = ({
 
     if (scrollIntoView) {
       const row = sidebar.querySelector(`tr[data-step-index="${id}"]`)
-      if (row) {
-        const sidebarRect = parentSidebar.getBoundingClientRect()
-        const rowRect = row.getBoundingClientRect()
-        const isVisible =
-          rowRect.top >= sidebarRect.top && rowRect.bottom <= sidebarRect.bottom
-        if (!isVisible) row.scrollIntoView({ behavior: "smooth", block: "center" })
-      }
+      if (row) scrollElementIntoView(parentSidebar, row)
     }
     map.setFeatureState({ source: LAYER_ID, id }, { hover: true })
   }
