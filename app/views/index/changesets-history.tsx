@@ -36,6 +36,7 @@ import {
   RenderChangesetsDataSchema,
 } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
+import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import {
@@ -553,7 +554,7 @@ const ChangesetsHistorySidebar = ({
     element?.classList.toggle("hover", hover)
 
     if (hover && scrollIntoView && element)
-      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      scrollElementIntoView(parentSidebar, element)
 
     const firstFeatureId = idFirstFeatureIdMap.current.get(id)
     if (!firstFeatureId) return
