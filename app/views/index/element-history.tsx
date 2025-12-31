@@ -7,9 +7,7 @@ import {
   ElementLocation,
   ElementMeta,
   elementFocusPaint,
-  getElementTypeLabel,
   getElementTypeSlug,
-  parseElementType,
 } from "@index/element"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
@@ -106,7 +104,6 @@ const ElementHistorySidebar = ({
   sidebar: HTMLElement
 }) => {
   const tagsDiff = useSignal(tagsDiffStorage.get() ?? true)
-  const notFound = useSignal(false)
   const tooltipTarget = useSignal<HTMLElement | null>(null)
   const title = useComputed(() => {
     const typeValue = type.value
@@ -123,12 +120,11 @@ const ElementHistorySidebar = ({
     return () => tooltip.dispose()
   })
 
-  // Effect: Page title and not-found reset
+  // Effect: Page title
   useSignalEffect(() => {
     const typeValue = type.value
     const idValue = id.value
     if (!(typeValue && idValue)) return
-    notFound.value = false
     setPageTitle(title.value)
   })
 
@@ -143,37 +139,35 @@ const ElementHistorySidebar = ({
 
   return (
     <div class="sidebar-content">
-      {!notFound.value && (
-        <div class="section pb-1">
-          <SidebarHeader class="mb-1">
-            <h2 class="sidebar-title">{title.value}</h2>
-            <div class="form-check ms-1">
-              <label class="form-check-label">
-                <input
-                  class="form-check-input tags-diff"
-                  type="checkbox"
-                  autoComplete="off"
-                  checked={tagsDiff.value}
-                  onChange={(event) => {
-                    const checked = (event.currentTarget as HTMLInputElement).checked
-                    tagsDiffStorage.set(checked)
-                    tagsDiff.value = checked
-                  }}
-                />
-                {t("element.tags_diff_mode")}
-                <i
-                  class="bi bi-question-circle ms-1-5"
-                  data-bs-toggle="tooltip"
-                  data-bs-title={t("element.highlight_changed_tags_between_versions")}
-                  ref={(node) => {
-                    tooltipTarget.value = node
-                  }}
-                />
-              </label>
-            </div>
-          </SidebarHeader>
-        </div>
-      )}
+      <div class="section pb-1">
+        <SidebarHeader class="mb-1">
+          <h2 class="sidebar-title">{title.value}</h2>
+          <div class="form-check ms-1">
+            <label class="form-check-label">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                autoComplete="off"
+                checked={tagsDiff.value}
+                onChange={(event) => {
+                  const checked = (event.currentTarget as HTMLInputElement).checked
+                  tagsDiffStorage.set(checked)
+                  tagsDiff.value = checked
+                }}
+              />
+              {t("element.tags_diff_mode")}
+              <i
+                class="bi bi-question-circle ms-1-5"
+                data-bs-toggle="tooltip"
+                data-bs-title={t("element.highlight_changed_tags_between_versions")}
+                ref={(node) => {
+                  tooltipTarget.value = node
+                }}
+              />
+            </label>
+          </div>
+        </SidebarHeader>
+      </div>
 
       {typeValue && idValue && (
         <StandardPagination
@@ -184,41 +178,24 @@ const ElementHistorySidebar = ({
           small={true}
           navClassBottom="mb-0"
           protobuf={ElementHistoryPageSchema}
-          onLoad={(page) => {
+          onLoad={() => {
             focusObjects(map)
-            notFound.value = page.notFound
-            if (page.notFound) setPageTitle(t("browse.not_found.title"))
-            else setPageTitle(title.value)
           }}
         >
-          {(page) =>
-            page.notFound ? (
-              <div class="section">
-                <SidebarHeader title={t("browse.not_found.title")} />
-                <p>
-                  {t("browse.not_found.sorry", {
-                    type: getElementTypeLabel(
-                      parseElementType(typeValue)!,
-                    ).toLowerCase(),
-                    id: idValue,
-                  })}
-                </p>
+          {(page) => (
+            <div class="section p-0">
+              <div>
+                {page.elements.map((entry) => (
+                  <ElementHistoryEntry
+                    key={entry.version.toString()}
+                    map={map}
+                    data={entry}
+                    tagsDiff={tagsDiff.value}
+                  />
+                ))}
               </div>
-            ) : (
-              <div class="section p-0">
-                <div>
-                  {page.elements.map((entry) => (
-                    <ElementHistoryEntry
-                      key={entry.version.toString()}
-                      map={map}
-                      data={entry}
-                      tagsDiff={tagsDiff.value}
-                    />
-                  ))}
-                </div>
-              </div>
-            )
-          }
+            </div>
+          )}
         </StandardPagination>
       )}
     </div>

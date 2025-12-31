@@ -15,6 +15,24 @@ from app.queries.timescaledb_query import TimescaleDBQuery
 
 class ChangesetQuery:
     @staticmethod
+    async def find_by_ids(changeset_ids: list[ChangesetId]) -> list[Changeset]:
+        """Find changesets by ids."""
+        if not changeset_ids:
+            return []
+
+        async with (
+            db() as conn,
+            await conn.cursor(row_factory=dict_row).execute(
+                """
+                SELECT * FROM changeset
+                WHERE id = ANY(%s)
+                """,
+                (changeset_ids,),
+            ) as r,
+        ):
+            return await r.fetchall()  # type: ignore
+
+    @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count changesets by user id."""
         async with (
