@@ -7,11 +7,7 @@ import {
     type LngLatLike,
     type Map as MaplibreMap,
 } from "maplibre-gl"
-import {
-    checkLngLatBoundsIntersection,
-    getLngLatBoundsSize,
-    padLngLatBounds,
-} from "../bounds"
+import { type FitBoundsOptions, fitBoundsIfNeeded } from "../bounds"
 import { renderObjects } from "../render-objects"
 import {
     type AddMapLayerOptions,
@@ -25,19 +21,6 @@ import {
 
 export type FocusLayerPaint = AddMapLayerOptions["paint"]
 export type FocusLayerLayout = AddMapLayerOptions["layout"]
-
-export interface FocusOptions {
-    /** Fit the map to the focused objects @default true */
-    fitBounds?: boolean
-    /** Amount of padding to add to the bounds @default 0.2 */
-    padBounds?: number
-    /** Maximum zoom level to focus on @default 18 */
-    maxZoom?: number
-    /** Whether to perform intersection check instead of containment @default false */
-    intersects?: boolean
-    /** Perform a proportion check when fitting the map @default true */
-    proportionCheck?: boolean
-}
 
 const LAYER_ID = "focus" as LayerId
 const LAYER_TYPES: LayerType[] = ["fill", "line", "circle", "symbol"]
@@ -74,7 +57,7 @@ export const focusObjects = (
     objects?: OSMObject[],
     paint?: FocusLayerPaint | null,
     layout?: FocusLayerLayout | null,
-    options?: FocusOptions,
+    fitOpts?: FitBoundsOptions | false,
 ) => {
     const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     source.setData(emptyFeatureCollection)
@@ -127,50 +110,23 @@ export const focusObjects = (
     const data = renderObjects(objects)
     source.setData(data)
 
+    if (fitOpts === false) return
+
     // Focus on the layers if they are offscreen
-    if (options?.fitBounds ?? true) {
-        let bounds: LngLatBounds | undefined
-        for (const feature of data.features) {
-            const geometryBounds = getGeometryBounds(feature.geometry)
-            bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
-        }
-        assertExists(bounds)
-        const boundsPadded = padLngLatBounds(bounds, options?.padBounds ?? 0.2)
-        const mapBounds = map.getBounds()
-
-        const maxZoom = options?.maxZoom ?? 18
-        const currentZoom = map.getZoom()
-        const fitMaxZoom = Math.max(currentZoom, maxZoom)
-
-        if (
-            options?.intersects
-                ? !checkLngLatBoundsIntersection(mapBounds, bounds)
-                : !(
-                      mapBounds.contains(bounds.getSouthWest()) &&
-                      mapBounds.contains(bounds.getNorthEast())
-                  )
-        ) {
-            console.debug(
-                "FocusLayer: Fitting bounds (offscreen)",
-                objects.length,
-                "objects, zoom",
-                fitMaxZoom,
-            )
-            map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
-        } else if ((options?.proportionCheck ?? true) && fitMaxZoom > currentZoom) {
-            const boundsSize = getLngLatBoundsSize(bounds)
-            const mapBoundsSize = getLngLatBoundsSize(mapBounds)
-            const proportion = boundsSize / mapBoundsSize
-            if (proportion > 0 && proportion < 0.00035) {
-                console.debug(
-                    "FocusLayer: Fitting bounds (small)",
-                    objects.length,
-                    "objects, zoom",
-                    fitMaxZoom,
-                )
-                map.fitBounds(boundsPadded, { maxZoom: fitMaxZoom, animate: false })
-            }
-        }
+    let bounds: LngLatBounds | undefined
+    for (const feature of data.features) {
+        const geometryBounds = getGeometryBounds(feature.geometry)
+        bounds = bounds ? bounds.extend(geometryBounds) : geometryBounds
+    }
+    assertExists(bounds)
+    const result = fitBoundsIfNeeded(map, bounds, fitOpts)
+    if (result) {
+        console.debug(
+            `FocusLayer: Fitting bounds (${result.reason})`,
+            objects.length,
+            "objects, zoom",
+            result.fitMaxZoom,
+        )
     }
 }
 
