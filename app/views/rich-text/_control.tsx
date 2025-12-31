@@ -1,5 +1,5 @@
 import { useSignal, useSignalEffect } from "@preact/signals"
-import { assert, assertExists } from "@std/assert"
+import { assertExists } from "@std/assert"
 import { t } from "i18next"
 import { render } from "preact"
 import { memo } from "preact/compat"
