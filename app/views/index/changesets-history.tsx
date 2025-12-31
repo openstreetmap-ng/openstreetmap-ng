@@ -322,12 +322,11 @@ const ChangesetsHistorySidebar = ({
     // Fit bounds on first load for scoped views (user/nearby/friends)
     const shouldFit =
       reason.value === "navigation" && Boolean(scope.value || displayName.value)
-    if (shouldFit && visibleChangesetsBounds.current && isFirstLoad) {
+    if (shouldFit && visibleChangesetsBounds.current && isFirstLoad)
       map.fitBounds(padLngLatBounds(visibleChangesetsBounds.current, 0.3), {
         maxZoom: 16,
         animate: false,
       })
-    }
   }
 
   type ScrollState = { state: "above" | "visible" | "below"; distance: number }
@@ -510,19 +509,25 @@ const ChangesetsHistorySidebar = ({
         new Uint8Array(buffer),
       ).changesets
 
-      if (newChangesets.length) {
-        const isFirstLoad = !changesets.value.length
-        changesets.value = [...changesets.value, ...newChangesets]
-        for (const cs of newChangesets) idChangesetMap.current.set(cs.id.toString(), cs)
-        updateLayers(isFirstLoad)
-        requestAnimationFramePolyfill(updateLayersVisibility)
-        requestAnimationFramePolyfill(checkLoadMore)
-      } else {
-        noMoreChangesets.value = true
-      }
+      batch(() => {
+        if (newChangesets.length) {
+          for (const cs of newChangesets)
+            idChangesetMap.current.set(cs.id.toString(), cs)
 
-      fetchedContext.current = { bounds: fetchBounds, date: fetchDate }
-      loading.value = false
+          const isFirstLoad = !changesets.value.length
+          changesets.value = [...changesets.value, ...newChangesets]
+          loading.value = false
+
+          updateLayers(isFirstLoad)
+          requestAnimationFramePolyfill(updateLayersVisibility)
+          requestAnimationFramePolyfill(checkLoadMore)
+        } else {
+          noMoreChangesets.value = true
+        }
+
+        fetchedContext.current = { bounds: fetchBounds, date: fetchDate }
+        loading.value = false
+      })
     } catch (error) {
       if (error.name === "AbortError") return
       console.error("ChangesetsHistory: Failed to fetch", error)
