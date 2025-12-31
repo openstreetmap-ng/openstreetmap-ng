@@ -86,7 +86,7 @@ const NavbarUser = () => {
   return (
     <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
       <button
-        class="profile-btn btn btn-soft btn-bg-initial dropdown-toggle d-flex align-items-center flex-grow-1"
+        class="btn btn-soft btn-bg-initial dropdown-toggle d-flex align-items-center flex-grow-1"
         type="button"
         data-bs-toggle="dropdown"
         aria-expanded="false"

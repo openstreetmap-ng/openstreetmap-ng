@@ -56,7 +56,6 @@ const ReportModal = () => {
       () => {
         console.debug("ReportModal: Submitted")
         formRef.current!.reset()
-        instance.hide()
       },
       {
         removeEmptyFields: true,
