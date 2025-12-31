@@ -1,8 +1,10 @@
 import type { Bounds } from "@lib/types"
 import { clamp } from "@std/math/clamp"
-import { LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-
-const MIN_BOUNDS_SIZE_PX = 20
+import {
+    LngLatBounds,
+    type FitBoundsOptions as MaplibreFitBoundsOptions,
+    type Map as MaplibreMap,
+} from "maplibre-gl"
 
 /** Get the bounds area in square degrees */
 export const getLngLatBoundsSize = (bounds: LngLatBounds) => {
@@ -88,21 +90,25 @@ export const padLngLatBounds = (bounds: LngLatBounds, padding?: number) => {
 }
 
 /** Make bounds minimum size to make them easier to click */
-export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds) => {
+export const makeBoundsMinimumSize = (
+    map: MaplibreMap,
+    bounds: Bounds,
+    minSizePx = 20,
+) => {
     const [minLon, minLat, maxLon, maxLat] = bounds
     const mapBottomLeft = map.project([minLon, minLat])
     const mapTopRight = map.project([maxLon, maxLat])
     const width = mapTopRight.x - mapBottomLeft.x
     const height = mapBottomLeft.y - mapTopRight.y
 
-    if (width < MIN_BOUNDS_SIZE_PX) {
-        const diff = MIN_BOUNDS_SIZE_PX - width
+    if (width < minSizePx) {
+        const diff = minSizePx - width
         mapBottomLeft.x -= diff / 2
         mapTopRight.x += diff / 2
     }
 
-    if (height < MIN_BOUNDS_SIZE_PX) {
-        const diff = MIN_BOUNDS_SIZE_PX - height
+    if (height < minSizePx) {
+        const diff = minSizePx - height
         mapBottomLeft.y += diff / 2
         mapTopRight.y -= diff / 2
     }
@@ -115,6 +121,67 @@ export const makeBoundsMinimumSize = (map: MaplibreMap, bounds: Bounds) => {
         lngLatTopRight.lng,
         lngLatTopRight.lat,
     ] as Bounds
+}
+
+export interface FitBoundsOptions {
+    /** Amount of padding to add to the bounds @default 0.2 */
+    padBounds?: number | undefined
+    /** Maximum zoom level to focus on @default 18 */
+    maxZoom?: number | undefined
+    /** Whether to perform intersection check instead of containment @default false */
+    intersects?: boolean | undefined
+    /** Minimum proportion of bounds to map to trigger fit @default 0.00035 */
+    minProportion?: number | undefined
+    /** Whether to animate the fit @default false */
+    animate?: boolean | undefined
+}
+
+export const fitBoundsIfNeeded = (
+    map: MaplibreMap,
+    bounds: LngLatBounds,
+    opts?: FitBoundsOptions,
+) => {
+    const padBounds = opts?.padBounds ?? 0.2
+    const maxZoom = opts?.maxZoom ?? 18
+    const intersects = opts?.intersects ?? false
+    const minProportion = opts?.minProportion ?? 0.00035
+    const animate = opts?.animate ?? false
+
+    const mapBounds = map.getBounds().adjustAntiMeridian()
+    const boundsAdjusted = bounds.adjustAntiMeridian()
+    const boundsPadded = padLngLatBounds(boundsAdjusted, padBounds)
+
+    const currentZoom = map.getZoom()
+    const fitMaxZoom = Math.max(currentZoom, maxZoom)
+
+    const maplibreOpts: MaplibreFitBoundsOptions = {
+        maxZoom: fitMaxZoom,
+        animate,
+    }
+
+    const isOffscreen = intersects
+        ? !checkLngLatBoundsIntersection(mapBounds, boundsPadded)
+        : !(
+              mapBounds.contains(boundsPadded.getSouthWest()) &&
+              mapBounds.contains(boundsPadded.getNorthEast())
+          )
+
+    if (isOffscreen) {
+        map.fitBounds(boundsPadded, maplibreOpts)
+        return { reason: "offscreen", fitMaxZoom }
+    }
+
+    if (minProportion > 0 && fitMaxZoom > currentZoom) {
+        const boundsSize = getLngLatBoundsSize(boundsAdjusted)
+        const mapBoundsSize = getLngLatBoundsSize(mapBounds)
+        const proportion = boundsSize / mapBoundsSize
+        if (proportion > 0 && proportion < minProportion) {
+            map.fitBounds(boundsPadded, maplibreOpts)
+            return { reason: "small", fitMaxZoom }
+        }
+    }
+
+    return null
 }
 
 export const unionBounds = (left: Bounds | null | undefined, right: Bounds) =>
