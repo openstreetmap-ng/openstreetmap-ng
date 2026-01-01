@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs"
+import { distinct } from "@std/collections/distinct"
+import { mapNotNullish } from "@std/collections/map-not-nullish"
 
 const wikiPagesRaw: Record<string, Record<string, string[]>> = JSON.parse(
     readFileSync("config/wiki_pages.json", "utf8"),
@@ -16,11 +18,11 @@ installedLocales.add("")
 
 // Filter and normalize locale array: lowercase, dedupe, sort
 const normalizeLocales = (locales: string[]): string[] =>
-    [
-        ...new Set(
-            locales.map((l) => l.toLowerCase()).filter((l) => installedLocales.has(l)),
-        ),
-    ].sort()
+    distinct(
+        locales
+            .map((l) => l.toLowerCase())
+            .filter(installedLocales.has, installedLocales),
+    ).sort((a, b) => (a > b ? 1 : a < b ? -1 : 0))
 
 // Pass 1: Count frequency of each locale set
 const localeSetFreq = new Map<string, { locales: string[]; count: number }>()
@@ -47,12 +49,13 @@ const localeSetIndex = new Map(sortedLocaleSets.map(([key], i) => [key, i]))
 const wikiPages: Record<string, Record<string, number>> = {}
 
 for (const [key, values] of Object.entries(wikiPagesRaw)) {
-    const keyValues: Record<string, number> = {}
-    for (const [value, locales] of Object.entries(values)) {
-        const normalized = normalizeLocales(locales)
-        if (!normalized.length) continue
-        keyValues[value] = localeSetIndex.get(normalized.join(","))!
-    }
+    const keyValues = Object.fromEntries(
+        mapNotNullish(Object.entries(values), ([value, locales]) => {
+            const normalized = normalizeLocales(locales)
+            if (!normalized.length) return null
+            return [value, localeSetIndex.get(normalized.join(","))!] as const
+        }),
+    )
     if (Object.keys(keyValues).length) wikiPages[key] = keyValues
 }
 

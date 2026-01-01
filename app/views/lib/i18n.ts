@@ -1,4 +1,5 @@
 import { primaryLanguage } from "@lib/config"
+import { mapEntries } from "@std/collections/map-entries"
 import { init, type Resource, t } from "i18next"
 import type { ComponentChild } from "preact"
 
@@ -75,15 +76,14 @@ export const tRich = (
     if (!options) return t(key)
 
     const replacements = new Map<string, RichReplacement>()
-    const tokenized: Record<string, unknown> = { ...options }
     let tokenIndex = 0
 
-    for (const [name, value] of Object.entries(options)) {
-        if (!isRichReplacement(value)) continue
+    const tokenized = mapEntries(options, ([name, value]) => {
+        if (!isRichReplacement(value)) return [name, value]
         const token = `${SPLIT_TOKEN}${tokenIndex++}__`
         replacements.set(token, value)
-        tokenized[name] = token
-    }
+        return [name, token]
+    })
 
     const translated = t(key, tokenized as any)
     const content = typeof translated === "string" ? translated : String(translated)

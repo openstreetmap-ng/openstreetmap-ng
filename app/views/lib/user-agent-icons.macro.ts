@@ -1,4 +1,5 @@
 import { existsSync, readdirSync } from "node:fs"
+import { mapNotNullish } from "@std/collections/map-not-nullish"
 import { toKebabCase } from "@std/text/to-kebab-case"
 import { BROWSER_ALIASES_MAP, OS_MAP } from "bowser/src/constants.js"
 
@@ -32,15 +33,17 @@ export function getBrowserIconMap() {
         }
     }
 
-    const map: Record<string, string> = {}
-
-    // Map bowser display names to icon suffixes
-    for (const [displayName, normalizedKey] of Object.entries(BROWSER_ALIASES_MAP)) {
-        // Convert snake_case to kebab-case (browser-logos convention)
-        const iconKey = toKebabCase(normalizedKey)
-        const suffix = available.get(iconKey)
-        if (suffix) map[displayName] = suffix
-    }
+    const map = Object.fromEntries(
+        mapNotNullish(
+            Object.entries(BROWSER_ALIASES_MAP),
+            ([displayName, normalizedKey]) => {
+                // Convert snake_case to kebab-case (browser-logos convention)
+                const iconKey = toKebabCase(normalizedKey)
+                const suffix = available.get(iconKey)
+                return suffix ? ([displayName, suffix] as const) : null
+            },
+        ),
+    )
 
     return { prefix, map }
 }
@@ -59,19 +62,20 @@ export function getOsIconMap() {
             .map((f) => f.slice(0, -4)),
     )
 
-    const map: Record<string, string> = {}
+    const map = Object.fromEntries(
+        mapNotNullish(Object.values(OS_MAP), (displayName) => {
+            const normalized = displayName.toLowerCase().replace(/\s+/g, "")
+            const slug = OS_SEMANTIC_ALIASES[normalized] ?? normalized
 
-    // Map bowser OS display names to icon suffixes
-    for (const displayName of Object.values(OS_MAP)) {
-        const normalized = displayName.toLowerCase().replace(/\s+/g, "")
-        const slug = OS_SEMANTIC_ALIASES[normalized] ?? normalized
-
-        if (bsIcons.has(slug)) {
-            map[displayName] = `bootstrap-icons/icons/${slug}.svg`
-        } else if (siIcons.has(slug)) {
-            map[displayName] = `simple-icons/icons/${slug}.svg`
-        }
-    }
+            if (bsIcons.has(slug)) {
+                return [displayName, `bootstrap-icons/icons/${slug}.svg`] as const
+            }
+            if (siIcons.has(slug)) {
+                return [displayName, `simple-icons/icons/${slug}.svg`] as const
+            }
+            return null
+        }),
+    )
 
     return { prefix, map }
 }

@@ -3,6 +3,7 @@ import { effectiveTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
 import { effect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
+import { filterKeys } from "@std/collections/filter-keys"
 import type { FeatureCollection } from "geojson"
 import i18next from "i18next"
 import {
@@ -312,15 +313,10 @@ effect(() => {
     for (const map of watchMapsLayerSources) {
         for (const [layerId, config] of layersConfig) {
             const source = map.getSource(layerId)
-            if (!(source instanceof RasterTileSource)) continue
-            if (isDarkTheme) {
-                if (config.darkTiles) {
-                    source.setTiles(config.darkTiles)
-                }
-            } else if (config.darkTiles) {
-                // @ts-expect-error
-                source.setTiles(config.specification.tiles)
-            }
+            if (!(source instanceof RasterTileSource && config.darkTiles)) continue
+
+            // @ts-expect-error
+            source.setTiles(isDarkTheme ? config.darkTiles : config.specification.tiles)
         }
     }
 })
@@ -458,18 +454,18 @@ export const addMapLayer = (
                 const validPrefixes = [`${type}-`]
                 if (type === "symbol") validPrefixes.push("icon-", "text-")
 
+                const hasValidPrefix = (key: string) =>
+                    validPrefixes.some((prefix) => key.startsWith(prefix))
+
                 for (const key of ["layout", "paint"] as const) {
                     const value = layerOptions[key]
                     if (!value) continue
-                    const newValue: Record<string, unknown> = {}
-                    for (const [k, v] of Object.entries(value)) {
-                        for (const prefix of validPrefixes) {
-                            if (!k.startsWith(prefix)) continue
-                            newValue[k] = v
-                        }
-                    }
+
                     // @ts-expect-error
-                    layerObject[key] = newValue
+                    layerObject[key] = filterKeys(
+                        value as Record<string, unknown>,
+                        hasValidPrefix,
+                    )
                 }
             }
             const filter = LAYER_TYPE_FILTERS[type]

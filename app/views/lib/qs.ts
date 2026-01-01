@@ -1,3 +1,6 @@
+import { associateWith } from "@std/collections/associate-with"
+import { distinct } from "@std/collections/distinct"
+
 /**
  * Parse a query string into an object
  * @example
@@ -5,14 +8,10 @@
  * // => { foo: "bar", baz: "qux" }
  */
 export const qsParse = (qs: string) => {
-    const result: Record<string, string> = {}
-    if (!qs) return result
+    if (!qs) return {}
     if (qs.startsWith("#")) qs = qs.slice(1)
     const params = new URLSearchParams(qs)
-    for (const key of params.keys()) {
-        result[key] ??= params.getAll(key).join(";")
-    }
-    return result
+    return associateWith(distinct(params.keys()), (key) => params.getAll(key).join(";"))
 }
 
 /**
@@ -34,10 +33,10 @@ export const qsEncode = (
         // Skip undefined values
         if (value === undefined) continue
 
-        if (Array.isArray(value)) {
-            for (const item of value) params.append(key, item)
-        } else {
+        if (typeof value === "string") {
             params.set(key, value)
+        } else {
+            for (const item of value) params.append(key, item)
         }
     }
     const str = params.toString()
