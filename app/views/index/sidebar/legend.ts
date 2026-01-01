@@ -1,7 +1,6 @@
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { addLayerEventHandler, type LayerId } from "@lib/map/layers/layers"
 import { getMapBaseLayerId } from "@lib/map/state"
-import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
@@ -144,9 +143,9 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                     const [minZoom, maxZoom] =
                         zoom === null
                             ? [0, 99]
-                            : Array.isArray(zoom)
-                              ? zoom
-                              : [zoom, 99]
+                            : typeof zoom === "number"
+                              ? [zoom, 99]
+                              : zoom
 
                     result.push({ element: tr, layerId, minZoom, maxZoom })
                     tbody.appendChild(tr)
@@ -169,24 +168,25 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
             if (isLegendAvailable) {
                 if (button.disabled) {
                     button.disabled = false
-                    Tooltip.getInstance(button)!.setContent({
+                    this.tooltip.setContent({
                         ".tooltip-inner": i18next.t("javascripts.key.tooltip"),
                     })
                 }
                 updateSidebar()
-            } else {
-                if (!button.disabled) {
-                    button.blur()
-                    button.disabled = true
-                    Tooltip.getInstance(button)!.setContent({
-                        ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
-                    })
-                }
+                return
+            }
 
-                // Uncheck the input if checked
-                if (button.classList.contains("active")) {
-                    button.click()
-                }
+            if (!button.disabled) {
+                button.blur()
+                button.disabled = true
+                this.tooltip.setContent({
+                    ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
+                })
+            }
+
+            // Uncheck the input if checked
+            if (button.classList.contains("active")) {
+                button.click()
             }
         })
 
