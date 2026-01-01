@@ -1,6 +1,6 @@
 import logging
 import warnings
-from asyncio import Lock, get_running_loop
+from asyncio import Lock, to_thread
 from contextlib import asynccontextmanager
 from functools import partial
 from io import BytesIO
@@ -314,8 +314,7 @@ async def _normalize_image(
 
     async with _get_pipeline() as pipe:
         if pipe is not None:
-            loop = get_running_loop()
-            preds = await loop.run_in_executor(None, partial(pipe, img, top_k=1))
+            preds = await to_thread(partial(pipe, img, top_k=1))
             # Example preds: [{'label': 'neutral', 'score': 0.92}, ...]
 
             top = preds[0]
@@ -352,20 +351,18 @@ async def _optimize_quality(
     Find the best image quality given the maximum file size.
     Returns the quality and the image buffer.
     """
-    loop = get_running_loop()
-
     if quality is not None:
-        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        img_bytes = await to_thread(_save, img, quality, animation)
         if len(img_bytes) <= input_size:
             return quality, img_bytes
 
-        img_bytes_lossless = await loop.run_in_executor(None, _save, img, -1, animation)
+        img_bytes_lossless = await to_thread(_save, img, -1, animation)
         if len(img_bytes_lossless) <= len(img_bytes):
             return -1, img_bytes_lossless
 
         return quality, img_bytes
 
-    img_bytes = await loop.run_in_executor(None, _save, img, -1, animation)
+    img_bytes = await to_thread(_save, img, -1, animation)
     img_size = len(img_bytes)
     logging.debug('Optimizing avatar quality (lossless): %s', sizestr(img_size))
 
@@ -376,7 +373,7 @@ async def _optimize_quality(
 
     # initial quick scan
     for quality in range(80, 20 - 1, -20):
-        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        img_bytes = await to_thread(_save, img, quality, animation)
         img_size = len(img_bytes)
         logging.debug(
             'Optimizing avatar quality (quick): Q%d -> %s', quality, sizestr(img_size)
@@ -397,7 +394,7 @@ async def _optimize_quality(
         # round down to the nearest step
         quality = ((low + high) // 2) // step * step
 
-        img_bytes = await loop.run_in_executor(None, _save, img, quality, animation)
+        img_bytes = await to_thread(_save, img, quality, animation)
         img_size = len(img_bytes)
         logging.debug(
             'Optimizing avatar quality (fine): Q%d -> %s', quality, sizestr(img_size)
