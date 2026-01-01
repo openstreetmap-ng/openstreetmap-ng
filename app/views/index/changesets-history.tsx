@@ -41,7 +41,7 @@ import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import {
   batch,
-  type Signal,
+  type ReadonlySignal,
   signal,
   useComputed,
   useSignal,
@@ -154,10 +154,10 @@ const ChangesetsHistorySidebar = ({
   sidebar,
 }: {
   map: MaplibreMap
-  active: Signal<boolean>
-  scope: Signal<string | undefined>
-  displayName: Signal<string | undefined>
-  reason: Signal<RouteLoadReason | undefined>
+  active: ReadonlySignal<boolean>
+  scope: ReadonlySignal<string | undefined>
+  displayName: ReadonlySignal<string | undefined>
+  reason: ReadonlySignal<RouteLoadReason | undefined>
   sidebar: HTMLElement
 }) => {
   const changesets = useSignal<RenderChangesetsData_Changeset[]>([])
@@ -680,18 +680,14 @@ const ChangesetsHistorySidebar = ({
 
   // Effect: Page title
   useSignalEffect(() => {
-    if (active.value) setPageTitle(sidebarTitle.value.plain)
+    if (!active.value) return
+
+    setPageTitle(sidebarTitle.value.plain)
   })
 
   // Effect: Map lifecycle and event handlers
   useSignalEffect(() => {
-    if (!active.value) {
-      removeMapLayer(map, LAYER_ID)
-      removeMapLayer(map, LAYER_ID_BORDERS)
-      resetChangesets()
-      fetchedContext.current = { bounds: null, date: undefined }
-      return
-    }
+    if (!active.value) return
 
     switchActionSidebar(map, sidebar)
     addMapLayer(map, LAYER_ID)
@@ -719,6 +715,12 @@ const ChangesetsHistorySidebar = ({
       map.off("mousemove", fillLayerId, onMapMouseMove)
       map.off("mouseleave", fillLayerId, onMapMouseLeave)
       map.off("click", fillLayerId, onMapClick)
+
+      removeMapLayer(map, LAYER_ID)
+      removeMapLayer(map, LAYER_ID_BORDERS)
+      resetChangesets()
+
+      fetchedContext.current = { bounds: null, date: undefined }
     }
   })
 

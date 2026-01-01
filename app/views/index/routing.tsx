@@ -38,7 +38,13 @@ import { scrollElementIntoView } from "@lib/scroll"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
-import { batch, type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
+import {
+  batch,
+  type ReadonlySignal,
+  signal,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import type { Feature, LineString } from "geojson"
 import { t } from "i18next"
@@ -164,7 +170,7 @@ const RoutingSidebar = ({
   map: MaplibreMap
   mapContainer: HTMLElement
   source: GeoJSONSource
-  active: Signal<boolean>
+  active: ReadonlySignal<boolean>
   sidebar: HTMLElement
 }) => {
   const loading = useSignal(false)
@@ -547,12 +553,7 @@ const RoutingSidebar = ({
 
   // Effect: Main lifecycle
   useSignalEffect(() => {
-    if (!active.value) {
-      resetState()
-      removeMapLayer(map, LAYER_ID)
-      clearMapHover(map, LAYER_ID)
-      return
-    }
+    if (!active.value) return
 
     switchActionSidebar(map, sidebar)
     setPageTitle(t("javascripts.directions.directions"))
@@ -683,6 +684,10 @@ const RoutingSidebar = ({
       parentSidebar.removeEventListener("mouseleave", onSidebarMouseLeave)
       parentSidebar.removeEventListener("mousemove", onSidebarMouseMove)
       parentSidebar.removeEventListener("scroll", onSidebarScroll)
+
+      resetState()
+      removeMapLayer(map, LAYER_ID)
+      clearMapHover(map, LAYER_ID)
     }
   })
 
