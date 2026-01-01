@@ -1,6 +1,6 @@
 import fcntl
 import logging
-from asyncio import get_running_loop, timeout
+from asyncio import timeout, to_thread
 from collections import OrderedDict
 from datetime import timedelta
 from io import FileIO
@@ -55,10 +55,7 @@ class _FileCacheLock:
         lock_file = self._file = lock_path.open('wb', buffering=0)
 
         async with timeout(FILE_CACHE_LOCK_TIMEOUT.total_seconds()):
-            loop = get_running_loop()
-            await loop.run_in_executor(
-                None, lambda: fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-            )
+            await to_thread(fcntl.flock, lock_file.fileno(), fcntl.LOCK_EX)
 
         return self
 
@@ -97,8 +94,7 @@ class FileCache:
 
         try:
             with path.open('rb') as f:
-                loop = get_running_loop()
-                entry_bytes = await loop.run_in_executor(None, f.read)
+                entry_bytes = await to_thread(f.read)
                 entry_mtime = stat(f.fileno()).st_mtime  # noqa: PTH116
             entry = FileCacheMeta.FromString(entry_bytes)
         except (OSError, DecodeError):
@@ -143,8 +139,7 @@ class FileCache:
         path = lock.path
         temp_path = path.parent.joinpath(f'.{path.name}.tmp')
         with temp_path.open('wb', buffering=0) as f:
-            loop = get_running_loop()
-            await loop.run_in_executor(None, f.write, entry_bytes)
+            await to_thread(f.write, entry_bytes)
             mtime = stat(f.fileno()).st_mtime  # noqa: PTH116
         temp_path.replace(path)
 
@@ -173,8 +168,7 @@ class FileCache:
             key = path.name
 
             try:
-                loop = get_running_loop()
-                entry_bytes = await loop.run_in_executor(None, path.read_bytes)
+                entry_bytes = await to_thread(path.read_bytes)
                 entry = FileCacheMeta.FromString(entry_bytes)
             except (OSError, DecodeError):
                 logging.debug('Cache read error for %r', key)

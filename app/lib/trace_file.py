@@ -2,7 +2,7 @@ import logging
 import tarfile
 import zlib
 from abc import ABC, abstractmethod
-from asyncio import get_running_loop
+from asyncio import to_thread
 from bz2 import BZ2Decompressor
 from io import BytesIO
 from tarfile import TarError
@@ -78,9 +78,7 @@ class TraceFile:
     @staticmethod
     async def compress(buffer: bytes) -> _CompressResult:
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
-        loop = get_running_loop()
-        result = await loop.run_in_executor(
-            None,
+        result = await to_thread(
             ZstdCompressor(
                 level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
                 threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
