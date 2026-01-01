@@ -14,6 +14,7 @@
     "@std/assert": "npm:@jsr/std__assert",
     "@std/async": "npm:@jsr/std__async",
     "@std/cache": "npm:@jsr/std__cache",
+    "@std/collections": "npm:@jsr/std__collections",
     "@std/datetime": "npm:@jsr/std__datetime",
     "@std/encoding": "npm:@jsr/std__encoding",
     "@std/math": "npm:@jsr/std__math",

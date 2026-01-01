@@ -1,5 +1,6 @@
 import { useSignal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
+import { union } from "@std/collections/union"
 import { primaryLanguage } from "./config"
 import { getWikiData } from "./tags.macro" with { type: "macro" }
 
@@ -320,9 +321,9 @@ const computeDiffRows = (
 ): DiffRow[] => {
   const rows: DiffRow[] = []
   const deleted: DiffRow[] = []
-  const allKeys = [
-    ...new Set(Object.keys(tags).concat(Object.keys(tagsOld ?? {}))),
-  ].sort((a, b) => a.localeCompare(b))
+  const allKeys = union(Object.keys(tags), Object.keys(tagsOld ?? {})).sort((a, b) =>
+    a.localeCompare(b),
+  )
 
   for (const key of allKeys) {
     const value = tags[key]

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs"
+import { mapNotNullish } from "@std/collections/map-not-nullish"
 import { parse } from "@std/toml"
 
 interface LocaleName {
@@ -124,21 +125,19 @@ export function getLocaleOptions() {
     const passthroughSet = new Set(flags.passthrough.map((s) => s.toLowerCase()))
 
     // Filter to installed locales and build options
-    const options: { tuple: LocaleOption; sortKey: string }[] = []
-
-    for (const name of names) {
-        if (!(name.code in installedLocales)) continue
+    const options = mapNotNullish(names, (name) => {
+        if (!(name.code in installedLocales)) return null
 
         const native = name.native && name.native !== name.english ? name.native : null
         const flag = computeFlag(name.code, flagLookup, passthroughSet)
 
-        options.push({
+        return {
             tuple: flag
-                ? [name.code, name.english, native, flag]
-                : [name.code, name.english, native],
+                ? ([name.code, name.english, native, flag] as const)
+                : ([name.code, name.english, native] as const),
             sortKey: (native ?? name.english).toLowerCase(),
-        })
-    }
+        }
+    })
 
     // Sort by display name (case-insensitive)
     return options

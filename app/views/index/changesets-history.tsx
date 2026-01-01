@@ -50,6 +50,7 @@ import {
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
 import { throttle } from "@std/async/unstable-throttle"
+import { minBy } from "@std/collections/min-by"
 import { SECOND } from "@std/datetime/constants"
 import { t } from "i18next"
 import {
@@ -141,9 +142,7 @@ layersConfig.set(LAYER_ID, {
 const distanceOpacity = (distance: number) => Math.max(1 - distance * FADE_SPEED, 0)
 
 const pickSmallestBoundsFeature = (features: MapGeoJSONFeature[]) =>
-  features.reduce((a, b) =>
-    a.properties.boundsArea <= b.properties.boundsArea ? a : b,
-  )
+  minBy(features, (f) => f.properties.boundsArea)!
 
 const ChangesetsHistorySidebar = ({
   map,

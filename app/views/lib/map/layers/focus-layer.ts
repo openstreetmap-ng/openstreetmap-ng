@@ -1,5 +1,6 @@
 import type { OSMObject } from "@lib/types"
 import { assertExists } from "@std/assert"
+import { filterKeys } from "@std/collections/filter-keys"
 import type { Geometry } from "geojson"
 import {
     type GeoJSONSource,
@@ -85,22 +86,26 @@ export const focusObjects = (
             const validPrefixes = [`${type}-`]
             if (type === "symbol") validPrefixes.push("icon-", "text-")
 
+            const hasValidPrefix = (key: string) =>
+                validPrefixes.some((prefix) => key.startsWith(prefix))
+
             if (last) {
-                for (const k of Object.keys(last)) {
-                    if (
-                        validPrefixes.some((prefix) => k.startsWith(prefix)) &&
-                        !(current && k in current)
-                    ) {
+                const filteredLast = filterKeys(
+                    last as Record<string, unknown>,
+                    hasValidPrefix,
+                )
+                for (const k of Object.keys(filteredLast)) {
+                    if (!(current && k in current))
                         setter.call(map, extendedLayerId, k, null)
-                    }
                 }
             }
             if (current) {
-                for (const [k, v] of Object.entries(current)) {
-                    if (validPrefixes.some((prefix) => k.startsWith(prefix))) {
-                        setter.call(map, extendedLayerId, k, v)
-                    }
-                }
+                const filteredCurrent = filterKeys(
+                    current as Record<string, unknown>,
+                    hasValidPrefix,
+                )
+                for (const [k, v] of Object.entries(filteredCurrent))
+                    setter.call(map, extendedLayerId, k, v)
             }
         }
     }
