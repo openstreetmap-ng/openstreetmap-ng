@@ -124,7 +124,7 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
                   <button
                     type="button"
                     title={locale.title}
-                    aria-current={locale.isPrimary ? "true" : undefined}
+                    aria-current={locale.isPrimary}
                     onClick={() => setLanguage(locale.code)}
                   >
                     {locale.flag && <span class="flag">{locale.flag}</span>}

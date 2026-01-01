@@ -116,10 +116,9 @@ class DiaryQuery:
             try:
                 result = await NominatimQuery.reverse(diary['point'])  # pyright: ignore [reportArgumentType]
             except HTTPError:
-                pass
-            else:
-                if result is not None:
-                    diary['location_name'] = result.display_name
+                return
+            if result is not None:
+                diary['location_name'] = result.display_name
 
         async with TaskGroup() as tg:
             for d in diaries:

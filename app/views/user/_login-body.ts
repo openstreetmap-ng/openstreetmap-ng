@@ -126,7 +126,7 @@ if (loginForm) {
                 }
             })
 
-            input.addEventListener("focus", () => input.select())
+            input.addEventListener("focus", input.select)
 
             input.addEventListener("paste", (e: ClipboardEvent) => {
                 e.preventDefault()

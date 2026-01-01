@@ -87,20 +87,21 @@ mount("admin-user-edit-body", (body) => {
                         if (!confirm(message)) return ""
                     }
 
-                    if (newPasswordInput.value || newPasswordConfirmInput.value) {
-                        if (newPasswordInput.value !== newPasswordConfirmInput.value) {
-                            const msg = i18next.t("validation.passwords_missmatch")
-                            result.push({
-                                type: "error",
-                                loc: ["", "new_password"],
-                                msg,
-                            })
-                            result.push({
-                                type: "error",
-                                loc: ["", "new_password_confirm"],
-                                msg,
-                            })
-                        }
+                    if (
+                        (newPasswordInput.value || newPasswordConfirmInput.value) &&
+                        newPasswordInput.value !== newPasswordConfirmInput.value
+                    ) {
+                        const msg = i18next.t("validation.passwords_missmatch")
+                        result.push({
+                            type: "error",
+                            loc: ["", "new_password"],
+                            msg,
+                        })
+                        result.push({
+                            type: "error",
+                            loc: ["", "new_password_confirm"],
+                            msg,
+                        })
                     }
 
                     return result

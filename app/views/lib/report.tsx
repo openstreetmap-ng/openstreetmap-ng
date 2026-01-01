@@ -76,7 +76,6 @@ const ReportModal = () => {
 
   return (
     <div
-      id="reportModal"
       class="modal fade"
       tabIndex={-1}
       aria-hidden="true"

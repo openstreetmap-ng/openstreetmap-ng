@@ -19,7 +19,7 @@ export const configureCopyGroups = (root: ParentNode) => {
         }
 
         // On copy group input focus, select all text
-        input?.addEventListener("focus", () => input.select())
+        input?.addEventListener("focus", input.select)
 
         // On copy group button click, copy input and change tooltip text
         button.addEventListener("click", async () => {

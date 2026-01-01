@@ -32,7 +32,7 @@ const getCurrentPath = () =>
 export const makeRoute = (pattern: string, controller: IndexController): Route => {
     const re = new RegExp(`^${pattern}(?:$|\\?)`)
     return {
-        match: (path) => re.test(path),
+        match: re.test.bind(re),
         load: (path, reason) => controller.load(re.exec(path)!.groups ?? {}, reason),
         unload: controller.unload,
     }

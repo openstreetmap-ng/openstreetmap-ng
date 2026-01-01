@@ -45,14 +45,12 @@ if (imageProxies.length) {
         const markError = () => img.remove()
 
         if (img.complete) {
-            if (img.naturalWidth) {
-                markLoaded()
-            } else {
-                markError()
-            }
-        } else {
-            img.addEventListener("load", markLoaded, { once: true })
-            img.addEventListener("error", markError, { once: true })
+            if (img.naturalWidth) markLoaded()
+            else markError()
+            continue
         }
+
+        img.addEventListener("load", markLoaded, { once: true })
+        img.addEventListener("error", markError, { once: true })
     }
 }
