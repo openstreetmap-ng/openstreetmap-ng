@@ -23,7 +23,7 @@ import { getSearchParam, updateSearchParams } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
 import {
   batch,
-  type Signal,
+  type ReadonlySignal,
   signal,
   useComputed,
   useSignal,
@@ -88,7 +88,7 @@ const DistanceSidebar = ({
   map: MaplibreMap
   mapContainer: HTMLElement
   source: GeoJSONSource
-  active: Signal<boolean>
+  active: ReadonlySignal<boolean>
   sidebar: HTMLElement
 }) => {
   const unit = useSignal<DistanceUnit>(isMetricUnit() ? "metric" : "imperial")
@@ -548,11 +548,7 @@ const DistanceSidebar = ({
   }
 
   useSignalEffect(() => {
-    if (!active.value) {
-      removeMapLayer(map, LAYER_ID)
-      resetState()
-      return
-    }
+    if (!active.value) return
 
     switchActionSidebar(map, sidebar)
     setPageTitle(t("javascripts.directions.distance"))
@@ -619,6 +615,9 @@ const DistanceSidebar = ({
       map.off("click", onMapClick)
       map.off("mousemove", updateGhostMarkerPosition)
       map.off("mouseenter", LAYER_ID, onLineMouseEnter)
+
+      removeMapLayer(map, LAYER_ID)
+      resetState()
     }
   })
 
