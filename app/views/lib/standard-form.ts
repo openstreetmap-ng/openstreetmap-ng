@@ -169,18 +169,16 @@ export const configureStandardForm = <T = any>(
                 formBody.append(feedback)
 
                 // Keep latest content visible if user was at bottom
-                if (wasAtBottom) {
-                    if (scrollWindow) {
-                        window.scrollTo({
-                            top: document.body.scrollHeight,
-                            behavior: "smooth",
-                        })
-                    } else {
-                        scrollContainer.scrollTo({
-                            top: scrollContainer.scrollHeight,
-                            behavior: "smooth",
-                        })
-                    }
+                if (wasAtBottom && scrollWindow) {
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: "smooth",
+                    })
+                } else if (wasAtBottom) {
+                    scrollContainer.scrollTo({
+                        top: scrollContainer.scrollHeight,
+                        behavior: "smooth",
+                    })
                 }
             } else {
                 formBody.prepend(feedback)
@@ -246,9 +244,10 @@ export const configureStandardForm = <T = any>(
                         setPendingState(false)
                         form.requestSubmit()
                     }
-                } else {
-                    handleFormFeedback(type, msg, input)
+                    continue
                 }
+
+                handleFormFeedback(type, msg, input)
                 continue
             }
 

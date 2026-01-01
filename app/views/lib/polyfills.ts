@@ -22,7 +22,7 @@ export const requestIdleCallbackPolyfill: (
         ))
 
 export const cancelIdleCallbackPolyfill: (handle: number) => void =
-    window.cancelIdleCallback || ((handle) => window.clearTimeout(handle))
+    window.cancelIdleCallback || window.clearTimeout
 
 /** Wrap a low-priority function to execute during idle time */
 export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(

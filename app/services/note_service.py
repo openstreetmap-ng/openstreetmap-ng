@@ -143,9 +143,9 @@ class NoteService:
                 if note['hidden_at'] is not None:
                     update.append(SQL('hidden_at = NULL'))
                 # Reopen
+                elif note['closed_at'] is None:
+                    raise_for.note_open(note_id)
                 else:
-                    if note['closed_at'] is None:
-                        raise_for.note_open(note_id)
                     update.append(SQL('closed_at = NULL'))
                     send_activity_email = True
 

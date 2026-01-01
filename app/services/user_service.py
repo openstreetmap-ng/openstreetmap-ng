@@ -54,15 +54,7 @@ class UserService:
         bypass_2fa: bool = False,
     ) -> SecretStr | LoginResponse:
         """Attempt to login as a user. Returns access_token or LoginResponse for 2FA."""
-        if passkey is not None:
-            # Mode 1 (passwordless): No credentials → require UV (PIN/biometric)
-            # Mode 2 (2FA): Credentials provided → password already verified identity
-            is_passwordless = display_name_or_email is None
-            result = await _login_with_passkey(passkey, require_uv=is_passwordless)
-            if isinstance(result, LoginResponse):
-                return result
-            user_id = result
-        else:
+        if passkey is None:
             if display_name_or_email is None or password is None:
                 StandardFeedback.raise_error(
                     None, t('users.auth_failure.invalid_credentials')
@@ -74,12 +66,17 @@ class UserService:
                 recovery_code=recovery_code,
                 bypass_2fa=bypass_2fa,
             )
-            if isinstance(result, LoginResponse):
-                return result
-            user_id = result
+        else:
+            # Mode 1 (passwordless): No credentials → require UV (PIN/biometric)
+            # Mode 2 (2FA): Credentials provided → password already verified identity
+            is_passwordless = display_name_or_email is None
+            result = await _login_with_passkey(passkey, require_uv=is_passwordless)
+
+        if isinstance(result, LoginResponse):
+            return result
 
         access_token = await SystemAppService.create_access_token(
-            SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
+            SYSTEM_APP_WEB_CLIENT_ID, user_id=result
         )
 
         # probabilistic cleanup of expired user tokens
@@ -98,7 +95,7 @@ class UserService:
 
         await audit(
             'auth_web',
-            user_id=user_id,
+            user_id=result,
             oauth2=(access_token.app_id, access_token.token_id),
             extra=extra,
             sample_rate=1,
