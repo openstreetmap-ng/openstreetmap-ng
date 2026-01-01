@@ -1,11 +1,12 @@
 import { routerNavigateStrict } from "@index/router"
+import { effect, signal } from "@preact/signals"
 import { Tooltip } from "bootstrap"
 import i18next from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 export const NEW_NOTE_MIN_ZOOM = 12
 
-const newNoteContainers: HTMLDivElement[] = []
+export const newNoteControlActive = signal(false)
 
 export class NewNoteControl implements IControl {
     public _container!: HTMLElement
@@ -26,9 +27,14 @@ export class NewNoteControl implements IControl {
         button.appendChild(icon)
         container.appendChild(button)
 
-        new Tooltip(button, {
+        const tooltip = new Tooltip(button, {
             title: buttonText,
             placement: "left",
+        })
+
+        // Effect: Update button active state
+        effect(() => {
+            button.classList.toggle("active", newNoteControlActive.value)
         })
 
         // On button click, navigate to the new note page
@@ -44,20 +50,20 @@ export class NewNoteControl implements IControl {
 
         /** On map zoom, change button availability */
         const updateState = () => {
-            const zoom = map.getZoom()
-            if (zoom < NEW_NOTE_MIN_ZOOM) {
-                if (!button.disabled) {
-                    button.blur()
-                    button.disabled = true
-                    Tooltip.getInstance(button)!.setContent({
-                        ".tooltip-inner": i18next.t(
-                            "javascripts.site.createnote_disabled_tooltip",
-                        ),
-                    })
-                }
-            } else if (button.disabled) {
+            const shouldDisable = map.getZoom() < NEW_NOTE_MIN_ZOOM
+            if (shouldDisable === button.disabled) return
+
+            if (shouldDisable) {
+                button.blur()
+                button.disabled = true
+                tooltip.setContent({
+                    ".tooltip-inner": i18next.t(
+                        "javascripts.site.createnote_disabled_tooltip",
+                    ),
+                })
+            } else {
                 button.disabled = false
-                Tooltip.getInstance(button)!.setContent({
+                tooltip.setContent({
                     ".tooltip-inner": i18next.t("javascripts.site.createnote_tooltip"),
                 })
             }
@@ -67,26 +73,11 @@ export class NewNoteControl implements IControl {
         map.on("zoomend", updateState)
         // Initial update to set button states
         updateState()
-        newNoteContainers.push(container)
         this._container = container
         return container
     }
 
     public onRemove() {
         // Not implemented
-    }
-}
-
-/** Set availability of the new note button */
-export const setNewNoteButtonState = (active: boolean) => {
-    console.debug(
-        "NewNote: Setting button state",
-        active,
-        newNoteContainers.length,
-        "containers",
-    )
-    for (const container of newNoteContainers) {
-        const button = container.querySelector(".control-btn")!
-        button.classList.toggle("active", active)
     }
 }
