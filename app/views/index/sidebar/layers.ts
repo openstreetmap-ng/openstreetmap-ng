@@ -176,30 +176,10 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 ["data", MAP_QUERY_AREA_MAX_SIZE],
             ] as [LayerId, number][]) {
                 const checkbox = layerIdOverlayCheckboxMap.get(layerId)!
-                const isAvailable = currentViewAreaSize <= areaMaxSize
-                if (isAvailable) {
-                    if (checkbox.disabled) {
-                        checkbox.disabled = false
+                const shouldDisable = currentViewAreaSize > areaMaxSize
+                if (shouldDisable === checkbox.disabled) continue
 
-                        const parent = checkbox.closest<HTMLElement>(".form-check")!
-                        parent.classList.remove("disabled")
-                        parent.ariaDisabled = null
-                        const tooltip = Tooltip.getInstance(parent)!
-                        tooltip.disable()
-                        tooltip.hide()
-
-                        // Restore the overlay state if it was checked before
-                        if (checkbox.dataset.wasChecked) {
-                            console.debug(
-                                "LayersSidebar: Restoring overlay state",
-                                layerId,
-                            )
-                            checkbox.dataset.wasChecked = undefined
-                            checkbox.checked = true
-                            checkbox.dispatchEvent(new Event("change"))
-                        }
-                    }
-                } else if (!checkbox.disabled) {
+                if (shouldDisable) {
                     checkbox.blur()
                     checkbox.disabled = true
 
@@ -216,6 +196,23 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                         console.debug("LayersSidebar: Forcing unchecked state", layerId)
                         checkbox.dataset.wasChecked = "true"
                         checkbox.checked = false
+                        checkbox.dispatchEvent(new Event("change"))
+                    }
+                } else {
+                    checkbox.disabled = false
+
+                    const parent = checkbox.closest<HTMLElement>(".form-check")!
+                    parent.classList.remove("disabled")
+                    parent.ariaDisabled = null
+                    const tooltip = Tooltip.getInstance(parent)!
+                    tooltip.disable()
+                    tooltip.hide()
+
+                    // Restore the overlay state if it was checked before
+                    if (checkbox.dataset.wasChecked) {
+                        console.debug("LayersSidebar: Restoring overlay state", layerId)
+                        checkbox.dataset.wasChecked = undefined
+                        checkbox.checked = true
                         checkbox.dispatchEvent(new Event("change"))
                     }
                 }

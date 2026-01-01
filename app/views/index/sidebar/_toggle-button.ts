@@ -7,6 +7,7 @@ const sidebarToggleContainers: HTMLElement[] = []
 
 export class SidebarToggleControl implements IControl {
     protected sidebar!: HTMLElement
+    protected tooltip!: Tooltip
     private readonly _className: string
     private readonly _tooltipTitle: string
 
@@ -38,7 +39,7 @@ export class SidebarToggleControl implements IControl {
         container.appendChild(button)
 
         // noinspection ObjectAllocationIgnored
-        new Tooltip(button, {
+        this.tooltip = new Tooltip(button, {
             title: buttonText,
             placement: "left",
         })

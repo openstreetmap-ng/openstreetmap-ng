@@ -54,19 +54,19 @@ export class QueryFeaturesControl implements IControl {
 
         /** On map zoom, change button availability */
         const updateState = () => {
-            const zoom = map.getZoom()
-            if (zoom < QUERY_FEATURES_MIN_ZOOM) {
-                if (!button.disabled) {
-                    if (button.classList.contains("active")) button.click()
-                    button.blur()
-                    button.disabled = true
-                    Tooltip.getInstance(button)!.setContent({
-                        ".tooltip-inner": i18next.t(
-                            "javascripts.site.queryfeature_disabled_tooltip",
-                        ),
-                    })
-                }
-            } else if (button.disabled) {
+            const shouldDisable = map.getZoom() < QUERY_FEATURES_MIN_ZOOM
+            if (shouldDisable === button.disabled) return
+
+            if (shouldDisable) {
+                if (button.classList.contains("active")) button.click()
+                button.blur()
+                button.disabled = true
+                Tooltip.getInstance(button)!.setContent({
+                    ".tooltip-inner": i18next.t(
+                        "javascripts.site.queryfeature_disabled_tooltip",
+                    ),
+                })
+            } else {
                 button.disabled = false
                 Tooltip.getInstance(button)!.setContent({
                     ".tooltip-inner": i18next.t(
