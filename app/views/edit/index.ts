@@ -3,10 +3,42 @@ import { qsEncode, qsParse } from "@lib/qs"
 import { configureIFrameSystemApp } from "@lib/system-app"
 import { NON_DIGIT_RE } from "@lib/utils"
 
-const iframe = document.querySelector("iframe.id-iframe")
-if (iframe) {
-    const hashParams = qsParse(window.location.hash)
+import { filterValues } from "@std/collections/filter-values"
+import { pick } from "@std/collections/pick"
+
+const PASSTHROUGH_PARAMS = [
+    "background",
+    "comment",
+    "disable_features",
+    "hashtags",
+    "locale",
+    "maprules",
+    "offset",
+    "photo",
+    "photo_dates",
+    "photo_overlay",
+    "photo_username",
+    "presets",
+    "source",
+    "validationDisable",
+    "validationWarning",
+    "validationError",
+    "walkthrough",
+] as const
+
+const initEmbeddedEditor = ({
+    iframe,
+    editorPath,
+    clientId,
+    logPrefix,
+}: {
+    iframe: HTMLIFrameElement
+    editorPath: string
+    clientId: "SystemApp.id" | "SystemApp.rapid"
+    logPrefix: string
+}) => {
     const searchParams = qsParse(window.location.search)
+    const hashParams = qsParse(window.location.hash)
     let { lon, lat, zoom } = getInitialMapState()
     const params: Record<string, string | undefined> = {}
 
@@ -19,7 +51,7 @@ if (iframe) {
     params.map = `${zoom}/${lat}/${lon}`
 
     // Optional object to select
-    for (const type of ["node", "way", "relation", "note"]) {
+    for (const type of ["node", "way", "relation", "note"] as const) {
         const idStr = searchParams[type]
         if (!idStr) continue
 
@@ -46,34 +78,31 @@ if (iframe) {
     }
 
     // Passthrough some hash parameters
-    for (const param of [
-        "background",
-        "comment",
-        "disable_features",
-        "hashtags",
-        "locale",
-        "maprules",
-        "offset",
-        "photo",
-        "photo_dates",
-        "photo_overlay",
-        "photo_username",
-        "presets",
-        "source",
-        "validationDisable",
-        "validationWarning",
-        "validationError",
-        "walkthrough",
-    ]) {
-        const value = hashParams[param]
-        if (value) params[param] = value
-    }
+    Object.assign(params, filterValues(pick(hashParams, PASSTHROUGH_PARAMS), Boolean))
 
-    const src = `${iframe.dataset.url}/id${qsEncode(params, "#")}`
+    const src = `${iframe.dataset.url}/${editorPath}${qsEncode(params, "#")}`
     const iframeOrigin = new URL(src).origin
-    configureIFrameSystemApp("SystemApp.id", iframe, iframeOrigin)
+    configureIFrameSystemApp(clientId, iframe, iframeOrigin)
 
     // Initialize iframe
-    console.debug("IDEditor: Initializing iframe", src)
+    console.debug(`${logPrefix}: Initializing iframe`, src)
     iframe.src = src
 }
+
+const idIframe = document.querySelector("iframe.id-iframe")
+if (idIframe)
+    initEmbeddedEditor({
+        iframe: idIframe,
+        editorPath: "id",
+        clientId: "SystemApp.id",
+        logPrefix: "IDEditor",
+    })
+
+const rapidIframe = document.querySelector("iframe.rapid-iframe")
+if (rapidIframe)
+    initEmbeddedEditor({
+        iframe: rapidIframe,
+        editorPath: "rapid",
+        clientId: "SystemApp.rapid",
+        logPrefix: "RapidEditor",
+    })
