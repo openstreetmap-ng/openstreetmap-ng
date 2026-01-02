@@ -383,10 +383,7 @@ const NoteSidebar = ({
   // Effect: Map focus
   useSignalEffect(() => {
     const d = data.value
-    if (!d) {
-      focusObjects(map)
-      return
-    }
+    if (!d) return
 
     loadMapImage(map, NOTE_STATUS_MARKERS[d.status])
     focusObjects(

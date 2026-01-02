@@ -382,10 +382,7 @@ const ChangesetSidebar = ({
 
   // Effect: Map focus
   useSignalEffect(() => {
-    if (!data.value?.bounds.length) {
-      focusObjects(map)
-      return
-    }
+    if (!data.value?.bounds.length) return
 
     const onZoom = () => refocus()
     map.on("zoomend", onZoom)
