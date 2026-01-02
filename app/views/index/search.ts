@@ -28,7 +28,7 @@ import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMObject } from "@lib/types"
 import { memoize } from "@std/cache/memoize"
 import type { Feature } from "geojson"
-import i18next from "i18next"
+import { t } from "i18next"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 
 const LAYER_ID = "search" as LayerId
@@ -86,8 +86,8 @@ export const getSearchController = (map: MaplibreMap) => {
     const source = map.getSource<GeoJSONSource>(LAYER_ID)!
     const searchForm = document.querySelector("form.search-form")!
     const searchAlert = getMapAlert("search-alert")
-    const searchTitle = i18next.t("site.search.search")
-    const whereIsThisTitle = i18next.t("site.search.where_am_i")
+    const searchTitle = t("site.search.search")
+    const whereIsThisTitle = t("site.search.where_am_i")
 
     let results: NodeListOf<HTMLLIElement> | null = null
     let setHover: ((id: number, hover: boolean) => void) | null = null

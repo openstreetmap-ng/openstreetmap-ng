@@ -1,7 +1,7 @@
 import { routerNavigateStrict } from "@index/router"
 import { effect, signal } from "@preact/signals"
 import { Tooltip } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 export const NEW_NOTE_MIN_ZOOM = 12
@@ -16,7 +16,7 @@ export class NewNoteControl implements IControl {
         container.className = "maplibregl-ctrl maplibregl-ctrl-group new-note"
 
         // Create a button and a tooltip
-        const buttonText = i18next.t("javascripts.site.createnote_tooltip")
+        const buttonText = t("javascripts.site.createnote_tooltip")
         const button = document.createElement("button")
         button.type = "button"
         button.className = "control-btn"
@@ -57,14 +57,12 @@ export class NewNoteControl implements IControl {
                 button.blur()
                 button.disabled = true
                 tooltip.setContent({
-                    ".tooltip-inner": i18next.t(
-                        "javascripts.site.createnote_disabled_tooltip",
-                    ),
+                    ".tooltip-inner": t("javascripts.site.createnote_disabled_tooltip"),
                 })
             } else {
                 button.disabled = false
                 tooltip.setContent({
-                    ".tooltip-inner": i18next.t("javascripts.site.createnote_tooltip"),
+                    ".tooltip-inner": t("javascripts.site.createnote_tooltip"),
                 })
             }
         }

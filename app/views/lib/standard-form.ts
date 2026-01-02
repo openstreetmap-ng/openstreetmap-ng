@@ -9,7 +9,7 @@ import {
 import { batch } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { Alert } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 
 export interface APIDetail {
     type: "success" | "info" | "error"
@@ -140,7 +140,7 @@ export const configureStandardForm = <T = any>(
             const closeButton = document.createElement("button")
             closeButton.type = "button"
             closeButton.classList.add("btn-close")
-            closeButton.ariaLabel = i18next.t("javascripts.close")
+            closeButton.ariaLabel = t("javascripts.close")
             closeButton.dataset.bsDismiss = "alert"
             feedback.append(closeButton)
             feedbackAlert = new Alert(feedback)

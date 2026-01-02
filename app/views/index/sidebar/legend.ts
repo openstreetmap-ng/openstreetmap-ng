@@ -1,7 +1,7 @@
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { addLayerEventHandler, type LayerId } from "@lib/map/layers/layers"
 import { getMapBaseLayerId } from "@lib/map/state"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 /**
@@ -136,7 +136,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                     img.draggable = false
                     img.loading = "lazy"
                     img.src = `/static/img/legend/${layerId}/${icon}.webp`
-                    tr.insertCell().textContent = i18next.t(
+                    tr.insertCell().textContent = t(
                         `site.key.table.entry.${translationKey}`,
                     )
 
@@ -169,7 +169,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                 if (button.disabled) {
                     button.disabled = false
                     this.tooltip.setContent({
-                        ".tooltip-inner": i18next.t("javascripts.key.tooltip"),
+                        ".tooltip-inner": t("javascripts.key.tooltip"),
                     })
                 }
                 updateSidebar()
@@ -180,7 +180,7 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
                 button.blur()
                 button.disabled = true
                 this.tooltip.setContent({
-                    ".tooltip-inner": i18next.t("javascripts.key.tooltip_disabled"),
+                    ".tooltip-inner": t("javascripts.key.tooltip_disabled"),
                 })
             }
 

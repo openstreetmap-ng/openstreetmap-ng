@@ -4,7 +4,7 @@ import { configureStandardForm } from "@lib/standard-form"
 import { configureStandardPagination } from "@lib/standard-pagination"
 import { delay } from "@std/async/delay"
 import { Offcanvas } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {
@@ -73,7 +73,7 @@ mount("diary-index-body", (body) => {
             badge.className = `badge ms-1 px-1-5 ${
                 numComments ? "text-bg-green" : "text-bg-light"
             }`
-            badge.title = i18next.t("diary.number_of_comments")
+            badge.title = t("diary.number_of_comments")
             badge.textContent = badgeText
 
             a.appendChild(spanTitle)

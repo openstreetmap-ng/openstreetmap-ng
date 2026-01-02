@@ -1,6 +1,6 @@
 import { assertExists } from "@std/assert"
 import { Tooltip } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
 const sidebarToggleContainers: HTMLElement[] = []
@@ -27,7 +27,7 @@ export class SidebarToggleControl implements IControl {
         container.className = `maplibregl-ctrl maplibregl-ctrl-group ${this._className}`
 
         // Create button and tooltip
-        const buttonText = i18next.t(this._tooltipTitle)
+        const buttonText = t(this._tooltipTitle)
         const button = document.createElement("button")
         button.type = "button"
         button.className = "control-btn"

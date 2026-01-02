@@ -13,7 +13,7 @@ import { shortLinkEncode } from "@lib/shortlink"
 import { timezoneBoundsMap } from "@lib/timezone-bbox"
 import type { Bounds } from "@lib/types"
 import { modulo } from "@std/math/modulo"
-import i18next from "i18next"
+import { t } from "i18next"
 import {
     type EaseToOptions,
     type LngLat,
@@ -438,7 +438,7 @@ export const getMapEmbedHtml = (
     const small = document.createElement("small")
     const link = document.createElement("a")
     link.href = getMapUrl(map, Boolean(markerLngLat))
-    link.textContent = i18next.t("javascripts.share.view_larger_map")
+    link.textContent = t("javascripts.share.view_larger_map")
     small.appendChild(link)
     container.appendChild(small)
 

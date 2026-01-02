@@ -2,7 +2,7 @@ import { URLSAFE_BLACKLIST, URLSAFE_BLACKLIST_RE } from "@lib/config"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
-import i18next from "i18next"
+import { t } from "i18next"
 
 mount("settings-body", (body) => {
     const settingsForm = body.querySelector("form.settings-form")!
@@ -31,7 +31,7 @@ mount("settings-body", (body) => {
                 const result: APIDetail[] = []
 
                 if (URLSAFE_BLACKLIST_RE.test(displayNameInput.value)) {
-                    const msg = i18next.t("validations.url_characters", {
+                    const msg = t("validations.url_characters", {
                         characters: URLSAFE_BLACKLIST,
                         interpolation: { escapeValue: false },
                     })

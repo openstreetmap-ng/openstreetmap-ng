@@ -14,7 +14,7 @@ import {
 import { qsParse } from "@lib/qs"
 import { assertExists } from "@std/assert"
 import { format as formatDate } from "@std/datetime/format"
-import i18next from "i18next"
+import { t } from "i18next"
 import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
@@ -110,7 +110,7 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
             const originalInner = exportSubmitButton.innerHTML
             exportSubmitButton.disabled = true
-            exportSubmitButton.textContent = i18next.t("state.preparing")
+            exportSubmitButton.textContent = t("state.preparing")
 
             try {
                 // Get export params from the form

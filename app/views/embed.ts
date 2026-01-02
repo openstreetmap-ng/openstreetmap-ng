@@ -13,7 +13,7 @@ import {
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
-import i18next from "i18next"
+import { t } from "i18next"
 import {
     AttributionControl,
     Map as MaplibreMap,
@@ -85,7 +85,7 @@ const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom) => {
 
 const reportProblemLink = document.createElement("a")
 reportProblemLink.target = "_blank"
-reportProblemLink.textContent = i18next.t("javascripts.embed.report_problem")
+reportProblemLink.textContent = t("javascripts.embed.report_problem")
 
 /** On move end, update the link with the current coordinates */
 const onMoveEnd = () => {
