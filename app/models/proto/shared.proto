@@ -490,9 +490,18 @@ message ChangesetCommentResult {
     ChangesetCommentPage comments = 2; // Initial page of comments
 }
 
-// Partial query features response params
-message PartialQueryFeaturesParams {
-    repeated RenderElementsData renders = 1; // Visual representation data
+// Query features nearby response
+message QueryFeaturesNearbyData {
+    message Result {
+        ElementType type = 1; // Element type
+        uint64 id = 2; // OSM ID
+        string prefix = 3; // Feature prefix text
+        optional string display_name = 4; // Display name
+        optional ElementIcon icon = 5; // Feature icon
+        RenderElementsData render = 6; // Visual representation data
+    }
+
+    repeated Result results = 1; // Nearby features results
 }
 
 // Partial search response params
