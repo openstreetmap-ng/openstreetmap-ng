@@ -28,13 +28,69 @@ type SidebarFetchResult<T> = {
   refresh: () => void
 }
 
+const SidebarOverlaySpinner = () => (
+  <output
+    class="spinner-border text-body-secondary"
+    aria-live="polite"
+  >
+    <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
+  </output>
+)
+
+export const SidebarResourceBody = <T extends object>({
+  resource,
+  notFound,
+  children,
+}: {
+  resource: ReadonlySignal<SidebarResource<T>>
+  notFound?: () => ComponentChildren
+  children: (data: T) => ComponentChildren
+}) => {
+  const r = resource.value
+
+  switch (r.tag) {
+    case "idle":
+      return null
+    case "loading":
+      return r.prev ? (
+        <div aria-busy="true">
+          <div class="sidebar-loading-overlay">
+            <div class="sidebar-loading-overlay-inner">
+              <SidebarOverlaySpinner />
+            </div>
+          </div>
+          <div class="opacity-50">{children(r.prev)}</div>
+        </div>
+      ) : (
+        <LoadingSpinner />
+      )
+    case "ready":
+      return (
+        <div>
+          <div></div>
+          <div>{children(r.data)}</div>
+        </div>
+      )
+    case "error":
+      return (
+        <div
+          class="alert alert-danger"
+          role="alert"
+        >
+          {r.error}
+        </div>
+      )
+    case "not-found":
+      return notFound?.()
+  }
+}
+
 /**
  * Hook for fetching sidebar data with unified state management.
  * Handles AbortController lifecycle, 404 detection, and protobuf decoding.
  *
  * @param url - Signal containing the URL to fetch, or null to reset to idle
  * @param schema - Protobuf schema for decoding the response
- * @param options - Optional callbacks (onSuccess)
  * @returns Object with resource signal and refresh function
  */
 export const useSidebarFetch = <T extends object>(
@@ -134,42 +190,29 @@ export const SidebarContent = <T extends object>({
   notFound: () => string
   children: (data: T) => ComponentChildren
 }) => {
-  const r = resource.value
-
   return (
-    <div class={`sidebar-content ${r.tag === "loading" && r.prev ? "opacity-50" : ""}`}>
-      {(() => {
-        switch (r.tag) {
-          case "idle":
-            return null
-          case "loading":
-            return r.prev ? children(r.prev) : <LoadingSpinner />
-          case "ready":
-            return children(r.data)
-          case "error":
-            return (
-              <div
-                class="alert alert-danger"
-                role="alert"
-              >
-                {r.error}
-              </div>
-            )
-          case "not-found":
-            return (
-              <div class="section">
-                <SidebarHeader title={t("browse.not_found.title")} />
-                <p>{notFound()}</p>
-              </div>
-            )
-        }
-      })()}
+    <div class="sidebar-content">
+      <SidebarResourceBody
+        resource={resource}
+        notFound={() => (
+          <div class="section">
+            <SidebarHeader title={t("browse.not_found.title")} />
+            <p>{notFound()}</p>
+          </div>
+        )}
+      >
+        {children}
+      </SidebarResourceBody>
     </div>
   )
 }
 
 export const LoadingSpinner = () => (
-  <div class="text-center mt-4">
+  <div
+    class="text-center mt-4"
+    aria-live="polite"
+    aria-busy="true"
+  >
     <output class="spinner-border text-body-secondary">
       <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
     </output>

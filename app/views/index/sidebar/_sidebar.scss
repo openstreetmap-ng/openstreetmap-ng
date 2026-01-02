@@ -55,6 +55,20 @@
     inset: 0;
 }
 
+.sidebar-loading-overlay {
+    position: sticky;
+    top: 50%;
+    height: 0;
+    pointer-events: none;
+    z-index: 1;
+    text-align: center;
+}
+
+.sidebar-loading-overlay-inner {
+    display: inline-block;
+    transform: translateY(-50%);
+}
+
 // Style the map sidebar (right)
 .map-sidebar {
     position: relative;
