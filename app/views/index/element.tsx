@@ -126,7 +126,7 @@ type ElementLocationData = NonNullable<ElementData["location"]>
 export const getElementTypeSlug = (type: ElementType) =>
   ElementType[type] as ElementTypeSlug
 
-export const parseElementType = (value: string | null): ElementType | null => {
+export const parseElementType = (value: string | null) => {
   if (value === "node") return ElementType.node
   if (value === "way") return ElementType.way
   if (value === "relation") return ElementType.relation
@@ -158,13 +158,13 @@ const ElementHeader = ({ data }: { data: ElementData }) => {
       <h2>
         {data.icon && (
           <img
-            class="sidebar-title-icon"
+            class="sidebar-title-icon me-2"
             src={`/static/img/element/${data.icon.icon}`}
             title={data.icon.title}
             aria-hidden="true"
           />
         )}
-        <span class="sidebar-title">
+        <span class="sidebar-title me-1-5">
           {typeLabel}:{" "}
           {data.name ? (
             <>
