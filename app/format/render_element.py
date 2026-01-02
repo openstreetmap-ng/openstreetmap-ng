@@ -1,16 +1,12 @@
 import cython
 from polyline_rs import encode_lonlat
-from shapely import Point, get_coordinates, prepare
+from shapely import Point, get_coordinates
 from shapely.geometry.base import BaseGeometry
 
 from app.lib.elements_filter import ElementsFilter
 from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
-from app.models.element import (
-    TYPED_ELEMENT_ID_WAY_MAX,
-    TYPED_ELEMENT_ID_WAY_MIN,
-    TypedElementId,
-)
+from app.models.element import TypedElementId
 from app.models.proto.shared_pb2 import RenderElementsData
 from speedup import element_id, element_type, split_typed_element_id
 
@@ -49,18 +45,11 @@ class RenderElementMixin:
     @staticmethod
     def encode_query_features(
         results: list[QueryFeatureResult],
-        *,
-        search_area: BaseGeometry | None = None,
     ) -> list[RenderElementsData]:
         """Format query features results into a minimal structure, suitable for map rendering."""
-        if search_area is not None:
-            prepare(search_area)
         encoded: list[RenderElementsData] = []
 
         for result in results:
-            if _skip_non_area_polygon(result, search_area):
-                continue
-
             type, id = split_typed_element_id(result.element['typed_id'])
             sequences = _geometry_to_sequences(result.geometry)
 
@@ -197,23 +186,6 @@ def _geometry_to_sequences(geometry: BaseGeometry) -> list[list[list[float]]]:
         return result
 
     raise NotImplementedError(f'Unsupported geometry type {gtype!r}')
-
-
-@cython.cfunc
-def _skip_non_area_polygon(
-    result: QueryFeatureResult,
-    search_area: BaseGeometry | None,
-) -> cython.bint:
-    return (
-        search_area is not None
-        and (
-            TYPED_ELEMENT_ID_WAY_MIN
-            <= result.element['typed_id']
-            <= TYPED_ELEMENT_ID_WAY_MAX
-        )
-        and not _has_area_tag(result.element.get('tags'))
-        and search_area.disjoint(result.geometry)
-    )
 
 
 @cython.cfunc
