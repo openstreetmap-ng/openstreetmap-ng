@@ -299,6 +299,13 @@ message RoutingResult {
 // UI Element Metadata
 // =============================================
 
+// OSM element type
+enum ElementType {
+    node = 0;
+    way = 1;
+    relation = 2;
+}
+
 // Icon with tooltip for map elements
 message ElementIcon {
     string icon = 1; // Icon URL
@@ -318,12 +325,6 @@ message UserActivityChart {
 
 // Partial element response params
 message PartialElementParams {
-    enum ElementType {
-        node = 0;
-        way = 1;
-        relation = 2;
-    }
-
     // Hierarchical element relationship entry
     message Entry {
         ElementType type = 1; // Element type
@@ -359,7 +360,7 @@ message ElementData {
         float lat = 2; // Latitude
     }
 
-    PartialElementParams.ElementType type = 1; // Element type
+    ElementType type = 1; // Element type
     uint64 id = 2; // Object ID
     uint64 version = 3; // Object version
     bool visible = 4; // Whether element is visible

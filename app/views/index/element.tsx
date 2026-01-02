@@ -14,7 +14,7 @@ import {
   ElementDataSchema,
   type PartialElementParams_Entry as ElementEntry,
   type ElementIcon,
-  PartialElementParams_ElementType as ElementType,
+  ElementType,
 } from "@lib/proto/shared_pb"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"

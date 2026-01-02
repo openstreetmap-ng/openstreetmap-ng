@@ -19,7 +19,7 @@ import {
   type ChangesetData,
   ChangesetDataSchema,
   type ChangesetData_Element as Element,
-  PartialElementParams_ElementType as ElementType,
+  ElementType,
 } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
