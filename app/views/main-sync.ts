@@ -3,9 +3,9 @@
 // Also, don't use imports to avoid unnecessary polyfills.
 const appTheme = JSON.parse(localStorage.getItem("theme") ?? '"auto"')
 const activeTheme =
-    appTheme === "auto"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light"
-        : appTheme
+  appTheme === "auto"
+    ? window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light"
+    : appTheme
 document.documentElement.dataset.bsTheme = activeTheme

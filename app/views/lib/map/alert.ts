@@ -1,2 +1,2 @@
 export const getMapAlert = (name: string) =>
-    document.querySelector<HTMLElement>(`.map-alert.${name}`)!
+  document.querySelector<HTMLElement>(`.map-alert.${name}`)!

@@ -5,59 +5,59 @@ import { Collapse } from "bootstrap"
 import { t } from "i18next"
 
 mount("signup-body", (body) => {
-    const signupForm = body.querySelector("form.signup-form")!
-    const displayNameInput = signupForm.querySelector("input[name=display_name]")!
-    const passwordInput = signupForm.querySelector(
-        "input[type=password][data-name=password]",
-    )!
-    const passwordConfirmInput = signupForm.querySelector(
-        "input[type=password][data-name=password_confirm]",
-    )!
+  const signupForm = body.querySelector("form.signup-form")!
+  const displayNameInput = signupForm.querySelector("input[name=display_name]")!
+  const passwordInput = signupForm.querySelector(
+    "input[type=password][data-name=password]",
+  )!
+  const passwordConfirmInput = signupForm.querySelector(
+    "input[type=password][data-name=password_confirm]",
+  )!
 
-    const trackingInput = signupForm.querySelector("input[name=tracking]")!
-    trackingInput.value = activityTracking.toString()
+  const trackingInput = signupForm.querySelector("input[name=tracking]")!
+  trackingInput.value = activityTracking.toString()
 
-    configureStandardForm(
-        signupForm,
-        ({ redirect_url }) => {
-            console.debug("Signup: Success", redirect_url)
-            window.location.href = redirect_url
-        },
-        {
-            validationCallback: () => {
-                const result: APIDetail[] = []
+  configureStandardForm(
+    signupForm,
+    ({ redirect_url }) => {
+      console.debug("Signup: Success", redirect_url)
+      window.location.href = redirect_url
+    },
+    {
+      validationCallback: () => {
+        const result: APIDetail[] = []
 
-                // Validate name for blacklisted characters
-                if (URLSAFE_BLACKLIST_RE.test(displayNameInput.value)) {
-                    const msg = t("validations.url_characters", {
-                        characters: URLSAFE_BLACKLIST,
-                        interpolation: { escapeValue: false },
-                    })
-                    result.push({ type: "error", loc: ["", "display_name"], msg })
-                }
+        // Validate name for blacklisted characters
+        if (URLSAFE_BLACKLIST_RE.test(displayNameInput.value)) {
+          const msg = t("validations.url_characters", {
+            characters: URLSAFE_BLACKLIST,
+            interpolation: { escapeValue: false },
+          })
+          result.push({ type: "error", loc: ["", "display_name"], msg })
+        }
 
-                // Validate passwords equality
-                if (passwordInput.value !== passwordConfirmInput.value) {
-                    const msg = t("validation.passwords_missmatch")
-                    result.push({ type: "error", loc: ["", "password"], msg })
-                    result.push({ type: "error", loc: ["", "password_confirm"], msg })
-                }
+        // Validate passwords equality
+        if (passwordInput.value !== passwordConfirmInput.value) {
+          const msg = t("validation.passwords_missmatch")
+          result.push({ type: "error", loc: ["", "password"], msg })
+          result.push({ type: "error", loc: ["", "password_confirm"], msg })
+        }
 
-                return result
-            },
-        },
-    )
+        return result
+      },
+    },
+  )
 
-    // Collapse/expand password confirmation based on password presence
-    const confirmCollapse = new Collapse(passwordConfirmInput.closest(".collapse")!, {
-        toggle: false,
-    })
+  // Collapse/expand password confirmation based on password presence
+  const confirmCollapse = new Collapse(passwordConfirmInput.closest(".collapse")!, {
+    toggle: false,
+  })
 
-    const updateConfirmVisibility = () => {
-        if (passwordInput.value.length) confirmCollapse.show()
-        else confirmCollapse.hide()
-    }
+  const updateConfirmVisibility = () => {
+    if (passwordInput.value.length) confirmCollapse.show()
+    else confirmCollapse.hide()
+  }
 
-    passwordInput.addEventListener("input", updateConfirmVisibility)
-    updateConfirmVisibility()
+  passwordInput.addEventListener("input", updateConfirmVisibility)
+  updateConfirmVisibility()
 })

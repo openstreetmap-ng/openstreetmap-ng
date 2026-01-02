@@ -4,33 +4,31 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 
 mount("audit-body", (body) => {
-    const filterForm = body.querySelector("form.filters-form")!
+  const filterForm = body.querySelector("form.filters-form")!
 
-    // Setup datetime input timezone conversion
-    configureDatetimeInputs(filterForm, ["created_after", "created_before"])
+  // Setup datetime input timezone conversion
+  configureDatetimeInputs(filterForm, ["created_after", "created_before"])
 
-    // Disable empty inputs before form submission to prevent validation errors
-    filterForm.addEventListener("submit", () => {
-        const inputs = filterForm.querySelectorAll("input, select")
-        for (const input of inputs) {
-            if (!input.value) input.disabled = true
-        }
-    })
+  // Disable empty inputs before form submission to prevent validation errors
+  filterForm.addEventListener("submit", () => {
+    const inputs = filterForm.querySelectorAll("input, select")
+    for (const input of inputs) {
+      if (!input.value) input.disabled = true
+    }
+  })
 
-    configureStandardPagination(body, {
-        loadCallback: (renderContainer) => {
-            resolveUserAgentIconsLazy(renderContainer)
+  configureStandardPagination(body, {
+    loadCallback: (renderContainer) => {
+      resolveUserAgentIconsLazy(renderContainer)
 
-            for (const button of renderContainer.querySelectorAll(
-                "button[data-app-id]",
-            )) {
-                button.addEventListener("click", (e) => {
-                    e.preventDefault()
-                    filterForm.querySelector("input[name=application_id]")!.value =
-                        button.dataset.appId!
-                    filterForm.requestSubmit()
-                })
-            }
-        },
-    })
+      for (const button of renderContainer.querySelectorAll("button[data-app-id]")) {
+        button.addEventListener("click", (e) => {
+          e.preventDefault()
+          filterForm.querySelector("input[name=application_id]")!.value =
+            button.dataset.appId!
+          filterForm.requestSubmit()
+        })
+      }
+    },
+  })
 })

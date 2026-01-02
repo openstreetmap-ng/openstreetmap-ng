@@ -8,195 +8,189 @@ import { t } from "i18next"
 
 // Details page: always expanded; comments live under #comments
 mount("diary-details-body", (body) => {
-    const comments = document.getElementById("comments")!
-    let disposePagination = configureStandardPagination(comments)
+  const comments = document.getElementById("comments")!
+  let disposePagination = configureStandardPagination(comments)
 
-    // Subscriptions affect global state; simple, reliable full reload
-    configureStandardForm(body.querySelector("form.subscription-form"), () => {
-        window.location.reload()
-    })
+  // Subscriptions affect global state; simple, reliable full reload
+  configureStandardForm(body.querySelector("form.subscription-form"), () => {
+    window.location.reload()
+  })
 
-    configureStandardForm(body.querySelector("form.comment-form"), () => {
-        disposePagination()
-        disposePagination = configureStandardPagination(comments)
-    })
+  configureStandardForm(body.querySelector("form.comment-form"), () => {
+    disposePagination()
+    disposePagination = configureStandardPagination(comments)
+  })
 })
 
 // Listings page: diaries start collapsed; expand and lazy‑load comments per entry
 mount("diary-index-body", (body) => {
-    const diaryPagination = body.querySelector("div.diary-pagination")!
-    const scrollNav = document.getElementById("diary-scroll-nav")!
-    const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")!
-    const navContainer = navOffcanvas.querySelector("nav")!
-    const navList = navContainer.querySelector("ul.nav")!
-    const offcanvasButton = scrollNav.querySelector("button.btn-floating-bottom-left")!
+  const diaryPagination = body.querySelector("div.diary-pagination")!
+  const scrollNav = document.getElementById("diary-scroll-nav")!
+  const navOffcanvas = document.getElementById("diary-scroll-nav-offcanvas")!
+  const navContainer = navOffcanvas.querySelector("nav")!
+  const navList = navContainer.querySelector("ul.nav")!
+  const offcanvasButton = scrollNav.querySelector("button.btn-floating-bottom-left")!
 
-    const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
-    navOffcanvas.addEventListener("click", (e) => {
-        const target = e.target
-        if (!(target instanceof Element)) return
-        if (!target.closest("a[href]")) return
-        navOffcanvasInstance.hide()
-    })
+  const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
+  navOffcanvas.addEventListener("click", (e) => {
+    const target = e.target
+    if (!(target instanceof Element)) return
+    if (!target.closest("a[href]")) return
+    navOffcanvasInstance.hide()
+  })
 
-    let disposeScrollspy = () => {}
-    let disposeDiaryPage = () => {}
+  let disposeScrollspy = () => {}
+  let disposeDiaryPage = () => {}
 
-    const buildScrollNav = (renderContainer: HTMLElement) => {
-        const diaries = renderContainer.querySelectorAll("article.diary")
-        const hasDiaries = diaries.length > 0
-        navContainer.hidden = !hasDiaries
-        offcanvasButton.hidden = !hasDiaries
+  const buildScrollNav = (renderContainer: HTMLElement) => {
+    const diaries = renderContainer.querySelectorAll("article.diary")
+    const hasDiaries = diaries.length > 0
+    navContainer.hidden = !hasDiaries
+    offcanvasButton.hidden = !hasDiaries
 
-        const fragment = document.createDocumentFragment()
+    const fragment = document.createDocumentFragment()
 
-        for (const diary of diaries) {
-            const diaryId = diary.id
-            const title = diary.querySelector("a.diary-title-link")!.textContent!.trim()
-            const badgeText = diary
-                .querySelector(".diary-comments-btn .badge")!
-                .textContent!.trim()
-            const numComments = Number.parseInt(badgeText, 10)
+    for (const diary of diaries) {
+      const diaryId = diary.id
+      const title = diary.querySelector("a.diary-title-link")!.textContent!.trim()
+      const badgeText = diary
+        .querySelector(".diary-comments-btn .badge")!
+        .textContent!.trim()
+      const numComments = Number.parseInt(badgeText, 10)
 
-            const li = document.createElement("li")
-            li.className = "nav-item"
+      const li = document.createElement("li")
+      li.className = "nav-item"
 
-            const a = document.createElement("a")
-            a.className = "nav-link d-flex justify-content-between align-items-center"
-            a.href = `#${diaryId}`
+      const a = document.createElement("a")
+      a.className = "nav-link d-flex justify-content-between align-items-center"
+      a.href = `#${diaryId}`
 
-            const spanTitle = document.createElement("span")
-            spanTitle.className = "title"
-            spanTitle.textContent = title
+      const spanTitle = document.createElement("span")
+      spanTitle.className = "title"
+      spanTitle.textContent = title
 
-            const badge = document.createElement("span")
-            badge.className = `badge ms-1 px-1-5 ${
-                numComments ? "text-bg-green" : "text-bg-light"
-            }`
-            badge.title = t("diary.number_of_comments")
-            badge.textContent = badgeText
+      const badge = document.createElement("span")
+      badge.className = `badge ms-1 px-1-5 ${
+        numComments ? "text-bg-green" : "text-bg-light"
+      }`
+      badge.title = t("diary.number_of_comments")
+      badge.textContent = badgeText
 
-            a.appendChild(spanTitle)
-            a.appendChild(badge)
-            li.appendChild(a)
-            fragment.appendChild(li)
-        }
-
-        navList.replaceChildren(fragment)
+      a.appendChild(spanTitle)
+      a.appendChild(badge)
+      li.appendChild(a)
+      fragment.appendChild(li)
     }
 
-    const configureDiaryPage = (renderContainer: HTMLElement) => {
-        const disposers: (() => void)[] = []
+    navList.replaceChildren(fragment)
+  }
 
-        for (const article of renderContainer.querySelectorAll("article.diary")) {
-            const diaryBody = article.querySelector(".diary-body")!
-            const readMore = article.querySelector(".diary-read-more")!
+  const configureDiaryPage = (renderContainer: HTMLElement) => {
+    const disposers: (() => void)[] = []
 
-            // Mark entry clamped when rendered height < content height
-            const updateClamp = () => {
-                if (article.classList.contains("show")) return
-                const clamped = diaryBody.scrollHeight - 1 > diaryBody.clientHeight
-                article.classList.toggle("diary-clamped", clamped)
-                readMore.classList.toggle("d-none", !clamped)
-            }
+    for (const article of renderContainer.querySelectorAll("article.diary")) {
+      const diaryBody = article.querySelector(".diary-body")!
+      const readMore = article.querySelector(".diary-read-more")!
 
-            updateClamp()
-            // Images and rich content may change height; observe and re-evaluate
-            const ro = new ResizeObserver(updateClamp)
-            ro.observe(diaryBody)
-            disposers.push(() => ro.disconnect())
-            article.addEventListener(
-                "transitionend",
-                () => {
-                    if (article.classList.contains("show")) ro.disconnect()
-                },
-                { once: true },
-            )
+      // Mark entry clamped when rendered height < content height
+      const updateClamp = () => {
+        if (article.classList.contains("show")) return
+        const clamped = diaryBody.scrollHeight - 1 > diaryBody.clientHeight
+        article.classList.toggle("diary-clamped", clamped)
+        readMore.classList.toggle("d-none", !clamped)
+      }
 
-            // Expand smoothly, then remove the button to avoid layout jitter
-            readMore.addEventListener(
-                "click",
-                async () => {
-                    article.classList.add("show")
-                    readMore.classList.add("invisible")
-                    await delay(50)
-                    readMore.remove()
-                },
-                { once: true },
-            )
-
-            const commentsContainer = article.querySelector(".diary-comments")!
-            let disposeCommentsPagination: (() => void) | undefined
-
-            commentsContainer.addEventListener(
-                "show.bs.collapse",
-                () => {
-                    const reloadCommentsPagination = () => {
-                        disposeCommentsPagination?.()
-                        disposeCommentsPagination =
-                            configureStandardPagination(commentsContainer)
-                    }
-                    disposers.push(() => disposeCommentsPagination?.())
-                    reloadCommentsPagination()
-
-                    const subForm = commentsContainer.querySelector(
-                        "form.subscription-form",
-                    )
-                    configureStandardForm(subForm, () => {
-                        window.location.reload()
-                    })
-
-                    const commentForm =
-                        commentsContainer.querySelector("form.comment-form")
-                    if (commentForm) {
-                        configureStandardForm(commentForm, () => {
-                            commentForm.reset()
-                            reloadCommentsPagination()
-                        })
-                    }
-                },
-                { once: true },
-            )
-        }
-
-        return () => {
-            for (const dispose of disposers) dispose()
-        }
-    }
-
-    configureStandardPagination(diaryPagination, {
-        loadCallback: (renderContainer) => {
-            disposeDiaryPage()
-            disposeScrollspy()
-
-            buildScrollNav(renderContainer)
-            disposeScrollspy = configureScrollspy(renderContainer, scrollNav)
-            disposeDiaryPage = configureDiaryPage(renderContainer)
+      updateClamp()
+      // Images and rich content may change height; observe and re-evaluate
+      const ro = new ResizeObserver(updateClamp)
+      ro.observe(diaryBody)
+      disposers.push(() => ro.disconnect())
+      article.addEventListener(
+        "transitionend",
+        () => {
+          if (article.classList.contains("show")) ro.disconnect()
         },
-    })
+        { once: true },
+      )
+
+      // Expand smoothly, then remove the button to avoid layout jitter
+      readMore.addEventListener(
+        "click",
+        async () => {
+          article.classList.add("show")
+          readMore.classList.add("invisible")
+          await delay(50)
+          readMore.remove()
+        },
+        { once: true },
+      )
+
+      const commentsContainer = article.querySelector(".diary-comments")!
+      let disposeCommentsPagination: (() => void) | undefined
+
+      commentsContainer.addEventListener(
+        "show.bs.collapse",
+        () => {
+          const reloadCommentsPagination = () => {
+            disposeCommentsPagination?.()
+            disposeCommentsPagination = configureStandardPagination(commentsContainer)
+          }
+          disposers.push(() => disposeCommentsPagination?.())
+          reloadCommentsPagination()
+
+          const subForm = commentsContainer.querySelector("form.subscription-form")
+          configureStandardForm(subForm, () => {
+            window.location.reload()
+          })
+
+          const commentForm = commentsContainer.querySelector("form.comment-form")
+          if (commentForm) {
+            configureStandardForm(commentForm, () => {
+              commentForm.reset()
+              reloadCommentsPagination()
+            })
+          }
+        },
+        { once: true },
+      )
+    }
+
+    return () => {
+      for (const dispose of disposers) dispose()
+    }
+  }
+
+  configureStandardPagination(diaryPagination, {
+    loadCallback: (renderContainer) => {
+      disposeDiaryPage()
+      disposeScrollspy()
+
+      buildScrollNav(renderContainer)
+      disposeScrollspy = configureScrollspy(renderContainer, scrollNav)
+      disposeDiaryPage = configureDiaryPage(renderContainer)
+    },
+  })
 })
 
 mount("diary-user-comments-body", (body) => {
-    configureStandardPagination(
-        body.querySelector("div.diary-user-comments-pagination")!,
-    )
+  configureStandardPagination(body.querySelector("div.diary-user-comments-pagination")!)
 })
 
 mount(["diary-details-body", "diary-index-body"], (body) => {
-    body.addEventListener("click", async (e) => {
-        const target = e.target
-        if (!(target instanceof Element)) return
+  body.addEventListener("click", async (e) => {
+    const target = e.target
+    if (!(target instanceof Element)) return
 
-        const link = target.closest("article.diary .share a[data-action=copy-link]")
-        if (!link) return
+    const link = target.closest("article.diary .share a[data-action=copy-link]")
+    if (!link) return
 
-        e.preventDefault()
-        try {
-            await navigator.clipboard.writeText(link.href)
-            console.debug("DiaryIndex: Copied share link", link.href)
-        } catch (error) {
-            console.warn("DiaryIndex: Failed to copy share link", error)
-            alert(error.message)
-        }
-    })
+    e.preventDefault()
+    try {
+      await navigator.clipboard.writeText(link.href)
+      console.debug("DiaryIndex: Copied share link", link.href)
+    } catch (error) {
+      console.warn("DiaryIndex: Failed to copy share link", error)
+      alert(error.message)
+    }
+  })
 })

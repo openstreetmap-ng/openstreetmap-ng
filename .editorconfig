@@ -9,7 +9,7 @@ max_line_length = 88
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{py,pyi,html.jinja,ts,js,scss,css,sql,proto,rs}]
+[*.{py,pyi,html.jinja,scss,css,sql,proto,rs}]
 indent_size = 4
 
 [*.{html.jinja}]
