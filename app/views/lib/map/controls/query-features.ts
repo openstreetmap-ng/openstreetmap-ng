@@ -1,7 +1,7 @@
 import { routerNavigateStrict } from "@index/router"
 import { beautifyZoom } from "@lib/coords"
 import { Tooltip } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
 
 export const QUERY_FEATURES_MIN_ZOOM = 14
@@ -15,7 +15,7 @@ export class QueryFeaturesControl implements IControl {
         container.className = "maplibregl-ctrl maplibregl-ctrl-group query-features"
 
         // Create a button and a tooltip
-        const buttonText = i18next.t("javascripts.site.queryfeature_tooltip")
+        const buttonText = t("javascripts.site.queryfeature_tooltip")
         const button = document.createElement("button")
         button.type = "button"
         button.className = "control-btn"
@@ -62,16 +62,14 @@ export class QueryFeaturesControl implements IControl {
                 button.blur()
                 button.disabled = true
                 Tooltip.getInstance(button)!.setContent({
-                    ".tooltip-inner": i18next.t(
+                    ".tooltip-inner": t(
                         "javascripts.site.queryfeature_disabled_tooltip",
                     ),
                 })
             } else {
                 button.disabled = false
                 Tooltip.getInstance(button)!.setContent({
-                    ".tooltip-inner": i18next.t(
-                        "javascripts.site.queryfeature_tooltip",
-                    ),
+                    ".tooltip-inner": t("javascripts.site.queryfeature_tooltip"),
                 })
             }
         }

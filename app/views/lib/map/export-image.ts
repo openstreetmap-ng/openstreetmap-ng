@@ -1,5 +1,5 @@
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
-import i18next from "i18next"
+import { t } from "i18next"
 import type {
     GeoJSONSource,
     LngLat,
@@ -119,7 +119,7 @@ export const exportMapImage = async (
         exportCanvas = trimCanvas
     }
     if (attribution) {
-        const attributionText = `© ${i18next.t("javascripts.map.openstreetmap_contributors")}`
+        const attributionText = `© ${t("javascripts.map.openstreetmap_contributors")}`
         const fontSize = Math.round(window.devicePixelRatio * 16)
 
         const ctx = exportCanvas.getContext("2d", { alpha: false })!

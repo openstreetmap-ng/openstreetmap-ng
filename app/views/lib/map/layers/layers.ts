@@ -5,7 +5,7 @@ import { effect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { filterKeys } from "@std/collections/filter-keys"
 import type { FeatureCollection } from "geojson"
-import i18next from "i18next"
+import { t } from "i18next"
 import {
     type AddLayerObject,
     type FilterSpecification,
@@ -25,36 +25,36 @@ const HIGH_RES_TILES = window.devicePixelRatio > 1
 const THUNDERFOREST_API_KEY = "9b990c27013343a99536213faee0983e"
 const TRACESTRACK_API_KEY = "684615014d1a572361803e062ccf609a"
 
-const copyrightText = i18next.t("javascripts.map.openstreetmap_contributors")
+const copyrightText = t("javascripts.map.openstreetmap_contributors")
 const copyright = `© <a href="/copyright" rel="license" target="_blank">${copyrightText}</a>`
-const termsText = i18next.t("javascripts.map.website_and_api_terms")
+const termsText = t("javascripts.map.website_and_api_terms")
 const terms = `<a href="https://osmfoundation.org/wiki/Terms_of_Use" rel="terms-of-service" target="_blank">${termsText}</a>`
-const donateTitle = i18next.t("layouts.make_a_donation.title")
-const donateText = i18next.t("layouts.make_a_donation.text")
-const osmFranceText = i18next.t("javascripts.map.osm_france")
+const donateTitle = t("layouts.make_a_donation.title")
+const donateText = t("layouts.make_a_donation.text")
+const osmFranceText = t("javascripts.map.osm_france")
 const osmFranceLink = `<a href="https://www.openstreetmap.fr" target="_blank">${osmFranceText}</a>`
-const cyclosmText = i18next.t("javascripts.map.cyclosm_name")
+const cyclosmText = t("javascripts.map.cyclosm_name")
 const cyclosmLink = `<a href="https://www.cyclosm.org" target="_blank">${cyclosmText}</a>`
-const cyclosmCredit = i18next.t("javascripts.map.cyclosm_credit", {
+const cyclosmCredit = t("javascripts.map.cyclosm_credit", {
     cyclosm_link: cyclosmLink,
     osm_france_link: osmFranceLink,
     interpolation: { escapeValue: false },
 })
-const thunderforestText = i18next.t("javascripts.map.andy_allan")
+const thunderforestText = t("javascripts.map.andy_allan")
 const thunderforestLink = `<a href="https://www.thunderforest.com" target="_blank">${thunderforestText}</a>`
-const thunderforestCredit = i18next.t("javascripts.map.thunderforest_credit", {
+const thunderforestCredit = t("javascripts.map.thunderforest_credit", {
     thunderforest_link: thunderforestLink,
     interpolation: { escapeValue: false },
 })
-const tracestrackText = i18next.t("javascripts.map.tracestrack")
+const tracestrackText = t("javascripts.map.tracestrack")
 const tracestrackLink = `<a href="https://www.tracestrack.com" target="_blank">${tracestrackText}</a>`
-const tracestrackCredit = i18next.t("javascripts.map.tracestrack_credit", {
+const tracestrackCredit = t("javascripts.map.tracestrack_credit", {
     tracestrack_link: tracestrackLink,
     interpolation: { escapeValue: false },
 })
-const hotosmText = i18next.t("javascripts.map.hotosm_name")
+const hotosmText = t("javascripts.map.hotosm_name")
 const hotosmLink = `<a href="https://www.hotosm.org" target="_blank">${hotosmText}</a>`
-const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
+const hotosmCredit = t("javascripts.map.hotosm_credit", {
     hotosm_link: hotosmLink,
     osm_france_link: osmFranceLink,
     interpolation: { escapeValue: false },

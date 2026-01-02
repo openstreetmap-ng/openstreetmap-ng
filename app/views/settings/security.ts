@@ -6,7 +6,7 @@ import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { NON_DIGIT_RE } from "@lib/utils"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import { encodeBase32 } from "@std/encoding/base32"
-import i18next from "i18next"
+import { t } from "i18next"
 
 const generateTOTPSecret = () => {
     const buffer = new Uint8Array(16) // 128 bits
@@ -19,7 +19,7 @@ const generateTOTPQRCode = async (
     digits: number,
     accountName: string,
 ) => {
-    const issuer = i18next.t("project_name")
+    const issuer = t("project_name")
     const label = `${issuer}:${accountName}`
     const uri = `otpauth://totp/${encodeURIComponent(label)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&digits=${digits}`
 
@@ -52,7 +52,7 @@ mount("settings-security-body", (body) => {
                 const result: APIDetail[] = []
                 // Validate passwords equality
                 if (newPasswordInput.value !== newPasswordConfirmInput.value) {
-                    const msg = i18next.t("validation.passwords_missmatch")
+                    const msg = t("validation.passwords_missmatch")
                     result.push({ type: "error", loc: ["", "new_password"], msg })
                     result.push({
                         type: "error",
@@ -93,8 +93,7 @@ mount("settings-security-body", (body) => {
         renameButton.addEventListener("click", async () => {
             const oldName = nameSpan.textContent
             const newName =
-                prompt(i18next.t("two_fa.enter_new_passkey_name"), oldName)?.trim() ??
-                ""
+                prompt(t("two_fa.enter_new_passkey_name"), oldName)?.trim() ?? ""
             if (newName === oldName) return
 
             const credentialId = renameButton.dataset.credentialId

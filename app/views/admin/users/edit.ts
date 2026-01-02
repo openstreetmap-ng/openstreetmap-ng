@@ -1,7 +1,7 @@
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
 import { Collapse } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 
 mount("admin-user-edit-body", (body) => {
     // Accordion toggling for application/token previews (read-only)
@@ -91,7 +91,7 @@ mount("admin-user-edit-body", (body) => {
                         (newPasswordInput.value || newPasswordConfirmInput.value) &&
                         newPasswordInput.value !== newPasswordConfirmInput.value
                     ) {
-                        const msg = i18next.t("validation.passwords_missmatch")
+                        const msg = t("validation.passwords_missmatch")
                         result.push({
                             type: "error",
                             loc: ["", "new_password"],

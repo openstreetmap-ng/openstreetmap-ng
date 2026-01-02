@@ -14,7 +14,7 @@ import { mount } from "@lib/mount"
 import { configureStandardForm } from "@lib/standard-form"
 import { assertExists } from "@std/assert"
 import { throttle } from "@std/async/unstable-throttle"
-import i18next from "i18next"
+import { t } from "i18next"
 import { type LngLat, type LngLatLike, Map as MaplibreMap, Marker } from "maplibre-gl"
 
 mount("diary-compose-body", (body) => {
@@ -182,7 +182,7 @@ mount("diary-compose-body", (body) => {
         // On delete button click, request confirmation
         const deleteButton = deleteForm.querySelector("button[type=submit]")!
         deleteButton.addEventListener("click", (e) => {
-            if (!confirm(i18next.t("diary.delete_confirmation"))) {
+            if (!confirm(t("diary.delete_confirmation"))) {
                 e.preventDefault()
             }
         })

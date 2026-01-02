@@ -4,7 +4,7 @@ import { delay } from "@std/async/delay"
 import { LruCache } from "@std/cache/lru-cache"
 import { encodeHex } from "@std/encoding/hex"
 import { clamp } from "@std/math/clamp"
-import i18next from "i18next"
+import { t } from "i18next"
 
 type StrengthLevelKey = "weak" | "fair" | "good" | "strong" | "perfect"
 
@@ -140,7 +140,7 @@ for (const input of inputs) {
 
     const label = document.createElement("span")
     label.classList.add("password-strength-label")
-    label.textContent = i18next.t("password_strength.password_strength")
+    label.textContent = t("password_strength.password_strength")
     header.append(label)
 
     const status = document.createElement("span")
@@ -158,7 +158,7 @@ for (const input of inputs) {
     progressBar.role = "progressbar"
     progressBar.ariaValueMin = "0"
     progressBar.ariaValueMax = "100"
-    progressBar.ariaLabel = i18next.t("password_strength.password_strength")
+    progressBar.ariaLabel = t("password_strength.password_strength")
     progress.append(progressBar)
 
     const hintText = document.createElement("p")
@@ -210,19 +210,19 @@ for (const input of inputs) {
         let levelLabel: string
         switch (level.key) {
             case "weak":
-                levelLabel = i18next.t("password_strength.levels.weak")
+                levelLabel = t("password_strength.levels.weak")
                 break
             case "fair":
-                levelLabel = i18next.t("password_strength.levels.fair")
+                levelLabel = t("password_strength.levels.fair")
                 break
             case "good":
-                levelLabel = i18next.t("password_strength.levels.good")
+                levelLabel = t("password_strength.levels.good")
                 break
             case "strong":
-                levelLabel = i18next.t("password_strength.levels.strong")
+                levelLabel = t("password_strength.levels.strong")
                 break
             case "perfect":
-                levelLabel = i18next.t("password_strength.levels.perfect")
+                levelLabel = t("password_strength.levels.perfect")
                 break
             default:
                 levelLabel = "?"
@@ -231,53 +231,51 @@ for (const input of inputs) {
 
         if (suggestions.length) {
             hintText.hidden = false
-            hintText.textContent = `${i18next.t(
-                "password_strength.to_strengthen_it_you_can",
-            )}:`
+            hintText.textContent = `${t("password_strength.to_strengthen_it_you_can")}:`
             hintList.hidden = false
             hintList.replaceChildren(
                 ...suggestions.map((suggestion) => {
                     const item = document.createElement("li")
                     switch (suggestion) {
                         case "min_length":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.use_at_least_min_length_characters",
                                 { min_length: minLength },
                             )
                             break
                         case "add_more_characters":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.add_couple_more_characters",
                             )
                             break
                         case "add_lowercase":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.include_lowercase_letters",
                             )
                             break
                         case "add_uppercase":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.include_uppercase_letters",
                             )
                             break
                         case "add_numbers":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.include_digits",
                             )
                             break
                         case "add_symbols":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.include_symbols",
                             )
                             break
                         case "avoid_repeats":
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.avoid_repeated_characters",
                             )
                             break
                         case "pwned_password":
                             item.classList.add("text-danger")
-                            item.textContent = i18next.t(
+                            item.textContent = t(
                                 "password_strength.suggestions.use_a_password_not_widely_known",
                             )
                             break
@@ -287,9 +285,7 @@ for (const input of inputs) {
             )
         } else {
             hintText.hidden = false
-            hintText.textContent = i18next.t(
-                "password_strength.great_password_nice_work",
-            )
+            hintText.textContent = t("password_strength.great_password_nice_work")
             hintList.hidden = true
             hintList.replaceChildren()
         }

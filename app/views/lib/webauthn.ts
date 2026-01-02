@@ -4,7 +4,7 @@ import {
     PasskeyChallengeSchema,
     PasskeyRegistrationSchema,
 } from "@lib/proto/shared_pb"
-import i18next from "i18next"
+import { t } from "i18next"
 
 /** Fetch and parse passkey challenge from server, returns challenge or error string */
 const fetchPasskeyChallenge = async (formData?: FormData) => {
@@ -53,7 +53,7 @@ export const getPasskeyRegistration = async () => {
         credential = (await navigator.credentials.create({
             publicKey: {
                 challenge: challenge.challenge as BufferSource,
-                rp: { name: i18next.t("project_name") },
+                rp: { name: t("project_name") },
                 user: {
                     id: userIdBytes,
                     name: challenge.userEmail,
@@ -74,7 +74,7 @@ export const getPasskeyRegistration = async () => {
     } catch (error) {
         console.warn("WebAuthn: Registration failed", error)
     }
-    if (!credential) return i18next.t("two_fa.could_not_complete_passkey_registration")
+    if (!credential) return t("two_fa.could_not_complete_passkey_registration")
 
     const response = credential.response as AuthenticatorAttestationResponse
     const registration = create(PasskeyRegistrationSchema, {

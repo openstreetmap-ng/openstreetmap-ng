@@ -8,7 +8,7 @@ import { range } from "@lib/utils"
 import { DAY } from "@std/datetime/constants"
 import { format as formatDate } from "@std/datetime/format"
 import { Tooltip } from "bootstrap"
-import i18next from "i18next"
+import { t } from "i18next"
 import { configureTracesList } from "../../traces/_list"
 
 mount("user-profile-body", (body) => {
@@ -259,11 +259,11 @@ mount("user-profile-body", (body) => {
         const dateLabel = formatShortDate(iso)
         const title =
             value > 0
-                ? i18next.t("user.activity.details.count", {
+                ? t("user.activity.details.count", {
                       count: value,
                       date: dateLabel,
                   })
-                : i18next.t("user.activity.details.no_activity", {
+                : t("user.activity.details.no_activity", {
                       date: dateLabel,
                   })
         Tooltip.getOrCreateInstance(element, { customClass: "activity-tooltip", title })

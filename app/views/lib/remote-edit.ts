@@ -2,7 +2,7 @@ import { API_URL } from "@lib/config"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
 import type { OSMObject } from "@lib/types"
-import i18next from "i18next"
+import { t } from "i18next"
 
 const REMOTE_EDIT_HOST = "http://localhost:8111"
 
@@ -94,7 +94,7 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
         }
     } catch (error) {
         console.error("RemoteEdit: Failed", error)
-        alert(i18next.t("site.index.remote_failed"))
+        alert(t("site.index.remote_failed"))
     } finally {
         button.disabled = false
     }

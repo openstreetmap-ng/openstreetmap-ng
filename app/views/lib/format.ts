@@ -1,6 +1,6 @@
 import { primaryLanguage } from "@lib/config"
 import { memoize } from "@std/cache/memoize"
-import i18next from "i18next"
+import { t } from "i18next"
 
 type LonLat = { lon: number; lat: number }
 
@@ -77,22 +77,22 @@ export const formatDistance = (
     if (unit === "imperial") {
         const feet = meters * 3.28084
         if (feet < 1000) {
-            return i18next.t("distance.feet", {
+            return t("distance.feet", {
                 distance: Math.round(feet),
             })
         }
         const miles = meters * 0.000621371
-        return i18next.t("distance.miles", {
+        return t("distance.miles", {
             distance: miles.toFixed(miles < 10 ? 1 : 0),
         })
     }
 
     const km = meters / 1000
     if (km < 1)
-        return i18next.t("javascripts.directions.distance_m", {
+        return t("javascripts.directions.distance_m", {
             distance: Math.round(meters),
         })
-    return i18next.t("javascripts.directions.distance_km", {
+    return t("javascripts.directions.distance_km", {
         distance: km.toFixed(km < 10 ? 1 : 0),
     })
 }
@@ -106,13 +106,13 @@ export const formatDistanceRounded = (
         if (feet < 5) return ""
         if (feet < 1000) {
             const precision = feet < 200 ? 10 : feet < 500 ? 25 : 50
-            return i18next.t("distance.feet", {
+            return t("distance.feet", {
                 distance: Math.round(feet / precision) * precision,
             })
         }
         const miles = meters * 0.000621371
         const digits = miles < 5 ? 1 : 0
-        return i18next.t("distance.miles", {
+        return t("distance.miles", {
             distance: miles.toFixed(digits),
         })
     }
@@ -120,18 +120,18 @@ export const formatDistanceRounded = (
     if (meters < 5) return ""
     if (meters < 1500) {
         const precision = meters < 200 ? 10 : 100
-        return i18next.t("javascripts.directions.distance_m", {
+        return t("javascripts.directions.distance_m", {
             distance: Math.round(meters / precision) * precision,
         })
     }
     const digits = meters < 5000 ? 1 : 0
-    return i18next.t("javascripts.directions.distance_km", {
+    return t("javascripts.directions.distance_km", {
         distance: (meters / 1000).toFixed(digits),
     })
 }
 
 export const formatHeight = (meters: number) =>
-    i18next.t("javascripts.directions.distance_m", {
+    t("javascripts.directions.distance_m", {
         distance: Math.round(meters),
     })
 
