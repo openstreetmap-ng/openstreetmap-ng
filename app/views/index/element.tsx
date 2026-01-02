@@ -345,7 +345,6 @@ const ElementSidebar = ({
   // Effect: Map focus
   useSignalEffect(() => {
     focusObjects(map, renderElements.value, elementFocusPaint)
-    return () => focusObjects(map)
   })
 
   // Effect: Sidebar visibility
