@@ -4,62 +4,58 @@ import { configureStandardPagination } from "@lib/standard-pagination"
 import { Popover, Tooltip } from "bootstrap"
 
 mount("admin-applications-body", (body) => {
-    const filterForm = body.querySelector("form.filters-form")!
+  const filterForm = body.querySelector("form.filters-form")!
 
-    // Setup datetime input timezone conversion
-    configureDatetimeInputs(filterForm, ["created_after", "created_before"])
+  // Setup datetime input timezone conversion
+  configureDatetimeInputs(filterForm, ["created_after", "created_before"])
 
-    // Disable empty inputs before form submission to prevent validation errors
-    filterForm.addEventListener("submit", () => {
-        const inputs = filterForm.querySelectorAll("input, select")
-        for (const input of inputs) {
-            if (!input.value) input.disabled = true
-        }
-    })
+  // Disable empty inputs before form submission to prevent validation errors
+  filterForm.addEventListener("submit", () => {
+    const inputs = filterForm.querySelectorAll("input, select")
+    for (const input of inputs) {
+      if (!input.value) input.disabled = true
+    }
+  })
 
-    const exportVisibleButton = body.querySelector("button.export-visible-btn")!
-    exportVisibleButton.addEventListener("click", async () => {
-        const appIds = Array.from(
-            body.querySelectorAll("tr[data-app-id]"),
-            (el) => el.dataset.appId,
-        )
-        const json = `[${appIds.join(",")}]`
+  const exportVisibleButton = body.querySelector("button.export-visible-btn")!
+  exportVisibleButton.addEventListener("click", async () => {
+    const appIds = Array.from(
+      body.querySelectorAll("tr[data-app-id]"),
+      (el) => el.dataset.appId,
+    )
+    const json = `[${appIds.join(",")}]`
 
-        try {
-            await navigator.clipboard.writeText(json)
-        } catch (error) {
-            console.warn(
-                "AdminApps: Failed to copy IDs",
-                { count: appIds.length },
-                error,
-            )
-            alert(error.message)
-        }
-    })
+    try {
+      await navigator.clipboard.writeText(json)
+    } catch (error) {
+      console.warn("AdminApps: Failed to copy IDs", { count: appIds.length }, error)
+      alert(error.message)
+    }
+  })
 
-    const exportAllButton = body.querySelector("button.export-all-btn")!
-    exportAllButton.addEventListener("click", () => {
-        const a = document.createElement("a")
-        a.href = `/api/web/admin/applications/export${window.location.search}`
-        a.download = ""
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-    })
+  const exportAllButton = body.querySelector("button.export-all-btn")!
+  exportAllButton.addEventListener("click", () => {
+    const a = document.createElement("a")
+    a.href = `/api/web/admin/applications/export${window.location.search}`
+    a.download = ""
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  })
 
-    configureStandardPagination(body, {
-        loadCallback: (renderContainer) => {
-            for (const element of renderContainer.querySelectorAll(
-                "[data-bs-toggle=tooltip]",
-            )) {
-                new Tooltip(element)
-            }
+  configureStandardPagination(body, {
+    loadCallback: (renderContainer) => {
+      for (const element of renderContainer.querySelectorAll(
+        "[data-bs-toggle=tooltip]",
+      )) {
+        new Tooltip(element)
+      }
 
-            for (const element of renderContainer.querySelectorAll(
-                "[data-bs-toggle=popover]",
-            )) {
-                new Popover(element)
-            }
-        },
-    })
+      for (const element of renderContainer.querySelectorAll(
+        "[data-bs-toggle=popover]",
+      )) {
+        new Popover(element)
+      }
+    },
+  })
 })

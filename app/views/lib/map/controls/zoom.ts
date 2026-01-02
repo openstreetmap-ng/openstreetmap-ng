@@ -3,39 +3,37 @@ import { t } from "i18next"
 import { type Map as MaplibreMap, NavigationControl } from "maplibre-gl"
 
 export class CustomZoomControl extends NavigationControl {
-    public constructor() {
-        super({ showCompass: false })
-    }
+  public constructor() {
+    super({ showCompass: false })
+  }
 
-    public override onAdd(map: MaplibreMap) {
-        const container = super.onAdd(map)
+  public override onAdd(map: MaplibreMap) {
+    const container = super.onAdd(map)
 
-        const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")!
-        const zoomInText = t("javascripts.map.zoom.in")
-        zoomInButton.ariaLabel = zoomInText
-        new Tooltip(zoomInButton, {
-            title: zoomInText,
-            placement: "left",
-        })
-        const zoomInIcon = document.createElement("img")
-        zoomInIcon.className = "icon zoom-in"
-        zoomInIcon.src = "/static/img/controls/_generated/zoom-in.webp"
-        zoomInButton.replaceChildren(zoomInIcon)
+    const zoomInButton = container.querySelector("button.maplibregl-ctrl-zoom-in")!
+    const zoomInText = t("javascripts.map.zoom.in")
+    zoomInButton.ariaLabel = zoomInText
+    new Tooltip(zoomInButton, {
+      title: zoomInText,
+      placement: "left",
+    })
+    const zoomInIcon = document.createElement("img")
+    zoomInIcon.className = "icon zoom-in"
+    zoomInIcon.src = "/static/img/controls/_generated/zoom-in.webp"
+    zoomInButton.replaceChildren(zoomInIcon)
 
-        const zoomOutButton = container.querySelector(
-            "button.maplibregl-ctrl-zoom-out",
-        )!
-        const zoomOutText = t("javascripts.map.zoom.out")
-        zoomOutButton.ariaLabel = zoomOutText
-        new Tooltip(zoomOutButton, {
-            title: zoomOutText,
-            placement: "left",
-        })
-        const zoomOutIcon = document.createElement("img")
-        zoomOutIcon.className = "icon zoom-out"
-        zoomOutIcon.src = "/static/img/controls/_generated/zoom-out.webp"
-        zoomOutButton.replaceChildren(zoomOutIcon)
+    const zoomOutButton = container.querySelector("button.maplibregl-ctrl-zoom-out")!
+    const zoomOutText = t("javascripts.map.zoom.out")
+    zoomOutButton.ariaLabel = zoomOutText
+    new Tooltip(zoomOutButton, {
+      title: zoomOutText,
+      placement: "left",
+    })
+    const zoomOutIcon = document.createElement("img")
+    zoomOutIcon.className = "icon zoom-out"
+    zoomOutIcon.src = "/static/img/controls/_generated/zoom-out.webp"
+    zoomOutButton.replaceChildren(zoomOutIcon)
 
-        return container
-    }
+    return container
+  }
 }
