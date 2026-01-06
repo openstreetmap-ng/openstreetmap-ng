@@ -31,10 +31,7 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
   }
 
   return (
-    <form
-      class="search-form"
-      onSubmit={onSubmit}
-    >
+    <form onSubmit={onSubmit}>
       <div class="row g-2">
         <div class="col">
           <div class="input-group">
@@ -47,14 +44,16 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
               value={searchFormQuery.value}
               onInput={(e) => (searchFormQuery.value = e.currentTarget.value)}
             />
-            <button
-              class="btn btn-link where-is-this"
-              type="button"
-              title={t("site.search.where_am_i_title")}
-              onClick={onWhereIsThisClick}
-            >
-              {t("site.search.where_am_i")}
-            </button>
+            {!searchFormQuery.value && (
+              <button
+                class="btn btn-link where-is-this"
+                type="button"
+                title={t("site.search.where_am_i_title")}
+                onClick={onWhereIsThisClick}
+              >
+                {t("site.search.where_am_i")}
+              </button>
+            )}
             <button
               class="btn btn-primary"
               type="submit"

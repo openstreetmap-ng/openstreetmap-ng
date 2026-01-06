@@ -1,15 +1,16 @@
 // Style the alert container that appears on top of the map
-.map-alert-container {
+#MapAlerts {
     z-index: 1003; // leaflet controls are 1000
     position: absolute;
     inset: 2rem 0 auto;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
     font-size: 1rem;
 }
 
 .map-alert {
     @extend .shadow;
     margin-bottom: 0;
-    cursor: initial;
 }

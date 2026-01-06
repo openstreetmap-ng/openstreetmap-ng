@@ -24,14 +24,11 @@
         <div class="action-sidebar note d-none"></div>
         <div class="action-sidebar query-features d-none"></div>
         <div class="action-sidebar routing d-none"></div>
-        {% include 'index/search' %}
+        <div class="action-sidebar search d-none"></div>
     </div>
 
     <div class="main-map">
-        <div class="map-alert-container">
-            {% include 'index/alert/data-layer' %}
-            {% include 'index/alert/search' %}
-        </div>
+        <div id="MapAlerts"></div>
     </div>
 
     <div class="sidebar">

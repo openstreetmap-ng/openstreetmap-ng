@@ -11,6 +11,7 @@ import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
   type ElementData,
+  type ElementData_Location,
   ElementDataSchema,
   type PartialElementParams_Entry as ElementEntry,
   type ElementIcon,
@@ -121,7 +122,7 @@ export const ElementsSection = <T,>({
 }
 
 type ElementTypeSlug = "node" | "way" | "relation"
-type ElementLocationData = NonNullable<ElementData["location"]>
+type ElementLocationData = NonNullable<ElementData_Location>
 
 export const getElementTypeSlug = (type: ElementType) =>
   ElementType[type] as ElementTypeSlug
@@ -259,7 +260,7 @@ export const ElementLocation = ({
 
 const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
   const idText = data.id.toString()
-  const typeSlug = getElementTypeSlug(data.type)
+  const typeText = getElementTypeSlug(data.type)
   const prev = data.prevVersion
   const next = data.nextVersion
 
@@ -269,20 +270,20 @@ const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
         <div class="mb-2">
           {prev !== undefined && (
             <a
-              href={`/${typeSlug}/${idText}/history/${prev.toString()}`}
+              href={`/${typeText}/${idText}/history/${prev.toString()}`}
               rel="prev"
             >
               « v{prev.toString()}
             </a>
           )}
           {prev !== undefined && " · "}
-          <a href={`/${typeSlug}/${idText}/history`}>{t("browse.view_history")}</a>
+          <a href={`/${typeText}/${idText}/history`}>{t("browse.view_history")}</a>
           {next !== undefined && (
             <>
               {" "}
               ·{" "}
               <a
-                href={`/${typeSlug}/${idText}/history/${next.toString()}`}
+                href={`/${typeText}/${idText}/history/${next.toString()}`}
                 rel="next"
               >
                 v{next.toString()} »
@@ -294,7 +295,7 @@ const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
       {data.visible && (
         <small>
           <a
-            href={`${API_URL}/api/0.6/${typeSlug}/${idText}/${data.version.toString()}`}
+            href={`${API_URL}/api/0.6/${typeText}/${idText}/${data.version.toString()}`}
           >
             {t("browse.download_xml")}
           </a>

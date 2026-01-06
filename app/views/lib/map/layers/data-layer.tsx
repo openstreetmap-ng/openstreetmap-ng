@@ -5,14 +5,16 @@ import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
 import { qsEncode } from "@lib/qs"
 import type { OSMNode, OSMWay } from "@lib/types"
+import { signal } from "@preact/signals"
 import { fail } from "@std/assert"
+import { t } from "i18next"
 import type {
   GeoJSONSource,
   LngLatBounds,
   MapLayerMouseEvent,
   Map as MaplibreMap,
 } from "maplibre-gl"
-import { getMapAlert } from "../alert"
+import { MapAlertPanel, mountMapAlert } from "../alerts"
 import { getLngLatBoundsSize, padLngLatBounds } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { convertRenderElementsData, renderObjects } from "../render-objects"
@@ -78,13 +80,12 @@ const LOAD_DATA_ALERT_THRESHOLD = 10_000
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  const errorDataAlert = getMapAlert("data-layer-error-alert")
-  const loadDataAlert = getMapAlert("data-layer-load-alert")
-  const hideDataButton = loadDataAlert.querySelector("button.hide-data-btn")!
-  const showDataButton = loadDataAlert.querySelector("button.show-data-btn")!
   const dataOverlayCheckbox = document.querySelector(
     ".map-sidebar.layers input.overlay[value=data]",
   )!
+
+  const loadDataAlertVisible = signal(false)
+  const errorDataAlertVisible = signal(false)
 
   let enabled = false
   let abortController: AbortController | undefined
@@ -133,17 +134,8 @@ export const configureDataLayer = (map: MaplibreMap) => {
   /** Load map data into the data layer */
   const loadData = (elements: (OSMNode | OSMWay)[]) => {
     console.debug("DataLayer: Loaded", elements.length, "elements")
-    loadDataAlert.classList.add("d-none")
+    loadDataAlertVisible.value = false
     source.setData(renderObjects(elements, { renderAreas: false }))
-  }
-
-  /** Display data alert if not already shown */
-  const showDataAlert = () => {
-    console.debug("DataLayer: Data limit exceeded, showing alert")
-    if (!loadDataAlert.classList.contains("d-none")) return
-    showDataButton.addEventListener("click", onShowDataButtonClick, { once: true })
-    hideDataButton.addEventListener("click", onHideDataButtonClick, { once: true })
-    loadDataAlert.classList.remove("d-none")
   }
 
   /** On show data click, mark override and load data */
@@ -151,7 +143,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     if (loadDataOverride) return
     console.debug("DataLayer: Show data clicked")
     loadDataOverride = true
-    loadDataAlert.classList.add("d-none")
+    loadDataAlertVisible.value = false
     fetchedBounds = null
     updateLayer()
   }
@@ -162,8 +154,46 @@ export const configureDataLayer = (map: MaplibreMap) => {
     console.debug("DataLayer: Hide data clicked")
     dataOverlayCheckbox.checked = false
     dataOverlayCheckbox.dispatchEvent(new Event("change"))
-    loadDataAlert.classList.add("d-none")
+    loadDataAlertVisible.value = false
   }
+
+  const DataLayerAlerts = () => (
+    <>
+      {errorDataAlertVisible.value && (
+        <MapAlertPanel variant="warning">
+          {t("map.data.too_much_data_error")}
+          <i class="bi bi-zoom-in ms-1"></i>
+        </MapAlertPanel>
+      )}
+
+      {loadDataAlertVisible.value && (
+        <MapAlertPanel variant="warning">
+          <p class="mb-2">{t("map.data.display_large_data_warning")}</p>
+          <div class="d-flex justify-content-around align-items-center mx-3">
+            <button
+              class="btn btn-primary"
+              type="button"
+              onClick={onHideDataButtonClick}
+            >
+              <i class="bi bi-eye-slash-fill me-1"></i>
+              {t("map.data.hide_map_data")}
+            </button>
+            {t("map.data.or")}
+            <button
+              class="btn btn-primary"
+              type="button"
+              onClick={onShowDataButtonClick}
+            >
+              {t("map.data.show_map_data")}
+              <i class="bi bi-eye-fill ms-1"></i>
+            </button>
+          </div>
+        </MapAlertPanel>
+      )}
+    </>
+  )
+
+  mountMapAlert(<DataLayerAlerts />)
 
   /** On map update, fetch the elements in view and update the data layer */
   const updateLayer = async () => {
@@ -180,7 +210,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     if (
       fetchedBounds?.contains(viewBounds.getSouthWest()) &&
       fetchedBounds.contains(viewBounds.getNorthEast()) &&
-      loadDataAlert.classList.contains("d-none")
+      !loadDataAlertVisible.value
     )
       return
 
@@ -190,13 +220,13 @@ export const configureDataLayer = (map: MaplibreMap) => {
     // Skip updates if the area is too big
     const area = getLngLatBoundsSize(fetchBounds)
     if (area > MAP_QUERY_AREA_MAX_SIZE) {
-      errorDataAlert.classList.remove("d-none")
-      loadDataAlert.classList.add("d-none")
+      errorDataAlertVisible.value = true
+      loadDataAlertVisible.value = false
       clearData()
       return
     }
 
-    errorDataAlert.classList.add("d-none")
+    errorDataAlertVisible.value = false
     const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
       .adjustAntiMeridian()
       .toArray()
@@ -212,8 +242,8 @@ export const configureDataLayer = (map: MaplibreMap) => {
       )
       if (!resp.ok) {
         if (resp.status === 400) {
-          errorDataAlert.classList.remove("d-none")
-          loadDataAlert.classList.add("d-none")
+          errorDataAlertVisible.value = true
+          loadDataAlertVisible.value = false
           clearData()
           return
         }
@@ -224,7 +254,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
       fetchedBounds = fetchBounds
       if (render.tooMuchData) {
-        showDataAlert()
+        loadDataAlertVisible.value = true
       } else {
         loadData(convertRenderElementsData(render))
       }
@@ -245,8 +275,8 @@ export const configureDataLayer = (map: MaplibreMap) => {
       updateLayer()
     } else {
       onFeatureLeave()
-      errorDataAlert.classList.add("d-none")
-      loadDataAlert.classList.add("d-none")
+      errorDataAlertVisible.value = false
+      loadDataAlertVisible.value = false
       abortController?.abort()
       clearData()
     }
