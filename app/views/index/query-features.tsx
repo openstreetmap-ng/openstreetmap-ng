@@ -5,7 +5,6 @@ import {
   switchActionSidebar,
   useSidebarFetch,
 } from "@index/_action-sidebar"
-import { getElementTypeLabel, getElementTypeSlug } from "@index/element"
 import { prefersReducedMotion } from "@lib/config"
 import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
@@ -19,7 +18,7 @@ import {
   removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLatZoom } from "@lib/map/state"
+import type { LonLat, LonLatZoom } from "@lib/map/state"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import {
   type QueryFeaturesNearbyData_Result,
@@ -39,6 +38,7 @@ import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
 import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
+import { ElementResultEntry } from "./search"
 
 const LAYER_ID = "query-features" as LayerId
 const THEME_COLOR = "#f60"
@@ -106,66 +106,16 @@ const QueryFeaturesResultsList = ({
   return results.length ? (
     <ul class="search-list list-unstyled mb-0">
       {results.map((result, i) => (
-        <QueryResult
+        <ElementResultEntry
           key={`${result.type}:${result.id.toString()}`}
           result={result}
-          onMouseEnter={() => focusEntryAt(i)}
-          onMouseLeave={clearFocus}
+          onFocus={() => focusEntryAt(i)}
+          onBlur={() => clearFocus()}
         />
       ))}
     </ul>
   ) : (
     <p>{t("javascripts.query.nothing_found")}</p>
-  )
-}
-
-const QueryResult = ({
-  result,
-  onMouseEnter,
-  onMouseLeave,
-}: {
-  result: QueryFeaturesNearbyData_Result
-  onMouseEnter: () => void
-  onMouseLeave: () => void
-}) => {
-  const idText = result.id.toString()
-  const typeSlug = getElementTypeSlug(result.type)
-  const displayNameText =
-    result.displayName ?? `${getElementTypeLabel(result.type)} ${idText}`
-
-  return (
-    <li
-      class="social-entry clickable"
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      <p class="header text-muted d-flex justify-content-between">
-        <span>
-          {result.icon && (
-            <img
-              class="icon me-1-5"
-              loading="lazy"
-              src={`/static/img/element/${result.icon.icon}`}
-              title={result.icon.title}
-              alt=""
-            />
-          )}
-          {result.prefix}
-        </span>
-        <a
-          class="stretched-link"
-          href={`/${typeSlug}/${idText}`}
-          onFocus={onMouseEnter}
-          onBlur={onMouseLeave}
-          aria-label={`${displayNameText} (${typeSlug}/${idText})`}
-        >
-          {typeSlug}/{idText}
-        </a>
-      </p>
-      <p class="body">
-        <bdi>{displayNameText}</bdi>
-      </p>
-    </li>
   )
 }
 
@@ -229,13 +179,7 @@ const QueryFeaturesSidebar = ({
     if (!p) return
 
     const abortController = new AbortController()
-    animateQueryRadius(
-      map,
-      source,
-      new LngLat(p.lon, p.lat),
-      p.zoom,
-      abortController.signal,
-    )
+    animateQueryRadius(map, source, p, abortController.signal)
     return () => abortController.abort()
   })
 
@@ -305,14 +249,13 @@ export const getQueryFeaturesController = (map: MaplibreMap) => {
 const animateQueryRadius = (
   map: MaplibreMap,
   source: GeoJSONSource,
-  center: LngLat,
-  zoom: number,
+  position: LonLatZoom,
   abortSignal: AbortSignal,
 ) => {
-  const radiusMeters = 10 * 1.5 ** (19 - zoom)
+  const radiusMeters = 10 * 1.5 ** (19 - position.zoom)
   console.debug("QueryFeatures: Radius", radiusMeters, "meters")
 
-  source.setData(getCircleFeature(center, radiusMeters))
+  source.setData(getCircleFeature(position, radiusMeters))
 
   // Fade out circle smoothly
   const animationDuration = 750
@@ -342,7 +285,7 @@ const animateQueryRadius = (
 }
 
 const getCircleFeature = (
-  { lng, lat }: LngLat,
+  { lon, lat }: LonLat,
   radiusMeters: number,
   vertices = 36,
 ): FeatureCollection => {
@@ -357,7 +300,7 @@ const getCircleFeature = (
   let sinTheta = 0 // sin(0) = 0
 
   for (let i = 0; i < vertices; i++) {
-    const x = lng + radiusLon * cosTheta
+    const x = lon + radiusLon * cosTheta
     const y = lat + radiusLat * sinTheta
     coords.push([x, y])
 

@@ -47,8 +47,8 @@ const ElementHistoryEntry = ({
   tagsDiff: boolean
 }) => {
   const elementsRef = useRef<ReturnType<typeof convertRenderElementsData> | null>(null)
-  const typeSlug = getElementTypeSlug(data.type)
   const idText = data.id.toString()
+  const typeText = getElementTypeSlug(data.type)
   const versionText = data.version.toString()
   const isLatest = data.nextVersion === undefined
   const location = data.location
@@ -64,7 +64,7 @@ const ElementHistoryEntry = ({
     <div class="version-section section position-relative">
       <a
         class="stretched-link"
-        href={`/${typeSlug}/${idText}/history/${versionText}`}
+        href={`/${typeText}/${idText}/history/${versionText}`}
         onMouseEnter={() => {
           focusObjects(map, getElements(), elementFocusPaint)
         }}
