@@ -1,8 +1,9 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "@index/router"
-import { toggleLayerSpinner } from "@index/sidebar/layers"
+import { notesLayerLoading } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
+import { qsEncode } from "@lib/qs"
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
 import { SECOND } from "@std/datetime/constants"
@@ -12,25 +13,26 @@ import {
   type Map as MaplibreMap,
   Popup,
 } from "maplibre-gl"
-import { getLngLatBoundsIntersection, getLngLatBoundsSize } from "../bounds"
+import { boundsIntersection, boundsSize, boundsToString } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { loadMapImage } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
 import {
   addLayerEventHandler,
   emptyFeatureCollection,
-  type LayerCode,
-  type LayerId,
   layersConfig,
+  NOTES_LAYER_CODE,
+  NOTES_LAYER_ID,
 } from "./layers"
 
-const LAYER_ID = "notes" as LayerId
+const LAYER_ID = NOTES_LAYER_ID
+const LAYER_CODE = NOTES_LAYER_CODE
 layersConfig.set(LAYER_ID, {
   specification: {
     type: "geojson",
     data: emptyFeatureCollection,
   },
-  layerCode: "N" as LayerCode,
+  layerCode: LAYER_CODE,
   layerTypes: ["symbol"],
   layerOptions: {
     layout: {
@@ -116,26 +118,21 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
     // Skip updates if the area is too big
     const fetchBounds = map.getBounds()
-    const fetchArea = getLngLatBoundsSize(fetchBounds)
+    const fetchArea = boundsSize(fetchBounds)
     if (fetchArea > NOTE_QUERY_AREA_MAX_SIZE) return
 
     // Skip updates if the view is satisfied
     if (fetchedBounds) {
-      const visibleBounds = getLngLatBoundsIntersection(fetchedBounds, fetchBounds)
-      const visibleArea = getLngLatBoundsSize(visibleBounds)
-      const proportion =
-        visibleArea / Math.max(getLngLatBoundsSize(fetchedBounds), fetchArea)
+      const visibleBounds = boundsIntersection(fetchedBounds, fetchBounds)
+      const visibleArea = boundsSize(visibleBounds)
+      const proportion = visibleArea / Math.max(boundsSize(fetchedBounds), fetchArea)
       if (proportion > RELOAD_PROPORTION_THRESHOLD) return
     }
 
-    const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
-      .adjustAntiMeridian()
-      .toArray()
-
-    toggleLayerSpinner(LAYER_ID, true)
+    notesLayerLoading.value = true
     try {
       const resp = await fetch(
-        `/api/web/note/map?bbox=${minLon},${minLat},${maxLon},${maxLat}`,
+        `/api/web/note/map${qsEncode({ bbox: boundsToString(fetchBounds) })}`,
         {
           signal: abortController.signal,
           priority: "high",
@@ -154,7 +151,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       console.error("NotesLayer: Failed to fetch", error)
       source.setData(emptyFeatureCollection)
     } finally {
-      toggleLayerSpinner(LAYER_ID, false)
+      notesLayerLoading.value = false
     }
   }
   map.on("moveend", updateLayer)

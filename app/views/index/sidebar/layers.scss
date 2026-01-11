@@ -8,12 +8,24 @@
         overflow: hidden;
         transition: box-shadow 0.08s ease-out;
 
+        // Button wrapper inside list items
+        .layer-button {
+            border: 0;
+            padding: 0;
+            background: none;
+            width: 100%;
+            text-align: inherit;
+            color: inherit;
+            font: inherit;
+            display: block;
+        }
+
         // Add some margin between each layer
         &:not(:last-child) {
             margin-bottom: 0.875rem;
         }
 
-        label {
+        .label {
             @extend .text-body;
             cursor: pointer;
             user-select: none;
@@ -48,7 +60,15 @@
             // Fix small "white pop" visual glitch in Dark Mode on Chrome
             border-top-left-radius: calc($border-radius + 2px);
 
-            img {
+            // Render at a larger viewport and scale down so minimaps show more area
+            > div {
+                width: 200%;
+                height: 200%;
+                transform: scale(0.5);
+                transform-origin: top left;
+            }
+
+            > img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -73,6 +93,18 @@
                     0 0 0 0.25rem shade-color($primary, 20%);
             }
         }
+    }
+
+    // Reset default button styles for interactive tiles
+    button.layer {
+        border: 0;
+        padding: 0;
+        background: none;
+        width: 100%;
+        text-align: inherit;
+        color: inherit;
+        font: inherit;
+        display: block;
     }
 
     .layer-order {
@@ -136,7 +168,7 @@
 @include color-mode(dark) {
     .map-sidebar.layers {
         .layer {
-            label {
+            .label {
                 background: rgba($body-bg-dark, 0.8);
             }
 
