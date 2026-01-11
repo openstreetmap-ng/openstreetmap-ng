@@ -13,7 +13,7 @@ const BIT_MASKS = getBitMasks()
 
 /** Encode coordinates to OSM shortlink code */
 export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
-  const n = (zoom | 0) + 8
+  const n = Math.round(zoom) + 8
   const r = n % 3
   const d = Math.ceil(n / 3)
 

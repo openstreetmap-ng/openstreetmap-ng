@@ -6,7 +6,7 @@ import type {
   LngLatBounds,
   Map as MaplibreMap,
 } from "maplibre-gl"
-import { checkLngLatBoundsIntersection, getLngLatBoundsIntersection } from "./bounds"
+import { boundsIntersect, boundsIntersection } from "./bounds"
 import { loadMapImage } from "./image"
 import {
   addMapLayer,
@@ -162,10 +162,10 @@ const getImageTrim = (
   mapBounds: LngLatBounds,
   filterBounds: LngLatBounds,
 ) => {
-  if (!checkLngLatBoundsIntersection(mapBounds, filterBounds)) {
+  if (!boundsIntersect(mapBounds, filterBounds)) {
     return { top: 0, left: 0, bottom: 0, right: 0 }
   }
-  filterBounds = getLngLatBoundsIntersection(mapBounds, filterBounds)
+  filterBounds = boundsIntersection(mapBounds, filterBounds)
   const bottomLeft = map.project(filterBounds.getSouthWest())
   const topRight = map.project(filterBounds.getNorthEast())
   const ratio = window.devicePixelRatio

@@ -7,14 +7,36 @@ import {
 } from "maplibre-gl"
 
 /** Get the bounds area in square degrees */
-export const getLngLatBoundsSize = (bounds: LngLatBounds) => {
+export const boundsSize = (bounds: LngLatBounds) => {
   const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
   return (maxLon - minLon) * (maxLat - minLat)
 }
 
-export const getLngLatBoundsIntersection = (
+export function boundsToBounds(bounds: LngLatBounds): Bounds
+export function boundsToBounds(bounds: Bounds): LngLatBounds
+export function boundsToBounds(bounds: LngLatBounds | Bounds) {
+  if (bounds instanceof LngLatBounds) {
+    const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+    return [minLon, minLat, maxLon, maxLat] satisfies Bounds
+  }
+
+  return new LngLatBounds(bounds)
+}
+
+export const boundsToString = (bounds: LngLatBounds | Bounds) => {
+  let minLon: number, minLat: number, maxLon: number, maxLat: number
+  if (bounds instanceof LngLatBounds) {
+    ;[[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+  } else {
+    ;[minLon, minLat, maxLon, maxLat] = bounds
+  }
+  return `${minLon},${minLat},${maxLon},${maxLat}`
+}
+
+export const boundsIntersection = (
   bounds1: LngLatBounds,
   bounds2: LngLatBounds,
+  eps = 1e-7,
 ) => {
   const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
     .adjustAntiMeridian()
@@ -28,17 +50,18 @@ export const getLngLatBoundsIntersection = (
   const minLon = Math.max(minLon1, minLon2)
   const maxLon = Math.min(maxLon1, maxLon2)
 
-  // Return zero-sized bounds if no intersection
-  if (minLat > maxLat || minLon > maxLon) {
+  // Treat small intersections as empty.
+  if (minLat >= maxLat - eps || minLon >= maxLon - eps) {
     return new LngLatBounds([minLon1, minLat1, minLon1, minLat1])
   }
 
   return new LngLatBounds([minLon, minLat, maxLon, maxLat])
 }
 
-export const checkLngLatBoundsIntersection = (
+export const boundsIntersect = (
   bounds1: LngLatBounds,
   bounds2: LngLatBounds,
+  eps = 1e-7,
 ) => {
   const [[minLon1, minLat1], [maxLon1, maxLat1]] = bounds1
     .adjustAntiMeridian()
@@ -47,17 +70,33 @@ export const checkLngLatBoundsIntersection = (
     .adjustAntiMeridian()
     .toArray()
 
-  return !(
-    minLat1 > maxLat2 ||
-    maxLat1 < minLat2 ||
-    minLon1 > maxLon2 ||
-    maxLon1 < minLon2
+  const minLat = Math.max(minLat1, minLat2)
+  const maxLat = Math.min(maxLat1, maxLat2)
+  const minLon = Math.max(minLon1, minLon2)
+  const maxLon = Math.min(maxLon1, maxLon2)
+  return minLat < maxLat - eps && minLon < maxLon - eps
+}
+
+export const boundsContain = (outer: LngLatBounds, inner: LngLatBounds, eps = 1e-7) => {
+  const [[outerMinLon, outerMinLat], [outerMaxLon, outerMaxLat]] = outer
+    .adjustAntiMeridian()
+    .toArray()
+  const [[innerMinLon, innerMinLat], [innerMaxLon, innerMaxLat]] = inner
+    .adjustAntiMeridian()
+    .toArray()
+
+  return (
+    innerMinLon >= outerMinLon - eps &&
+    innerMinLat >= outerMinLat - eps &&
+    innerMaxLon <= outerMaxLon + eps &&
+    innerMaxLat <= outerMaxLat + eps
   )
 }
 
-export const lngLatBoundsEqual = (
+export const boundsEqual = (
   bounds1: LngLatBounds | null | undefined,
   bounds2: LngLatBounds | null | undefined,
+  eps = 1e-7,
 ) => {
   if (!(bounds1 || bounds2)) return true
   if (!(bounds1 && bounds2)) return false
@@ -68,15 +107,15 @@ export const lngLatBoundsEqual = (
     .adjustAntiMeridian()
     .toArray()
   return (
-    minLon1 === minLon2 &&
-    minLat1 === minLat2 &&
-    maxLon1 === maxLon2 &&
-    maxLat1 === maxLat2
+    Math.abs(minLon1 - minLon2) < eps &&
+    Math.abs(minLat1 - minLat2) < eps &&
+    Math.abs(maxLon1 - maxLon2) < eps &&
+    Math.abs(maxLat1 - maxLat2) < eps
   )
 }
 
 /** Pad bounds to grow/shrink them */
-export const padLngLatBounds = (bounds: LngLatBounds, padding?: number) => {
+export const boundsPadding = (bounds: LngLatBounds, padding?: number) => {
   if (!padding) return bounds
   const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
   const paddingX = padding * (maxLon - minLon)
@@ -120,7 +159,7 @@ export const makeBoundsMinimumSize = (
     lngLatBottomLeft.lat,
     lngLatTopRight.lng,
     lngLatTopRight.lat,
-  ] as Bounds
+  ] satisfies Bounds
 }
 
 export interface FitBoundsOptions {
@@ -141,15 +180,17 @@ export const fitBoundsIfNeeded = (
   bounds: LngLatBounds,
   opts?: FitBoundsOptions,
 ) => {
-  const padBounds = opts?.padBounds ?? 0.2
-  const maxZoom = opts?.maxZoom ?? 18
-  const intersects = opts?.intersects ?? false
-  const minProportion = opts?.minProportion ?? 0.00035
-  const animate = opts?.animate ?? false
+  const {
+    padBounds = 0.2,
+    maxZoom = 18,
+    intersects = false,
+    minProportion = 0.00035,
+    animate = false,
+  } = opts ?? {}
 
   const mapBounds = map.getBounds().adjustAntiMeridian()
   const boundsAdjusted = bounds.adjustAntiMeridian()
-  const boundsPadded = padLngLatBounds(boundsAdjusted, padBounds)
+  const boundsPadded = boundsPadding(boundsAdjusted, padBounds)
 
   const currentZoom = map.getZoom()
   const fitMaxZoom = Math.max(currentZoom, maxZoom)
@@ -160,11 +201,8 @@ export const fitBoundsIfNeeded = (
   }
 
   const isOffscreen = intersects
-    ? !checkLngLatBoundsIntersection(mapBounds, boundsPadded)
-    : !(
-        mapBounds.contains(boundsPadded.getSouthWest()) &&
-        mapBounds.contains(boundsPadded.getNorthEast())
-      )
+    ? !boundsIntersect(mapBounds, boundsPadded)
+    : !boundsContain(mapBounds, boundsPadded)
 
   if (isOffscreen) {
     map.fitBounds(boundsPadded, maplibreOpts)
@@ -172,9 +210,7 @@ export const fitBoundsIfNeeded = (
   }
 
   if (minProportion > 0 && fitMaxZoom > currentZoom) {
-    const boundsSize = getLngLatBoundsSize(boundsAdjusted)
-    const mapBoundsSize = getLngLatBoundsSize(mapBounds)
-    const proportion = boundsSize / mapBoundsSize
+    const proportion = boundsSize(boundsAdjusted) / boundsSize(mapBounds)
     if (proportion > 0 && proportion < minProportion) {
       map.fitBounds(boundsPadded, maplibreOpts)
       return { reason: "small", fitMaxZoom }
@@ -184,12 +220,12 @@ export const fitBoundsIfNeeded = (
   return null
 }
 
-export const unionBounds = (left: Bounds | null | undefined, right: Bounds) =>
+export const boundsUnion = (left: Bounds | null | undefined, right: Bounds) =>
   left
     ? ([
         Math.min(left[0], right[0]),
         Math.min(left[1], right[1]),
         Math.max(left[2], right[2]),
         Math.max(left[3], right[3]),
-      ] as Bounds)
+      ] satisfies Bounds)
     : right
