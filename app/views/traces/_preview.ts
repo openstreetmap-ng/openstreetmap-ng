@@ -1,4 +1,4 @@
-import { padLngLatBounds } from "@lib/map/bounds"
+import { boundsPadding } from "@lib/map/bounds"
 import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
 import { CustomZoomControl } from "@lib/map/controls/zoom"
@@ -97,7 +97,7 @@ if (tracePreviewContainer) {
     (bounds, coord) => bounds.extend(coord),
     new LngLatBounds(),
   )
-  map.fitBounds(padLngLatBounds(bounds, 0.3), { animate: false })
+  map.fitBounds(boundsPadding(bounds, 0.3), { animate: false })
 
   const geometry: LineString = { type: "LineString", coordinates }
   map.getSource<GeoJSONSource>(LAYER_ID)!.setData(geometry)

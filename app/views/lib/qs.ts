@@ -36,11 +36,13 @@ export const qsEncode = (
     if (typeof value === "string") {
       params.set(key, value)
     } else {
-      for (const item of value) params.append(key, item)
+      for (const item of value) {
+        params.append(key, item)
+      }
     }
   }
   const str = params.toString()
-  return str ? `${prefix}${str}` : ""
+  return str ? `${prefix}${str.replaceAll("%2F", "/")}` : ""
 }
 
 export const updateSearchParams = (
