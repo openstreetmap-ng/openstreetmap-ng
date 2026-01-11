@@ -1,5 +1,6 @@
 import { routerNavigateStrict } from "@index/router"
-import { beautifyZoom } from "@lib/coords"
+import { encodeMapState } from "@lib/map/state"
+import { qsEncode } from "@lib/qs"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
@@ -33,10 +34,8 @@ export class QueryFeaturesControl implements IControl {
 
     const onMapClick = ({ lngLat }: MapMouseEvent) => {
       const zoom = map.getZoom()
-      const zoomRounded = beautifyZoom(zoom)
-      routerNavigateStrict(
-        `/query?lat=${lngLat.lat}&lon=${lngLat.lng}&zoom=${zoomRounded}`,
-      )
+      const at = encodeMapState({ lon: lngLat.lng, lat: lngLat.lat, zoom }, "")
+      routerNavigateStrict(`/query${qsEncode({ at })}`)
     }
 
     // On button click, toggle active state and event handlers

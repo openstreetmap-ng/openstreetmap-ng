@@ -6,7 +6,6 @@ import {
   useSidebarFetch,
 } from "@index/_action-sidebar"
 import { prefersReducedMotion } from "@lib/config"
-import { isLatitude, isLongitude, isZoom } from "@lib/coords"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
@@ -18,7 +17,7 @@ import {
   removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLat, LonLatZoom } from "@lib/map/state"
+import { type LonLat, type LonLatZoom, parseLonLatZoom } from "@lib/map/state"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import {
   type QueryFeaturesNearbyData_Result,
@@ -75,19 +74,11 @@ const focusPaint: FocusLayerPaint = {
 }
 
 const getURLQueryPosition = (map: MaplibreMap) => {
-  const searchParams = qsParse(window.location.search)
-  if (!(searchParams.lon && searchParams.lat)) return null
-
-  const lon = Number.parseFloat(searchParams.lon)
-  const lat = Number.parseFloat(searchParams.lat)
-  const zoom = Math.max(
-    searchParams.zoom ? Number.parseFloat(searchParams.zoom) : map.getZoom(),
-    QUERY_FEATURES_MIN_ZOOM,
-  )
-
-  return isLongitude(lon) && isLatitude(lat) && isZoom(zoom)
-    ? { lon, lat, zoom: zoom | 0 }
-    : null
+  const params = qsParse(window.location.search)
+  params.zoom ??= map.getZoom().toString()
+  const at = parseLonLatZoom(params)
+  if (at) at.zoom = Math.round(Math.max(at.zoom, QUERY_FEATURES_MIN_ZOOM))
+  return at
 }
 
 const QueryFeaturesResultsList = ({

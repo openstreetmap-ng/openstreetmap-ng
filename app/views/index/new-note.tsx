@@ -4,12 +4,11 @@ import {
   switchActionSidebar,
 } from "@index/_action-sidebar"
 import { routerNavigateStrict } from "@index/router"
-import { isLatitude, isLongitude } from "@lib/coords"
 import { newNoteControlActive } from "@lib/map/controls/new-note"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
-import { type LayerId, layersConfig } from "@lib/map/layers/layers"
+import { NOTES_LAYER_CODE } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import { getMapState, setMapState } from "@lib/map/state"
+import { applyMapState, getMapState, parseLonLatZoom } from "@lib/map/state"
 import { type IdResponse, IdResponseSchema, NoteStatus } from "@lib/proto/shared_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
@@ -22,11 +21,10 @@ import {
   useSignalEffect,
 } from "@preact/signals"
 import { t } from "i18next"
-import { LngLat, type Map as MaplibreMap, Marker } from "maplibre-gl"
+import { type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { render } from "preact"
 import { useId, useRef } from "preact/hooks"
 
-const NOTES_LAYER_ID = "notes" as LayerId
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
   "circle-radius": 20,
@@ -86,22 +84,16 @@ const NewNoteSidebar = ({
     newNoteControlActive.value = true
 
     // Allow default location setting via URL search parameters
-    let center: LngLat | undefined
-    const searchParams = qsParse(window.location.search)
-    if (searchParams.lon && searchParams.lat) {
-      const lon = Number.parseFloat(searchParams.lon)
-      const lat = Number.parseFloat(searchParams.lat)
-      if (isLongitude(lon) && isLatitude(lat)) {
-        center = new LngLat(lon, lat)
-      }
-    }
+    const params = qsParse(window.location.search)
+    params.zoom ??= "0"
+    const at = parseLonLatZoom(params)
 
     const marker = new Marker({
       anchor: MARKER_ICON_ANCHOR,
       element: getMarkerIconElement("new", false),
       draggable: true,
     })
-      .setLngLat(center ?? map.getCenter())
+      .setLngLat(at ?? map.getCenter())
       .addTo(map)
 
     const updateFromMarker = () => {
@@ -137,10 +129,9 @@ const NewNoteSidebar = ({
 
     // Enable notes layer to prevent duplicates
     const state = getMapState(map)
-    const notesLayerCode = layersConfig.get(NOTES_LAYER_ID)!.layerCode!
-    if (!state.layersCode.includes(notesLayerCode)) {
-      state.layersCode += notesLayerCode
-      setMapState(map, state)
+    if (!state.layersCode.includes(NOTES_LAYER_CODE)) {
+      state.layersCode += NOTES_LAYER_CODE
+      applyMapState(map, state)
     }
 
     return () => {

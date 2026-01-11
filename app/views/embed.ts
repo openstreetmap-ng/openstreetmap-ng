@@ -1,7 +1,7 @@
 import "./embed.scss"
 
+import { isLatitude, isLongitude } from "@lib/coords"
 import "@lib/i18n"
-import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
   addMapLayer,
@@ -11,8 +11,8 @@ import {
   resolveLayerCodeOrId,
 } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import type { LonLatZoom } from "@lib/map/state"
-import { qsParse } from "@lib/qs"
+import { encodeMapState } from "@lib/map/state"
+import { qsEncode, qsParse } from "@lib/qs"
 import { t } from "i18next"
 import {
   AttributionControl,
@@ -74,28 +74,17 @@ if (searchParams.marker) {
 
 addMapLayer(map, layerId)
 
-const getFixTheMapLink = ({ lon, lat, zoom }: LonLatZoom) => {
-  const zoomRounded = beautifyZoom(zoom)
-  const precision = zoomPrecision(zoom)
-  const lonFixed = lon.toFixed(precision)
-  const latFixed = lat.toFixed(precision)
-  // TODO: test from within iframe
-  return `${window.location.origin}/fixthemap?lat=${latFixed}&lon=${lonFixed}&zoom=${zoomRounded}`
-}
-
 const reportProblemLink = document.createElement("a")
 reportProblemLink.target = "_blank"
 reportProblemLink.textContent = t("javascripts.embed.report_problem")
 
 /** On move end, update the link with the current coordinates */
 const onMoveEnd = () => {
-  const center = map.getCenter()
+  const { lng, lat } = map.getCenter()
   const zoom = map.getZoom()
-  reportProblemLink.href = getFixTheMapLink({
-    lon: center.lng,
-    lat: center.lat,
-    zoom,
-  })
+  const at = encodeMapState({ lon: lng, lat, zoom }, "")
+  // TODO: test from within iframe
+  reportProblemLink.href = `${window.location.origin}/fixthemap${qsEncode({ at })}`
   attributionControl.options.customAttribution = reportProblemLink.outerHTML
   attributionControl._updateAttributions()
 }

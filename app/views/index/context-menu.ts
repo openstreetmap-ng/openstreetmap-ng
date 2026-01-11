@@ -1,8 +1,9 @@
 import { routerNavigateStrict } from "@index/router"
-import { beautifyZoom, zoomPrecision } from "@lib/coords"
+import { zoomPrecision } from "@lib/coords"
 import { formatCoordinate } from "@lib/format"
 import { NEW_NOTE_MIN_ZOOM } from "@lib/map/controls/new-note"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
+import { encodeMapState, getMapGeoUri, type LonLatZoom } from "@lib/map/state"
 import { encodeLonLat } from "@lib/polyline"
 import { qsEncode } from "@lib/qs"
 import { Dropdown } from "bootstrap"
@@ -37,18 +38,12 @@ export const configureContextMenu = (map: MaplibreMap) => {
   /**
    * Get the simplified position of the popup
    * @example
-   * getPopupPosition()
-   * // => { lon: "12.345678", lat: "23.456789", zoom: 17 }
+   * getPopupLonLatZoom()
+   * // => { lon: 12.345678, lat: 23.456789, zoom: 17 }
    */
-  const getPopupPosition = () => {
-    const zoom = map.getZoom()
-    const precision = zoomPrecision(zoom)
-    const lngLat = popup.getLngLat()
-    return {
-      lon: lngLat.lng.toFixed(precision),
-      lat: lngLat.lat.toFixed(precision),
-      zoom,
-    }
+  const getPopupLonLatZoom = () => {
+    const { lng, lat } = popup.getLngLat()
+    return { lon: lng, lat, zoom: map.getZoom() } satisfies LonLatZoom
   }
 
   /** On map interactions, close the popup */
@@ -63,15 +58,16 @@ export const configureContextMenu = (map: MaplibreMap) => {
 
     // Update the geolocation fields
     const zoom = map.getZoom()
-    const precision = zoomPrecision(zoom)
-    const lon = lngLat.lng.toFixed(precision)
-    const lat = lngLat.lat.toFixed(precision)
-    geolocationField.textContent = `${lat}, ${lon}`
-    geolocationGeoField.textContent = formatCoordinate({
+    const state = {
       lon: lngLat.lng,
       lat: lngLat.lat,
-    })
-    geolocationUriField.textContent = `geo:${lat},${lon}?z=${zoom | 0}`
+      zoom,
+    }
+
+    const precision = zoomPrecision(zoom)
+    geolocationField.textContent = `${state.lon.toFixed(precision)}, ${state.lat.toFixed(precision)}`
+    geolocationGeoField.textContent = formatCoordinate(state)
+    geolocationUriField.textContent = getMapGeoUri(state)
 
     // Open the context menu
     popup.setLngLat(lngLat).addTo(map)
@@ -111,50 +107,45 @@ export const configureContextMenu = (map: MaplibreMap) => {
   // On routing from button click, navigate to routing page
   routingFromButton.addEventListener("click", () => {
     console.debug("ContextMenu: Route from clicked")
-    const { lon, lat } = getPopupPosition()
+    const { lon, lat, zoom } = getPopupLonLatZoom()
+    const precision = zoomPrecision(zoom)
+    const from = `${lat.toFixed(precision)}, ${lon.toFixed(precision)}`
     closePopup()
-    const from = `${lat}, ${lon}`
     routerNavigateStrict(`/directions${qsEncode({ from })}`)
   })
 
   // On routing to button click, navigate to routing page
   routingToButton.addEventListener("click", () => {
     console.debug("ContextMenu: Route to clicked")
-    const { lon, lat } = getPopupPosition()
+    const { lon, lat, zoom } = getPopupLonLatZoom()
+    const precision = zoomPrecision(zoom)
+    const to = `${lat.toFixed(precision)}, ${lon.toFixed(precision)}`
     closePopup()
-    const to = `${lat}, ${lon}`
     routerNavigateStrict(`/directions${qsEncode({ to })}`)
   })
 
   // On new note button click, navigate to new-note page
   newNoteButton.addEventListener("click", () => {
     console.debug("ContextMenu: New note clicked")
-    const { lon, lat, zoom } = getPopupPosition()
-    const zoomRounded = beautifyZoom(zoom)
+    const at = encodeMapState(getPopupLonLatZoom(), "")
     closePopup()
-    routerNavigateStrict(`/note/new?lat=${lat}&lon=${lon}&zoom=${zoomRounded}`)
+    routerNavigateStrict(`/note/new${qsEncode({ at })}`)
   })
 
   // On show address button click, navigate to search page
   showAddressButton.addEventListener("click", () => {
     console.debug("ContextMenu: Show address clicked")
-    const { lon, lat } = getPopupPosition()
+    const at = encodeMapState(getPopupLonLatZoom(), "")
     closePopup()
-    routerNavigateStrict(
-      `/search${qsEncode({
-        whereami: "1",
-        query: `${lat},${lon}`,
-      })}`,
-    )
+    routerNavigateStrict(`/search${qsEncode({ at })}`)
   })
 
   // On query features button click, navigate to query-features page
   queryFeaturesButton.addEventListener("click", () => {
     console.debug("ContextMenu: Query features clicked")
-    const { lon, lat, zoom } = getPopupPosition()
-    const zoomRounded = beautifyZoom(zoom)
+    const at = encodeMapState(getPopupLonLatZoom(), "")
     closePopup()
-    routerNavigateStrict(`/query?lat=${lat}&lon=${lon}&zoom=${zoomRounded}`)
+    routerNavigateStrict(`/query${qsEncode({ at })}`)
   })
 
   // On center here button click, center the map
@@ -167,9 +158,9 @@ export const configureContextMenu = (map: MaplibreMap) => {
   // On measure distance button click, open the distance tool
   measureDistanceButton.addEventListener("click", () => {
     console.debug("ContextMenu: Measure distance clicked")
-    const { lon, lat } = getPopupPosition()
+    const { lon, lat } = getPopupLonLatZoom()
+    const line = encodeLonLat([[lon, lat]], 5)
     closePopup()
-    const line = encodeLonLat([[Number.parseFloat(lon), Number.parseFloat(lat)]], 5)
     routerNavigateStrict(`/distance${qsEncode({ line })}`)
   })
 }

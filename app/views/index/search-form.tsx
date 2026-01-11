@@ -1,5 +1,5 @@
 import { routerNavigateStrict } from "@index/router"
-import { beautifyZoom, zoomPrecision } from "@lib/coords"
+import { encodeMapState } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
 import { signal } from "@preact/signals"
 import { t } from "i18next"
@@ -13,21 +13,18 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
     console.debug("SearchForm: Submitted")
     e.preventDefault()
     const query = searchFormQuery.value
-    if (query) routerNavigateStrict(`/search${qsEncode({ q: query })}`)
+    if (!query) return
+
+    const { lng, lat } = map.getCenter()
+    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "")
+    routerNavigateStrict(`/search${qsEncode({ q: query, at })}`)
   }
 
   const onWhereIsThisClick = () => {
     console.debug("SearchForm: Where is this clicked")
-    const zoom = map.getZoom()
-    const precision = zoomPrecision(zoom)
-    const lngLat = map.getCenter()
-    routerNavigateStrict(
-      `/search${qsEncode({
-        lat: lngLat.lat.toFixed(precision),
-        lon: lngLat.lng.toFixed(precision),
-        zoom: beautifyZoom(zoom),
-      })}`,
-    )
+    const { lng, lat } = map.getCenter()
+    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "")
+    routerNavigateStrict(`/search${qsEncode({ at })}`)
   }
 
   return (
@@ -135,7 +132,6 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
   )
 }
 
-/** Configure the search form */
 export const configureSearchForm = (map: MaplibreMap) => {
   const container = document.getElementById("SearchForm")!
   render(<SearchForm map={map} />, container)
