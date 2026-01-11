@@ -24,8 +24,11 @@ export const renderObjects = (
   objects: OSMObject[],
   options?: Partial<RenderOptions>,
 ): FeatureCollection => {
+  let {
+    featureIdCounter = 1,
+    renderAreas = true, //
+  } = options ?? {}
   const features: Feature[] = []
-  let featureIdCounter = options?.featureIdCounter ?? 1
 
   const processChangeset = (changeset: OSMChangeset) => {
     const properties = {
@@ -80,7 +83,6 @@ export const renderObjects = (
     })
   }
 
-  const renderAreas = options?.renderAreas ?? true
   const processWay = (way: OSMWay) => {
     const properties = {
       type: "way",
