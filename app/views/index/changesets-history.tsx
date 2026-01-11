@@ -12,13 +12,14 @@ import { darkenColor } from "@lib/color"
 import { Time } from "@lib/datetime-inputs"
 import { tRich } from "@lib/i18n"
 import {
-  checkLngLatBoundsIntersection,
-  getLngLatBoundsIntersection,
-  getLngLatBoundsSize,
-  lngLatBoundsEqual,
+  boundsEqual,
+  boundsIntersect,
+  boundsIntersection,
+  boundsPadding,
+  boundsSize,
+  boundsToString,
+  boundsUnion,
   makeBoundsMinimumSize,
-  padLngLatBounds,
-  unionBounds,
 } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import {
@@ -304,7 +305,7 @@ const ChangesetsHistorySidebar = ({
 
       changeset.bounds = changeset.bounds.map((bounds) => {
         const resized = makeBoundsMinimumSize(map, bounds)
-        aggregatedBounds = unionBounds(aggregatedBounds, resized)
+        aggregatedBounds = boundsUnion(aggregatedBounds, resized)
         return resized
       })
       changesetsMinimumSize.push(changeset)
@@ -322,7 +323,7 @@ const ChangesetsHistorySidebar = ({
     const shouldFit =
       reason.value === "navigation" && Boolean(scope.value || displayName.value)
     if (shouldFit && visibleChangesetsBounds.current && isFirstLoad)
-      map.fitBounds(padLngLatBounds(visibleChangesetsBounds.current, 0.3), {
+      map.fitBounds(boundsPadding(visibleChangesetsBounds.current, 0.3), {
         maxZoom: 16,
         animate: false,
       })
@@ -428,10 +429,9 @@ const ChangesetsHistorySidebar = ({
   // --- Fetch Logic ---
 
   const shouldReloadForBounds = (oldBounds: LngLatBounds, newBounds: LngLatBounds) => {
-    const intersection = getLngLatBoundsIntersection(oldBounds, newBounds)
+    const intersection = boundsIntersection(oldBounds, newBounds)
     const proportion =
-      getLngLatBoundsSize(intersection) /
-      Math.max(getLngLatBoundsSize(oldBounds), getLngLatBoundsSize(newBounds))
+      boundsSize(intersection) / Math.max(boundsSize(oldBounds), boundsSize(newBounds))
     return proportion <= RELOAD_PROPORTION_THRESHOLD
   }
 
@@ -440,7 +440,7 @@ const ChangesetsHistorySidebar = ({
     fetchDate: string | undefined,
   ) => {
     const ctx = fetchedContext.current
-    const boundsMatch = lngLatBoundsEqual(ctx.bounds, fetchBounds)
+    const boundsMatch = boundsEqual(ctx.bounds, fetchBounds)
     const dateMatch = ctx.date === fetchDate
 
     if (boundsMatch && dateMatch) {
@@ -454,12 +454,7 @@ const ChangesetsHistorySidebar = ({
 
   const buildFetchParams = (fetchBounds: LngLatBounds | null, fetchDate?: string) => {
     const params: Record<string, string | undefined> = { date: fetchDate }
-    if (fetchBounds) {
-      const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
-        .adjustAntiMeridian()
-        .toArray()
-      params.bbox = `${minLon},${minLat},${maxLon},${maxLat}`
-    }
+    if (fetchBounds) params.bbox = boundsToString(fetchBounds)
     params.scope = scope.value
     params.display_name = displayName.value
     return params
@@ -574,7 +569,7 @@ const ChangesetsHistorySidebar = ({
     const mapBounds = map.getBounds()
     return cs.bounds.some((b) => {
       const csBounds = new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat])
-      return checkLngLatBoundsIntersection(mapBounds, csBounds)
+      return boundsIntersect(mapBounds, csBounds)
     })
   }
 
@@ -595,7 +590,7 @@ const ChangesetsHistorySidebar = ({
     )
       return
 
-    map.fitBounds(padLngLatBounds(visibleChangesetsBounds.current, 0.3), {
+    map.fitBounds(boundsPadding(visibleChangesetsBounds.current, 0.3), {
       maxZoom: 16,
     })
   }
@@ -774,7 +769,7 @@ const ChangesetsHistorySidebar = ({
             <ChangesetEntry
               changeset={cs}
               key={cs.id}
-              onRef={registerEntry}
+              entryRef={registerEntry}
               onMouseEnter={handleEntryMouseEnter}
               onMouseLeave={handleEntryMouseLeave}
             />
@@ -813,12 +808,12 @@ const DateFilter = ({ date }: { date: string }) => {
 
 const ChangesetEntry = ({
   changeset,
-  onRef,
+  entryRef,
   onMouseEnter,
   onMouseLeave,
 }: {
   changeset: RenderChangesetsData_Changeset
-  onRef: (id: string, el: HTMLLIElement | null) => void
+  entryRef: (id: string, el: HTMLLIElement | null) => void
   onMouseEnter: (id: string) => void
   onMouseLeave: (id: string) => void
 }) => {
@@ -827,7 +822,7 @@ const ChangesetEntry = ({
 
   return (
     <li
-      ref={(el) => onRef(changesetId, el)}
+      ref={(el) => entryRef(changesetId, el)}
       class="social-entry clickable"
       onMouseEnter={() => onMouseEnter(changesetId)}
       onMouseLeave={() => onMouseLeave(changesetId)}

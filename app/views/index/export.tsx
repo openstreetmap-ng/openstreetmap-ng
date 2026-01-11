@@ -6,8 +6,9 @@ import {
 import { API_URL, MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
 import { tRich } from "@lib/i18n"
-import { padLngLatBounds } from "@lib/map/bounds"
+import { boundsPadding, boundsToBounds, boundsToString } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
+import { qsEncode } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
 import {
@@ -46,15 +47,11 @@ const ExportSidebar = ({
   const updateBounds = () => {
     if (!active.peek()) return
 
-    const [[minLon, minLat], [maxLon, maxLat]] = (
+    const newBounds = boundsToBounds(
       locationFilterActive.peek()
         ? (locationFilter.current?.getBounds() ?? map.getBounds())
-        : map.getBounds()
+        : map.getBounds(),
     )
-      .adjustAntiMeridian()
-      .toArray()
-
-    const newBounds: Bounds = [minLon, minLat, maxLon, maxLat]
     if (!equal(bounds.peek(), newBounds)) bounds.value = newBounds
   }
 
@@ -90,7 +87,7 @@ const ExportSidebar = ({
       )
     }
 
-    locationFilter.current.addTo(map, padLngLatBounds(map.getBounds(), -0.2))
+    locationFilter.current.addTo(map, boundsPadding(map.getBounds(), -0.2))
     updateBounds()
 
     return () => {
@@ -111,7 +108,7 @@ const ExportSidebar = ({
 
   if (b) {
     const [minLon, minLat, maxLon, maxLat] = b
-    bboxQueryString = `?bbox=${minLon},${minLat},${maxLon},${maxLat}`
+    bboxQueryString = qsEncode({ bbox: boundsToString(b) })
     isFormAvailable = (maxLon - minLon) * (maxLat - minLat) <= MAP_QUERY_AREA_MAX_SIZE
     minLonText = minLon.toFixed(bp)
     minLatText = minLat.toFixed(bp)
