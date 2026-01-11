@@ -418,7 +418,12 @@ const configureStandardPaginationElements = (
     numItemsTargets,
     numPagesTargets,
   } = elements
-  const customLoader = options?.customLoader
+  const {
+    initialPage = 1,
+    customLoader,
+    loadCallback,
+    pageOrder = "asc",
+  } = options ?? {}
   const dataset = actionPagination.dataset
   const fetchUrl = dataset.action
   const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
@@ -428,7 +433,6 @@ const configureStandardPaginationElements = (
 
   console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
 
-  const initialPage = options?.initialPage ?? 1
   const targetPage = signal(initialPage)
   const currentPage = signal(initialPage)
   const state = signal<StandardPaginationState | null>(null)
@@ -467,7 +471,7 @@ const configureStandardPaginationElements = (
 
   const afterLoad = (page: number) => {
     resolveDatetimeLazy(renderContainer)
-    options?.loadCallback?.(renderContainer, page)
+    loadCallback?.(renderContainer, page)
   }
 
   // Effect: Load and render page content when targetPage changes (fetches or uses cache)
@@ -550,21 +554,21 @@ const configureStandardPaginationElements = (
     const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
     if (resolvedMaxPage <= 1) {
       for (const paginationContainer of paginationContainers) {
-        paginationContainer.classList.add("d-none")
+        paginationContainer.hidden = true
         render(null, paginationContainer)
       }
       return
     }
 
     for (const paginationContainer of paginationContainers) {
-      paginationContainer.classList.remove("d-none")
+      paginationContainer.hidden = false
       render(
         <PaginationItems
           targetPage={targetPage}
           currentPage={currentPage}
           state={state}
           pages={customNumPages}
-          pageOrder={options?.pageOrder ?? "asc"}
+          pageOrder={pageOrder}
         />,
         paginationContainer,
       )
@@ -658,18 +662,18 @@ const computePagesToRender = (
     return range(1, resolvedMaxPage + 1)
   }
 
-  const pages = new Set<number>()
-  pages.add(1)
+  const pages = [1]
 
   const windowStart = Math.max(2, currentPage - STANDARD_PAGINATION_DISTANCE)
   const windowEnd = Math.min(
     resolvedMaxPage,
     currentPage + STANDARD_PAGINATION_DISTANCE,
   )
-  for (let i = windowStart; i <= windowEnd; i++) pages.add(i)
+  for (let i = windowStart; i <= windowEnd; i++) pages.push(i)
 
-  if (numPages !== undefined) pages.add(numPages)
-  return Array.from(pages).sort((a, b) => a - b)
+  if (numPages !== undefined && pages.at(-1) !== numPages) pages.push(numPages)
+
+  return pages
 }
 
 const formatPageLabel = (

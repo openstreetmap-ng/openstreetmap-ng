@@ -44,6 +44,16 @@ export const configureStandardForm = <T = any>(
   // disables maxlength and other browser checks: form.noValidate = true
   form.classList.add("needs-validation")
 
+  const {
+    formBody = form,
+    formAppend = false,
+    abortSignal = false,
+    removeEmptyFields = false,
+    protobuf,
+    validationCallback,
+    errorCallback,
+  } = options ?? {}
+
   const submitElements = form.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
     "[type=submit]",
   )
@@ -145,12 +155,10 @@ export const configureStandardForm = <T = any>(
       feedback.append(closeButton)
       feedbackAlert = new Alert(feedback)
 
-      const formBody = options?.formBody ?? form
-
       if (after) {
         feedback.classList.add("alert-inner")
         after.after(feedback)
-      } else if (options?.formAppend) {
+      } else if (formAppend) {
         const scrollContainer = findScrollableContainer(formBody)
         const scrollWindow = scrollContainer === document.documentElement
 
@@ -261,7 +269,7 @@ export const configureStandardForm = <T = any>(
     form.classList.remove("was-validated")
 
     // Stage 2: Handle concurrent submissions
-    if (options?.abortSignal) {
+    if (abortSignal) {
       abortController.abort()
       abortController = new AbortController()
     } else if (form.classList.contains("pending")) {
@@ -285,7 +293,7 @@ export const configureStandardForm = <T = any>(
     if (method === "POST") {
       url = formAction
       body = formData
-      if (options?.removeEmptyFields) {
+      if (removeEmptyFields) {
         const keysToDelete: string[] = []
         for (const [key, value] of body.entries()) {
           if (typeof value === "string" && !value) {
@@ -300,7 +308,7 @@ export const configureStandardForm = <T = any>(
       const params = new URLSearchParams()
       for (const [key, value] of formData.entries()) {
         const valueString = value.toString()
-        if (options?.removeEmptyFields && !valueString) continue
+        if (removeEmptyFields && !valueString) continue
         params.append(key, valueString)
       }
       url = `${formAction}?${params}`
@@ -309,8 +317,8 @@ export const configureStandardForm = <T = any>(
     }
 
     // Stage 4: Run client-side validation
-    if (options?.validationCallback) {
-      let result = batch(() => options.validationCallback!(formData))
+    if (validationCallback) {
+      let result = batch(() => validationCallback(formData))
       if (result instanceof Promise) {
         result = await result
       }
@@ -327,14 +335,14 @@ export const configureStandardForm = <T = any>(
       const resp = await fetch(url, {
         method,
         body,
-        signal: options?.abortSignal ? currentAbortController.signal : null,
+        signal: abortSignal ? currentAbortController.signal : null,
         priority: "high",
       })
       const contentType = resp.headers.get("Content-Type") ?? ""
       assertFalse(
         resp.ok &&
           contentType &&
-          Boolean(options?.protobuf) !== (contentType === "application/x-protobuf"),
+          Boolean(protobuf) !== (contentType === "application/x-protobuf"),
         `Mismatched response content type: ${contentType}`,
       )
 
@@ -342,7 +350,7 @@ export const configureStandardForm = <T = any>(
       if (contentType.startsWith("application/json")) {
         data = await resp.json()
       } else if (contentType === "application/x-protobuf") {
-        data = fromBinary(options!.protobuf!, new Uint8Array(await resp.arrayBuffer()))
+        data = fromBinary(protobuf!, new Uint8Array(await resp.arrayBuffer()))
       } else if (contentType) {
         data = { detail: await resp.text() }
       }
@@ -357,7 +365,7 @@ export const configureStandardForm = <T = any>(
         if (resp.ok) {
           successCallback?.(data, resp.headers)
         } else {
-          options?.errorCallback?.(new Error(detail))
+          errorCallback?.(new Error(detail))
         }
       })
 
@@ -368,7 +376,7 @@ export const configureStandardForm = <T = any>(
       handleFormFeedback("error", error.message)
 
       batch(() => {
-        options?.errorCallback?.(error)
+        errorCallback?.(error)
       })
 
       setPendingState(false)
