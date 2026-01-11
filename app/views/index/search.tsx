@@ -8,12 +8,13 @@ import {
 import { getElementTypeLabel, getElementTypeSlug } from "@index/element"
 import { routerNavigateStrict } from "@index/router"
 import { searchFormQuery } from "@index/search-form"
-import { beautifyZoom, isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
+import { zoomPrecision } from "@lib/coords"
 import { mountMapAlert } from "@lib/map/alerts"
 import {
-  getLngLatBoundsIntersection,
-  getLngLatBoundsSize,
-  padLngLatBounds,
+  boundsIntersection,
+  boundsPadding,
+  boundsSize,
+  boundsToString,
 } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import { loadMapImage } from "@lib/map/image"
@@ -26,7 +27,7 @@ import {
   removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLatZoom } from "@lib/map/state"
+import { encodeMapState, type LonLatZoom, parseLonLatZoom } from "@lib/map/state"
 import type { ElementIcon, ElementType, SearchData_Result } from "@lib/proto/shared_pb"
 import { SearchDataSchema } from "@lib/proto/shared_pb"
 import { qsEncode, qsParse } from "@lib/qs"
@@ -90,9 +91,9 @@ const focusPaint: FocusLayerPaint = {
 const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 
 type SearchRoute =
-  | { tag: "inactive" }
-  | { tag: "query"; query: string; localOnly: boolean }
-  | ({ tag: "where-is-this" } & LonLatZoom)
+  | null
+  | { tag: "query"; query: string; localOnly: boolean; at: LonLatZoom | null }
+  | { tag: "where-is-this"; at: LonLatZoom }
 
 const SearchThisAreaAlert = ({
   visible,
@@ -200,54 +201,25 @@ const SearchResultsList = ({
     <p>{t("results.we_did_not_find_any_results")}</p>
   )
 
-const getQueryFromURL = () => {
-  const searchParams = qsParse(window.location.search)
-  return searchParams.q || searchParams.query || ""
-}
-
-const getWhereIsThisFromURL = (map: MaplibreMap): SearchRoute | null => {
-  const searchParams = qsParse(window.location.search)
-  if (!(searchParams.lon && searchParams.lat)) return null
-
-  const lon = Number.parseFloat(searchParams.lon)
-  const lat = Number.parseFloat(searchParams.lat)
-  const zoom = Number.parseFloat(searchParams.zoom ?? map.getZoom().toString()) | 0
-
-  return isLongitude(lon) && isLatitude(lat)
-    ? { tag: "where-is-this", lon, lat, zoom }
-    : null
-}
-
-const parseRouteFromURL = (map: MaplibreMap): SearchRoute => {
-  const query = getQueryFromURL()
-  const where = !query ? getWhereIsThisFromURL(map) : null
-  if (where) return where
-  return { tag: "query", query, localOnly: false }
-}
-
 const computeSearchURL = (map: MaplibreMap, route: SearchRoute) => {
-  if (route.tag === "inactive") return null
+  if (!route) return null
 
   if (route.tag === "where-is-this") {
-    const precision = zoomPrecision(route.zoom)
+    const { lon, lat, zoom } = route.at
+    const precision = zoomPrecision(zoom)
     return `/api/web/search/where-is-this${qsEncode({
-      lon: route.lon.toFixed(precision),
-      lat: route.lat.toFixed(precision),
-      zoom: route.zoom.toString(),
+      lon: lon.toFixed(precision),
+      lat: lat.toFixed(precision),
+      zoom: Math.round(zoom).toString(),
     })}`
   }
 
   if (!route.query) return null
 
-  const [[minLon, minLat], [maxLon, maxLat]] = padLngLatBounds(
-    map.getBounds().adjustAntiMeridian(),
-    -0.01,
-  ).toArray()
-
   return `/api/web/search/results${qsEncode({
     q: route.query,
-    bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
-    local_only: route.localOnly.toString(),
+    bbox: boundsToString(boundsPadding(map.getBounds(), -0.01)),
+    local_only: route.localOnly ? "1" : undefined,
   })}`
 }
 
@@ -257,7 +229,6 @@ const SearchSidebar = ({
   sidebar,
   searchForm,
   route,
-  reloadKey,
   searchThisAreaVisible,
 }: {
   map: MaplibreMap
@@ -265,20 +236,12 @@ const SearchSidebar = ({
   sidebar: HTMLElement
   searchForm: HTMLElement
   route: Signal<SearchRoute>
-  reloadKey: Signal<number>
   searchThisAreaVisible: Signal<boolean>
 }) => {
   const scrollSidebar = sidebar.closest(".sidebar")!
 
-  const active = useComputed(() => route.value.tag !== "inactive")
-
-  const url = useComputed(() => {
-    reloadKey.value
-    const r = route.value
-    if (r.tag === "inactive") return null
-    return computeSearchURL(map, r)
-  })
-
+  const active = useComputed(() => Boolean(route.value))
+  const url = useComputed(() => computeSearchURL(map, route.value))
   const { resource, data } = useSidebarFetch(url, SearchDataSchema)
 
   const hoveredIndex = useSignal<number | null>(null)
@@ -299,7 +262,7 @@ const SearchSidebar = ({
   // Effect: page title.
   useSignalEffect(() => {
     const r = route.value
-    if (r.tag === "inactive") return
+    if (!r) return
 
     setPageTitle(
       r.tag === "where-is-this"
@@ -308,26 +271,10 @@ const SearchSidebar = ({
     )
   })
 
-  // Effect: where-is-this deep links should restore the map view.
-  useSignalEffect(() => {
-    const r = route.value
-    if (r.tag !== "where-is-this") return
-
-    if (!(isLongitude(r.lon) && isLatitude(r.lat))) return
-
-    const center = map.getCenter()
-    const sameCenter =
-      Math.abs(center.lng - r.lon) < 1e-7 && Math.abs(center.lat - r.lat) < 1e-7
-    const sameZoom = Math.abs(map.getZoom() - r.zoom) < 1e-7
-    if (sameCenter && sameZoom) return
-
-    map.jumpTo({ center: [r.lon, r.lat], zoom: r.zoom })
-  })
-
   // Effect: keep search form query in sync with the active route.
   useSignalEffect(() => {
     const r = route.value
-    if (r.tag === "inactive") return
+    if (!r) return
     searchFormQuery.value = r.tag === "where-is-this" ? "" : r.query
   })
 
@@ -415,6 +362,19 @@ const SearchSidebar = ({
     }
   })
 
+  // Effect: route view sync.
+  useSignalEffect(() => {
+    const view = route.value?.at
+    if (!view) return
+
+    const { lng, lat } = map.getCenter()
+    const currentView = encodeMapState({ lon: lng, lat, zoom: map.getZoom() }, "")
+    const routeView = encodeMapState(view, "")
+    if (currentView === routeView) return
+
+    map.jumpTo({ center: [view.lon, view.lat], zoom: view.zoom })
+  })
+
   // Effect: active route with no URL should clear any stale markers/focus.
   useSignalEffect(() => {
     if (!active.value) return
@@ -465,14 +425,12 @@ const SearchSidebar = ({
         return
       }
 
-      const initialBoundsSize = getLngLatBoundsSize(initialBounds)
       const mapBounds = map.getBounds()
-      const mapBoundsSize = getLngLatBoundsSize(mapBounds)
-      const intersectionBounds = getLngLatBoundsIntersection(initialBounds, mapBounds)
-      const intersectionBoundsSize = getLngLatBoundsSize(intersectionBounds)
+      const intersectionBounds = boundsIntersection(initialBounds, mapBounds)
+      const intersectionBoundsSize = boundsSize(intersectionBounds)
       const proportion = Math.min(
-        intersectionBoundsSize / mapBoundsSize,
-        intersectionBoundsSize / initialBoundsSize,
+        intersectionBoundsSize / boundsSize(mapBounds),
+        intersectionBoundsSize / boundsSize(initialBounds),
       )
       if (proportion > SEARCH_ALERT_CHANGE_THRESHOLD) return
 
@@ -482,22 +440,22 @@ const SearchSidebar = ({
     map.on("moveend", onMapZoomOrMoveEnd)
 
     const currentRoute = route.peek()
-    if (currentRoute.tag !== "where-is-this") {
+    if (currentRoute?.tag !== "where-is-this") {
       const b = d.bounds
       if (b) {
-        const boundsPadded = padLngLatBounds(
+        const boundsPadded = boundsPadding(
           new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat]),
           0.05,
         )
         console.debug("Search: Focusing on bounds", boundsPadded)
         map.fitBounds(boundsPadded, { maxZoom: 14 })
-      } else if (currentRoute.tag === "query" && d.results.length) {
+      } else if (d.results.length) {
         const [first, ...rest] = d.results
         const markersBounds = rest.reduce(
           (bounds, r) => bounds.extend([r.lon, r.lat]),
           new LngLatBounds([first.lon, first.lat, first.lon, first.lat]),
         )
-        const boundsPadded = padLngLatBounds(markersBounds, 0.15)
+        const boundsPadded = boundsPadding(markersBounds, 0.15)
         console.debug("Search: Focusing on results", boundsPadded)
         map.fitBounds(boundsPadded, { maxZoom: 14 })
       }
@@ -537,8 +495,7 @@ export const getSearchController = (map: MaplibreMap) => {
   const searchForm = document.getElementById("SearchForm")
   assertExists(searchForm)
 
-  const route = signal<SearchRoute>({ tag: "inactive" })
-  const reloadKey = signal(0)
+  const route = signal<SearchRoute>(null)
   const searchThisAreaVisible = signal(false)
 
   const onSearchThisAreaClick = () => {
@@ -546,30 +503,25 @@ export const getSearchController = (map: MaplibreMap) => {
     searchThisAreaVisible.value = false
 
     const current = route.peek()
-    if (current.tag === "inactive") return
+    if (!current) return
+
+    const { lng, lat } = map.getCenter()
+    const at = encodeMapState({ lon: lng, lat, zoom: map.getZoom() }, "")
 
     if (current.tag === "where-is-this") {
-      const center = map.getCenter()
-      const zoom = map.getZoom()
-      const precision = zoomPrecision(zoom)
-      route.value = {
-        tag: "where-is-this",
-        lon: Number.parseFloat(center.lng.toFixed(precision)),
-        lat: Number.parseFloat(center.lat.toFixed(precision)),
-        zoom: Number.parseFloat(beautifyZoom(zoom)) | 0,
-      }
+      routerNavigateStrict(`/search${qsEncode({ at })}`)
       return
     }
 
     if (!current.query) return
 
-    if (!current.localOnly) {
-      route.value = { ...current, localOnly: true }
-      return
-    }
-
-    // Trigger url recompute with the current map bounds.
-    reloadKey.value++
+    routerNavigateStrict(
+      `/search${qsEncode({
+        q: current.query,
+        at,
+        local: current.localOnly ? "1" : undefined,
+      })}`,
+    )
   }
 
   mountMapAlert(
@@ -586,7 +538,6 @@ export const getSearchController = (map: MaplibreMap) => {
       sidebar={sidebar}
       searchForm={searchForm}
       route={route}
-      reloadKey={reloadKey}
       searchThisAreaVisible={searchThisAreaVisible}
     />,
     sidebar,
@@ -594,11 +545,22 @@ export const getSearchController = (map: MaplibreMap) => {
 
   return {
     load: () => {
-      route.value = parseRouteFromURL(map)
+      const searchParams = qsParse(window.location.search)
+      const query = searchParams.q || searchParams.query || ""
+      const at = parseLonLatZoom(searchParams)
+      const localOnly = searchParams.local !== undefined
+
+      if (query) {
+        route.value = { tag: "query", query, localOnly, at }
+      } else if (at) {
+        route.value = { tag: "where-is-this", at }
+      } else {
+        route.value = { tag: "query", query: "", localOnly: false, at: null }
+      }
     },
     unload: (newPath?: string) => {
       if (newPath?.startsWith("/search")) return
-      route.value = { tag: "inactive" }
+      route.value = null
       searchThisAreaVisible.value = false
     },
   }
