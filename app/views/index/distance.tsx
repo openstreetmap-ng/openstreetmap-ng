@@ -424,13 +424,13 @@ const DistanceSidebar = ({
     const marker = ghostMarker.current
     if (!marker) return
     marker.removeClassName("dragging")
-    marker.addClassName("d-none")
+    marker.getElement().hidden = true
   }
 
   const ghostMarkerFactory = () => {
     const marker = markerFactory("blue")
     marker.addClassName("ghost-marker")
-    marker.addClassName("d-none")
+    marker.getElement().hidden = true
     marker.setOffset([0, 8])
 
     marker.on("dragstart", () => {
@@ -482,8 +482,7 @@ const DistanceSidebar = ({
 
     const marker = ghostMarker.current
     if (!marker) return
-    const classList = marker.getElement().classList
-    if (classList.contains("d-none")) return
+    if (marker.getElement().hidden) return
 
     const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
     const mapRect = mapContainer.getBoundingClientRect()
@@ -597,7 +596,7 @@ const DistanceSidebar = ({
 
       if (!ghostMarker.current)
         ghostMarker.current = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-      ghostMarker.current.removeClassName("d-none")
+      ghostMarker.current.getElement().hidden = false
       updateGhostMarkerPositionNow(e)
     }
 
