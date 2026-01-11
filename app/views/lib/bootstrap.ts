@@ -1,18 +1,61 @@
+import { type ReadonlySignal, useSignal, useSignalEffect } from "@preact/signals"
 import { Alert, Popover, Tooltip } from "bootstrap"
+import type { RefCallback } from "preact"
 
-// Initialize bootstrap components
+export const useTooltip = (
+  getOptions: () => Partial<Tooltip.Options>,
+  enabled?: ReadonlySignal<boolean>,
+) => {
+  const target = useSignal<HTMLElement | null>(null)
+  const instance = useSignal<Tooltip | null>(null)
 
-// https://getbootstrap.com/docs/5.3/components/tooltips/
-for (const element of document.querySelectorAll("[data-bs-toggle=tooltip]")) {
-  new Tooltip(element)
+  useSignalEffect(() => {
+    const node = target.value
+    if (!node) return
+
+    const tooltip = new Tooltip(node, getOptions())
+    instance.value = tooltip
+    return () => {
+      tooltip.dispose()
+      instance.value = null
+    }
+  })
+
+  useSignalEffect(() => {
+    const tooltip = instance.value
+    if (!tooltip) return
+
+    if (enabled && !enabled.value) {
+      tooltip.disable()
+      tooltip.hide()
+    } else {
+      tooltip.enable()
+    }
+  })
+
+  return ((node: HTMLElement | null) => {
+    target.value = node
+  }) satisfies RefCallback<HTMLElement>
 }
 
-// https://getbootstrap.com/docs/5.3/components/alerts/
-for (const element of document.querySelectorAll(".alert")) {
-  new Alert(element)
+export const configureBootstrapTooltips = (root: ParentNode) => {
+  for (const element of root.querySelectorAll("[data-bs-toggle=tooltip]")) {
+    Tooltip.getOrCreateInstance(element)
+  }
 }
 
-// https://getbootstrap.com/docs/5.3/components/popovers/
-for (const element of document.querySelectorAll("[data-bs-toggle=popover]")) {
-  new Popover(element)
+export const configureBootstrapAlerts = (root: ParentNode) => {
+  for (const element of root.querySelectorAll(".alert")) {
+    Alert.getOrCreateInstance(element)
+  }
 }
+
+export const configureBootstrapPopovers = (root: ParentNode) => {
+  for (const element of root.querySelectorAll("[data-bs-toggle=popover]")) {
+    Popover.getOrCreateInstance(element)
+  }
+}
+
+configureBootstrapTooltips(document)
+configureBootstrapAlerts(document)
+configureBootstrapPopovers(document)
