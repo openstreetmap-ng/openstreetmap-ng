@@ -40,6 +40,11 @@
         font-weight: bold;
     }
 
+    .instruction {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
     // Style the distance text for each turn
     .distance {
         @extend .text-muted;
