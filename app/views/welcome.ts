@@ -1,5 +1,4 @@
-import { isLatitude, isLongitude, isZoom } from "@lib/coords"
-import { encodeMapState, type MapState } from "@lib/map/state"
+import { encodeMapState, type MapState, parseLonLatZoom } from "@lib/map/state"
 import { mount } from "@lib/mount"
 import { qsEncode, qsParse } from "@lib/qs"
 import { HOUR, MINUTE, SECOND } from "@std/datetime/constants"
@@ -11,14 +10,11 @@ mount("welcome-body", (body) => {
   // Support default location setting via URL parameters
   let providedState: MapState | undefined
   const params = qsParse(window.location.search)
-  if (params.lon && params.lat) {
-    const lon = Number.parseFloat(params.lon)
-    const lat = Number.parseFloat(params.lat)
-    const zoom = params.zoom ? Number.parseFloat(params.zoom) : 17
-    if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
-      providedState = { lon, lat, zoom, layersCode: params.layers }
-    }
-  }
+  params.zoom ??= "17"
+  params.layers ??= ""
+
+  const at = parseLonLatZoom(params)
+  if (at) providedState = { ...at, layersCode: params.layers }
 
   // Assign position only if it's valid
   let noteHref = "/note/new"
@@ -62,12 +58,12 @@ mount("welcome-body", (body) => {
     const lon = position.coords.longitude
     const lat = position.coords.latitude
     const zoom = 17
-    const geolocationState: MapState = {
+    const geolocationState = {
       lon,
       lat,
       zoom,
       layersCode: params.layers,
-    }
+    } satisfies MapState
 
     startButton.href = `/edit${qsEncode(startParams)}${encodeMapState(geolocationState)}`
     startButton.removeEventListener("click", onStartButtonClick)

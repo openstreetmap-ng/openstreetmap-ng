@@ -1,5 +1,4 @@
-import { isLatitude, isLongitude, isZoom } from "@lib/coords"
-import { encodeMapState } from "@lib/map/state"
+import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
 import { mount } from "@lib/mount"
 import { qsParse } from "@lib/qs"
 
@@ -8,14 +7,9 @@ mount("fixthemap-body", (body) => {
   let noteHref = "/note/new"
 
   // Supports default location setting via URL parameters
-  if (params.lon && params.lat) {
-    const lon = Number.parseFloat(params.lon)
-    const lat = Number.parseFloat(params.lat)
-    const zoom = params.zoom ? Number.parseFloat(params.zoom) : 17
-    if (isLongitude(lon) && isLatitude(lat) && isZoom(zoom)) {
-      noteHref += encodeMapState({ lon, lat, zoom, layersCode: params.layers })
-    }
-  }
+  params.zoom ??= "17"
+  const at = parseLonLatZoom(params)
+  if (at) noteHref += encodeMapState({ ...at, layersCode: params.layers })
 
   const noteLink = body.querySelector("a.note-link")!
   noteLink.href = noteHref
