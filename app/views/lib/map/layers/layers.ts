@@ -1,7 +1,7 @@
 import { overlayOpacityStorage } from "@lib/local-storage"
 import { effectiveTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
-import { effect } from "@preact/signals"
+import { effect, signal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { filterKeys } from "@std/collections/filter-keys"
 import type { FeatureCollection } from "geojson"
@@ -20,6 +20,34 @@ declare const brandSymbol: unique symbol
 
 export type LayerId = string & { readonly [brandSymbol]: unique symbol }
 export type LayerCode = string & { readonly [brandSymbol]: unique symbol }
+
+export const STANDARD_LAYER_ID = "standard" as LayerId
+export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
+export const DEFAULT_LAYER_CODE = "" as LayerCode
+
+export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
+export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
+export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
+export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
+export const HOT_LAYER_ID = "hot" as LayerId
+
+export const LIBERTY_LAYER_CODE = "L" as LayerCode
+export const CYCLOSM_LAYER_CODE = "Y" as LayerCode
+export const CYCLEMAP_LAYER_CODE = "C" as LayerCode
+export const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
+export const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
+export const HOT_LAYER_CODE = "H" as LayerCode
+
+export const AERIAL_LAYER_ID = "aerial" as LayerId
+export const NOTES_LAYER_ID = "notes" as LayerId
+export const DATA_LAYER_ID = "data" as LayerId
+export const GPS_LAYER_ID = "gps" as LayerId
+
+export const AERIAL_LAYER_CODE = "A" as LayerCode
+export const NOTES_LAYER_CODE = "N" as LayerCode
+export const DATA_LAYER_CODE = "D" as LayerCode
+export const GPS_LAYER_CODE = "G" as LayerCode
 
 const HIGH_RES_TILES = window.devicePixelRatio > 1
 const THUNDERFOREST_API_KEY = "9b990c27013343a99536213faee0983e"
@@ -90,7 +118,7 @@ interface LayerConfig {
 
 export const layersConfig = new Map<LayerId, LayerConfig>()
 
-layersConfig.set("standard" as LayerId, {
+layersConfig.set(STANDARD_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 19,
@@ -99,19 +127,19 @@ layersConfig.set("standard" as LayerId, {
     attribution: `${copyright} ♥ <a class="donate" href="https://supporting.openstreetmap.org" target="_blank" title="${donateTitle}">${donateText}</a>. ${terms}`,
   },
   isBaseLayer: true,
-  layerCode: "" as LayerCode,
+  layerCode: DEFAULT_LAYER_CODE,
   legacyLayerIds: ["mapnik"] as LayerId[],
 })
 
-layersConfig.set("liberty" as LayerId, {
+layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
   // @ts-expect-error
   vectorStyle: libertyStyle,
   isBaseLayer: true,
-  layerCode: "L" as LayerCode,
+  layerCode: LIBERTY_LAYER_CODE,
 })
 
-layersConfig.set("cyclosm" as LayerId, {
+layersConfig.set(CYCLOSM_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 20,
@@ -122,10 +150,10 @@ layersConfig.set("cyclosm" as LayerId, {
     attribution: `${copyright}. ${cyclosmCredit}. ${terms}`,
   },
   isBaseLayer: true,
-  layerCode: "Y" as LayerCode,
+  layerCode: CYCLOSM_LAYER_CODE,
 })
 
-layersConfig.set("cyclemap" as LayerId, {
+layersConfig.set(CYCLEMAP_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 21,
@@ -136,11 +164,11 @@ layersConfig.set("cyclemap" as LayerId, {
     attribution: `${copyright}. ${thunderforestCredit}. ${terms}`,
   },
   isBaseLayer: true,
-  layerCode: "C" as LayerCode,
+  layerCode: CYCLEMAP_LAYER_CODE,
   legacyLayerIds: ["cycle map"] as LayerId[],
 })
 
-layersConfig.set("transportmap" as LayerId, {
+layersConfig.set(TRANSPORTMAP_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 21,
@@ -154,10 +182,10 @@ layersConfig.set("transportmap" as LayerId, {
     `https://tile.thunderforest.com/transport-dark/{z}/{x}/{y}${HIGH_RES_TILES ? "@2x" : ""}.png?apikey=${THUNDERFOREST_API_KEY}`,
   ],
   isBaseLayer: true,
-  layerCode: "T" as LayerCode,
+  layerCode: TRANSPORTMAP_LAYER_CODE,
 })
 
-layersConfig.set("tracestracktopo" as LayerId, {
+layersConfig.set(TRACESTRACKTOPO_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 19,
@@ -168,10 +196,10 @@ layersConfig.set("tracestracktopo" as LayerId, {
     attribution: `${copyright}. ${tracestrackCredit}. ${terms}`,
   },
   isBaseLayer: true,
-  layerCode: "P" as LayerCode,
+  layerCode: TRACESTRACKTOPO_LAYER_CODE,
 })
 
-layersConfig.set("hot" as LayerId, {
+layersConfig.set(HOT_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 20,
@@ -182,11 +210,11 @@ layersConfig.set("hot" as LayerId, {
     attribution: `${copyright}. ${hotosmCredit}. ${terms}`,
   },
   isBaseLayer: true,
-  layerCode: "H" as LayerCode,
+  layerCode: HOT_LAYER_CODE,
 })
 
 // Overlay layers
-layersConfig.set("aerial" as LayerId, {
+layersConfig.set(AERIAL_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 23,
@@ -202,18 +230,18 @@ layersConfig.set("aerial" as LayerId, {
       "raster-opacity": null,
     },
   },
-  layerCode: "A" as LayerCode,
+  layerCode: AERIAL_LAYER_CODE,
   priority: 50,
 })
 
-layersConfig.set("gps" as LayerId, {
+layersConfig.set(GPS_LAYER_ID, {
   specification: {
     type: "raster",
     // This layer has no zoom limits
     tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
     tileSize: 256,
   },
-  layerCode: "G" as LayerCode,
+  layerCode: GPS_LAYER_CODE,
   priority: 60,
 })
 
@@ -243,8 +271,6 @@ const layerLookupMap = memoize(() => {
  */
 export const resolveLayerCodeOrId = (layerCodeOrId: LayerCode | LayerId) =>
   layerLookupMap().get(layerCodeOrId)
-
-export const DEFAULT_LAYER_ID = "standard" as LayerId
 
 /**
  * Add layers sources to the map.
@@ -288,9 +314,9 @@ export const addMapLayerSources = (
       }
     }
   }
-  if (watchMap) watchMapsLayerSources.push(map)
+  if (watchMap) watchMapsLayerSources.add(map)
 }
-const watchMapsLayerSources: MaplibreMap[] = []
+const watchMapsLayerSources = new Set<MaplibreMap>()
 
 // Listen for theme changes
 effect(() => {
@@ -299,7 +325,7 @@ effect(() => {
     "Layers: Set",
     isDarkTheme ? "dark" : "light",
     "tiles for",
-    watchMapsLayerSources.length,
+    watchMapsLayerSources.size,
     "maps",
   )
   for (const map of watchMapsLayerSources) {
@@ -334,6 +360,12 @@ const layerEventHandlers: LayerEventHandler[] = []
 export const addLayerEventHandler = (handler: LayerEventHandler) => {
   layerEventHandlers.push(handler)
 }
+
+export const activeBaseLayerId = signal<LayerId | null>(null)
+
+addLayerEventHandler((isAdded, layerId, config) => {
+  if (isAdded && config.isBaseLayer) activeBaseLayerId.value = layerId
+})
 
 export type LayerType =
   | "fill"
@@ -426,7 +458,7 @@ export const addMapLayer = (
       layerOptions.paint &&
       "raster-opacity" in layerOptions.paint
     )
-      layerOptions.paint["raster-opacity"] = overlayOpacityStorage(layerId).get()
+      layerOptions.paint["raster-opacity"] = overlayOpacityStorage(layerId).value
 
     for (const type of layerTypes) {
       const layerObject: AddLayerObject = {
