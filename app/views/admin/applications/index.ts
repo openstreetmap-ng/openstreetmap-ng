@@ -1,7 +1,7 @@
+import { configureBootstrapPopovers, configureBootstrapTooltips } from "@lib/bootstrap"
 import { configureDatetimeInputs } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import { configureStandardPagination } from "@lib/standard-pagination"
-import { Popover, Tooltip } from "bootstrap"
 
 mount("admin-applications-body", (body) => {
   const filterForm = body.querySelector("form.filters-form")!
@@ -45,17 +45,8 @@ mount("admin-applications-body", (body) => {
 
   configureStandardPagination(body, {
     loadCallback: (renderContainer) => {
-      for (const element of renderContainer.querySelectorAll(
-        "[data-bs-toggle=tooltip]",
-      )) {
-        new Tooltip(element)
-      }
-
-      for (const element of renderContainer.querySelectorAll(
-        "[data-bs-toggle=popover]",
-      )) {
-        new Popover(element)
-      }
+      configureBootstrapTooltips(renderContainer)
+      configureBootstrapPopovers(renderContainer)
     },
   })
 })

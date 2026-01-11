@@ -1,7 +1,7 @@
+import { configureBootstrapTooltips } from "@lib/bootstrap"
 import { configureDatetimeInputs } from "@lib/datetime-inputs"
 import { mount } from "@lib/mount"
 import { configureStandardPagination } from "@lib/standard-pagination"
-import { Tooltip } from "bootstrap"
 
 mount("admin-users-body", (body) => {
   const filterForm = body.querySelector("form.filters-form")!
@@ -45,11 +45,7 @@ mount("admin-users-body", (body) => {
 
   configureStandardPagination(body, {
     loadCallback: (renderContainer) => {
-      for (const element of renderContainer.querySelectorAll(
-        "[data-bs-toggle=tooltip]",
-      )) {
-        new Tooltip(element)
-      }
+      configureBootstrapTooltips(renderContainer)
     },
   })
 })
