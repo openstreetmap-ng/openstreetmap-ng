@@ -30,10 +30,14 @@ export const configureScrollspy = (container: Element | null, nav: Element | nul
 
   const updateActive = () => {
     // Find first intersecting entry in DOM order that has a matching nav link
-    const activeItem = Array.from(items).find(
-      (item) => intersecting.has(item.id) && idToLink.has(item.id),
-    )
-    setActive(activeItem?.id ?? null)
+    let activeId: string | null = null
+    for (const item of items) {
+      if (intersecting.has(item.id) && idToLink.has(item.id)) {
+        activeId = item.id
+        break
+      }
+    }
+    setActive(activeId)
   }
 
   // Detection band in top 40%
