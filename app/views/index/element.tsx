@@ -19,6 +19,7 @@ import {
 } from "@lib/proto/shared_pb"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
+import { range } from "@lib/utils"
 import {
   type ReadonlySignal,
   type Signal,
@@ -59,7 +60,7 @@ const Pagination = ({
 }) => (
   <nav aria-label={t("alt.elements_page_navigation")}>
     <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0">
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      {range(1, totalPages + 1).map((p) => (
         <li
           class={`page-item ${p === page.value ? "active" : ""}`}
           key={p}

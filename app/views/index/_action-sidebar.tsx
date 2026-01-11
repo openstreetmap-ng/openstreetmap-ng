@@ -162,10 +162,12 @@ export const useSidebarFetch = <T extends object>(
 export const SidebarHeader = ({
   title,
   class: className = "mb-3",
+  onClose = onCloseButtonClick,
   children,
 }: {
   title?: ComponentChildren
   class?: string
+  onClose?: () => void
   children?: ComponentChildren
 }) => (
   <div class={`row g-1 ${className}`}>
@@ -175,7 +177,7 @@ export const SidebarHeader = ({
         class="sidebar-close-btn btn-close"
         aria-label={t("javascripts.close")}
         type="button"
-        onClick={onCloseButtonClick}
+        onClick={onClose}
       />
     </div>
   </div>
@@ -240,7 +242,7 @@ export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement
         sidebar.dataset.sidebarOverlay === "1",
       )
     }
-    sidebar.classList.toggle("d-none", !isTarget)
+    sidebar.hidden = !isTarget
   }
 
   map.resize()
