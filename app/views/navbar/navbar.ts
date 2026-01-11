@@ -1,6 +1,5 @@
 import { routerNavigateStrict } from "@index/router"
 import { encodeMapState, type LonLatZoom, type MapState } from "@lib/map/state"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { qsParse } from "@lib/qs"
 import { remoteEdit } from "@lib/remote-edit"
 import type { OSMObject } from "@lib/types"
@@ -33,11 +32,12 @@ export const changeUnreadMessagesBadge = (change: number) => {
 }
 
 // Initialize active nav link
-const navLinks = navbar.querySelectorAll("a.nav-link")
-const activeNavLink = Array.from(navLinks).find((link) => isHrefCurrentPage(link.href))
-if (activeNavLink) {
-  activeNavLink.classList.add("active")
-  activeNavLink.ariaCurrent = "page"
+for (const link of navbar.querySelectorAll("a.nav-link")) {
+  if (isHrefCurrentPage(link.href)) {
+    link.classList.add("active")
+    link.ariaCurrent = "page"
+    break
+  }
 }
 
 const editGroup = navbar.querySelector("div.edit-group")!
@@ -185,119 +185,3 @@ window.addEventListener(
     updateNavbarAndHash({ lon, lat, zoom, layersCode: "" })
   }),
 )
-
-// Responsive navbar links
-const navbarLinksList = navbar.querySelector("ul.navbar-nav")
-if (navbarLinksList) {
-  const navbarLinksParent = navbarLinksList.parentElement!
-  const moreDropdown = navbar.querySelector("div.navbar-nav-more")!
-  const moreDropdownList = moreDropdown.querySelector("ul")!
-  let moreButtonWidth = 80
-
-  const collapseBuffer = 60
-  const expandBuffer = 80
-
-  // Check if navbar links overflow and adjust layout
-  const _updateNavbarLayoutInner = () => {
-    let availableWidth: number
-    if (window.innerWidth >= 992) {
-      availableWidth = navbarLinksParent.offsetWidth
-
-      // Get other elements width
-      for (const child of navbarLinksParent.children) {
-        if (child === navbarLinksList || child === moreDropdown) continue
-        availableWidth -= (child as HTMLElement).offsetWidth
-      }
-
-      // Get "More" button width
-      moreButtonWidth = moreDropdown.offsetWidth || moreButtonWidth
-      availableWidth -= moreButtonWidth
-    } else {
-      // Force expand for mobile
-      availableWidth = Number.POSITIVE_INFINITY
-    }
-
-    let currentWidth = navbarLinksList.scrollWidth
-
-    const shouldCollapse = () =>
-      navbarLinksList.children.length && currentWidth + collapseBuffer > availableWidth
-
-    const shouldExpand = () =>
-      moreDropdownList.children.length &&
-      currentWidth +
-        Number.parseFloat(
-          (moreDropdownList.firstElementChild as HTMLLIElement).dataset.width!,
-        ) +
-        expandBuffer <
-        availableWidth
-
-    if (shouldCollapse()) {
-      // Get all widths at once to avoid layout thrashing
-      const linkWidths = Array.from(
-        navbarLinksList.children,
-        (child) => (child as HTMLElement).offsetWidth,
-      )
-
-      const fragment = document.createDocumentFragment()
-
-      while (shouldCollapse()) {
-        const linkItem = navbarLinksList.lastElementChild as HTMLLIElement
-        const link = linkItem.firstElementChild as HTMLAnchorElement
-        const linkWidth = linkWidths.pop() ?? (linkItem as HTMLElement).offsetWidth
-        currentWidth -= linkWidth
-
-        // Create dropdown item
-        const dropdownItem = document.createElement("li")
-        dropdownItem.dataset.width = linkWidth.toString()
-
-        link.classList.replace("nav-link", "dropdown-item")
-        dropdownItem.append(link)
-
-        fragment.prepend(dropdownItem)
-        linkItem.remove()
-      }
-
-      moreDropdownList.prepend(fragment)
-    } else if (shouldExpand()) {
-      const fragment = document.createDocumentFragment()
-
-      while (shouldExpand()) {
-        const dropdownItem = moreDropdownList.firstElementChild as HTMLLIElement
-        const link = dropdownItem.firstElementChild as HTMLAnchorElement
-        const linkWidth = Number.parseFloat(dropdownItem.dataset.width!)
-        currentWidth += linkWidth
-
-        // Create nav link item
-        const linkItem = document.createElement("li")
-        linkItem.classList.add("nav-item")
-
-        link.classList.replace("dropdown-item", "nav-link")
-        linkItem.append(link)
-
-        fragment.append(linkItem)
-        dropdownItem.remove()
-      }
-
-      navbarLinksList.append(fragment)
-    }
-
-    // Update more button visibility
-    moreDropdown.classList.toggle("d-none", !moreDropdownList.children.length)
-  }
-
-  let navbarLayoutRaf = 0
-  const updateNavbarLayout = () => {
-    if (navbarLayoutRaf) return
-    navbarLayoutRaf = requestAnimationFramePolyfill(() => {
-      navbarLayoutRaf = 0
-      _updateNavbarLayoutInner()
-    })
-  }
-
-  // Setup resize observer
-  const resizeObserver = new ResizeObserver(updateNavbarLayout)
-  resizeObserver.observe(navbarLinksParent)
-
-  // Initial layout update
-  updateNavbarLayout()
-}

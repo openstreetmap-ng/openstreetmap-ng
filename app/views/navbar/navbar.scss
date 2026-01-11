@@ -147,7 +147,16 @@
     }
 }
 
-.navbar-nav-more {
+.navbar-links {
+    min-width: 0;
+
+    @include media-breakpoint-up(lg) {
+        display: flex;
+        flex: 1 1 0;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
     .btn {
         --bs-btn-font-size: 0.875em;
     }

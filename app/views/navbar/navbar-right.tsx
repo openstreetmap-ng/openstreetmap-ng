@@ -1,11 +1,15 @@
 import { config } from "@lib/config"
+import { encodeMapState, getInitialMapState } from "@lib/map/state"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { signal } from "@preact/signals"
-import { assertExists } from "@std/assert"
+import { assertEquals, assertExists } from "@std/assert"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
-import { render } from "preact"
+import { createRef, render } from "preact"
 import { LanguageSwitcher } from "./_language-switcher"
 import { ThemeSwitcher } from "./_theme-switcher"
+
+const hasMainMap = Boolean(document.querySelector("div.main-map"))
 
 const navLinks = [
   {
@@ -37,36 +41,67 @@ const navLinks = [
   },
 ]
 
+const navVisibleCount = signal(navLinks.length)
+const navLinksRef = createRef<HTMLDivElement>()
+const navLinksListRef = createRef<HTMLUListElement>()
+const navLinksMoreRef = createRef<HTMLDivElement>()
+
 const NavbarNav = () => (
   <>
-    <ul class="navbar-nav my-2 my-lg-0">
-      {navLinks.map((link) => (
-        <li
-          class="nav-item"
-          key={link.href}
-        >
-          <a
-            class="nav-link"
-            href={link.href}
-            title={link.title}
-            rel={link.rel}
-          >
-            {link.label}
-          </a>
-        </li>
-      ))}
-    </ul>
-
-    <div class="btn-group navbar-nav-more d-none">
-      <button
-        class="btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle"
-        type="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
+    <div
+      class="navbar-links"
+      ref={navLinksRef}
+    >
+      <ul
+        class="navbar-nav my-2 my-lg-0"
+        ref={navLinksListRef}
       >
-        {t("layouts.more")}
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end" />
+        {navLinks.map((link, index) => (
+          <li
+            class="nav-item"
+            key={link.href}
+            hidden={index >= navVisibleCount.value}
+          >
+            <a
+              class="nav-link"
+              href={link.href}
+              title={link.title}
+              rel={link.rel}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div
+        class="btn-group"
+        hidden={navVisibleCount.value >= navLinks.length}
+        ref={navLinksMoreRef}
+      >
+        <button
+          class="btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {t("layouts.more")}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          {navLinks.slice(navVisibleCount.value).map((link) => (
+            <li key={link.href}>
+              <a
+                class="dropdown-item"
+                href={link.href}
+                title={link.title}
+                rel={link.rel}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </>
 )
@@ -82,6 +117,16 @@ const NavbarUser = () => {
     messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator,
   )
   const showReports = Boolean(reportsCountModerator || reportsCountAdministrator)
+  const showFindHome = Boolean(hasMainMap && user.homePoint)
+
+  const onFindHomeClick = () => {
+    assertExists(user.homePoint)
+    location.hash = encodeMapState({
+      ...getInitialMapState(),
+      lon: user.homePoint.lon,
+      lat: user.homePoint.lat,
+    })
+  }
 
   return (
     <div class="profile-dropdown dropdown d-flex d-lg-inline-flex">
@@ -174,11 +219,12 @@ const NavbarUser = () => {
         <li>
           <hr class="dropdown-divider" />
         </li>
-        {user.homePoint && (
-          <li class="find-home-container d-none">
+        {showFindHome && (
+          <li>
             <button
               class="dropdown-item"
               type="button"
+              onClick={onFindHomeClick}
             >
               {t("layouts.home")}
             </button>
@@ -235,4 +281,94 @@ const NavbarRight = () => {
   )
 }
 
-render(<NavbarRight />, document.getElementById("NavbarRight")!)
+const configureResponsiveNavbarLinks = (
+  container: HTMLDivElement,
+  list: HTMLUListElement,
+  more: HTMLDivElement,
+) => {
+  const desktopMedia = window.matchMedia("(min-width: 992px)")
+  let linkPrefixWidths: number[] | undefined
+  let moreButtonWidth: number | undefined
+
+  const measureLinkWidthsOnce = () => {
+    if (linkPrefixWidths !== undefined) return
+
+    const items = list.children
+    assertEquals(items.length, navLinks.length)
+
+    const prefix = new Array<number>(items.length + 1)
+    prefix[0] = 0
+    for (let i = 0; i < items.length; i++) {
+      prefix[i + 1] = prefix[i] + items[i].getBoundingClientRect().width
+    }
+    linkPrefixWidths = prefix
+  }
+
+  const measureMoreButtonWidthOnce = () => {
+    if (moreButtonWidth !== undefined) return
+
+    const prevHidden = more.hidden
+    more.hidden = false
+    moreButtonWidth = more.getBoundingClientRect().width
+    more.hidden = prevHidden
+  }
+
+  const getLinksWidth = (count: number) => linkPrefixWidths![count]
+
+  const updateNow = () => {
+    measureLinkWidthsOnce()
+
+    if (!desktopMedia.matches) {
+      if (navVisibleCount.peek() !== navLinks.length)
+        navVisibleCount.value = navLinks.length
+      return
+    }
+
+    const containerBuffer = 60
+    const containerWidth = container.clientWidth - containerBuffer
+    const totalWidth = getLinksWidth(navLinks.length)
+    if (totalWidth <= containerWidth) {
+      if (navVisibleCount.peek() !== navLinks.length)
+        navVisibleCount.value = navLinks.length
+      return
+    }
+
+    measureMoreButtonWidthOnce()
+    const availableWithMore = containerWidth - moreButtonWidth!
+    let nextCount = 0
+
+    for (let count = navLinks.length - 1; count > 0; count--) {
+      if (getLinksWidth(count) <= availableWithMore) {
+        nextCount = count
+        break
+      }
+    }
+
+    if (nextCount !== navVisibleCount.peek()) {
+      navVisibleCount.value = nextCount
+    }
+  }
+
+  let raf = 0
+  const update = () => {
+    if (raf) return
+    raf = requestAnimationFramePolyfill(() => {
+      raf = 0
+      updateNow()
+    })
+  }
+
+  updateNow()
+
+  const resizeObserver = new ResizeObserver(update)
+  resizeObserver.observe(container)
+  desktopMedia.addEventListener("change", update)
+}
+
+const navbarRightRoot = document.getElementById("NavbarRight")!
+render(<NavbarRight />, navbarRightRoot)
+configureResponsiveNavbarLinks(
+  navLinksRef.current!,
+  navLinksListRef.current!,
+  navLinksMoreRef.current!,
+)
