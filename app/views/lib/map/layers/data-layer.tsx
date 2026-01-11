@@ -1,6 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { routerNavigateStrict } from "@index/router"
-import { toggleLayerSpinner } from "@index/sidebar/layers"
+import { dataLayerLoading } from "@index/sidebar/layers"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
 import { qsEncode } from "@lib/qs"
@@ -15,19 +15,21 @@ import type {
   Map as MaplibreMap,
 } from "maplibre-gl"
 import { MapAlertPanel, mountMapAlert } from "../alerts"
-import { getLngLatBoundsSize, padLngLatBounds } from "../bounds"
+import { boundsContain, boundsPadding, boundsSize, boundsToString } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { convertRenderElementsData, renderObjects } from "../render-objects"
 import {
   addLayerEventHandler,
+  DATA_LAYER_CODE,
+  DATA_LAYER_ID,
   emptyFeatureCollection,
   getExtendedLayerId,
-  type LayerCode,
-  type LayerId,
   layersConfig,
+  removeMapLayer,
 } from "./layers"
 
-const LAYER_ID = "data" as LayerId
+const LAYER_ID = DATA_LAYER_ID
+const LAYER_CODE = DATA_LAYER_CODE
 const THEME_COLOR = "#38f"
 const HOVER_THEME_COLOR = "#f90"
 layersConfig.set(LAYER_ID, {
@@ -35,7 +37,7 @@ layersConfig.set(LAYER_ID, {
     type: "geojson",
     data: emptyFeatureCollection,
   },
-  layerCode: "D" as LayerCode,
+  layerCode: LAYER_CODE,
   layerTypes: ["line", "circle"],
   layerOptions: {
     layout: {
@@ -80,9 +82,6 @@ const LOAD_DATA_ALERT_THRESHOLD = 10_000
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  const dataOverlayCheckbox = document.querySelector(
-    ".map-sidebar.layers input.overlay[value=data]",
-  )!
 
   const loadDataAlertVisible = signal(false)
   const errorDataAlertVisible = signal(false)
@@ -150,10 +149,9 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
   /** On hide data click, uncheck the data layer checkbox */
   const onHideDataButtonClick = () => {
-    if (dataOverlayCheckbox.checked === false) return
+    if (!enabled) return
     console.debug("DataLayer: Hide data clicked")
-    dataOverlayCheckbox.checked = false
-    dataOverlayCheckbox.dispatchEvent(new Event("change"))
+    removeMapLayer(map, LAYER_ID)
     loadDataAlertVisible.value = false
   }
 
@@ -197,7 +195,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
   /** On map update, fetch the elements in view and update the data layer */
   const updateLayer = async () => {
-    // Skip if the notes layer is not visible
+    // Skip if the data layer is not visible
     if (!enabled) return
 
     // Abort any pending request
@@ -208,17 +206,17 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
     // Skip updates if the view is satisfied
     if (
-      fetchedBounds?.contains(viewBounds.getSouthWest()) &&
-      fetchedBounds.contains(viewBounds.getNorthEast()) &&
+      fetchedBounds &&
+      boundsContain(fetchedBounds, viewBounds) &&
       !loadDataAlertVisible.value
     )
       return
 
     // Pad the bounds to reduce refreshes
-    const fetchBounds = padLngLatBounds(viewBounds, 0.3)
+    const fetchBounds = boundsPadding(viewBounds, 0.3)
 
     // Skip updates if the area is too big
-    const area = getLngLatBoundsSize(fetchBounds)
+    const area = boundsSize(fetchBounds)
     if (area > MAP_QUERY_AREA_MAX_SIZE) {
       errorDataAlertVisible.value = true
       loadDataAlertVisible.value = false
@@ -227,15 +225,11 @@ export const configureDataLayer = (map: MaplibreMap) => {
     }
 
     errorDataAlertVisible.value = false
-    const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
-      .adjustAntiMeridian()
-      .toArray()
-
-    toggleLayerSpinner(LAYER_ID, true)
+    dataLayerLoading.value = true
     try {
       const resp = await fetch(
         `/api/web/map${qsEncode({
-          bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
+          bbox: boundsToString(fetchBounds),
           limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
         })}`,
         { signal: abortController.signal, priority: "high" },
@@ -263,7 +257,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       console.error("DataLayer: Failed to fetch", error)
       clearData()
     } finally {
-      toggleLayerSpinner(LAYER_ID, false)
+      dataLayerLoading.value = false
     }
   }
   map.on("moveend", updateLayer)

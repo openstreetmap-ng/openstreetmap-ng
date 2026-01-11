@@ -13,18 +13,18 @@
     <div class="sidebar sidebar-overlay">
         <div id="SearchForm"></div>
 
-        <div class="action-sidebar index d-none" data-sidebar-overlay="1"></div>
-        <div class="action-sidebar changeset d-none"></div>
-        <div class="action-sidebar changesets-history d-none"></div>
-        <div class="action-sidebar distance d-none" data-sidebar-overlay="1"></div>
-        <div class="action-sidebar element d-none"></div>
-        <div class="action-sidebar element-history d-none"></div>
-        <div class="action-sidebar export d-none"></div>
-        <div class="action-sidebar new-note d-none"></div>
-        <div class="action-sidebar note d-none"></div>
-        <div class="action-sidebar query-features d-none"></div>
-        <div class="action-sidebar routing d-none"></div>
-        <div class="action-sidebar search d-none"></div>
+        <div class="action-sidebar index" data-sidebar-overlay="1" hidden></div>
+        <div class="action-sidebar changeset" hidden></div>
+        <div class="action-sidebar changesets-history" hidden></div>
+        <div class="action-sidebar distance" data-sidebar-overlay="1" hidden></div>
+        <div class="action-sidebar element" hidden></div>
+        <div class="action-sidebar element-history" hidden></div>
+        <div class="action-sidebar export" hidden></div>
+        <div class="action-sidebar new-note" hidden></div>
+        <div class="action-sidebar note" hidden></div>
+        <div class="action-sidebar query-features" hidden></div>
+        <div class="action-sidebar routing" hidden></div>
+        <div class="action-sidebar search" hidden></div>
     </div>
 
     <div class="main-map">
@@ -32,9 +32,9 @@
     </div>
 
     <div class="sidebar">
-        {% include 'index/sidebar/layers' %}
-        {% include 'index/sidebar/legend' %}
-        {% include 'index/sidebar/share' %}
+        <div class="map-sidebar layers" hidden></div>
+        <div class="map-sidebar legend" hidden></div>
+        <div class="map-sidebar share" hidden></div>
     </div>
 </div>
 
