@@ -71,15 +71,31 @@ export function createStorageSignal<T>(
   config?: StorageConfig<T>,
 ): Signal<T | null>
 export function createStorageSignal<T>(key: string, config: StorageConfig<T> = {}) {
+  let skipUpdates = false
+  window.addEventListener("storage", (event) => {
+    if (event.storageArea !== localStorage) return
+    if (event.key !== key && event.key !== null) return
+
+    skipUpdates = true
+    storageSignal.value = storage.get()
+    skipUpdates = false
+  })
+
   const storage = createStorage<T>(key, config)
   const storageSignal = signal(storage.get())
-  let initialized = false
 
+  let initialized = false
   effect(() => {
-    if (storageSignal.value && initialized) {
-      storage.set(storageSignal.value)
+    const value = storageSignal.value
+
+    if (skipUpdates) return
+    if (!initialized) {
+      initialized = true
+      return
     }
-    initialized = true
+
+    if (value === null) localStorage.removeItem(key)
+    else storage.set(value)
   })
 
   return storageSignal
@@ -117,21 +133,31 @@ export const routingEngineStorage = createStorageSignal<string>("routingEngine",
   defaultValue: "valhalla_auto",
 })
 
-export const globeProjectionStorage = createStorage<boolean>("globeProjection")
-
-export const layerOrderStorage = createStorage<LayerId[]>("layerOrder")
-
-export const overlayOpacityStorage = createScopedStorage<number>("overlayOpacity", {
-  defaultValue: 0.55,
-  validate: (v) => v >= 0 && v <= 1,
-  logOperations: false,
+export const globeProjectionStorage = createStorageSignal<boolean>("globeProjection", {
+  defaultValue: false,
 })
 
-export const shareExportFormatStorage = createStorage<string>("shareExportFormat", {
-  defaultValue: "image/jpeg",
+export const layerOrderStorage = createStorageSignal<LayerId[]>("layerOrder", {
+  defaultValue: [],
 })
 
-export const tagsDiffStorage = createStorage<boolean>("tagsDiff", {
+export const overlayOpacityStorage = createScopedStorageSignal<number>(
+  "overlayOpacity",
+  {
+    defaultValue: 0.55,
+    validate: (v) => v >= 0 && v <= 1,
+    logOperations: false,
+  },
+)
+
+export const shareExportFormatStorage = createStorageSignal<string>(
+  "shareExportFormat",
+  {
+    defaultValue: "image/jpeg",
+  },
+)
+
+export const tagsDiffStorage = createStorageSignal<boolean>("tagsDiff", {
   defaultValue: true,
 })
 

@@ -9,6 +9,7 @@ import {
   elementFocusPaint,
   getElementTypeSlug,
 } from "@index/element"
+import { useTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -20,10 +21,8 @@ import {
   type ReadonlySignal,
   signal,
   useComputed,
-  useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
@@ -103,21 +102,14 @@ const ElementHistorySidebar = ({
   id: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
-  const tagsDiff = useSignal(tagsDiffStorage.get() ?? true)
-  const tooltipTarget = useSignal<HTMLElement | null>(null)
+  const tagsDiffTooltipRef = useTooltip(() => ({
+    title: t("element.highlight_changed_tags_between_versions"),
+  }))
   const title = useComputed(() => {
     const typeValue = type.value
     const idValue = id.value
     if (!(typeValue && idValue)) return t("layouts.history")
     return getHistoryTitle(typeValue, idValue)
-  })
-
-  // Effect: Tooltip lifecycle
-  useSignalEffect(() => {
-    const target = tooltipTarget.value
-    if (!target) return
-    const tooltip = new Tooltip(target)
-    return () => tooltip.dispose()
   })
 
   // Effect: Page title
@@ -148,21 +140,16 @@ const ElementHistorySidebar = ({
                 class="form-check-input"
                 type="checkbox"
                 autoComplete="off"
-                checked={tagsDiff.value}
+                checked={tagsDiffStorage.value}
                 onChange={(event) => {
                   const checked = (event.currentTarget as HTMLInputElement).checked
-                  tagsDiffStorage.set(checked)
-                  tagsDiff.value = checked
+                  tagsDiffStorage.value = checked
                 }}
               />
               {t("element.tags_diff_mode")}
               <i
                 class="bi bi-question-circle ms-1-5"
-                data-bs-toggle="tooltip"
-                data-bs-title={t("element.highlight_changed_tags_between_versions")}
-                ref={(node) => {
-                  tooltipTarget.value = node
-                }}
+                ref={tagsDiffTooltipRef}
               />
             </label>
           </div>
@@ -171,8 +158,8 @@ const ElementHistorySidebar = ({
 
       {typeValue && idValue && (
         <StandardPagination
-          key={`${typeValue}-${idValue}-${tagsDiff.value}`}
-          action={`/api/web/element/${typeValue}/${idValue}/history?tags_diff=${tagsDiff.value}`}
+          key={`${typeValue}-${idValue}-${tagsDiffStorage.value}`}
+          action={`/api/web/element/${typeValue}/${idValue}/history?tags_diff=${tagsDiffStorage.value}`}
           label={t("alt.elements_page_navigation")}
           pageOrder="desc-range"
           small={true}
@@ -190,7 +177,7 @@ const ElementHistorySidebar = ({
                     key={entry.version.toString()}
                     map={map}
                     data={entry}
-                    tagsDiff={tagsDiff.value}
+                    tagsDiff={tagsDiffStorage.value}
                   />
                 ))}
               </div>
