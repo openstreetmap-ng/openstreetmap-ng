@@ -243,16 +243,17 @@ const useStandardPagination = <TData,>({
   )
 
   // Effect: react to external response updates (e.g., after POST)
-  if (responseSignal)
-    useSignalEffect(() => {
-      const response = responseSignal.value
-      if (!response) return
+  useSignalEffect(() => {
+    if (!responseSignal) return
 
-      targetPage.value = response.state.currentPage
-      state.value = response.state
-      resource.value = { tag: "ready", data: response.data }
-      responseSignal.value = null
-    })
+    const response = responseSignal.value
+    if (!response) return
+
+    targetPage.value = response.state.currentPage
+    state.value = response.state
+    resource.value = { tag: "ready", data: response.data }
+    responseSignal.value = null
+  })
 
   // Derived: current page from last known pagination state
   const currentPage = useComputed(() => state.value?.currentPage ?? targetPage.value)

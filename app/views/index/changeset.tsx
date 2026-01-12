@@ -42,7 +42,7 @@ import {
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 const focusPaint: FocusLayerPaint = {
   "fill-opacity": 0,
@@ -143,12 +143,12 @@ const SubscriptionForm = ({
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
-  useSignalEffect(() => {
+  useEffect(() => {
     const disposeForm = configureStandardForm(formRef.current, () => {
       isSubscribed.value = !isSubscribed.value
     })
     return () => disposeForm?.()
-  })
+  }, [])
 
   return (
     <form
@@ -184,7 +184,7 @@ const CommentForm = ({
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
-  useSignalEffect(() => {
+  useEffect(() => {
     const disposeForm = configureStandardForm<ChangesetCommentResult>(
       formRef.current,
       (result, headers) => {
@@ -197,7 +197,7 @@ const CommentForm = ({
       { protobuf: ChangesetCommentResultSchema },
     )
     return () => disposeForm?.()
-  })
+  }, [])
 
   return (
     <form
