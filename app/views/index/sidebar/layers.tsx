@@ -1,6 +1,6 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { useTooltip } from "@lib/bootstrap"
+import { BTooltip } from "@lib/bootstrap"
 import {
   isMobile,
   MAP_QUERY_AREA_MAX_SIZE,
@@ -45,7 +45,7 @@ import { t } from "i18next"
 import { type LngLatBounds, type MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren, RefCallback } from "preact"
 import { render } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 export const notesLayerLoading = signal(false)
 export const dataLayerLoading = signal(false)
@@ -147,40 +147,44 @@ const OverlayToggle = ({
   label,
   disabled = false,
   loading = false,
-  tooltipRef,
+  disabledTooltipTitle,
+  disabledTooltipPlacement,
   checked,
   onChange,
 }: {
   label: ComponentChildren
   disabled?: boolean
   loading?: boolean
-  tooltipRef?: RefCallback<HTMLElement>
+  disabledTooltipTitle?: string | undefined
+  disabledTooltipPlacement?: "auto" | "top" | "bottom" | "left" | "right" | undefined
   checked: boolean
   onChange: (checked: boolean) => void
 }) => (
-  <div
-    class={`form-check ${disabled ? "disabled" : ""}`}
-    ref={tooltipRef ?? null}
+  <BTooltip
+    title={disabled ? disabledTooltipTitle : undefined}
+    placement={disabledTooltipPlacement}
   >
-    <label class="form-check-label d-block">
-      <input
-        class="form-check-input"
-        type="checkbox"
-        disabled={disabled}
-        checked={checked}
-        onChange={(e) => onChange(e.currentTarget.checked)}
-      />
-      {label}
-      {loading && (
-        <output
-          class="spinner-border text-body-secondary ms-1"
-          aria-live="polite"
-        >
-          <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
-        </output>
-      )}
-    </label>
-  </div>
+    <div class={`form-check ${disabled ? "disabled" : ""}`}>
+      <label class="form-check-label d-block">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          disabled={disabled}
+          checked={checked}
+          onChange={(e) => onChange(e.currentTarget.checked)}
+        />
+        {label}
+        {loading && (
+          <output
+            class="spinner-border text-body-secondary ms-1"
+            aria-live="polite"
+          >
+            <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
+          </output>
+        )}
+      </label>
+    </div>
+  </BTooltip>
 )
 
 const LayersSidebar = ({
@@ -193,9 +197,6 @@ const LayersSidebar = ({
   close: () => void
 }) => {
   const currentViewBounds = useSignal<LngLatBounds | null>(null)
-  const globeTooltipRef = useTooltip(() => ({
-    title: t("map.zoom_out_to_see_the_world_in_3d"),
-  }))
 
   const minimapContainersRef = useRef(new Map<LayerId, HTMLDivElement>())
   const minimapsRef = useRef<Map<LayerId, MaplibreMap>>()
@@ -227,23 +228,9 @@ const LayersSidebar = ({
 
   const notesDisabled = useSignal(false)
   const notesRestoreOnEnableRef = useRef(false)
-  const notesTooltipRef = useTooltip(
-    () => ({
-      title: t("javascripts.site.map_notes_zoom_in_tooltip"),
-      placement: "left",
-    }),
-    notesDisabled,
-  )
 
   const dataDisabled = useSignal(false)
   const dataRestoreOnEnableRef = useRef(false)
-  const dataTooltipRef = useTooltip(
-    () => ({
-      title: t("javascripts.site.map_data_zoom_in_tooltip"),
-      placement: "left",
-    }),
-    dataDisabled,
-  )
 
   const registerMinimapContainer =
     (layerId: LayerId) => (el: HTMLDivElement | null) => {
@@ -308,16 +295,18 @@ const LayersSidebar = ({
     else removeMapLayer(map, layerId)
   }
 
-  useSignalEffect(() => {
-    addLayerEventHandler((isAdded, layerId) => {
-      if (!OVERLAY_LAYERS.has(layerId)) return
+  useEffect(
+    () =>
+      addLayerEventHandler((isAdded, layerId) => {
+        if (!OVERLAY_LAYERS.has(layerId)) return
 
-      const next = new Set(enabledOverlays.peek())
-      if (isAdded) next.add(layerId)
-      else next.delete(layerId)
-      enabledOverlays.value = next
-    })
-  })
+        const next = new Set(enabledOverlays.peek())
+        if (isAdded) next.add(layerId)
+        else next.delete(layerId)
+        enabledOverlays.value = next
+      }),
+    [],
+  )
 
   useSignalEffect(() => {
     if (!enabledOverlays.value.has(AERIAL_LAYER_ID)) return
@@ -418,10 +407,9 @@ const LayersSidebar = ({
               onChange={(e) => (globeProjectionStorage.value = e.currentTarget.checked)}
             />
             {t("map.globe_view")}
-            <i
-              class="bi bi-question-circle ms-1-5"
-              ref={globeTooltipRef}
-            ></i>
+            <BTooltip title={t("map.zoom_out_to_see_the_world_in_3d")}>
+              <i class="bi bi-question-circle ms-1-5" />
+            </BTooltip>
           </label>
         </div>
 
@@ -527,7 +515,8 @@ const LayersSidebar = ({
             label={t("javascripts.map.layers.notes")}
             disabled={notesDisabled.value}
             loading={notesLayerLoading.value}
-            tooltipRef={notesTooltipRef}
+            disabledTooltipTitle={t("javascripts.site.map_notes_zoom_in_tooltip")}
+            disabledTooltipPlacement="left"
             checked={enabledOverlays.value.has(NOTES_LAYER_ID)}
             onChange={(checked) => toggleOverlay(NOTES_LAYER_ID, checked)}
           />
@@ -535,7 +524,8 @@ const LayersSidebar = ({
             label={t("javascripts.map.layers.data")}
             disabled={dataDisabled.value}
             loading={dataLayerLoading.value}
-            tooltipRef={dataTooltipRef}
+            disabledTooltipTitle={t("javascripts.site.map_data_zoom_in_tooltip")}
+            disabledTooltipPlacement="left"
             checked={enabledOverlays.value.has(DATA_LAYER_ID)}
             onChange={(checked) => toggleOverlay(DATA_LAYER_ID, checked)}
           />
