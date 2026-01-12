@@ -44,7 +44,7 @@ import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -186,7 +186,7 @@ const CommentForm = ({
   const eventRef = useRef<"hidden" | "closed" | "reopened" | "commented">()
   const commentText = useSignal("")
 
-  useSignalEffect(() => {
+  useEffect(() => {
     const disposeForm = configureStandardForm<NoteCommentResult>(
       formRef.current,
       (result, headers) => {
@@ -207,7 +207,7 @@ const CommentForm = ({
       },
     )
     return () => disposeForm?.()
-  })
+  }, [])
 
   const hasText = commentText.value.length > 0
 
@@ -320,12 +320,12 @@ const SubscriptionForm = ({
 }) => {
   const formRef = useRef<HTMLFormElement>(null)
 
-  useSignalEffect(() => {
+  useEffect(() => {
     const disposeForm = configureStandardForm(formRef.current, () => {
       isSubscribed.value = !isSubscribed.value
     })
     return () => disposeForm?.()
-  })
+  }, [])
 
   return (
     <form

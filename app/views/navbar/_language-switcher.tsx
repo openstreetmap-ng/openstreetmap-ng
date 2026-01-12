@@ -1,12 +1,12 @@
 import { primaryLanguage } from "@lib/config"
 import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
-import { useComputed, useSignal, useSignalEffect } from "@preact/signals"
+import { useComputed, useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import { createRef, type RefObject, render } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 const GUIDE_HREF =
   "https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
@@ -65,12 +65,12 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
   )
 
   // Effect: Focus search on modal open
-  useSignalEffect(() => {
+  useEffect(() => {
     const el = modalRef.current!
     const onShown = () => searchInputRef.current!.focus()
     el.addEventListener("shown.bs.modal", onShown)
     return () => el.removeEventListener("shown.bs.modal", onShown)
-  })
+  }, [])
 
   const setLanguage = (code: string) => {
     if (code !== primaryLanguage) {

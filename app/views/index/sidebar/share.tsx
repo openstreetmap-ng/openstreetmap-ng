@@ -30,7 +30,7 @@ import { t } from "i18next"
 import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"
 import { render, type TargetedSubmitEvent } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 const SHARE_FORMATS = [
   { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
@@ -127,9 +127,7 @@ const ShareSidebar = ({
     return () => map.off("moveend", updateView)
   })
 
-  useSignalEffect(() => {
-    addLayerEventHandler(updateLayersCode)
-  })
+  useEffect(() => addLayerEventHandler(updateLayersCode), [])
 
   useSignalEffect(() => {
     let marker = shareMarkerRef.current
@@ -170,7 +168,7 @@ const ShareSidebar = ({
     locationFilter.addTo(map, boundsPadding(map.getBounds(), -0.2))
   })
 
-  useSignalEffect(() => {
+  useEffect(() => {
     const createMarker = (lon: number, lat: number) => {
       const marker = new Marker({
         anchor: MARKER_ICON_ANCHOR,
@@ -201,7 +199,7 @@ const ShareSidebar = ({
       console.debug("ShareSidebar: Initializing marker at center", [lon, lat])
       createMarker(lon, lat)
     }
-  })
+  }, [])
 
   const onExportSubmit = async (e: TargetedSubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
