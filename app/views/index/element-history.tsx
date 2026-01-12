@@ -9,7 +9,7 @@ import {
   elementFocusPaint,
   getElementTypeSlug,
 } from "@index/element"
-import { useTooltip } from "@lib/bootstrap"
+import { BTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -102,9 +102,6 @@ const ElementHistorySidebar = ({
   id: ReadonlySignal<string | null>
   sidebar: HTMLElement
 }) => {
-  const tagsDiffTooltipRef = useTooltip(() => ({
-    title: t("element.highlight_changed_tags_between_versions"),
-  }))
   const title = useComputed(() => {
     const typeValue = type.value
     const idValue = id.value
@@ -147,10 +144,9 @@ const ElementHistorySidebar = ({
                 }}
               />
               {t("element.tags_diff_mode")}
-              <i
-                class="bi bi-question-circle ms-1-5"
-                ref={tagsDiffTooltipRef}
-              />
+              <BTooltip title={t("element.highlight_changed_tags_between_versions")}>
+                <i class="bi bi-question-circle ms-1-5" />
+              </BTooltip>
             </label>
           </div>
         </SidebarHeader>
