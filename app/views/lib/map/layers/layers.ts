@@ -354,11 +354,13 @@ type LayerEventHandler = (
   config: LayerConfig,
 ) => void
 
-const layerEventHandlers: LayerEventHandler[] = []
+const layerEventHandlers = new Map<object, LayerEventHandler>()
 
 /** Add a layer event handler, called when a layer is added or removed */
 export const addLayerEventHandler = (handler: LayerEventHandler) => {
-  layerEventHandlers.push(handler)
+  const id = {}
+  layerEventHandlers.set(id, handler)
+  return () => layerEventHandlers.delete(id)
 }
 
 export const activeBaseLayerId = signal<LayerId | null>(null)
@@ -498,7 +500,7 @@ export const addMapLayer = (
   }
 
   if (triggerEvent) {
-    for (const handler of layerEventHandlers) {
+    for (const handler of [...layerEventHandlers.values()]) {
       handler(true, layerId, config)
     }
   }
@@ -537,7 +539,7 @@ export const removeMapLayer = (
     }
 
     if (triggerEvent) {
-      for (const handler of layerEventHandlers) {
+      for (const handler of [...layerEventHandlers.values()]) {
         handler(false, layerId, config)
       }
     }
