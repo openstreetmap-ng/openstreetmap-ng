@@ -1,5 +1,5 @@
+import { createDisposeScope, type DisposeScope } from "@lib/dispose-scope"
 import type { Bounds } from "@lib/types"
-import { throttle } from "@std/async/unstable-throttle"
 import { clamp } from "@std/math/clamp"
 import { modulo } from "@std/math/modulo"
 import type { Feature, Polygon } from "geojson"
@@ -10,13 +10,7 @@ import {
   type Map as MaplibreMap,
   Marker,
 } from "maplibre-gl"
-import {
-  addMapLayer,
-  emptyFeatureCollection,
-  type LayerId,
-  layersConfig,
-  removeMapLayer,
-} from "../layers/layers"
+import { emptyFeatureCollection, type LayerId, layersConfig } from "../layers/layers"
 
 const LAYER_ID: LayerId = "location-filter" as LayerId
 layersConfig.set(LAYER_ID, {
@@ -35,6 +29,7 @@ layersConfig.set(LAYER_ID, {
 })
 
 export class LocationFilterControl implements IControl {
+  private _scope: DisposeScope | null = null
   private _map!: MaplibreMap
   private _bounds!: Bounds
   private _grabber!: Marker
@@ -42,8 +37,11 @@ export class LocationFilterControl implements IControl {
   private _onRenderHandlers: (() => void)[] = []
 
   public addTo(map: MaplibreMap, bounds: LngLatBounds) {
+    const scope = createDisposeScope()
+    this._scope = scope
+
     this._map = map
-    addMapLayer(map, LAYER_ID)
+    scope.mapLayerLifecycle(map, LAYER_ID)
 
     const [[minLon, minLat], [maxLon, maxLat]] = bounds.toArray()
     this._bounds = [minLon, minLat, maxLon, maxLat]
@@ -57,8 +55,11 @@ export class LocationFilterControl implements IControl {
       .addTo(map)
     this._grabber.on(
       "drag",
-      throttle(() => this._processMarkerUpdate(-1), 16, { ensureLastCall: true }),
+      scope.frame(() => {
+        this._processMarkerUpdate(-1)
+      }),
     )
+
     this._corners = []
     for (const [i, x, y] of [
       [0, minLon, minLat],
@@ -75,21 +76,25 @@ export class LocationFilterControl implements IControl {
         .addTo(map)
       corner.on(
         "drag",
-        throttle(() => this._processMarkerUpdate(i), 16, {
-          ensureLastCall: true,
+        scope.frame(() => {
+          this._processMarkerUpdate(i)
         }),
       )
       this._corners.push(corner)
     }
+
+    scope.defer(() => {
+      for (const corner of this._corners) corner.remove()
+      this._grabber.remove()
+    })
 
     this._render()
     return this
   }
 
   public remove() {
-    removeMapLayer(this._map, LAYER_ID)
-    for (const corner of this._corners) corner.remove()
-    this._grabber.remove()
+    this._scope!.dispose()
+    this._scope = null
   }
 
   public getBounds() {

@@ -6,6 +6,11 @@ export const mountMapAlert = (node: ComponentChild) => {
   const mountPoint = document.createElement("div")
   render(node, mountPoint)
   container.append(mountPoint)
+
+  return () => {
+    render(null, mountPoint)
+    mountPoint.remove()
+  }
 }
 
 export const MapAlertPanel = ({

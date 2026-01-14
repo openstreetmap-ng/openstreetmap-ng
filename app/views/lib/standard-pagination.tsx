@@ -42,8 +42,8 @@ type StandardPaginationElements = {
   actionPagination: HTMLUListElement
   paginationContainers: HTMLUListElement[]
   renderContainer: HTMLElement
-  numItemsTargets: HTMLElement[]
-  numPagesTargets: HTMLElement[]
+  numItemsTargets: Element[]
+  numPagesTargets: Element[]
 }
 
 // State machine types for pagination resource
@@ -624,12 +624,8 @@ const resolvePaginationElements = (container: Element): StandardPaginationElemen
     ? renderSibling
     : (renderSibling.querySelector("tbody, ul.list-unstyled") ?? renderSibling)
 
-  const numItemsTargets = Array.from(
-    container.querySelectorAll<HTMLElement>("[data-sp-num-items]"),
-  )
-  const numPagesTargets = Array.from(
-    container.querySelectorAll<HTMLElement>("[data-sp-num-pages]"),
-  )
+  const numItemsTargets = Array.from(container.querySelectorAll("[data-sp-num-items]"))
+  const numPagesTargets = Array.from(container.querySelectorAll("[data-sp-num-pages]"))
 
   return {
     actionPagination,

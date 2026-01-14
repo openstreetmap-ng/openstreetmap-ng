@@ -1,6 +1,5 @@
 import { routerNavigateStrict } from "@index/router"
 import { encodeMapState } from "@lib/map/state"
-import { qsEncode } from "@lib/qs"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
@@ -27,28 +26,35 @@ export class QueryFeaturesControl implements IControl {
     button.appendChild(icon)
     container.appendChild(button)
 
-    new Tooltip(button, {
+    const tooltip = new Tooltip(button, {
       title: buttonText,
       placement: "left",
     })
 
     const onMapClick = ({ lngLat }: MapMouseEvent) => {
-      const zoom = map.getZoom()
-      const at = encodeMapState({ lon: lngLat.lng, lat: lngLat.lat, zoom }, "")
-      routerNavigateStrict(`/query${qsEncode({ at })}`)
+      const zoom = Math.max(map.getZoom(), QUERY_FEATURES_MIN_ZOOM)
+      const at = encodeMapState({ lon: lngLat.lng, lat: lngLat.lat, zoom }, "?at=")
+      routerNavigateStrict(`/query${at}`)
     }
 
-    // On button click, toggle active state and event handlers
-    button.addEventListener("click", () => {
+    let active = false
+    const setActive = (next: boolean) => {
+      if (active === next) return
+      active = next
+
       button.blur()
-      const isActive = button.classList.toggle("active")
-      if (isActive) {
-        mapContainer.classList.add("query-features")
+      button.classList.toggle("active", active)
+      mapContainer.classList.toggle("query-features", active)
+      if (active) {
         map.on("click", onMapClick)
       } else {
-        mapContainer.classList.remove("query-features")
         map.off("click", onMapClick)
       }
+    }
+
+    button.addEventListener("click", () => {
+      if (button.disabled) return
+      setActive(!active)
     })
 
     /** On map zoom, change button availability */
@@ -57,15 +63,14 @@ export class QueryFeaturesControl implements IControl {
       if (shouldDisable === button.disabled) return
 
       if (shouldDisable) {
-        if (button.classList.contains("active")) button.click()
-        button.blur()
+        setActive(false)
         button.disabled = true
-        Tooltip.getInstance(button)!.setContent({
+        tooltip.setContent({
           ".tooltip-inner": t("javascripts.site.queryfeature_disabled_tooltip"),
         })
       } else {
         button.disabled = false
-        Tooltip.getInstance(button)!.setContent({
+        tooltip.setContent({
           ".tooltip-inner": t("javascripts.site.queryfeature_tooltip"),
         })
       }

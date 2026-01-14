@@ -1,5 +1,6 @@
 import { routerNavigateStrict } from "@index/router"
 import { zoomPrecision } from "@lib/coords"
+import { createDisposeScope } from "@lib/dispose-scope"
 import { formatCoordinate } from "@lib/format"
 import { NEW_NOTE_MIN_ZOOM } from "@lib/map/controls/new-note"
 import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
@@ -7,15 +8,16 @@ import { encodeMapState, getMapGeoUri, type LonLatZoom } from "@lib/map/state"
 import { encodeLonLat } from "@lib/polyline"
 import { qsEncode } from "@lib/qs"
 import { Dropdown } from "bootstrap"
-import { type Map as MaplibreMap, type MapMouseEvent, Popup } from "maplibre-gl"
+import { type Map as MaplibreMap, Popup } from "maplibre-gl"
 
 export const configureContextMenu = (map: MaplibreMap) => {
+  const scope = createDisposeScope()
   const mapContainer = map.getContainer()
 
   const containerTemplate = document.querySelector("template.context-menu-template")!
   const container = containerTemplate.content.firstElementChild as HTMLElement
   const dropdownButton = container.querySelector(".dropdown-toggle")!
-  const dropdown = Dropdown.getOrCreateInstance(dropdownButton)
+  const dropdown = new Dropdown(dropdownButton)
   const geolocationField = container.querySelector(".geolocation-dd")!
   const geolocationGeoField = container.querySelector(".geolocation-geo")!
   const geolocationUriField = container.querySelector(".geolocation-uri")!
@@ -35,6 +37,12 @@ export const configureContextMenu = (map: MaplibreMap) => {
     className: "context-menu",
   }).setDOMContent(container)
 
+  scope.defer(() => {
+    dropdown.hide()
+    dropdown.dispose()
+    popup.remove()
+  })
+
   /**
    * Get the simplified position of the popup
    * @example
@@ -53,7 +61,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
   }
 
   // On map contextmenu, open the popup
-  map.on("contextmenu", ({ point, lngLat }: MapMouseEvent) => {
+  scope.map(map, "contextmenu", ({ point, lngLat }) => {
     console.debug("ContextMenu: Opened", lngLat.lng, lngLat.lat)
 
     // Update the geolocation fields
@@ -82,7 +90,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
   })
 
   // On map zoomend, update the available buttons
-  map.on("zoomend", () => {
+  scope.map(map, "zoomend", () => {
     const zoom = map.getZoom()
     newNoteButton.disabled = zoom < NEW_NOTE_MIN_ZOOM
     queryFeaturesButton.disabled = zoom < QUERY_FEATURES_MIN_ZOOM
@@ -100,12 +108,12 @@ export const configureContextMenu = (map: MaplibreMap) => {
       alert(error.message)
     }
   }
-  geolocationField.addEventListener("click", onGeolocationFieldClick)
-  geolocationGeoField.addEventListener("click", onGeolocationFieldClick)
-  geolocationUriField.addEventListener("click", onGeolocationFieldClick)
+  scope.dom(geolocationField, "click", onGeolocationFieldClick)
+  scope.dom(geolocationGeoField, "click", onGeolocationFieldClick)
+  scope.dom(geolocationUriField, "click", onGeolocationFieldClick)
 
   // On routing from button click, navigate to routing page
-  routingFromButton.addEventListener("click", () => {
+  scope.dom(routingFromButton, "click", () => {
     console.debug("ContextMenu: Route from clicked")
     const { lon, lat, zoom } = getPopupLonLatZoom()
     const precision = zoomPrecision(zoom)
@@ -115,7 +123,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
   })
 
   // On routing to button click, navigate to routing page
-  routingToButton.addEventListener("click", () => {
+  scope.dom(routingToButton, "click", () => {
     console.debug("ContextMenu: Route to clicked")
     const { lon, lat, zoom } = getPopupLonLatZoom()
     const precision = zoomPrecision(zoom)
@@ -125,42 +133,44 @@ export const configureContextMenu = (map: MaplibreMap) => {
   })
 
   // On new note button click, navigate to new-note page
-  newNoteButton.addEventListener("click", () => {
+  scope.dom(newNoteButton, "click", () => {
     console.debug("ContextMenu: New note clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "")
+    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
     closePopup()
-    routerNavigateStrict(`/note/new${qsEncode({ at })}`)
+    routerNavigateStrict(`/note/new${at}`)
   })
 
   // On show address button click, navigate to search page
-  showAddressButton.addEventListener("click", () => {
+  scope.dom(showAddressButton, "click", () => {
     console.debug("ContextMenu: Show address clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "")
+    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
     closePopup()
-    routerNavigateStrict(`/search${qsEncode({ at })}`)
+    routerNavigateStrict(`/search${at}`)
   })
 
   // On query features button click, navigate to query-features page
-  queryFeaturesButton.addEventListener("click", () => {
+  scope.dom(queryFeaturesButton, "click", () => {
     console.debug("ContextMenu: Query features clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "")
+    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
     closePopup()
-    routerNavigateStrict(`/query${qsEncode({ at })}`)
+    routerNavigateStrict(`/query${at}`)
   })
 
   // On center here button click, center the map
-  centerHereButton.addEventListener("click", () => {
+  scope.dom(centerHereButton, "click", () => {
     console.debug("ContextMenu: Center here clicked")
     map.panTo(popup.getLngLat())
     closePopup()
   })
 
   // On measure distance button click, open the distance tool
-  measureDistanceButton.addEventListener("click", () => {
+  scope.dom(measureDistanceButton, "click", () => {
     console.debug("ContextMenu: Measure distance clicked")
     const { lon, lat } = getPopupLonLatZoom()
     const line = encodeLonLat([[lon, lat]], 5)
     closePopup()
     routerNavigateStrict(`/distance${qsEncode({ line })}`)
   })
+
+  return scope.dispose
 }

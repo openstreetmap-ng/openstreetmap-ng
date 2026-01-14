@@ -8,9 +8,7 @@ mount("admin-user-edit-body", (body) => {
   const accordionButtons = body.querySelectorAll("button.accordion-button")
   for (const button of accordionButtons) {
     const collapse = document.querySelector(button.dataset.bsTarget!)!
-    const collapseInstance = Collapse.getOrCreateInstance(collapse, {
-      toggle: false,
-    })
+    const collapseInstance = new Collapse(collapse, { toggle: false })
     // @ts-expect-error
     collapseInstance._triggerArray.push(button)
 

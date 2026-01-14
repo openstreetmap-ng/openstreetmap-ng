@@ -174,9 +174,7 @@ const getModal = memoize(() => {
   render(<LanguageSwitcherModal instanceRef={instanceRef} />, root)
   document.body.append(root)
 
-  const modal = root.firstElementChild as HTMLElement
-
-  const instance = Modal.getOrCreateInstance(modal)
+  const instance = new Modal(root.firstElementChild!)
   instanceRef.current = instance
   return instance
 })
