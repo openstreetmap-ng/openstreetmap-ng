@@ -6,6 +6,7 @@ import {
   MAP_QUERY_AREA_MAX_SIZE,
   NOTE_QUERY_AREA_MAX_SIZE,
 } from "@lib/config"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import {
   globeProjectionStorage,
   layerOrderStorage,
@@ -328,7 +329,7 @@ const LayersSidebar = ({
     }
   }
 
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     if (!active.value) return
 
     const onMoveEnd = (e?: MapLibreEvent) => {
@@ -336,12 +337,8 @@ const LayersSidebar = ({
       initializeMinimapsOnce()
       syncMinimaps(e ? "ease" : "jump")
     }
-    map.on("moveend", onMoveEnd)
+    scope.map(map, "moveend", onMoveEnd)
     onMoveEnd()
-
-    return () => {
-      map.off("moveend", onMoveEnd)
-    }
   })
 
   useSignalEffect(() => {
@@ -541,8 +538,6 @@ const LayersSidebar = ({
 }
 
 export class LayerSidebarToggleControl extends SidebarToggleControl {
-  public _container!: HTMLElement
-
   public constructor() {
     super("layers", "javascripts.map.layers.title")
   }
@@ -559,7 +554,6 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
       this.sidebar,
     )
 
-    this._container = container
     return container
   }
 }

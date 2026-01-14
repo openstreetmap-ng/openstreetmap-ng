@@ -12,7 +12,7 @@ import {
 } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { encodeMapState } from "@lib/map/state"
-import { qsEncode, qsParse } from "@lib/qs"
+import { qsParse } from "@lib/qs"
 import { t } from "i18next"
 import {
   AttributionControl,
@@ -82,9 +82,9 @@ reportProblemLink.textContent = t("javascripts.embed.report_problem")
 const onMoveEnd = () => {
   const { lng, lat } = map.getCenter()
   const zoom = map.getZoom()
-  const at = encodeMapState({ lon: lng, lat, zoom }, "")
+  const at = encodeMapState({ lon: lng, lat, zoom }, "?at=")
   // TODO: test from within iframe
-  reportProblemLink.href = `${window.location.origin}/fixthemap${qsEncode({ at })}`
+  reportProblemLink.href = `${window.location.origin}/fixthemap${at}`
   attributionControl.options.customAttribution = reportProblemLink.outerHTML
   attributionControl._updateAttributions()
 }

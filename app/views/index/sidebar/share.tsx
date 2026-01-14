@@ -2,6 +2,7 @@ import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { CopyField } from "@lib/copy-group"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { shareExportFormatStorage } from "@lib/local-storage"
 import { boundsPadding } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
@@ -116,15 +117,13 @@ const ShareSidebar = ({
     shareLayersCode.value = getMapLayersCode(map)
   }
 
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     if (!active.value) return
 
-    map.on("moveend", updateView)
+    scope.map(map, "moveend", updateView)
     updateView()
     updateMarkerLngLat()
     updateLayersCode()
-
-    return () => map.off("moveend", updateView)
   })
 
   useEffect(() => addLayerEventHandler(updateLayersCode), [])
@@ -345,8 +344,6 @@ const ShareSidebar = ({
 }
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
-  public _container!: HTMLElement
-
   public constructor() {
     super("share", "javascripts.share.title")
   }
@@ -363,7 +360,6 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
       this.sidebar,
     )
 
-    this._container = container
     return container
   }
 }

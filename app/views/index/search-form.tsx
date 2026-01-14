@@ -23,8 +23,8 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
   const onWhereIsThisClick = () => {
     console.debug("SearchForm: Where is this clicked")
     const { lng, lat } = map.getCenter()
-    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "")
-    routerNavigateStrict(`/search${qsEncode({ at })}`)
+    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "?at=")
+    routerNavigateStrict(`/search${at}`)
   }
 
   return (

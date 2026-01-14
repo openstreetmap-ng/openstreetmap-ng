@@ -1,12 +1,8 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { activeBaseLayerId, type LayerId } from "@lib/map/layers/layers"
-import {
-  effect,
-  type ReadonlySignal,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+import { effect, type ReadonlySignal, useSignal } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
@@ -118,16 +114,14 @@ const LegendSidebar = ({
   const getZoom = () => Math.round(map.getZoom())
   const currentZoom = useSignal(getZoom())
 
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     if (!active.value) return
 
     const onZoomEnd = () => {
       currentZoom.value = getZoom()
     }
-    map.on("zoomend", onZoomEnd)
+    scope.map(map, "zoomend", onZoomEnd)
     onZoomEnd()
-
-    return () => map.off("zoomend", onZoomEnd)
   })
 
   if (!active.value) return null
@@ -176,8 +170,6 @@ const LegendSidebar = ({
 }
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
-  public _container!: HTMLElement
-
   public constructor() {
     super("legend", "javascripts.key.tooltip")
   }
@@ -215,8 +207,6 @@ export class LegendSidebarToggleControl extends SidebarToggleControl {
 
       this.close()
     })
-
-    this._container = container
     return container
   }
 }

@@ -1,3 +1,4 @@
+import { createDisposeScope } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
 import { configureScrollspy } from "@lib/scrollspy"
 import { configureStandardForm } from "@lib/standard-form"
@@ -31,7 +32,7 @@ mount("diary-index-body", (body) => {
   const navList = navContainer.querySelector("ul.nav")!
   const offcanvasButton = scrollNav.querySelector("button.btn-floating-bottom-left")!
 
-  const navOffcanvasInstance = Offcanvas.getOrCreateInstance(navOffcanvas)
+  const navOffcanvasInstance = new Offcanvas(navOffcanvas)
   navOffcanvas.addEventListener("click", (e) => {
     const target = e.target
     if (!(target instanceof Element)) return
@@ -86,7 +87,7 @@ mount("diary-index-body", (body) => {
   }
 
   const configureDiaryPage = (renderContainer: HTMLElement) => {
-    const disposers: (() => void)[] = []
+    const scope = createDisposeScope()
 
     for (const article of renderContainer.querySelectorAll("article.diary")) {
       const diaryBody = article.querySelector(".diary-body")!
@@ -104,7 +105,7 @@ mount("diary-index-body", (body) => {
       // Images and rich content may change height; observe and re-evaluate
       const ro = new ResizeObserver(updateClamp)
       ro.observe(diaryBody)
-      disposers.push(() => ro.disconnect())
+      scope.defer(() => ro.disconnect())
       article.addEventListener(
         "transitionend",
         () => {
@@ -135,7 +136,7 @@ mount("diary-index-body", (body) => {
             disposeCommentsPagination?.()
             disposeCommentsPagination = configureStandardPagination(commentsContainer)
           }
-          disposers.push(() => disposeCommentsPagination?.())
+          scope.defer(() => disposeCommentsPagination?.())
           reloadCommentsPagination()
 
           const subForm = commentsContainer.querySelector("form.subscription-form")
@@ -155,9 +156,7 @@ mount("diary-index-body", (body) => {
       )
     }
 
-    return () => {
-      for (const dispose of disposers) dispose()
-    }
+    return scope.dispose
   }
 
   configureStandardPagination(diaryPagination, {

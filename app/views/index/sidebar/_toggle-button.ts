@@ -11,6 +11,7 @@ export class SidebarToggleControl implements IControl {
   protected tooltip!: Tooltip
   protected button!: HTMLButtonElement
   protected map!: MaplibreMap
+  public _container!: HTMLElement
   private readonly _active: Signal<boolean> = signal(false)
   public readonly active: ReadonlySignal<boolean> = this._active
   private readonly _className: string
@@ -22,7 +23,9 @@ export class SidebarToggleControl implements IControl {
   }
 
   private _ensureSidebar = () => {
-    const existing = document.querySelector(`div.map-sidebar.${this._className}`)
+    const existing = document.querySelector<HTMLElement>(
+      `.map-sidebar.${this._className}`,
+    )
     assertExists(existing, `Sidebar ${this._className} not found`)
     return existing
   }
@@ -88,6 +91,7 @@ export class SidebarToggleControl implements IControl {
       this.setActive(nextActive, !isSwitch)
     })
 
+    this._container = container
     return container
   }
 

@@ -9,11 +9,11 @@ const bodyClasses = new Set(document.body.classList)
  */
 export const mount = (
   target: string | readonly string[],
-  callback: (body: HTMLBodyElement) => void | Promise<void>,
+  callback: (body: HTMLElement) => void | Promise<void>,
 ) => {
   const matches =
     typeof target === "string"
       ? bodyClasses.has(target)
       : target.some(bodyClasses.has, bodyClasses)
-  if (matches) callback(document.body as HTMLBodyElement)
+  if (matches) callback(document.body)
 }

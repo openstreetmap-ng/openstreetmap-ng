@@ -27,7 +27,7 @@ export const configureStandardForm = <T = any>(
   options?: {
     formBody?: Element
     formAppend?: boolean
-    abortSignal?: boolean
+    cancelOnSubmit?: boolean
     removeEmptyFields?: boolean
     protobuf?: GenMessage<T & Message>
     validationCallback?: (
@@ -35,7 +35,7 @@ export const configureStandardForm = <T = any>(
     ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
     errorCallback?: (error: Error) => void
   },
-): (() => void) | undefined => {
+): void | (() => void) => {
   if (!form || form.classList.contains("needs-validation")) return
   let formAction = form.getAttribute("action") ?? ""
   console.debug("StandardForm: Initializing", formAction)
@@ -47,7 +47,7 @@ export const configureStandardForm = <T = any>(
   const {
     formBody = form,
     formAppend = false,
-    abortSignal = false,
+    cancelOnSubmit = false,
     removeEmptyFields = false,
     protobuf,
     validationCallback,
@@ -269,7 +269,7 @@ export const configureStandardForm = <T = any>(
     form.classList.remove("was-validated")
 
     // Stage 2: Handle concurrent submissions
-    if (abortSignal) {
+    if (cancelOnSubmit) {
       abortController.abort()
       abortController = new AbortController()
     } else if (form.classList.contains("pending")) {
@@ -335,7 +335,7 @@ export const configureStandardForm = <T = any>(
       const resp = await fetch(url, {
         method,
         body,
-        signal: abortSignal ? currentAbortController.signal : null,
+        signal: cancelOnSubmit ? currentAbortController.signal : null,
         priority: "high",
       })
       const contentType = resp.headers.get("Content-Type") ?? ""

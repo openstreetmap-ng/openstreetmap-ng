@@ -10,6 +10,9 @@ export const requestAnimationFramePolyfill: (callback: FrameRequestCallback) => 
   window.requestAnimationFrame ||
   ((callback) => window.setTimeout(() => callback(performance.now()), 30))
 
+export const cancelAnimationFramePolyfill: (handle: number) => void =
+  window.cancelAnimationFrame || window.clearTimeout
+
 export const requestIdleCallbackPolyfill: (
   callback: IdleRequestCallback,
   options?: IdleRequestOptions,

@@ -264,7 +264,7 @@ mount("user-profile-body", (body) => {
         : t("user.activity.details.no_activity", {
             date: dateLabel,
           })
-    Tooltip.getOrCreateInstance(element, { customClass: "activity-tooltip", title })
+    new Tooltip(element, { customClass: "activity-tooltip", title })
     element.removeEventListener("pointerenter", activateTooltip)
     element.removeEventListener("focus", activateTooltip)
   }

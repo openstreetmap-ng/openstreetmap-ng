@@ -38,7 +38,6 @@ const ReportModal = () => {
   const modalRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const modalBodyRef = useRef<HTMLDivElement>(null)
-  const instanceRef = useRef<Modal | null>(null)
   const categoryId = useId()
   const bodyId = useId()
   const bodyHelpId = useId()
@@ -47,11 +46,9 @@ const ReportModal = () => {
   useSignalEffect(() => {
     const { type, typeId, action, actionId } = reportData.value!
 
-    const modal = modalRef.current!
-    const instance = Modal.getOrCreateInstance(modal)
-    instanceRef.current = instance
+    Modal.getOrCreateInstance(modalRef.current!).show()
 
-    const disposeForm = configureStandardForm(
+    return configureStandardForm(
       formRef.current!,
       () => {
         console.debug("ReportModal: Submitted")
@@ -69,9 +66,6 @@ const ReportModal = () => {
         },
       },
     )
-
-    instance.show()
-    return () => disposeForm?.()
   })
 
   return (
@@ -228,9 +222,7 @@ export const configureReportButtons = (searchElement: Element) => {
   for (const button of searchElement.querySelectorAll("button[data-report-type]")) {
     button.addEventListener("click", (event) => {
       event.preventDefault()
-      const { reportType, reportTypeId, reportAction, reportActionId } = (
-        button as HTMLElement
-      ).dataset
+      const { reportType, reportTypeId, reportAction, reportActionId } = button.dataset
       showReportModal({
         type: reportType as ReportType,
         typeId: BigInt(reportTypeId!),

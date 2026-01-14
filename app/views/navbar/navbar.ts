@@ -10,12 +10,8 @@ import { messagesCountUnread } from "./navbar-right"
 
 const MIN_EDIT_ZOOM = 13
 const navbar = document.querySelector(".navbar")!
-const navbarCollapseInstance = Collapse.getOrCreateInstance(
-  navbar.querySelector(".navbar-collapse")!,
-  {
-    toggle: false,
-  },
-)
+const navbarCollapse = navbar.querySelector(".navbar-collapse")!
+const navbarCollapseInstance = new Collapse(navbarCollapse, { toggle: false })
 
 /**
  * Collapse mobile navbar if currently expanded.
@@ -40,15 +36,13 @@ for (const link of navbar.querySelectorAll("a.nav-link")) {
   }
 }
 
-const editGroup = navbar.querySelector("div.edit-group")!
-const editDropdown = Dropdown.getOrCreateInstance(
-  editGroup.querySelector(".dropdown-toggle")!,
-)
+const editGroup = navbar.querySelector<HTMLElement>(".edit-group")!
+const editDropdown = new Dropdown(editGroup.querySelector(".dropdown-toggle")!)
 const remoteEditButton = editGroup.querySelector(
   "button.dropdown-item.edit-link[data-editor=remote]",
 )!
 const rememberChoice = editGroup.querySelector("input[name=remember-choice]")!
-const editGroupTooltip = Tooltip.getOrCreateInstance(editGroup, {
+const editGroupTooltip = new Tooltip(editGroup, {
   title: editGroup.dataset.bsTitle!,
   placement: "bottom",
 })
