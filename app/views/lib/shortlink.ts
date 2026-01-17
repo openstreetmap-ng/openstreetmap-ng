@@ -1,5 +1,5 @@
+import { wrapLongitude } from "@lib/coords"
 import type { LonLatZoom } from "@lib/map/state"
-import { modulo } from "@std/math/modulo"
 import { getBitMasks } from "./shortlink.macro" with { type: "macro" }
 
 /** 64 chars to encode 6 bits */
@@ -17,7 +17,7 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
   const r = n % 3
   const d = Math.ceil(n / 3)
 
-  const x = BigInt((modulo(lon + 180, 360) * LON_TO_UINT32) | 0)
+  const x = BigInt(((wrapLongitude(lon) + 180) * LON_TO_UINT32) | 0)
   const y = BigInt(((lat + 90) * LAT_TO_UINT32) | 0)
 
   // Interleave x/y bits (Morton code)

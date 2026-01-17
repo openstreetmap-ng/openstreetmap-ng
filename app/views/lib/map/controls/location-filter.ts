@@ -1,7 +1,6 @@
+import { clampLatitude, MAX_MERCATOR_LATITUDE, wrapLongitude } from "@lib/coords"
 import { createDisposeScope, type DisposeScope } from "@lib/dispose-scope"
 import type { Bounds } from "@lib/types"
-import { clamp } from "@std/math/clamp"
-import { modulo } from "@std/math/modulo"
 import type { Feature, Polygon } from "geojson"
 import {
   type GeoJSONSource,
@@ -149,8 +148,8 @@ export class LocationFilterControl implements IControl {
       console.warn("LocationFilter: Invalid marker index", i)
       return
     }
-    minLat = clamp(minLat, -85, 85)
-    maxLat = clamp(maxLat, -85, 85)
+    minLat = clampLatitude(minLat)
+    maxLat = clampLatitude(maxLat)
     this._bounds = [minLon, minLat, maxLon, maxLat]
     this._render(i)
   }
@@ -203,8 +202,8 @@ const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon>
   // Normalize bounds
   if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
   if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
-  if (minLon < -180 || minLon > 180) minLon = modulo(minLon + 180, 360) - 180
-  if (maxLon < -180 || maxLon > 180) maxLon = modulo(maxLon + 180, 360) - 180
+  minLon = wrapLongitude(minLon)
+  maxLon = wrapLongitude(maxLon)
 
   const crossesAntimeridian = minLon > maxLon
   if (!crossesAntimeridian) {
@@ -216,11 +215,11 @@ const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon>
         type: "Polygon",
         coordinates: [
           [
-            [-180, -85],
-            [-180, 85],
-            [180, 85],
-            [180, -85],
-            [-180, -85],
+            [-180, -MAX_MERCATOR_LATITUDE],
+            [-180, MAX_MERCATOR_LATITUDE],
+            [180, MAX_MERCATOR_LATITUDE],
+            [180, -MAX_MERCATOR_LATITUDE],
+            [-180, -MAX_MERCATOR_LATITUDE],
           ],
           [
             [minLon, minLat],
@@ -242,11 +241,11 @@ const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon>
       type: "Polygon",
       coordinates: [
         [
-          [-180, -85], // Outer ring
-          [-180, 85],
-          [180, 85],
-          [180, -85],
-          [-180, -85],
+          [-180, -MAX_MERCATOR_LATITUDE], // Outer ring
+          [-180, MAX_MERCATOR_LATITUDE],
+          [180, MAX_MERCATOR_LATITUDE],
+          [180, -MAX_MERCATOR_LATITUDE],
+          [-180, -MAX_MERCATOR_LATITUDE],
         ],
         [
           [minLon, minLat], // Eastern hole

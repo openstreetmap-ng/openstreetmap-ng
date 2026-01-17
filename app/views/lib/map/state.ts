@@ -4,6 +4,7 @@ import {
   isLatitude,
   isLongitude,
   isZoom,
+  wrapLongitude,
   zoomPrecision,
 } from "@lib/coords"
 import { getTimezoneName } from "@lib/format"
@@ -112,7 +113,7 @@ export const applyMapState = (
 ) => {
   console.debug("MapState: Setting", state)
   const { lon, lat, zoom, layersCode } = state
-  map.panTo([lon, lat], { ...(options ?? {}), zoom })
+  map.panTo([lon, lat], { ...options, zoom })
   setMapLayersCode(map, layersCode)
 }
 
@@ -124,7 +125,7 @@ export const applyMapState = (
  */
 export const encodeMapState = (state: MapState | LonLatZoom, prefix = "#map=") => {
   let { lon, lat, zoom } = state
-  lon = modulo(lon + 180, 360) - 180
+  lon = wrapLongitude(lon)
 
   const zoomRounded = beautifyZoom(zoom)
   const precision = zoomPrecision(zoom)
@@ -178,7 +179,6 @@ export const parseLonLatZoom = (
   const zoom = Number.parseFloat(input.zoom)
   const lat = Number.parseFloat(input.lat)
   const lon = Number.parseFloat(input.lon)
-
   return isZoom(zoom) && isLatitude(lat) && isLongitude(lon) ? { lon, lat, zoom } : null
 }
 
@@ -235,7 +235,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
   // 2. Use the bounds from the bbox query parameter
   if (searchParams.bbox) {
     const bbox = searchParams.bbox.split(",").map(Number.parseFloat)
-    if (bbox.length === 4) {
+    if (bbox.length === 4 && bbox.every(Number.isFinite)) {
       const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, bbox as Bounds)
       const state = { lon, lat, zoom, layersCode: lastLayersCode }
       console.debug("MapState: Initial from bbox query", state)
@@ -278,12 +278,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
     const mlat = Number.parseFloat(searchParams.mlat)
     const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
     if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
-      const state = {
-        lon: mlon,
-        lat: mlat,
-        zoom,
-        layersCode: lastLayersCode,
-      }
+      const state = { lon: mlon, lat: mlat, zoom, layersCode: lastLayersCode }
       console.debug("MapState: Initial from marker", state)
       return state
     }
