@@ -7,10 +7,10 @@
 }
 
 .sp-spinner {
+    @extend .mb-3;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-block: 2rem;
 }
 
 .sp-spinner .spinner-border {
