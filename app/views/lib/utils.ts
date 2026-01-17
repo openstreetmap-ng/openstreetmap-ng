@@ -4,6 +4,9 @@ export const isHrefCurrentPage = (href: string) => {
   return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
 
+/** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
+export const unquotePlus = (str: string) => decodeURIComponent(str.replaceAll("+", " "))
+
 /** Create a Python-like range [start, stop) */
 export const range = (start: number, stop?: number, step = 1) => {
   if (stop === undefined) {
@@ -14,9 +17,6 @@ export const range = (start: number, stop?: number, step = 1) => {
   for (let i = start; i < stop; i += step) result.push(i)
   return result
 }
-
-/** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
-export const unquotePlus = (str: string) => decodeURIComponent(str.replaceAll("+", " "))
 
 /** Matches any non-digit character */
 export const NON_DIGIT_RE = /\D/g

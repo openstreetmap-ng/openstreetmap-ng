@@ -42,6 +42,7 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import { withoutAll } from "@std/collections/without-all"
 import { t } from "i18next"
 import { type LngLatBounds, type MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren, RefCallback } from "preact"
@@ -280,9 +281,7 @@ const LayersSidebar = ({
     if (layerId !== STANDARD_LAYER_ID) {
       const prevOrder = layerOrderStorage.peek()
       if (prevOrder[0] !== layerId) {
-        const next = [layerId]
-        for (const id of prevOrder) if (id !== layerId) next.push(id)
-        layerOrderStorage.value = next
+        layerOrderStorage.value = [layerId, ...withoutAll(prevOrder, [layerId])]
       }
     }
 

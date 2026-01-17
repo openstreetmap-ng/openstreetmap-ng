@@ -219,7 +219,7 @@ export const createDisposeScope = (): DisposeScope => {
   ) => {
     if (isDisposed) return scope
     target.addEventListener(type, listener, {
-      ...(options ?? {}),
+      ...options,
       signal: abortController.signal,
     })
     return scope

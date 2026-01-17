@@ -34,7 +34,7 @@ if (isCrashReportingEnabled(config)) {
     release: VERSION,
     environment: window.location.host,
     tracesSampleRate: SENTRY_TRACES_SAMPLE_RATE,
-    tracePropagationTargets: tracePropagationTargets,
+    tracePropagationTargets,
     skipBrowserExtensionCheck: true,
     integrations: [browserTracingIntegration()],
   })
@@ -43,9 +43,7 @@ if (isCrashReportingEnabled(config)) {
     ...(userConfig?.id && { id: userConfig.id.toString() }),
     ...(userConfig?.displayName && { username: userConfig.displayName }),
     ip_address: "{{auto}}",
-    geo: {
-      region: getTimezoneName(),
-    },
+    geo: { region: getTimezoneName() },
   }
   console.debug("Sentry: User info", userInfo)
   setUser(userInfo)

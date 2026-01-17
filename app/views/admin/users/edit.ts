@@ -1,5 +1,6 @@
 import { mount } from "@lib/mount"
 import { type APIDetail, configureStandardForm } from "@lib/standard-form"
+import { withoutAll } from "@std/collections/without-all"
 import { Collapse } from "bootstrap"
 import { t } from "i18next"
 
@@ -60,20 +61,8 @@ mount("admin-user-edit-body", (body) => {
             }
           }
 
-          const addedRoles: string[] = []
-          const removedRoles: string[] = []
-
-          for (const role of currentRoles) {
-            if (!originalRoles.has(role)) {
-              addedRoles.push(role)
-            }
-          }
-
-          for (const role of originalRoles) {
-            if (!currentRoles.has(role)) {
-              removedRoles.push(role)
-            }
-          }
+          const addedRoles = withoutAll(currentRoles, originalRoles)
+          const removedRoles = withoutAll(originalRoles, currentRoles)
 
           for (const role of removedRoles) {
             const message = `Remove ${role} role from this user?`
