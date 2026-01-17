@@ -3,6 +3,7 @@ import { encodeMapState, getInitialMapState } from "@lib/map/state"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { signal } from "@preact/signals"
 import { assertEquals, assertExists } from "@std/assert"
+import { runningReduce } from "@std/collections/running-reduce"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
 import { createRef, render } from "preact"
@@ -296,12 +297,8 @@ const configureResponsiveNavbarLinks = (
     const items = list.children
     assertEquals(items.length, navLinks.length)
 
-    const prefix = new Array<number>(items.length + 1)
-    prefix[0] = 0
-    for (let i = 0; i < items.length; i++) {
-      prefix[i + 1] = prefix[i] + items[i].getBoundingClientRect().width
-    }
-    linkPrefixWidths = prefix
+    const widths = Array.from(items, (el) => el.getBoundingClientRect().width)
+    linkPrefixWidths = [0, ...runningReduce(widths, (sum, w) => sum + w, 0)]
   }
 
   const measureMoreButtonWidthOnce = () => {
