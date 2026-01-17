@@ -1,17 +1,38 @@
-import { associateWith } from "@std/collections/associate-with"
-import { distinct } from "@std/collections/distinct"
+/**
+ * Parse a query string into an object with array values
+ * @example
+ * qsParseAll("?foo=bar&baz=qux&foo=baz")
+ * // => { foo: ["bar", "baz"], baz: ["qux"] }
+ */
+export const qsParseAll = (qs: string) => {
+  const out: Record<string, string[]> = {}
+  if (!qs) return out
+  if (qs.startsWith("#")) qs = qs.slice(1)
+  const params = new URLSearchParams(qs)
+  for (const [key, value] of params) {
+    const values = out[key]
+    if (values) values.push(value)
+    else out[key] = [value]
+  }
+  return out
+}
 
 /**
  * Parse a query string into an object
  * @example
- * qsParse("?foo=bar&baz=qux")
- * // => { foo: "bar", baz: "qux" }
+ * qsParse("?foo=bar&baz=qux&foo=baz")
+ * // => { foo: "bar;baz", baz: "qux" }
  */
 export const qsParse = (qs: string) => {
-  if (!qs) return {}
+  const out: Record<string, string> = {}
+  if (!qs) return out
   if (qs.startsWith("#")) qs = qs.slice(1)
   const params = new URLSearchParams(qs)
-  return associateWith(distinct(params.keys()), (key) => params.getAll(key).join(";"))
+  for (const [key, value] of params) {
+    const prev = out[key]
+    out[key] = prev === undefined ? value : `${prev};${value}`
+  }
+  return out
 }
 
 /**
@@ -27,7 +48,7 @@ export const qsParse = (qs: string) => {
 export const qsEncode = (
   obj: Record<string, string | string[] | undefined>,
   prefix = "?",
-): string => {
+) => {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(obj)) {
     // Skip undefined values
