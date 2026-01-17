@@ -115,9 +115,8 @@ export const configureContextMenu = (map: MaplibreMap) => {
   // On routing from button click, navigate to routing page
   scope.dom(routingFromButton, "click", () => {
     console.debug("ContextMenu: Route from clicked")
-    const { lon, lat, zoom } = getPopupLonLatZoom()
-    const precision = zoomPrecision(zoom)
-    const from = `${lat.toFixed(precision)}, ${lon.toFixed(precision)}`
+    const point = getPopupLonLatZoom()
+    const from = formatPoint(point, ROUTING_QUERY_PRECISION)
     closePopup()
     routerNavigateStrict(`/directions${qsEncode({ from })}`)
   })
@@ -125,9 +124,8 @@ export const configureContextMenu = (map: MaplibreMap) => {
   // On routing to button click, navigate to routing page
   scope.dom(routingToButton, "click", () => {
     console.debug("ContextMenu: Route to clicked")
-    const { lon, lat, zoom } = getPopupLonLatZoom()
-    const precision = zoomPrecision(zoom)
-    const to = `${lat.toFixed(precision)}, ${lon.toFixed(precision)}`
+    const point = getPopupLonLatZoom()
+    const to = formatPoint(point, ROUTING_QUERY_PRECISION)
     closePopup()
     routerNavigateStrict(`/directions${qsEncode({ to })}`)
   })

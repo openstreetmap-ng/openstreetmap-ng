@@ -1,5 +1,5 @@
+import { clampLatitude } from "@lib/coords"
 import type { Bounds } from "@lib/types"
-import { clamp } from "@std/math/clamp"
 import {
   LngLatBounds,
   type FitBoundsOptions as MaplibreFitBoundsOptions,
@@ -23,14 +23,19 @@ export function boundsToBounds(bounds: LngLatBounds | Bounds) {
   return new LngLatBounds(bounds)
 }
 
-export const boundsToString = (bounds: LngLatBounds | Bounds) => {
+export const boundsToString = (bounds: LngLatBounds | Bounds, precision?: number) => {
   let minLon: number, minLat: number, maxLon: number, maxLat: number
   if (bounds instanceof LngLatBounds) {
     ;[[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
   } else {
     ;[minLon, minLat, maxLon, maxLat] = bounds
   }
-  return `${minLon},${minLat},${maxLon},${maxLat}`
+
+  const f =
+    precision === undefined
+      ? (n: number) => n.toString()
+      : (n: number) => n.toFixed(precision)
+  return `${f(minLon)},${f(minLat)},${f(maxLon)},${f(maxLat)}`
 }
 
 export const boundsIntersection = (
@@ -122,9 +127,9 @@ export const boundsPadding = (bounds: LngLatBounds, padding?: number) => {
   const paddingY = padding * (maxLat - minLat)
   return new LngLatBounds([
     minLon - paddingX,
-    clamp(minLat - paddingY, -85, 85),
+    clampLatitude(minLat - paddingY),
     maxLon + paddingX,
-    clamp(maxLat + paddingY, -85, 85),
+    clampLatitude(maxLat + paddingY),
   ])
 }
 
