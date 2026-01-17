@@ -8,6 +8,7 @@ import {
 } from "@lib/password-hash"
 import { batch } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
+import { parseMediaType } from "@std/media-types/parse-media-type"
 import { Alert } from "bootstrap"
 import { t } from "i18next"
 
@@ -338,18 +339,20 @@ export const configureStandardForm = <T = any>(
         signal: cancelOnSubmit ? currentAbortController.signal : null,
         priority: "high",
       })
-      const contentType = resp.headers.get("Content-Type") ?? ""
+
+      let contentType = resp.headers.get("Content-Type") ?? ""
+      if (contentType) contentType = parseMediaType(contentType)[0]
+      const isJson = contentType === "application/json" || contentType.endsWith("+json")
+      const isProtobuf = contentType === "application/x-protobuf"
       assertFalse(
-        resp.ok &&
-          contentType &&
-          Boolean(protobuf) !== (contentType === "application/x-protobuf"),
+        resp.ok && contentType && Boolean(protobuf) !== isProtobuf,
         `Mismatched response content type: ${contentType}`,
       )
 
       let data: any = null
-      if (contentType.startsWith("application/json")) {
+      if (isJson) {
         data = await resp.json()
-      } else if (contentType === "application/x-protobuf") {
+      } else if (isProtobuf) {
         data = fromBinary(protobuf!, new Uint8Array(await resp.arrayBuffer()))
       } else if (contentType) {
         data = { detail: await resp.text() }
