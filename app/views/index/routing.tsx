@@ -296,7 +296,7 @@ const RoutingSidebar = ({
 
   const clearRouteResults = () => {
     popup.current?.remove()
-    setActiveInstructionId(null)
+    focusInstruction(null)
     clearMapHover(map, LAYER_ID)
     routeView.value = null
     source.setData(emptyFeatureCollection)
@@ -377,10 +377,7 @@ const RoutingSidebar = ({
     return endpoint.marker
   }
 
-  const setActiveInstructionId = (
-    instructionId: number | null,
-    scrollIntoView = false,
-  ) => {
+  const focusInstruction = (instructionId: number | null, scrollIntoView = false) => {
     const route = routeView.peek()
     const nextId =
       instructionId !== null && route?.instructions[instructionId]
@@ -408,6 +405,8 @@ const RoutingSidebar = ({
   }
 
   const selectInstruction = (instructionId: number) => {
+    focusInstruction(instructionId)
+
     const route = routeView.value
     const instruction = route?.instructions[instructionId]
     if (!instruction) return
@@ -614,11 +613,11 @@ const RoutingSidebar = ({
     scope.mapLayer(map, "mousemove", LAYER_ID, (e) => {
       const instructionId = findInstructionId(e.features)
       setMapHover(map, LAYER_ID)
-      setActiveInstructionId(instructionId, true)
+      focusInstruction(instructionId, true)
     })
     scope.mapLayer(map, "mouseleave", LAYER_ID, () => {
       clearMapHover(map, LAYER_ID)
-      setActiveInstructionId(null)
+      focusInstruction(null)
     })
 
     scope.dom(mapContainer, "dragover", (e) => e.preventDefault())
@@ -651,7 +650,7 @@ const RoutingSidebar = ({
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
 
         const row = document.elementFromPoint(x, y)?.closest("tr[data-instruction-id]")
-        setActiveInstructionId(
+        focusInstruction(
           row instanceof HTMLElement
             ? Number.parseInt(row.dataset.instructionId!, 10)
             : null,
@@ -854,14 +853,14 @@ const RoutingSidebar = ({
             </div>
 
             <table class="route-steps table table-sm align-middle mb-4">
-              <tbody onMouseLeave={() => setActiveInstructionId(null)}>
+              <tbody onMouseLeave={() => focusInstruction(null)}>
                 {routeValue.instructions.map((inst, instId) => (
                   <tr
                     key={instId}
                     data-instruction-id={instId.toString()}
                     class={activeInstructionId.value === instId ? "hover" : ""}
                     onClick={() => selectInstruction(instId)}
-                    onMouseEnter={() => setActiveInstructionId(instId)}
+                    onMouseEnter={() => focusInstruction(instId)}
                   >
                     <td class="icon">
                       <div class={`icon-${inst.iconNum} dark-filter-invert`} />
