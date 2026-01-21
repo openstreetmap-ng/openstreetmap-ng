@@ -185,3 +185,13 @@ summary {
         text-shadow: 0 0 10px rgba($light-green, 0.2);
     }
 }
+
+* {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        scroll-behavior: auto;
+    }
+}

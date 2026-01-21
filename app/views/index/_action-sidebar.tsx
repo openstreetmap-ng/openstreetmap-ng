@@ -57,7 +57,12 @@ export const SidebarResourceBody = <T extends object>({
               <SidebarOverlaySpinner />
             </div>
           </div>
-          <div class="opacity-50">{children(r.prev)}</div>
+          <div
+            class="opacity-50"
+            inert
+          >
+            {children(r.prev)}
+          </div>
         </div>
       ) : (
         <LoadingSpinner />

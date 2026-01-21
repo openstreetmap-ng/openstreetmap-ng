@@ -475,7 +475,7 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   // Effect: Scroll preview into view when opened
   useSignalEffect(() => {
     if (!openMessageId.value) return
-    previewRef.current!.scrollIntoView({ behavior: "smooth", block: "start" })
+    previewRef.current!.scrollIntoView({ block: "start" })
   })
 
   return (

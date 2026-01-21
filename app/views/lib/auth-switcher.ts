@@ -19,7 +19,7 @@ for (const root of roots) {
 
   toProviders.addEventListener("click", () => {
     root.dataset.state = "providers"
-    root.scrollTo({ left: 999999, behavior: "smooth" })
+    root.scrollTo({ left: 999999 })
     updateCta()
     window.removeEventListener("resize", onResize)
     window.addEventListener("resize", onResize)
@@ -27,7 +27,7 @@ for (const root of roots) {
 
   toEmail.addEventListener("click", () => {
     root.dataset.state = "email"
-    root.scrollTo({ left: 0, behavior: "smooth" })
+    root.scrollTo({ left: 0 })
     updateCta()
     window.removeEventListener("resize", onResize)
   })
