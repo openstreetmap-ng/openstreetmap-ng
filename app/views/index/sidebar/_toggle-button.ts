@@ -68,7 +68,6 @@ export class SidebarToggleControl implements IControl {
     this.button.appendChild(icon)
     container.appendChild(this.button)
 
-    // noinspection ObjectAllocationIgnored
     this.tooltip = new Tooltip(this.button, {
       title: buttonText,
       placement: "left",

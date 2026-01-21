@@ -172,7 +172,6 @@ class Element06Mixin:
                     if element['version'] <= 1:
                         raise_for.diff_update_bad_version(element)
                     if delete_if_unused:
-                        # noinspection PyTypedDict
                         element['delete_if_unused'] = True
 
                     result.append(element)
