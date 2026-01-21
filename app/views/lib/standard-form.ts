@@ -6,7 +6,7 @@ import {
   configurePasswordsForm,
   handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
-import { batch } from "@preact/signals"
+import { batch, effect } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { parseMediaType } from "@std/media-types/parse-media-type"
 import { Alert } from "bootstrap"
@@ -18,6 +18,8 @@ export interface APIDetail {
   msg: string
 }
 
+type ValidationResult = string | APIDetail[] | null
+
 /**
  * Initialize a standard bootstrap form
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
@@ -28,12 +30,12 @@ export const configureStandardForm = <T = any>(
   options?: {
     formBody?: Element
     formAppend?: boolean
-    cancelOnSubmit?: boolean
+    cancelOnValidationChange?: boolean
     removeEmptyFields?: boolean
     protobuf?: GenMessage<T & Message>
     validationCallback?: (
       formData: FormData,
-    ) => Promise<string | APIDetail[] | null> | string | APIDetail[] | null
+    ) => Promise<ValidationResult> | ValidationResult
     errorCallback?: (error: Error) => void
   },
 ): void | (() => void) => {
@@ -48,7 +50,7 @@ export const configureStandardForm = <T = any>(
   const {
     formBody = form,
     formAppend = false,
-    cancelOnSubmit = false,
+    cancelOnValidationChange = false,
     removeEmptyFields = false,
     protobuf,
     validationCallback,
@@ -270,7 +272,7 @@ export const configureStandardForm = <T = any>(
     form.classList.remove("was-validated")
 
     // Stage 2: Handle concurrent submissions
-    if (cancelOnSubmit) {
+    if (cancelOnValidationChange) {
       abortController.abort()
       abortController = new AbortController()
     } else if (form.classList.contains("pending")) {
@@ -318,8 +320,19 @@ export const configureStandardForm = <T = any>(
     }
 
     // Stage 4: Run client-side validation
+    let disposeValidationEffect: (() => void) | undefined
     if (validationCallback) {
-      let result = batch(() => validationCallback(formData))
+      let result: Promise<ValidationResult> | ValidationResult | undefined
+      disposeValidationEffect = effect(() => {
+        if (result === undefined) {
+          result = validationCallback(formData)
+        } else if (cancelOnValidationChange) {
+          currentAbortController.abort()
+          disposeValidationEffect!()
+          disposeValidationEffect = undefined
+        }
+      })
+
       if (result instanceof Promise) {
         result = await result
       }
@@ -336,7 +349,7 @@ export const configureStandardForm = <T = any>(
       const resp = await fetch(url, {
         method,
         body,
-        signal: cancelOnSubmit ? currentAbortController.signal : null,
+        signal: cancelOnValidationChange ? currentAbortController.signal : null,
         priority: "high",
       })
 
@@ -383,6 +396,8 @@ export const configureStandardForm = <T = any>(
       })
 
       setPendingState(false)
+    } finally {
+      disposeValidationEffect?.()
     }
   }
   form.addEventListener("submit", onSubmit)
