@@ -1,6 +1,7 @@
 import { config } from "@lib/config"
 import {
   beautifyZoom,
+  clampLatitude,
   isLatitude,
   isLongitude,
   isZoom,
@@ -126,6 +127,7 @@ export const applyMapState = (
 export const encodeMapState = (state: MapState | LonLatZoom, prefix = "#map=") => {
   let { lon, lat, zoom } = state
   lon = wrapLongitude(lon)
+  lat = clampLatitude(lat)
 
   const zoomRounded = beautifyZoom(zoom)
   const precision = zoomPrecision(zoom)
@@ -180,6 +182,18 @@ export const parseLonLatZoom = (
   const lat = Number.parseFloat(input.lat)
   const lon = Number.parseFloat(input.lon)
   return isZoom(zoom) && isLatitude(lat) && isLongitude(lon) ? { lon, lat, zoom } : null
+}
+
+export const lonLatZoomEquals = (
+  a: LonLatZoom | null | undefined,
+  b: LonLatZoom | null | undefined,
+) => {
+  if (!(a || b)) return true
+  if (!(a && b)) return false
+  if (beautifyZoom(a.zoom) !== beautifyZoom(b.zoom)) return false
+  const precision = zoomPrecision(a.zoom)
+  const epsilon = 1 / 10 ** precision / 2
+  return Math.abs(a.lon - b.lon) < epsilon && Math.abs(a.lat - b.lat) < epsilon
 }
 
 const convertBoundsToLonLatZoom = (
