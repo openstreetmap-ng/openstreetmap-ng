@@ -174,7 +174,7 @@ export interface FitBoundsOptions {
   maxZoom?: number | undefined
   /** Whether to perform intersection check instead of containment @default false */
   intersects?: boolean | undefined
-  /** Minimum proportion of bounds to map to trigger fit @default 0.00035 */
+  /** Minimum proportion of bounds to map to trigger fit @default 0.0003 */
   minProportion?: number | undefined
   /** Whether to animate the fit @default false */
   animate?: boolean | undefined
@@ -189,7 +189,7 @@ export const fitBoundsIfNeeded = (
     padBounds = 0.2,
     maxZoom = 18,
     intersects = false,
-    minProportion = 0.00035,
+    minProportion = 0.0003,
     animate = false,
   } = opts ?? {}
 
@@ -206,8 +206,8 @@ export const fitBoundsIfNeeded = (
   }
 
   const isOffscreen = intersects
-    ? !boundsIntersect(mapBounds, boundsPadded)
-    : !boundsContain(mapBounds, boundsPadded)
+    ? !boundsIntersect(mapBounds, boundsAdjusted)
+    : !boundsContain(mapBounds, boundsAdjusted)
 
   if (isOffscreen) {
     map.fitBounds(boundsPadded, maplibreOpts)
