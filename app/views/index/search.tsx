@@ -45,7 +45,7 @@ import { t } from "i18next"
 import type { MapLayerMouseEvent } from "maplibre-gl"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
 import type { MouseEventHandler, Ref } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import { useRef } from "preact/hooks"
 
 const LAYER_ID = "search" as LayerId
 layersConfig.set(LAYER_ID, {
@@ -260,24 +260,6 @@ const SearchSidebar = ({
     routerNavigate(SearchRoute, { q: query, at: nextAt, local: true })
   }
 
-  // Effect: mount sticky search form + "search this area" alert.
-  useEffect(() => {
-    const searchForm = document.getElementById("SearchForm")!
-    searchForm.classList.add("sticky-top")
-
-    const disposeAlert = mountMapAlert(
-      <SearchThisAreaAlert
-        visible={searchThisAreaVisible}
-        onClick={onSearchThisAreaClick}
-      />,
-    )
-
-    return () => {
-      disposeAlert()
-      searchForm.classList.remove("sticky-top")
-    }
-  }, [])
-
   // Derived: active fetch URL for this route (null means "no active request").
   const fetchUrl = useComputed(() => getFetchURL(map, q.value, at.value, local.value))
   const { resource, data } = useSidebarFetch(fetchUrl, SearchDataSchema)
@@ -332,6 +314,19 @@ const SearchSidebar = ({
 
   // Effect: map layer lifecycle + hover/click handlers (stable; reads latest results via peek()).
   useDisposeEffect((scope) => {
+    const searchForm = document.getElementById("SearchForm")!
+    searchForm.classList.add("sticky-top")
+    scope.defer(() => searchForm.classList.remove("sticky-top"))
+
+    scope.defer(
+      mountMapAlert(
+        <SearchThisAreaAlert
+          visible={searchThisAreaVisible}
+          onClick={onSearchThisAreaClick}
+        />,
+      ),
+    )
+
     loadMapImage(map, "marker-red")
     scope.mapLayerLifecycle(map, LAYER_ID)
     scope.defer(clearResultsState)

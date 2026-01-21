@@ -40,9 +40,6 @@ mount("diary-index-body", (body) => {
     navOffcanvasInstance.hide()
   })
 
-  let disposeScrollspy = () => {}
-  let disposeDiaryPage = () => {}
-
   const buildScrollNav = (renderContainer: HTMLElement) => {
     const diaries = renderContainer.querySelectorAll("article.diary")
     const hasDiaries = diaries.length > 0
@@ -159,14 +156,15 @@ mount("diary-index-body", (body) => {
     return scope.dispose
   }
 
+  let pageScope: ReturnType<typeof createDisposeScope> | undefined
   configureStandardPagination(diaryPagination, {
     loadCallback: (renderContainer) => {
-      disposeDiaryPage()
-      disposeScrollspy()
+      pageScope?.dispose()
+      pageScope = createDisposeScope()
 
       buildScrollNav(renderContainer)
-      disposeScrollspy = configureScrollspy(renderContainer, scrollNav)
-      disposeDiaryPage = configureDiaryPage(renderContainer)
+      pageScope.defer(configureScrollspy(renderContainer, scrollNav))
+      pageScope.defer(configureDiaryPage(renderContainer))
     },
   })
 })

@@ -3,7 +3,7 @@ import {
   cancelAnimationFramePolyfill,
   requestAnimationFramePolyfill,
 } from "@lib/polyfills"
-import { useSignalEffect } from "@preact/signals"
+import { effect as createSignalEffect, useSignalEffect } from "@preact/signals"
 import type { MapEventType, MapLayerEventType, Map as MaplibreMap } from "maplibre-gl"
 import { useEffect } from "preact/hooks"
 
@@ -57,6 +57,7 @@ export type DisposeScope = Readonly<{
 
   child: () => DisposeScope
   defer: (dispose: DeferDisposer) => DisposeScope
+  effect: (fn: Parameters<typeof createSignalEffect>[0]) => DisposeScope
 
   every: (ms: number, fn: () => void) => DisposeScope
   frame: <Args extends any[]>(
@@ -124,6 +125,8 @@ export const createDisposeScope = (): DisposeScope => {
     disposers.push(disposer)
     return scope
   }
+
+  const effect: DisposeScope["effect"] = (fn) => defer(createSignalEffect(fn))
 
   const every = (ms: number, fn: () => void) => {
     if (isDisposed) return scope
@@ -277,6 +280,7 @@ export const createDisposeScope = (): DisposeScope => {
     dispose,
     child,
     defer,
+    effect,
     every,
     frame,
     throttle,

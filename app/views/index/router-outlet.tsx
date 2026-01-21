@@ -1,7 +1,6 @@
 import { type AnyRouteDef, routerParams, routerQuery, routerRoute } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import type { ComponentChildren } from "preact"
 import { collapseNavbar } from "../navbar/navbar"
 
 const RouteRenderer = ({ map, route }: { map: MaplibreMap; route: AnyRouteDef }) => {
@@ -15,7 +14,7 @@ const RouteRenderer = ({ map, route }: { map: MaplibreMap; route: AnyRouteDef })
   )
 }
 
-export const IndexRouterOutlet = ({ map }: { map: MaplibreMap }): ComponentChildren => {
+export const IndexRouterOutlet = ({ map }: { map: MaplibreMap }) => {
   // Effect: apply route-level shell state (classes/overlay) on route changes.
   useSignalEffect(() => {
     const route = routerRoute.value

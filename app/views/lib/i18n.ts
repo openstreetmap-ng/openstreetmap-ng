@@ -27,7 +27,7 @@ const isRichReplacement = (value: unknown): value is RichReplacement => {
 const interleaveTokens = (
   content: string,
   replacements: Map<string, RichReplacement>,
-): ComponentChild => {
+) => {
   const tokens = Array.from(replacements.keys())
   if (!tokens.length) return content
 
@@ -69,10 +69,7 @@ const interleaveTokens = (
   return result.length === 1 ? result[0] : result
 }
 
-export const tRich = (
-  key: string,
-  options?: Record<string, unknown>,
-): ComponentChild => {
+export const tRich = (key: string, options?: Record<string, unknown>) => {
   if (!options) return t(key)
 
   const replacements = new Map<string, RichReplacement>()
