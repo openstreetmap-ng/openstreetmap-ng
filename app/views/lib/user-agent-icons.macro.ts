@@ -52,14 +52,14 @@ export function getBrowserIconMap() {
 export function getOsIconMap() {
   const prefix = "/static-node_modules/"
   const bsIcons = new Set(
-    readdirSync("node_modules/bootstrap-icons/icons")
-      .filter((f) => f.endsWith(".svg"))
-      .map((f) => f.slice(0, -4)),
+    mapNotNullish(readdirSync("node_modules/bootstrap-icons/icons"), (file) =>
+      file.endsWith(".svg") ? file.slice(0, -4) : null,
+    ),
   )
   const siIcons = new Set(
-    readdirSync("node_modules/simple-icons/icons")
-      .filter((f) => f.endsWith(".svg"))
-      .map((f) => f.slice(0, -4)),
+    mapNotNullish(readdirSync("node_modules/simple-icons/icons"), (file) =>
+      file.endsWith(".svg") ? file.slice(0, -4) : null,
+    ),
   )
 
   const map = Object.fromEntries(
