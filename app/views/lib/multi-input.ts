@@ -1,3 +1,4 @@
+import { mapNotNullish } from "@std/collections/map-not-nullish"
 import { t } from "i18next"
 
 const multiInputContainers = document.querySelectorAll(".multi-input-container")
@@ -143,11 +144,7 @@ for (const container of multiInputContainers) {
 
   // Initialize with existing comma-separated value
   const initializeTokens = () => {
-    const values = input.value
-      .trim()
-      .split(delimiter)
-      .map((v) => v.trim())
-      .filter(Boolean)
+    const values = mapNotNullish(input.value.split(delimiter), (v) => v.trim() || null)
     if (values.length) {
       const frag = document.createDocumentFragment()
       for (const v of values) frag.appendChild(createTokenElement(v))

@@ -85,7 +85,6 @@ export class SidebarToggleControl implements IControl {
 
       if (isSwitch) prevActiveControl.setActive(false, false)
 
-      // Lose focus
       this.button.blur()
 
       this.setActive(nextActive, !isSwitch)
