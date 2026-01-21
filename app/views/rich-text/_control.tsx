@@ -1,4 +1,5 @@
-import { useSignal, useSignalEffect } from "@preact/signals"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { useSignal } from "@preact/signals"
 import { assertExists } from "@std/assert"
 import { t } from "i18next"
 import { render } from "preact"
@@ -40,13 +41,12 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
   // Effect: Fetch preview HTML when in preview mode
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     if (mode.value !== "preview") {
       previewHtml.value = ""
       return
     }
 
-    const abortController = new AbortController()
     const formData = new FormData()
     formData.append("text", textAreaRef.current!.value)
     previewHtml.value = t("browse.start_rjs.loading")
@@ -56,11 +56,11 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
         const resp = await fetch("/api/web/rich-text", {
           method: "POST",
           body: formData,
-          signal: abortController.signal,
+          signal: scope.signal,
           priority: "high",
         })
         const respText = await resp.text()
-        abortController.signal.throwIfAborted()
+        scope.signal.throwIfAborted()
         previewHtml.value = respText
       } catch (error) {
         if (error.name === "AbortError") return
@@ -70,7 +70,6 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
     }
 
     fetchPreview()
-    return () => abortController.abort()
   })
 
   const isEditing = mode.value === "idle" || mode.value === "edit"

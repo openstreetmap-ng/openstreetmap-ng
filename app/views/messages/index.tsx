@@ -1,5 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
 import { Time } from "@lib/datetime-inputs"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
 import {
   type MessagePage_Summary,
@@ -429,7 +430,7 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   }
 
   // Effect: Fetch open message details
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     const messageId = openMessageId.value
     if (!messageId) {
       previewState.value = { status: "closed" }
@@ -437,26 +438,26 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
     }
 
     previewState.value = { status: "loading" }
-    const abortController = new AbortController()
 
     const fetchMessage = async () => {
       try {
         const resp = await fetch(`/api/web/messages/${messageId}`, {
-          signal: abortController.signal,
+          signal: scope.signal,
           priority: "high",
         })
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
         const buffer = await resp.arrayBuffer()
-        abortController.signal.throwIfAborted()
+        scope.signal.throwIfAborted()
         const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
 
-        if (inbox && message.isRecipient && message.wasUnread) {
-          changeUnreadMessagesBadge(-1)
-          updateMessageUnread(messageId, false)
-        }
-
-        previewState.value = { status: "ready", message }
+        batch(() => {
+          if (inbox && message.isRecipient && message.wasUnread) {
+            changeUnreadMessagesBadge(-1)
+            updateMessageUnread(messageId, false)
+          }
+          previewState.value = { status: "ready", message }
+        })
       } catch (error) {
         if (error.name === "AbortError") return
         console.error("Messages: Failed to fetch", messageId, error)
@@ -469,7 +470,6 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
     }
 
     fetchMessage()
-    return () => abortController.abort()
   })
 
   // Effect: Scroll preview into view when opened

@@ -45,6 +45,12 @@ export type Scheduled<F extends (...args: any[]) => void> = ((
   pending: () => boolean
 }
 
+type FrameContext = Readonly<{
+  time: DOMHighResTimeStamp
+  startTime: DOMHighResTimeStamp
+  next: () => void
+}>
+
 export type DisposeScope = Readonly<{
   signal: AbortSignal
   dispose: () => void
@@ -53,8 +59,10 @@ export type DisposeScope = Readonly<{
   defer: (dispose: DeferDisposer) => DisposeScope
 
   every: (ms: number, fn: () => void) => DisposeScope
-  frame: <F extends (...args: any[]) => void>(fn: F) => Scheduled<F>
-  after: <F extends (...args: any[]) => void>(ms: number, fn: F) => Scheduled<F>
+  frame: <Args extends any[]>(
+    fn: (ctx: FrameContext, ...args: Args) => void,
+  ) => Scheduled<(...args: Args) => void>
+  throttle: <F extends (...args: any[]) => void>(ms: number, fn: F) => Scheduled<F>
 
   dom: DomBinder
 
@@ -124,33 +132,41 @@ export const createDisposeScope = (): DisposeScope => {
     return scope
   }
 
-  const frame = <F extends (...args: any[]) => void>(fn: F): Scheduled<F> => {
+  const frame = <Args extends any[]>(
+    fn: (ctx: FrameContext, ...args: Args) => void,
+  ): Scheduled<(...args: Args) => void> => {
     let rafId: number | null = null
-    let pendingArgs: Parameters<F> | null = null
+    let pendingArgs: Args | null = null
+    let startTime: DOMHighResTimeStamp | null = null
 
-    const run = () => {
+    let scheduled: Scheduled<(...args: Args) => void>
+    const run = (time: DOMHighResTimeStamp) => {
+      if (isDisposed) return
       const args = pendingArgs!
       rafId = null
       pendingArgs = null
-      fn(...args)
+      startTime ??= time
+      fn({ time, startTime, next: () => scheduled(...args) }, ...args)
+      if (rafId === null) startTime = null
     }
 
-    const scheduled = ((...args: Parameters<F>) => {
+    scheduled = ((...args: Args) => {
       pendingArgs = args
-      if (rafId !== null) return
-      rafId = requestAnimationFramePolyfill(run)
-    }) as Scheduled<F>
+      rafId ??= requestAnimationFramePolyfill(run)
+    }) as Scheduled<(...args: Args) => void>
 
     scheduled.cancel = () => {
       if (rafId === null) return
       cancelAnimationFramePolyfill(rafId)
       rafId = null
       pendingArgs = null
+      startTime = null
     }
 
     scheduled.flush = () => {
       if (rafId === null) return
-      run()
+      cancelAnimationFramePolyfill(rafId)
+      run(performance.now())
     }
 
     scheduled.pending = () => rafId !== null
@@ -159,7 +175,7 @@ export const createDisposeScope = (): DisposeScope => {
     return scheduled
   }
 
-  const after = <F extends (...args: any[]) => void>(
+  const throttle = <F extends (...args: any[]) => void>(
     ms: number,
     fn: F,
   ): Scheduled<F> => {
@@ -175,6 +191,7 @@ export const createDisposeScope = (): DisposeScope => {
     }
 
     const run = () => {
+      if (isDisposed) return
       const args = pendingArgs!
       pendingArgs = null
       lastInvoke = performance.now()
@@ -192,8 +209,7 @@ export const createDisposeScope = (): DisposeScope => {
         return
       }
 
-      if (timeoutId !== null) return
-      timeoutId = window.setTimeout(() => {
+      timeoutId ??= window.setTimeout(() => {
         timeoutId = null
         run()
       }, delta)
@@ -263,7 +279,7 @@ export const createDisposeScope = (): DisposeScope => {
     defer,
     every,
     frame,
-    after,
+    throttle,
     dom,
     map,
     mapLayerLifecycle,
