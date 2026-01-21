@@ -27,7 +27,6 @@
   "linter": {
     "rules": {
       "a11y": {
-        "noLabelWithoutControl": "off",
         "useAltText": "off",
         "useAnchorContent": "off"
       },
