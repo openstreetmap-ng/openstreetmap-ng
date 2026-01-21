@@ -1,5 +1,7 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { routerNavigateStrict } from "@index/router"
+import type { ElementTypeSlug } from "@index/element"
+import { ElementRoute } from "@index/element"
+import { routerNavigate } from "@index/router"
 import { dataLayerLoading } from "@index/sidebar/layers"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
@@ -100,7 +102,10 @@ export const configureDataLayer = (map: MaplibreMap) => {
   /** On feature click, navigate to the object page */
   const onFeatureClick = (e: MapLayerMouseEvent) => {
     const props = e.features![0].properties
-    routerNavigateStrict(`/${props.type}/${props.id}`)
+    routerNavigate(ElementRoute, {
+      type: props.type as ElementTypeSlug,
+      id: BigInt(props.id),
+    })
   }
 
   let hoveredFeatureId: number | null = null

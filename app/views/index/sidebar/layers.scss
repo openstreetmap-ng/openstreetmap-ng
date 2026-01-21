@@ -40,6 +40,7 @@
             z-index: 850;
 
             img {
+                @extend .me-1-5;
                 position: relative;
                 top: -0.09em;
                 height: 1em;
@@ -47,6 +48,7 @@
         }
 
         .vector {
+            @extend .ms-1;
             font-size: 0.7em;
             font-weight: 800;
             text-transform: uppercase;
@@ -59,6 +61,7 @@
             height: 3.5rem;
             // Fix small "white pop" visual glitch in Dark Mode on Chrome
             border-top-left-radius: calc($border-radius + 2px);
+            overflow: hidden;
 
             // Render at a larger viewport and scale down so minimaps show more area
             > div {

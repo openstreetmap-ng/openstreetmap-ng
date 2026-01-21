@@ -61,10 +61,12 @@ export const focusObjects = (
   fitOpts?: FitBoundsOptions | false,
 ) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  source.setData(emptyFeatureCollection)
 
   // If there are no objects to focus, remove the focus layer
-  if (!objects?.length) return
+  if (!objects?.length) {
+    source.setData(emptyFeatureCollection)
+    return
+  }
 
   if (!layerAddedMap.has(map)) {
     layerAddedMap.add(map)

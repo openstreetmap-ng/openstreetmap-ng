@@ -1,4 +1,4 @@
-import { decodeLonLat } from "@lib/polyline"
+import { polylineDecode } from "@lib/polyline"
 import { renderAnimatedTrace, renderTrace } from "./_svg"
 
 const configureTracesListElement = (tracesList: HTMLUListElement) => {
@@ -15,13 +15,13 @@ const configureTracesListElement = (tracesList: HTMLUListElement) => {
   console.debug("TraceList: Rendering trace SVGs", svgs.length)
   for (let i = 0; i < svgs.length; i++) {
     const svg = svgs[i]
-    const coords = decodeLonLat(tracesLines[i], 0)
+    const coords = polylineDecode(tracesLines[i], 0)
     renderTrace(svg, coords)
 
     let svgAnimated: SVGElement | undefined
 
     // On action enter, show animated trace
-    const resultAction = resultActions[i]!
+    const resultAction = resultActions[i]
     resultAction.addEventListener("mouseenter", () => {
       if (!svgAnimated) {
         svgAnimated = svg.cloneNode() as SVGElement

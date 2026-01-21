@@ -1,9 +1,8 @@
-import {
-  getActionSidebar,
-  SidebarHeader,
-  switchActionSidebar,
-} from "@index/_action-sidebar"
-import { tryParsePoint, zoomPrecision } from "@lib/coords"
+import { SidebarHeader } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
+import { queryParam } from "@lib/codecs"
+import { formatPoint, tryParsePoint, zoomPrecision } from "@lib/coords"
+import { useDisposeEffect } from "@lib/dispose-scope"
 import {
   formatDistance,
   formatDistanceRounded,
@@ -12,51 +11,41 @@ import {
 } from "@lib/format"
 import { tRich } from "@lib/i18n"
 import { routingEngineStorage } from "@lib/local-storage"
-import { boundsToString, boundsUnion, fitBoundsIfNeeded } from "@lib/map/bounds"
+import { boundsToString, fitBoundsIfNeeded } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import {
-  addMapLayer,
   emptyFeatureCollection,
   type LayerId,
   layersConfig,
-  removeMapLayer,
 } from "@lib/map/layers/layers"
-import {
-  getMarkerIconElement,
-  MARKER_ICON_ANCHOR,
-  type MarkerColor,
-} from "@lib/map/marker"
-import { decodeLonLat } from "@lib/polyline"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
+import { polylineDecode } from "@lib/polyline"
 import {
   type RoutingResult,
   type RoutingResult_Attribution,
   type RoutingResult_Endpoint,
   RoutingResultSchema,
 } from "@lib/proto/shared_pb"
-import { qsParse, updateSearchParams } from "@lib/qs"
 import { scrollElementIntoView } from "@lib/scroll"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
-import {
-  type ReadonlySignal,
-  signal,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import { assertExists } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
-import type { Feature, LineString } from "geojson"
+import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
 import {
   type GeoJSONSource,
-  type LngLat,
+  LngLat,
   LngLatBounds,
+  type LngLatLike,
+  type MapGeoJSONFeature,
   type Map as MaplibreMap,
   Marker,
   Point,
   Popup,
 } from "maplibre-gl"
-import { render } from "preact"
 import { useId, useRef } from "preact/hooks"
 
 const LAYER_ID = "routing" as LayerId
@@ -97,13 +86,15 @@ const ROUTING_ENGINES = memoize(() => [
   ["graphhopper_car", t("javascripts.directions.engines.graphhopper_car")],
   ["osrm_car", t("javascripts.directions.engines.fossgis_osrm_car")],
   ["valhalla_auto", t("javascripts.directions.engines.fossgis_valhalla_car")],
-  ["graphhopper_bicycle", t("javascripts.directions.engines.graphhopper_bicycle")],
+  ["graphhopper_bike", t("javascripts.directions.engines.graphhopper_bicycle")],
   ["osrm_bike", t("javascripts.directions.engines.fossgis_osrm_bike")],
   ["valhalla_bicycle", t("javascripts.directions.engines.fossgis_valhalla_bicycle")],
   ["graphhopper_foot", t("javascripts.directions.engines.graphhopper_foot")],
   ["osrm_foot", t("javascripts.directions.engines.fossgis_osrm_foot")],
   ["valhalla_pedestrian", t("javascripts.directions.engines.fossgis_valhalla_foot")],
 ])
+
+export const ROUTING_QUERY_PRECISION = zoomPrecision(19)
 
 type RouteSegmentView = {
   id: number
@@ -128,18 +119,103 @@ type RouteView = {
 }
 
 type LoadedEndpoint = {
-  value: string
-  lon: string
-  lat: string
+  query: string
+  label: string
+  lon: number
+  lat: number
 }
 
-const findSegmentId = (features: Array<{ id?: unknown }> | undefined) => {
-  if (!features) return null
-  for (const feature of features) {
-    const { id } = feature
-    if (typeof id === "number" && id >= 0) return id
-  }
+const ENDPOINT_DIRS = ["start", "end"] as const
+
+type EndpointDir = (typeof ENDPOINT_DIRS)[number]
+
+const isEndpointDir = (value: unknown): value is EndpointDir =>
+  ENDPOINT_DIRS.includes(value as EndpointDir)
+
+type EndpointState = {
+  marker: Marker | null
+  loaded: LoadedEndpoint | null
+}
+
+const findSegmentId = (features: MapGeoJSONFeature[] | undefined) => {
+  if (features)
+    for (const feature of features) {
+      const { id } = feature
+      if (typeof id === "number" && id >= 0) return id
+    }
   return null
+}
+
+const computeRouteRender = (route: RoutingResult) => {
+  const features: Feature<LineString>[] = []
+  const allCoords = polylineDecode(route.line, route.lineQuality)
+
+  if (allCoords.length)
+    features.push({
+      type: "Feature",
+      id: -1,
+      properties: { base: true },
+      geometry: { type: "LineString", coordinates: allCoords },
+    })
+
+  const segments: RouteSegmentView[] = []
+  let totalDistance = 0
+  let totalTime = 0
+  let coordsSliceStart = 0
+
+  for (const [stepIndex, step] of route.steps.entries()) {
+    totalDistance += step.distance
+    totalTime += step.time
+
+    const stepCoords = allCoords.slice(
+      coordsSliceStart,
+      coordsSliceStart + step.numCoords,
+    )
+    if (step.numCoords) coordsSliceStart += step.numCoords - 1
+
+    if (stepCoords.length <= 1) continue
+
+    const end = stepCoords[stepCoords.length - 1]
+    const bounds = stepCoords.reduce(
+      (bounds, coord) => bounds.extend(coord),
+      new LngLatBounds(),
+    )
+
+    segments.push({
+      id: stepIndex,
+      iconNum: step.iconNum,
+      text: step.text,
+      distanceText: formatDistanceRounded(step.distance),
+      end,
+      bounds,
+    })
+
+    features.push({
+      type: "Feature",
+      id: stepIndex,
+      properties: {},
+      geometry: { type: "LineString", coordinates: stepCoords },
+    })
+  }
+
+  return {
+    featureCollection: {
+      type: "FeatureCollection",
+      features,
+    } satisfies FeatureCollection,
+    view: {
+      distanceText: formatDistance(totalDistance),
+      timeText: formatTime(totalTime),
+      elevation: route.elevation
+        ? {
+            ascendText: formatHeight(route.elevation.ascend),
+            descendText: formatHeight(route.elevation.descend),
+          }
+        : null,
+      segments,
+      attribution: route.attribution!,
+    } satisfies RouteView,
+  }
 }
 
 const RoutingAttribution = ({
@@ -166,106 +242,136 @@ const RoutingAttribution = ({
 
 const RoutingSidebar = ({
   map,
-  mapContainer,
-  source,
-  active,
-  sidebar,
+  engine,
+  from,
+  to,
 }: {
   map: MaplibreMap
-  mapContainer: HTMLElement
-  source: GeoJSONSource
-  active: ReadonlySignal<boolean>
-  sidebar: HTMLElement
+  engine: Signal<string | undefined>
+  from: Signal<string | undefined>
+  to: Signal<string | undefined>
 }) => {
+  setPageTitle(t("javascripts.directions.directions"))
+  const mapContainer = map.getContainer()
+  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
+
   const loading = useSignal(false)
   const routeView = useSignal<RouteView | null>(null)
   const hoverSegmentId = useSignal<number | null>(null)
+
+  const contentRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+
   const engineInputId = useId()
 
-  // Form State Signals
   const startInputId = useId()
-  const start = useSignal("")
-  const startLoaded = useRef<LoadedEndpoint>({ value: "", lon: "0", lat: "0" })
+  const startInputRef = useRef<HTMLInputElement>(null)
 
   const endInputId = useId()
-  const end = useSignal("")
-  const endLoaded = useRef<LoadedEndpoint>({ value: "", lon: "0", lat: "0" })
+  const endInputRef = useRef<HTMLInputElement>(null)
 
-  const markers = useRef<{ start: Marker | null; end: Marker | null }>({
-    start: null,
-    end: null,
+  const endpoints = useRef<Record<EndpointDir, EndpointState>>({
+    start: { marker: null, loaded: null },
+    end: { marker: null, loaded: null },
   })
+
   const popup = useRef<Popup | null>(null)
   const popupContent = useRef<{
     root: HTMLDivElement
     number: HTMLSpanElement
     instruction: HTMLSpanElement
   } | null>(null)
-  const lastMouse = useRef<[number, number] | null>(null)
-  const sidebarHovered = useRef(false)
 
-  const parentSidebar = sidebar.closest("div.sidebar")!
+  const sidebarMouse = useRef<[number, number] | null>(null)
+
+  const parentSidebar = document
+    .getElementById("ActionSidebar")!
+    .closest("div.sidebar")!
+
+  const clearRouteResults = () => {
+    popup.current?.remove()
+    updateHover(null)
+    clearMapHover(map, LAYER_ID)
+    routeView.value = null
+    source.setData(emptyFeatureCollection)
+  }
+
+  const lastAppliedUrl = useRef<{ from: string | undefined; to: string | undefined }>({
+    from: undefined,
+    to: undefined,
+  })
+
+  const getEndpointValue = (dir: EndpointDir) =>
+    (dir === "start" ? startInputRef.current : endInputRef.current)?.value ?? ""
+
+  const setEndpointValue = (dir: EndpointDir, value: string) => {
+    const input = dir === "start" ? startInputRef.current : endInputRef.current
+    if (input) input.value = value
+  }
+
+  const setUrlEndpoint = (dir: EndpointDir, value: string | undefined) => {
+    value ||= undefined
+    if (dir === "start") {
+      from.value = value
+      lastAppliedUrl.current.from = value
+    } else {
+      to.value = value
+      lastAppliedUrl.current.to = value
+    }
+  }
 
   const submitFormIfFilled = () => {
     popup.current?.remove()
-    if (!(start.peek() && end.peek())) return
-
-    const form = formRef.current!
-    ;(form.elements.namedItem("start") as HTMLInputElement).value = start.peek()
-    ;(form.elements.namedItem("end") as HTMLInputElement).value = end.peek()
-    form.requestSubmit()
+    if (!(from.peek() && to.peek())) return
+    queueMicrotask(() => {
+      formRef.current?.requestSubmit()
+    })
   }
 
   // --- Map & Interaction Logic ---
 
-  const setLoadedEndpoint = (
-    dir: "start" | "end",
-    value: string,
-    lon: number,
-    lat: number,
-  ) => {
-    const endpoint = dir === "start" ? startLoaded.current : endLoaded.current
-    endpoint.value = value
-    endpoint.lon = lon.toFixed(7)
-    endpoint.lat = lat.toFixed(7)
-  }
-
-  const setEndpointFromLngLat = (
-    dir: "start" | "end",
-    lngLat: LngLat,
-    value: string,
-  ) => {
-    setLoadedEndpoint(dir, value, lngLat.lng, lngLat.lat)
-    if (dir === "start") start.value = value
-    else end.value = value
-  }
-
-  const createMarker = (color: MarkerColor, dir: "start" | "end") => {
-    const marker = new Marker({
-      anchor: MARKER_ICON_ANCHOR,
-      element: getMarkerIconElement(color, true),
-      draggable: true,
-    })
-    marker.on("dragend", () => {
-      const lngLat = marker.getLngLat()
-      console.debug("Routing: Marker drag end", lngLat, dir)
-      const precision = zoomPrecision(map.getZoom())
-      const val = `${lngLat.lat.toFixed(precision)}, ${lngLat.lng.toFixed(precision)}`
-      setEndpointFromLngLat(dir, lngLat, val)
-
-      submitFormIfFilled()
-    })
-    return marker
-  }
-
-  const getOrCreateMarker = (dir: "start" | "end") => {
-    if (dir === "start") {
-      if (!markers.current.start) markers.current.start = createMarker("green", "start")
-      return markers.current.start
+  const setEndpointMarker = (dir: EndpointDir, lngLatLike: LngLatLike) => {
+    const lngLat = LngLat.convert(lngLatLike)
+    const display = formatPoint(lngLat, zoomPrecision(map.getZoom()))
+    const urlValue = formatPoint(lngLat, ROUTING_QUERY_PRECISION)
+    const endpoint = endpoints.current[dir]
+    endpoint.loaded = {
+      query: urlValue,
+      label: display,
+      lon: lngLat.lng,
+      lat: lngLat.lat,
     }
-    if (!markers.current.end) markers.current.end = createMarker("red", "end")
-    return markers.current.end
+    setEndpointValue(dir, display)
+    getMarker(dir).setLngLat(lngLat).addTo(map)
+    setUrlEndpoint(dir, urlValue)
+  }
+
+  const applyResolvedEndpoint = (dir: EndpointDir, entry: RoutingResult_Endpoint) => {
+    const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
+    const label = entry.name || query
+    endpoints.current[dir].loaded = { query, label, lon: entry.lon, lat: entry.lat }
+    setEndpointValue(dir, label)
+    getMarker(dir).setLngLat([entry.lon, entry.lat]).addTo(map)
+  }
+
+  const getMarker = (dir: EndpointDir) => {
+    const endpoint = endpoints.current[dir]
+    if (!endpoint.marker) {
+      const markerColor = dir === "start" ? "green" : "red"
+      const marker = new Marker({
+        anchor: MARKER_ICON_ANCHOR,
+        element: getMarkerIconElement(markerColor, true),
+        draggable: true,
+      })
+      marker.on("dragend", () => {
+        const lngLat = marker.getLngLat()
+        console.debug("Routing: Marker drag end", lngLat, dir)
+        setEndpointMarker(dir, lngLat)
+        submitFormIfFilled()
+      })
+      endpoint.marker = marker
+    }
+    return endpoint.marker
   }
 
   const updateHover = (segmentId: number | null, scrollIntoView = false) => {
@@ -279,24 +385,28 @@ const RoutingSidebar = ({
     if (segmentId === null) return
 
     if (scrollIntoView) {
-      const row = sidebar.querySelector(`tr[data-segment-id="${segmentId}"]`)
-      if (row) scrollElementIntoView(parentSidebar, row)
+      const row = contentRef.current?.querySelector(
+        `tr[data-segment-id="${segmentId}"]`,
+      )
+      scrollElementIntoView(parentSidebar, row)
     }
     map.setFeatureState({ source: LAYER_ID, id: segmentId }, { hover: true })
   }
 
   const updateEndpoints = (data: RoutingResult) => {
-    let markerBounds: Bounds | null = null
+    let markerBounds: LngLatBounds | undefined
 
-    const updateEndpoint = (dir: "start" | "end", entry: RoutingResult_Endpoint) => {
+    const updateEndpoint = (dir: EndpointDir, entry: RoutingResult_Endpoint) => {
       const { minLon, minLat, maxLon, maxLat } = entry.bounds!
-      markerBounds = boundsUnion(markerBounds, [minLon, minLat, maxLon, maxLat])
+      const bounds: Bounds = [minLon, minLat, maxLon, maxLat]
 
-      setLoadedEndpoint(dir, entry.name, entry.lon, entry.lat)
-      if (dir === "start") start.value = entry.name
-      else end.value = entry.name
+      if (markerBounds) {
+        markerBounds.extend(bounds)
+      } else {
+        markerBounds = new LngLatBounds(bounds)
+      }
 
-      getOrCreateMarker(dir).setLngLat([entry.lon, entry.lat]).addTo(map)
+      applyResolvedEndpoint(dir, entry)
     }
 
     if (data.start) updateEndpoint("start", data.start)
@@ -308,103 +418,10 @@ const RoutingSidebar = ({
   }
 
   const updateRoute = (route: RoutingResult) => {
-    const lines: Feature<LineString>[] = []
-    const allCoords = decodeLonLat(route.line, route.lineQuality)
-
-    if (allCoords.length) {
-      lines.push({
-        type: "Feature",
-        id: -1,
-        properties: { base: true },
-        geometry: { type: "LineString", coordinates: allCoords },
-      })
-    }
-
-    const segments: RouteSegmentView[] = []
-    let totalDistance = 0
-    let totalTime = 0
-    let coordsSliceStart = 0
-
-    const lastStep = route.steps.at(-1)!
-    const endManeuverByStepIndex = new Array<RoutingResult["steps"][number]>(
-      route.steps.length,
-    )
-    let nextNonEmptyManeuver = lastStep
-    for (let i = route.steps.length - 1; i >= 0; i--) {
-      endManeuverByStepIndex[i] = nextNonEmptyManeuver
-      const step = route.steps[i]!
-      if (step.text) nextNonEmptyManeuver = step
-    }
-
-    for (const [stepIndex, step] of route.steps.entries()) {
-      totalDistance += step.distance
-      totalTime += step.time
-
-      const stepCoords = allCoords.slice(
-        coordsSliceStart,
-        coordsSliceStart + step.numCoords,
-      )
-      if (step.numCoords) {
-        coordsSliceStart += step.numCoords - 1
-      }
-
-      if (stepCoords.length > 1) {
-        const end = stepCoords[stepCoords.length - 1]!
-        const bounds = stepCoords.reduce(
-          (bounds, coord) => bounds.extend(coord),
-          new LngLatBounds(),
-        )
-
-        const maneuverStep = endManeuverByStepIndex[stepIndex]!
-        const segment: RouteSegmentView = {
-          id: stepIndex,
-          iconNum: maneuverStep.iconNum,
-          text: maneuverStep.text,
-          distanceText: formatDistanceRounded(step.distance),
-          end,
-          bounds,
-        }
-        segments.push(segment)
-
-        lines.push({
-          type: "Feature",
-          id: stepIndex,
-          properties: {},
-          geometry: { type: "LineString", coordinates: stepCoords },
-        })
-      }
-    }
-
-    routeView.value = {
-      distanceText: formatDistance(totalDistance),
-      timeText: formatTime(totalTime),
-      elevation: route.elevation
-        ? {
-            ascendText: formatHeight(route.elevation.ascend),
-            descendText: formatHeight(route.elevation.descend),
-          }
-        : null,
-      segments,
-      attribution: route.attribution!,
-    }
-
-    source.setData({ type: "FeatureCollection", features: lines })
+    const { view, featureCollection } = computeRouteRender(route)
+    routeView.value = view
+    source.setData(featureCollection)
     console.debug("Routing: Loaded", route.steps.length, "steps")
-  }
-
-  const updateUrl = () => {
-    const { start: mStart, end: mEnd } = markers.current
-    if (!(mStart && mEnd)) return
-
-    const precision = zoomPrecision(19)
-    const startLngLat = mStart.getLngLat()
-    const endLngLat = mEnd.getLngLat()
-    const routeParam = `${startLngLat.lat.toFixed(precision)},${startLngLat.lng.toFixed(precision)};${endLngLat.lat.toFixed(precision)},${endLngLat.lng.toFixed(precision)}`
-
-    updateSearchParams((searchParams) => {
-      searchParams.set("engine", routingEngineStorage.value)
-      searchParams.set("route", routeParam)
-    })
   }
 
   // --- Handlers ---
@@ -423,7 +440,7 @@ const RoutingSidebar = ({
     return popupContent.current
   }
 
-  const onInterfaceMarkerDragStart = (direction: "start" | "end") => (e: DragEvent) => {
+  const onInterfaceMarkerDragStart = (direction: EndpointDir) => (e: DragEvent) => {
     const target = e.currentTarget
     if (!(target instanceof HTMLImageElement)) return
     console.debug("Routing: Interface marker drag start", direction)
@@ -443,36 +460,48 @@ const RoutingSidebar = ({
 
   const onReverseClick = () => {
     console.debug("Routing: Reverse clicked")
+    const startValue = getEndpointValue("start")
+    const endValue = getEndpointValue("end")
+    const startUrl = from.peek()
+    const endUrl = to.peek()
+    const startLoaded = endpoints.current.start.loaded
+    const endLoaded = endpoints.current.end.loaded
     const shouldSwapLoaded =
-      start.peek() === startLoaded.current.value &&
-      end.peek() === endLoaded.current.value
+      startLoaded !== null &&
+      endLoaded !== null &&
+      startValue === startLoaded.label &&
+      endValue === endLoaded.label
 
-    const newStartValue = end.peek()
-    const newEndValue = start.peek()
-    start.value = newStartValue
-    end.value = newEndValue
-
-    const { start: mStart, end: mEnd } = markers.current
-    if (shouldSwapLoaded && mStart && mEnd) {
-      const newStartLngLat = mEnd.getLngLat()
-      const newEndLngLat = mStart.getLngLat()
-
-      mStart.setLngLat(newStartLngLat)
-      mEnd.setLngLat(newEndLngLat)
-
-      const startLoadedTemp = startLoaded.current
-      startLoaded.current = endLoaded.current
-      endLoaded.current = startLoadedTemp
+    if (shouldSwapLoaded) {
+      endpoints.current.start.loaded = endpoints.current.end.loaded
+      endpoints.current.end.loaded = startLoaded
+    } else {
+      endpoints.current.start.loaded = null
+      endpoints.current.end.loaded = null
     }
+
+    const startMarker = endpoints.current.start.marker
+    const endMarker = endpoints.current.end.marker
+    if (shouldSwapLoaded && startMarker && endMarker) {
+      const startLngLat = startMarker.getLngLat()
+      const endLngLat = endMarker.getLngLat()
+      startMarker.setLngLat(endLngLat)
+      endMarker.setLngLat(startLngLat)
+    }
+
+    setEndpointValue("start", endValue)
+    setEndpointValue("end", startValue)
+    setUrlEndpoint("start", endUrl)
+    setUrlEndpoint("end", startUrl)
     submitFormIfFilled()
   }
 
-  const handleSegmentClick = (segmentId: number, focus = false) => {
+  const handleSegmentClick = (segmentId: number | null, focus = false) => {
     const route = routeView.value
     if (!route) return
     const segmentIndex = route.segments.findIndex((s) => s.id === segmentId)
     if (segmentIndex === -1) return
-    const segment = route.segments[segmentIndex]!
+    const segment = route.segments[segmentIndex]
 
     if (focus)
       fitBoundsIfNeeded(map, segment.bounds, {
@@ -495,194 +524,170 @@ const RoutingSidebar = ({
     popup.current.setDOMContent(root).setLngLat(segment.end).addTo(map)
   }
 
-  const ensureMarkerFromInput = (dir: "start" | "end") => {
-    const val = dir === "start" ? start.peek() : end.peek()
+  const ensureMarkerFromInput = (dir: EndpointDir) => {
+    const val = dir === "start" ? from.peek() : to.peek()
     const coords = tryParsePoint(val)
     if (!coords) return
     const [lon, lat] = coords
-    getOrCreateMarker(dir).setLngLat([lon, lat]).addTo(map)
-    setLoadedEndpoint(dir, val, lon, lat)
+    assertExists(val)
+    endpoints.current[dir].loaded = { query: val, label: val, lon, lat }
+    getMarker(dir).setLngLat([lon, lat]).addTo(map)
   }
 
   // --- Effects ---
 
   const resetState = () => {
     loading.value = false
-    routeView.value = null
-    hoverSegmentId.value = null
-    sidebarHovered.current = false
-    lastMouse.current = null
-    markers.current.start?.remove()
-    markers.current.start = null
-    markers.current.end?.remove()
-    markers.current.end = null
-    popup.current?.remove()
+    clearRouteResults()
+    sidebarMouse.current = null
+    for (const dir of ENDPOINT_DIRS) {
+      const endpoint = endpoints.current[dir]
+      endpoint.marker?.remove()
+      endpoint.marker = null
+      endpoint.loaded = null
+    }
   }
 
-  const parseUrlParams = () => {
-    const searchParams = qsParse(window.location.search)
+  // Effect: Main lifecycle
+  useDisposeEffect((scope) => {
+    scope.mapLayerLifecycle(map, LAYER_ID)
+    scope.defer(resetState)
 
-    if (searchParams.route?.includes(";")) {
-      const [s, e] = searchParams.route.split(";")
-      start.value = s
-      end.value = e
-    }
-    if (searchParams.from) start.value = searchParams.from
-    if (searchParams.to) end.value = searchParams.to
+    // Form configuration
+    const disposeForm = configureStandardForm<RoutingResult>(
+      formRef.current,
+      (data) => {
+        loading.value = false
+        console.debug("Routing: Route calculated", data)
+        updateEndpoints(data)
+        updateRoute(data)
+      },
+      {
+        cancelOnValidationChange: true,
+        protobuf: RoutingResultSchema,
+        validationCallback: (formData) => {
+          clearRouteResults()
+          loading.value = true
 
-    ensureMarkerFromInput("start")
-    ensureMarkerFromInput("end")
+          const startValue = from.value ?? ""
+          const endValue = to.value ?? ""
+          const engineValue = routingEngineStorage.value
+          formData.set("start", startValue)
+          formData.set("end", endValue)
+          formData.set("engine", engineValue)
 
-    const routingEngine = searchParams.engine
-    if (routingEngine) {
+          for (const dir of ENDPOINT_DIRS) {
+            const loaded = endpoints.current[dir].loaded
+            const requestValue = dir === "start" ? startValue : endValue
+            const isLoaded = loaded && requestValue && requestValue === loaded.query
+            formData.set(`${dir}_loaded`, isLoaded ? loaded.query : "")
+            formData.set(`${dir}_loaded_lon`, isLoaded ? loaded.lon.toFixed(7) : "0")
+            formData.set(`${dir}_loaded_lat`, isLoaded ? loaded.lat.toFixed(7) : "0")
+          }
+
+          formData.set("bbox", boundsToString(map.getBounds()))
+          return null
+        },
+        errorCallback: () => {
+          loading.value = false
+        },
+      },
+    )
+    scope.defer(disposeForm)
+
+    // Event listeners
+    scope.map(map, "click", (e) => {
+      const segmentId = findSegmentId(
+        map.queryRenderedFeatures(e.point, { layers: [LAYER_ID] }),
+      )
+      popup.current?.remove()
+      handleSegmentClick(segmentId)
+    })
+    scope.mapLayer(map, "mousemove", LAYER_ID, (e) => {
+      const segmentId = findSegmentId(e.features)
+      setMapHover(map, LAYER_ID)
+      updateHover(segmentId, true)
+    })
+    scope.mapLayer(map, "mouseleave", LAYER_ID, () => {
+      clearMapHover(map, LAYER_ID)
+      updateHover(null)
+    })
+
+    scope.dom(mapContainer, "dragover", (e) => e.preventDefault())
+    scope.dom(mapContainer, "drop", (e) => {
+      e.preventDefault()
+      const dragData = e.dataTransfer?.getData(DRAG_DATA_TYPE)
+      if (!isEndpointDir(dragData)) return
+      const mapRect = mapContainer.getBoundingClientRect()
+      const mousePoint = new Point(e.clientX - mapRect.left, e.clientY - mapRect.top)
+      setEndpointMarker(dragData, map.unproject(mousePoint))
+      submitFormIfFilled()
+    })
+
+    scope.dom(
+      parentSidebar,
+      "mousemove",
+      (e) => (sidebarMouse.current = [e.clientX, e.clientY]),
+    )
+    scope.dom(parentSidebar, "mouseleave", () => (sidebarMouse.current = null))
+
+    scope.dom(
+      parentSidebar,
+      "scroll",
+      scope.frame(() => {
+        if (!sidebarMouse.current) return
+        const [x, y] = sidebarMouse.current
+        const r = parentSidebar.getBoundingClientRect()
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
+        const row = document.elementFromPoint(x, y)?.closest("tr[data-segment-id]")
+        updateHover(
+          row instanceof HTMLElement
+            ? Number.parseInt(row.dataset.segmentId!, 10)
+            : null,
+        )
+      }),
+    )
+  }, [])
+
+  // Effect: Apply URL params
+  useSignalEffect(() => {
+    const routingEngine = engine.value
+    const engineChanged =
+      routingEngine !== undefined && routingEngine !== routingEngineStorage.peek()
+    if (engineChanged) {
       if (ROUTING_ENGINES().some(([value]) => value === routingEngine)) {
         routingEngineStorage.value = routingEngine
       } else {
         console.warn("Routing: Unsupported engine", routingEngine)
       }
     }
-  }
 
-  // Effect: Main lifecycle
-  useSignalEffect(() => {
-    if (!active.value) return
-
-    switchActionSidebar(map, sidebar)
-    setPageTitle(t("javascripts.directions.directions"))
-    addMapLayer(map, LAYER_ID)
-
-    const disposers: Array<() => void> = []
-    const onMap = (event: string, handler: any) => {
-      map.on(event as any, handler)
-      disposers.push(() => map.off(event as any, handler))
-    }
-    const onMapLayer = (event: string, layerId: string, handler: any) => {
-      map.on(event as any, layerId, handler)
-      disposers.push(() => map.off(event as any, layerId, handler))
-    }
-    const onDom = (target: EventTarget, event: string, handler: any) => {
-      target.addEventListener(event, handler)
-      disposers.push(() => target.removeEventListener(event, handler))
-    }
-
-    // Form configuration
-    const disposeForm = configureStandardForm<RoutingResult>(
-      formRef.current,
-      (data) => {
-        if (!active.value) return
-        loading.value = false
-        console.debug("Routing: Route calculated", data)
-        updateEndpoints(data)
-        updateUrl()
-        updateRoute(data)
-      },
-      {
-        abortSignal: true,
-        protobuf: RoutingResultSchema,
-        validationCallback: (formData) => {
-          if (!active.value) return null
-          popup.current?.remove()
-          updateHover(null)
-          routeView.value = null
-          loading.value = true
-
-          formData.set("start_loaded", startLoaded.current.value)
-          formData.set("start_loaded_lon", startLoaded.current.lon)
-          formData.set("start_loaded_lat", startLoaded.current.lat)
-          formData.set("end_loaded", endLoaded.current.value)
-          formData.set("end_loaded_lon", endLoaded.current.lon)
-          formData.set("end_loaded_lat", endLoaded.current.lat)
-          formData.set("bbox", boundsToString(map.getBounds()))
-          return null
-        },
-        errorCallback: () => {
-          if (!active.value) return
-          loading.value = false
-        },
-      },
-    )
-    if (disposeForm) disposers.push(disposeForm)
-
-    parseUrlParams()
-    submitFormIfFilled()
-
-    // Event listeners
-    const onMapClick = (e: any) => {
-      const segmentId = findSegmentId(
-        map.queryRenderedFeatures(e.point, { layers: [LAYER_ID] }),
-      )
-      if (segmentId !== null) {
-        handleSegmentClick(segmentId)
-      } else {
-        popup.current?.remove()
-      }
-    }
-
-    const onMapMouseMove = (e: any) => {
-      const segmentId = findSegmentId(e.features)
-      setMapHover(map, LAYER_ID)
-      updateHover(segmentId, true)
-    }
-    const onMapMouseLeave = () => {
-      clearMapHover(map, LAYER_ID)
-      updateHover(null)
-    }
-    const onMapDragOver = (e: DragEvent) => e.preventDefault()
-    const onMapDrop = (e: DragEvent) => {
-      const dragData = e.dataTransfer?.getData(DRAG_DATA_TYPE)
-      if (dragData !== "start" && dragData !== "end") return
-      const mapRect = mapContainer.getBoundingClientRect()
-      const mousePoint = new Point(e.clientX - mapRect.left, e.clientY - mapRect.top)
-      getOrCreateMarker(dragData)
-        .setLngLat(map.unproject(mousePoint))
-        .addTo(map)
-        .fire("dragend")
-    }
-    const onSidebarMouseEnter = () => {
-      sidebarHovered.current = true
-    }
-    const onSidebarMouseLeave = () => {
-      sidebarHovered.current = false
-      lastMouse.current = null
-    }
-    const onSidebarMouseMove = (e: MouseEvent) => {
-      lastMouse.current = [e.clientX, e.clientY]
-    }
-    const onSidebarScroll = () => {
-      if (!(sidebarHovered.current && lastMouse.current)) return
-      const [x, y] = lastMouse.current
-      const r = parentSidebar.getBoundingClientRect()
-      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
-      const row = document.elementFromPoint(x, y)?.closest("tr[data-segment-id]")
-      updateHover(
-        row instanceof HTMLElement ? Number.parseInt(row.dataset.segmentId!, 10) : null,
-      )
-    }
-
-    onMap("click", onMapClick)
-    onMapLayer("mousemove", LAYER_ID, onMapMouseMove)
-    onMapLayer("mouseleave", LAYER_ID, onMapMouseLeave)
-    onDom(mapContainer, "dragover", onMapDragOver)
-    onDom(mapContainer, "drop", onMapDrop)
-    onDom(parentSidebar, "mouseenter", onSidebarMouseEnter)
-    onDom(parentSidebar, "mouseleave", onSidebarMouseLeave)
-    onDom(parentSidebar, "mousemove", onSidebarMouseMove)
-    onDom(parentSidebar, "scroll", onSidebarScroll)
-
-    return () => {
-      for (const dispose of disposers.reverse()) dispose()
-
+    const nextStart = from.value ?? ""
+    const nextEnd = to.value ?? ""
+    const endpointsChanged =
+      lastAppliedUrl.current.from !== from.value ||
+      lastAppliedUrl.current.to !== to.value
+    if (endpointsChanged) {
       resetState()
-      removeMapLayer(map, LAYER_ID)
-      clearMapHover(map, LAYER_ID)
+
+      setEndpointValue("start", nextStart)
+      setEndpointValue("end", nextEnd)
+      lastAppliedUrl.current.from = from.value
+      lastAppliedUrl.current.to = to.value
+
+      for (const dir of ENDPOINT_DIRS) ensureMarkerFromInput(dir)
     }
+
+    if (engineChanged || endpointsChanged) submitFormIfFilled()
   })
 
   const routeValue = routeView.value
-  const hoverValue = hoverSegmentId.value
 
   return (
-    <div class="sidebar-content">
+    <div
+      ref={contentRef}
+      class="sidebar-content"
+    >
       <form
         class="section"
         method="POST"
@@ -699,12 +704,15 @@ const RoutingSidebar = ({
             <label for={startInputId}>{t("site.search.from")}</label>
             <input
               id={startInputId}
+              ref={startInputRef}
               type="text"
               class="form-control"
-              name="start"
               required
-              value={start}
-              onInput={(e) => (start.value = e.currentTarget.value)}
+              defaultValue={from.peek() ?? ""}
+              onInput={(e) => {
+                endpoints.current.start.loaded = null
+                setUrlEndpoint("start", e.currentTarget.value)
+              }}
             />
           </div>
           <img
@@ -722,12 +730,15 @@ const RoutingSidebar = ({
             <label for={endInputId}>{t("site.search.to")}</label>
             <input
               id={endInputId}
+              ref={endInputRef}
               type="text"
               class="form-control"
-              name="end"
               required
-              value={end}
-              onInput={(e) => (end.value = e.currentTarget.value)}
+              defaultValue={to.peek() ?? ""}
+              onInput={(e) => {
+                endpoints.current.end.loaded = null
+                setUrlEndpoint("end", e.currentTarget.value)
+              }}
             />
           </div>
           <img
@@ -760,18 +771,18 @@ const RoutingSidebar = ({
             <select
               id={engineInputId}
               class="form-select format-select"
-              name="engine"
               required
               value={routingEngineStorage}
               onInput={(e) => {
                 routingEngineStorage.value = e.currentTarget.value
+                engine.value = routingEngineStorage.value
                 submitFormIfFilled()
               }}
             >
               {ROUTING_ENGINES().map(([value, label]) => (
                 <option
-                  value={value}
                   key={value}
+                  value={value}
                 >
                   {label}
                 </option>
@@ -836,12 +847,12 @@ const RoutingSidebar = ({
               <tbody>
                 {routeValue.segments.map((segment, segmentIndex) => (
                   <tr
+                    key={segment.id}
                     data-segment-id={segment.id.toString()}
-                    class={hoverValue === segment.id ? "hover" : ""}
+                    class={hoverSegmentId.value === segment.id ? "hover" : ""}
                     onClick={() => handleSegmentClick(segment.id, true)}
                     onMouseEnter={() => updateHover(segment.id)}
                     onMouseLeave={() => updateHover(null)}
-                    key={segment.id}
                   >
                     <td class="icon">
                       <div class={`icon-${segment.iconNum} dark-filter-invert`} />
@@ -862,29 +873,13 @@ const RoutingSidebar = ({
   )
 }
 
-export const getRoutingController = (map: MaplibreMap) => {
-  const mapContainer = map.getContainer()
-  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  const sidebar = getActionSidebar("routing")
-  const active = signal(false)
-
-  render(
-    <RoutingSidebar
-      map={map}
-      mapContainer={mapContainer}
-      source={source}
-      active={active}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: () => {
-      active.value = true
-    },
-    unload: () => {
-      active.value = false
-    },
-  }
-}
+export const RoutingRoute = defineRoute({
+  id: "routing",
+  path: "/directions",
+  query: {
+    engine: queryParam.string(),
+    from: queryParam.string(),
+    to: queryParam.string(),
+  },
+  Component: RoutingSidebar,
+})

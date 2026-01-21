@@ -1,43 +1,35 @@
 import {
-  getActionSidebar,
   SidebarHeader,
   SidebarResourceBody,
-  switchActionSidebar,
   useSidebarFetch,
 } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
+import { queryParam } from "@lib/codecs"
 import { prefersReducedMotion } from "@lib/config"
-import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
+import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
-  addMapLayer,
   emptyFeatureCollection,
   getExtendedLayerId,
   type LayerId,
   layersConfig,
-  removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { type LonLat, type LonLatZoom, parseLonLatZoom } from "@lib/map/state"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
+import type { LonLat, LonLatZoom } from "@lib/map/state"
 import {
   type QueryFeaturesNearbyData_Result,
   QueryFeaturesNearbyDataSchema,
 } from "@lib/proto/shared_pb"
-import { qsEncode, qsParse } from "@lib/qs"
+import { qsEncode } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
-import {
-  type ReadonlySignal,
-  signal,
-  useComputed,
-  useSignalEffect,
-} from "@preact/signals"
-import { assertExists } from "@std/assert"
+import { type Signal, useComputed, useSignalEffect } from "@preact/signals"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
-import { type GeoJSONSource, LngLat, type Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
+import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"
 import { ElementResultEntry } from "./search"
+
+export const QUERY_FEATURES_MIN_ZOOM = 14
 
 const LAYER_ID = "query-features" as LayerId
 const THEME_COLOR = "#f60"
@@ -73,13 +65,14 @@ const focusPaint: FocusLayerPaint = {
   "circle-stroke-width": 3,
 }
 
-const getURLQueryPosition = (map: MaplibreMap) => {
-  const params = qsParse(window.location.search)
-  params.zoom ??= map.getZoom().toString()
-  const at = parseLonLatZoom(params)
-  if (at) at.zoom = Math.round(Math.max(at.zoom, QUERY_FEATURES_MIN_ZOOM))
-  return at
-}
+const getQueryAt = (at: LonLatZoom | undefined): LonLatZoom | null =>
+  at
+    ? ({
+        lon: at.lon,
+        lat: at.lat,
+        zoom: Math.round(Math.max(at.zoom, QUERY_FEATURES_MIN_ZOOM)),
+      } satisfies LonLatZoom)
+    : null
 
 const QueryFeaturesResultsList = ({
   map,
@@ -98,7 +91,7 @@ const QueryFeaturesResultsList = ({
     <ul class="search-list list-unstyled mb-0">
       {results.map((result, i) => (
         <ElementResultEntry
-          key={`${result.type}:${result.id.toString()}`}
+          key={`${result.type}:${result.id}`}
           result={result}
           onFocus={() => focusEntryAt(i)}
           onBlur={() => clearFocus()}
@@ -112,66 +105,76 @@ const QueryFeaturesResultsList = ({
 
 const QueryFeaturesSidebar = ({
   map,
-  source,
-  sidebar,
-  active,
-  position,
+  at,
 }: {
   map: MaplibreMap
-  source: GeoJSONSource
-  sidebar: HTMLElement
-  active: ReadonlySignal<boolean>
-  position: ReadonlySignal<LonLatZoom | null>
+  at: Signal<LonLatZoom | undefined>
 }) => {
+  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
+
   const titleText = toTitleCase(t("javascripts.site.queryfeature_tooltip"))
+  setPageTitle(titleText)
 
-  const queryPosition = useComputed(() => (active.value ? position.value : null))
+  const queryAt = useComputed(() => getQueryAt(at.value))
 
-  const url = useComputed(() => {
-    const p = queryPosition.value
-    if (!p) return null
-    return `/api/web/query-features/nearby${qsEncode({
-      lon: p.lon.toString(),
-      lat: p.lat.toString(),
-      zoom: p.zoom.toString(),
-    })}`
-  })
+  const { resource } = useSidebarFetch(
+    useComputed(() => {
+      const p = queryAt.value
+      return p
+        ? `/api/web/query-features/nearby${qsEncode({
+            lon: p.lon.toString(),
+            lat: p.lat.toString(),
+            zoom: p.zoom.toString(),
+          })}`
+        : null
+    }),
+    QueryFeaturesNearbyDataSchema,
+  )
 
-  const { resource } = useSidebarFetch(url, QueryFeaturesNearbyDataSchema)
-
-  // Effect: Sidebar visibility + title + map layer lifecycle.
-  useSignalEffect(() => {
-    if (!active.value) return
-    switchActionSidebar(map, sidebar)
-    setPageTitle(titleText)
-    addMapLayer(map, LAYER_ID, false)
-
-    return () => {
-      removeMapLayer(map, LAYER_ID, false)
-      source.setData(emptyFeatureCollection)
+  // Effect: Map layer lifecycle.
+  useDisposeEffect((scope) => {
+    scope.mapLayerLifecycle(map, LAYER_ID, false)
+    scope.defer(() => {
       focusObjects(map)
-    }
-  })
+    })
+  }, [])
 
   // Effect: Focus on the query position if it's offscreen.
   useSignalEffect(() => {
-    const p = queryPosition.value
-    if (!p) return
-
-    const center = new LngLat(p.lon, p.lat)
-    if (!map.getBounds().contains(center)) {
-      map.jumpTo({ center, zoom: p.zoom })
-    }
+    const p = queryAt.value
+    if (!p || map.getBounds().contains(p)) return
+    map.jumpTo({ center: p, zoom: p.zoom })
   })
 
   // Effect: Show query radius animation on each new position.
-  useSignalEffect(() => {
-    const p = queryPosition.value
+  useDisposeSignalEffect((scope) => {
+    const p = queryAt.value
     if (!p) return
 
-    const abortController = new AbortController()
-    animateQueryRadius(map, source, p, abortController.signal)
-    return () => abortController.abort()
+    const radiusMeters = 10 * 1.5 ** (19 - p.zoom)
+    source.setData(getCircleFeature(p, radiusMeters))
+
+    // Fade out circle smoothly
+    const animationDuration = 750
+    const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
+    const lineLayerId = getExtendedLayerId(LAYER_ID, "line")
+
+    scope.frame(({ time, startTime, next }) => {
+      const elapsedTime = time - startTime
+      let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
+      if (prefersReducedMotion()) opacity = opacity > 0 ? 1 : 0
+
+      map.setPaintProperty(fillLayerId, "fill-opacity", opacity * 0.4)
+      map.setPaintProperty(lineLayerId, "line-opacity", opacity)
+
+      if (opacity > 0) return next()
+
+      source.setData(emptyFeatureCollection)
+    })()
+
+    scope.defer(() => {
+      source.setData(emptyFeatureCollection)
+    })
   })
 
   return (
@@ -181,99 +184,32 @@ const QueryFeaturesSidebar = ({
         <p>{t("browse.query.introduction")}</p>
         <h4 class="mb-3">{t("browse.query.nearby")}</h4>
 
-        <SidebarResourceBody resource={resource}>
-          {(d) => (
-            <QueryFeaturesResultsList
-              map={map}
-              results={d.results}
-            />
-          )}
-        </SidebarResourceBody>
+        {queryAt.value ? (
+          <SidebarResourceBody resource={resource}>
+            {(d) => (
+              <QueryFeaturesResultsList
+                map={map}
+                results={d.results}
+              />
+            )}
+          </SidebarResourceBody>
+        ) : (
+          <QueryFeaturesResultsList
+            map={map}
+            results={[]}
+          />
+        )}
       </div>
     </div>
   )
 }
 
-export const getQueryFeaturesController = (map: MaplibreMap) => {
-  const source = map.getSource<GeoJSONSource>(LAYER_ID)
-  assertExists(source)
-
-  const sidebar = getActionSidebar("query-features")
-  const active = signal(false)
-  const position = signal<LonLatZoom | null>(null)
-
-  render(
-    <QueryFeaturesSidebar
-      map={map}
-      source={source}
-      sidebar={sidebar}
-      active={active}
-      position={position}
-    />,
-    sidebar,
-  )
-
-  const queryFeaturesButton = map
-    .getContainer()
-    .querySelector(".maplibregl-ctrl.query-features button")
-  assertExists(queryFeaturesButton)
-
-  return {
-    load: () => {
-      active.value = true
-      position.value = getURLQueryPosition(map)
-    },
-    unload: (newPath?: string) => {
-      if (!newPath?.startsWith("/query")) {
-        if (queryFeaturesButton.classList.contains("active")) {
-          console.debug("QueryFeatures: Deactivating button")
-          queryFeaturesButton.click()
-        }
-
-        active.value = false
-        position.value = null
-      }
-    },
-  }
-}
-
-const animateQueryRadius = (
-  map: MaplibreMap,
-  source: GeoJSONSource,
-  position: LonLatZoom,
-  abortSignal: AbortSignal,
-) => {
-  const radiusMeters = 10 * 1.5 ** (19 - position.zoom)
-  console.debug("QueryFeatures: Radius", radiusMeters, "meters")
-
-  source.setData(getCircleFeature(position, radiusMeters))
-
-  // Fade out circle smoothly
-  const animationDuration = 750
-  const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
-  const lineLayerId = getExtendedLayerId(LAYER_ID, "line")
-
-  let animationStart = performance.now()
-  const fadeOut = (timestamp: DOMHighResTimeStamp) => {
-    if (abortSignal.aborted) return
-
-    if (timestamp < animationStart) animationStart = timestamp
-    const elapsedTime = timestamp - animationStart
-    let opacity = 1 - Math.min(elapsedTime / animationDuration, 1)
-    if (prefersReducedMotion()) opacity = opacity > 0 ? 1 : 0
-
-    map.setPaintProperty(fillLayerId, "fill-opacity", opacity * 0.4)
-    map.setPaintProperty(lineLayerId, "line-opacity", opacity)
-
-    if (opacity > 0) {
-      requestAnimationFramePolyfill(fadeOut)
-      return
-    }
-
-    source.setData(emptyFeatureCollection)
-  }
-  requestAnimationFramePolyfill(fadeOut)
-}
+export const QueryFeaturesRoute = defineRoute({
+  id: "query-features",
+  path: "/query",
+  query: { at: queryParam.lonLatZoom() },
+  Component: QueryFeaturesSidebar,
+})
 
 const getCircleFeature = (
   { lon, lat }: LonLat,

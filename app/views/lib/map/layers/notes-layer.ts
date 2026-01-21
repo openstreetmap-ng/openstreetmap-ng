@@ -1,5 +1,6 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import { routerNavigateStrict } from "@index/router"
+import { NoteRoute } from "@index/note"
+import { routerNavigate } from "@index/router"
 import { notesLayerLoading } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
@@ -61,7 +62,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
   // On feature click, navigate to the note
   map.on("click", LAYER_ID, (e) => {
     const noteId = e.features![0].properties.id
-    routerNavigateStrict(`/note/${noteId}`)
+    routerNavigate(NoteRoute, { id: BigInt(noteId) })
   })
 
   let hoveredFeatureId: number | null = null
@@ -76,6 +77,12 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     hoverPopupAbort?.abort()
     hoverPopup.remove()
     clearMapHover(map, LAYER_ID)
+  }
+
+  const clearNotes = () => {
+    clearHoverState()
+    source.setData(emptyFeatureCollection)
+    fetchedBounds = null
   }
 
   map.on("mousemove", LAYER_ID, async (e) => {
@@ -102,10 +109,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     console.debug("NotesLayer: Showing popup", feature.properties.id)
     hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
   })
-  map.on("mouseleave", LAYER_ID, () => {
-    if (!hoveredFeatureId) return
-    clearHoverState()
-  })
+  map.on("mouseleave", LAYER_ID, clearHoverState)
 
   /** On map update, fetch the notes and update the notes layer */
   const updateLayer = async () => {
@@ -114,12 +118,14 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
     // Abort any pending request
     abortController?.abort()
-    abortController = new AbortController()
 
     // Skip updates if the area is too big
     const fetchBounds = map.getBounds()
     const fetchArea = boundsSize(fetchBounds)
-    if (fetchArea > NOTE_QUERY_AREA_MAX_SIZE) return
+    if (fetchArea > NOTE_QUERY_AREA_MAX_SIZE) {
+      clearNotes()
+      return
+    }
 
     // Skip updates if the view is satisfied
     if (fetchedBounds) {
@@ -130,6 +136,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     }
 
     notesLayerLoading.value = true
+    abortController = new AbortController()
     try {
       const resp = await fetch(
         `/api/web/note/map${qsEncode({ bbox: boundsToString(fetchBounds) })}`,
@@ -149,7 +156,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     } catch (error) {
       if (error.name === "AbortError") return
       console.error("NotesLayer: Failed to fetch", error)
-      source.setData(emptyFeatureCollection)
+      clearNotes()
     } finally {
       notesLayerLoading.value = false
     }
@@ -171,10 +178,8 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       loadMapImage(map, "marker-hidden")
       updateLayer()
     } else {
-      clearHoverState()
       abortController?.abort()
-      source.setData(emptyFeatureCollection)
-      fetchedBounds = null
+      clearNotes()
     }
   })
 }

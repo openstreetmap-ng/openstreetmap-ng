@@ -1,4 +1,5 @@
 import { SidebarHeader } from "@index/_action-sidebar"
+import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { CopyField } from "@lib/copy-group"
@@ -18,7 +19,6 @@ import {
   type LonLatZoom,
   type MapState,
 } from "@lib/map/state"
-import { qsParse } from "@lib/qs"
 import {
   batch,
   type ReadonlySignal,
@@ -167,38 +167,48 @@ const ShareSidebar = ({
     locationFilter.addTo(map, boundsPadding(map.getBounds(), -0.2))
   })
 
-  useEffect(() => {
-    const createMarker = (lon: number, lat: number) => {
-      const marker = new Marker({
-        anchor: MARKER_ICON_ANCHOR,
-        element: getMarkerIconElement("blue", true),
-        draggable: false,
-      })
-      urlMarkerRef.current = marker
-      marker.setLngLat([lon, lat]).addTo(map)
-      marker.getElement().style.pointerEvents = "none"
-    }
-
-    const searchParams = qsParse(window.location.search)
-    if (searchParams.mlon && searchParams.mlat) {
-      const mlon = Number.parseFloat(searchParams.mlon)
-      const mlat = Number.parseFloat(searchParams.mlat)
-      if (isLongitude(mlon) && isLatitude(mlat)) {
-        console.debug("ShareSidebar: Initializing marker from search params", [
-          mlon,
-          mlat,
-        ])
-        createMarker(mlon, mlat)
+  useSignalEffect(() => {
+    const ensureMarker = (logText: string, lon: number, lat: number) => {
+      let marker = urlMarkerRef.current
+      if (!marker) {
+        marker = new Marker({
+          anchor: MARKER_ICON_ANCHOR,
+          element: getMarkerIconElement("blue", true),
+          draggable: false,
+        })
+        marker.getElement().style.pointerEvents = "none"
+        urlMarkerRef.current = marker
+      } else {
+        const point = marker.getLngLat()
+        if (point.lng === lon && point.lat === lat) return
       }
-      return
+
+      console.debug(logText, [lon, lat])
+      marker.setLngLat([lon, lat]).addTo(map)
     }
 
-    if (searchParams.m !== undefined) {
-      const { lon, lat } = getInitialMapState(map)
-      console.debug("ShareSidebar: Initializing marker at center", [lon, lat])
-      createMarker(lon, lat)
+    const removeMarker = () => {
+      urlMarkerRef.current?.remove()
     }
-  }, [])
+
+    const { queryParams } = routerCtx.value
+    const mlonText = queryParams.mlon?.at(-1)
+    const mlatText = queryParams.mlat?.at(-1)
+    if (mlonText && mlatText) {
+      const mlon = Number.parseFloat(mlonText)
+      const mlat = Number.parseFloat(mlatText)
+      if (isLongitude(mlon) && isLatitude(mlat)) {
+        ensureMarker("ShareSidebar: Initializing marker from URL", mlon, mlat)
+      } else {
+        removeMarker()
+      }
+    } else if (queryParams.m !== undefined) {
+      const { lon, lat } = getInitialMapState(map)
+      ensureMarker("ShareSidebar: Initializing marker at center", lon, lat)
+    } else {
+      removeMarker()
+    }
+  })
 
   const onExportSubmit = async (e: TargetedSubmitEvent<HTMLFormElement>) => {
     e.preventDefault()

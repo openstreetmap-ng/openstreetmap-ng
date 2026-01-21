@@ -1,14 +1,14 @@
+import { SidebarHeader } from "@index/_action-sidebar"
 import {
-  getActionSidebar,
-  SidebarHeader,
-  switchActionSidebar,
-} from "@index/_action-sidebar"
-import {
+  ElementIdParam,
   ElementLocation,
   ElementMeta,
+  ElementTypeParam,
+  type ElementTypeSlug,
   elementFocusPaint,
   getElementTypeSlug,
 } from "@index/element"
+import { defineRoute } from "@index/router"
 import { BTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
@@ -17,23 +17,20 @@ import { type ElementData, ElementHistoryPageSchema } from "@lib/proto/shared_pb
 import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
-import {
-  type ReadonlySignal,
-  signal,
-  useComputed,
-  useSignalEffect,
-} from "@preact/signals"
+import type { ReadonlySignal } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
-import { useRef } from "preact/hooks"
-import type { IndexController } from "./router"
+import { useEffect, useRef } from "preact/hooks"
 
-const getHistoryTitle = (type: string, id: string) => {
-  if (type === "node") return t("browse.node.history_title_html", { name: id })
-  if (type === "way") return t("browse.way.history_title_html", { name: id })
-  if (type === "relation") return t("browse.relation.history_title_html", { name: id })
-  return t("layouts.history")
+const getPageTitle = (type: ElementTypeSlug, id: string) => {
+  switch (type) {
+    case "node":
+      return t("browse.node.history_title_html", { name: id })
+    case "way":
+      return t("browse.way.history_title_html", { name: id })
+    case "relation":
+      return t("browse.relation.history_title_html", { name: id })
+  }
 }
 
 const ElementHistoryEntry = ({
@@ -45,17 +42,15 @@ const ElementHistoryEntry = ({
   data: ElementData
   tagsDiff: boolean
 }) => {
-  const elementsRef = useRef<ReturnType<typeof convertRenderElementsData> | null>(null)
   const idText = data.id.toString()
   const typeText = getElementTypeSlug(data.type)
   const versionText = data.version.toString()
   const isLatest = data.nextVersion === undefined
   const location = data.location
-  const params = data.params!
-  const renderData = params.render!
 
+  const elementsRef = useRef<ReturnType<typeof convertRenderElementsData>>()
   const getElements = () => {
-    elementsRef.current ??= convertRenderElementsData(renderData)
+    elementsRef.current ??= convertRenderElementsData(data.params!.render!)
     return elementsRef.current
   }
 
@@ -95,42 +90,24 @@ const ElementHistorySidebar = ({
   map,
   type,
   id,
-  sidebar,
 }: {
   map: MaplibreMap
-  type: ReadonlySignal<string | null>
-  id: ReadonlySignal<string | null>
-  sidebar: HTMLElement
+  type: ReadonlySignal<ElementTypeSlug>
+  id: ReadonlySignal<bigint>
 }) => {
-  const title = useComputed(() => {
-    const typeValue = type.value
-    const idValue = id.value
-    if (!(typeValue && idValue)) return t("layouts.history")
-    return getHistoryTitle(typeValue, idValue)
-  })
+  const title = getPageTitle(type.value, id.toString())
 
-  // Effect: Page title
-  useSignalEffect(() => {
-    const typeValue = type.value
-    const idValue = id.value
-    if (!(typeValue && idValue)) return
-    setPageTitle(title.value)
-  })
+  setPageTitle(title)
 
-  // Effect: Sidebar visibility and map focus
-  useSignalEffect(() => {
-    if (id.value) switchActionSidebar(map, sidebar)
-    else focusObjects(map)
-  })
-
-  const typeValue = type.value
-  const idValue = id.value
+  useEffect(() => {
+    return () => focusObjects(map)
+  }, [])
 
   return (
     <div class="sidebar-content">
       <div class="section pb-1">
         <SidebarHeader class="mb-1">
-          <h2 class="sidebar-title">{title.value}</h2>
+          <h2 class="sidebar-title">{title}</h2>
           <div class="form-check ms-1">
             <label class="form-check-label">
               <input
@@ -152,64 +129,40 @@ const ElementHistorySidebar = ({
         </SidebarHeader>
       </div>
 
-      {typeValue && idValue && (
-        <StandardPagination
-          key={`${typeValue}-${idValue}-${tagsDiffStorage.value}`}
-          action={`/api/web/element/${typeValue}/${idValue}/history?tags_diff=${tagsDiffStorage.value}`}
-          label={t("alt.elements_page_navigation")}
-          pageOrder="desc-range"
-          small={true}
-          navClassBottom="mb-0"
-          protobuf={ElementHistoryPageSchema}
-          onLoad={() => {
-            focusObjects(map)
-          }}
-        >
-          {(page) => (
-            <div class="section p-0">
-              <div>
-                {page.elements.map((entry) => (
-                  <ElementHistoryEntry
-                    key={entry.version.toString()}
-                    map={map}
-                    data={entry}
-                    tagsDiff={tagsDiffStorage.value}
-                  />
-                ))}
-              </div>
+      <StandardPagination
+        key={`${type}-${id}-${tagsDiffStorage.value}`}
+        action={`/api/web/element/${type}/${id}/history?tags_diff=${tagsDiffStorage.value}`}
+        label={t("alt.elements_page_navigation")}
+        pageOrder="desc-range"
+        small={true}
+        navClassBottom="mb-0"
+        protobuf={ElementHistoryPageSchema}
+        onLoad={() => {
+          focusObjects(map)
+        }}
+      >
+        {(page) => (
+          <div class="section p-0">
+            <div>
+              {page.elements.map((entry) => (
+                <ElementHistoryEntry
+                  key={entry.version.toString()}
+                  map={map}
+                  data={entry}
+                  tagsDiff={tagsDiffStorage.value}
+                />
+              ))}
             </div>
-          )}
-        </StandardPagination>
-      )}
+          </div>
+        )}
+      </StandardPagination>
     </div>
   )
 }
 
-/** Create a new element history controller */
-export const getElementHistoryController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("element-history")
-  const type = signal<string | null>(null)
-  const id = signal<string | null>(null)
-
-  render(
-    <ElementHistorySidebar
-      map={map}
-      type={type}
-      id={id}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  const controller: IndexController = {
-    load: ({ type: typeValue, id: idValue }) => {
-      type.value = typeValue
-      id.value = idValue
-    },
-    unload: () => {
-      type.value = null
-      id.value = null
-    },
-  }
-  return controller
-}
+export const ElementHistoryRoute = defineRoute({
+  id: "element-history",
+  path: "/:type/:id/history",
+  params: { type: ElementTypeParam, id: ElementIdParam },
+  Component: ElementHistorySidebar,
+})

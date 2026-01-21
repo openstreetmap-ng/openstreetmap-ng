@@ -21,7 +21,7 @@
     }
 }
 
-.main-map {
+#MainMap {
     // Disable outline on main map (appears too often by accident)
     // outline: none;
     flex-grow: 1;
@@ -36,7 +36,7 @@
 }
 
 @include color-mode(dark) {
-    .main-map {
+    #MainMap {
         background: radial-gradient(circle, #444 0%, $dark 100%);
     }
 }

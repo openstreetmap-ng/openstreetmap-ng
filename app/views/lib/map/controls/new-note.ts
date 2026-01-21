@@ -1,12 +1,10 @@
-import { routerNavigateStrict } from "@index/router"
-import { effect, signal } from "@preact/signals"
+import { IndexRoute } from "@index/index"
+import { NEW_NOTE_MIN_ZOOM, NewNoteRoute } from "@index/new-note"
+import { routerNavigate, routerRoute } from "@index/router"
+import { effect } from "@preact/signals"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
-
-export const NEW_NOTE_MIN_ZOOM = 12
-
-export const newNoteControlActive = signal(false)
 
 export class NewNoteControl implements IControl {
   public _container!: HTMLElement
@@ -34,18 +32,14 @@ export class NewNoteControl implements IControl {
 
     // Effect: Update button active state
     effect(() => {
-      button.classList.toggle("active", newNoteControlActive.value)
+      button.classList.toggle("active", routerRoute.value === NewNoteRoute)
     })
 
     // On button click, navigate to the new note page
     button.addEventListener("click", () => {
-      const isActive = button.classList.contains("active")
-      if (!isActive) {
-        routerNavigateStrict("/note/new")
-      } else {
-        routerNavigateStrict("/")
-      }
-      button.blur() // lose focus
+      const isActive = routerRoute.value === NewNoteRoute
+      routerNavigate(isActive ? IndexRoute : NewNoteRoute)
+      button.blur()
     })
 
     /** On map zoom, change button availability */

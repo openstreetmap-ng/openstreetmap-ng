@@ -1,15 +1,11 @@
 import { fromBinary } from "@bufbuild/protobuf"
-import {
-  getActionSidebar,
-  LoadingSpinner,
-  SidebarHeader,
-  switchActionSidebar,
-} from "@index/_action-sidebar"
-import { ChangesetStats } from "@index/changeset"
-import type { RouteLoadReason } from "@index/router"
-import { routerNavigateStrict } from "@index/router"
+import { LoadingSpinner, SidebarHeader } from "@index/_action-sidebar"
+import { ChangesetRoute, ChangesetStats } from "@index/changeset"
+import { defineRoute, routerCtx, routerNavigate } from "@index/router"
+import { queryParam, routeParam } from "@lib/codecs"
 import { darkenColor } from "@lib/color"
 import { Time } from "@lib/datetime-inputs"
+import { type Scheduled, useDisposeEffect } from "@lib/dispose-scope"
 import { tRich } from "@lib/i18n"
 import {
   boundsEqual,
@@ -23,34 +19,29 @@ import {
 } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import {
-  addMapLayer,
   emptyFeatureCollection,
   getExtendedLayerId,
   type LayerId,
   layersConfig,
-  removeMapLayer,
 } from "@lib/map/layers/layers.ts"
 import { convertRenderChangesetsData, renderObjects } from "@lib/map/render-objects.ts"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import {
   type RenderChangesetsData_Changeset,
   RenderChangesetsDataSchema,
 } from "@lib/proto/shared_pb"
-import { qsEncode, qsParse } from "@lib/qs"
+import { qsEncode } from "@lib/qs"
 import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
 import {
   batch,
   type ReadonlySignal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
-import { throttle } from "@std/async/unstable-throttle"
 import { minBy } from "@std/collections/min-by"
 import { SECOND } from "@std/datetime/constants"
 import { t } from "i18next"
@@ -61,8 +52,7 @@ import {
   type MapLayerMouseEvent,
   type Map as MaplibreMap,
 } from "maplibre-gl"
-import { render } from "preact"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 
 // --- Constants ---
 
@@ -147,23 +137,18 @@ const pickSmallestBoundsFeature = (features: MapGeoJSONFeature[]) =>
 
 const ChangesetsHistorySidebar = ({
   map,
-  active,
+  date,
   scope,
   displayName,
-  reason,
-  sidebar,
 }: {
   map: MaplibreMap
-  active: ReadonlySignal<boolean>
-  scope: ReadonlySignal<string | undefined>
+  date: ReadonlySignal<string | undefined>
+  scope: ReadonlySignal<"nearby" | "friends" | undefined>
   displayName: ReadonlySignal<string | undefined>
-  reason: ReadonlySignal<RouteLoadReason | undefined>
-  sidebar: HTMLElement
 }) => {
   const changesets = useSignal<RenderChangesetsData_Changeset[]>([])
   const loading = useSignal(false)
   const noMoreChangesets = useSignal(false)
-  const dateFilter = useSignal<string | undefined>(undefined)
   const hoveredChangesetId = useSignal<string | null>(null)
   const showScrollTop = useSignal(false)
   const showScrollBottom = useSignal(false)
@@ -185,8 +170,12 @@ const ChangesetsHistorySidebar = ({
     return { html: title, plain: title }
   })
 
+  setPageTitle(sidebarTitle.value.plain)
+
   // Refs - DOM
-  const parentSidebar = sidebar.closest("div.sidebar")! as HTMLElement
+  const parentSidebar = document
+    .getElementById("ActionSidebar")!
+    .closest("div.sidebar")!
   const loadMoreSentinel = useRef<HTMLDivElement>(null)
 
   // Refs - Data mappings
@@ -199,7 +188,9 @@ const ChangesetsHistorySidebar = ({
   const fetchedContext = useRef<{
     bounds: LngLatBounds | null
     date: string | undefined
-  }>({ bounds: null, date: undefined })
+    scope: "nearby" | "friends" | undefined
+    displayName: string | undefined
+  }>({ bounds: null, date: undefined, scope: undefined, displayName: undefined })
 
   // Refs - Visibility tracking
   const hiddenBefore = useRef(0)
@@ -210,6 +201,8 @@ const ChangesetsHistorySidebar = ({
   const hoveredFeature = useRef<MapGeoJSONFeature | null>(null)
   const sidebarHoverAbort = useRef<AbortController | null>(null)
   const scrollDelayAbort = useRef<AbortController | null>(null)
+  const scheduleLayersVisibilityUpdateFn = useRef<Scheduled<() => void> | null>(null)
+  const scheduleCheckLoadMoreFn = useRef<Scheduled<() => void> | null>(null)
 
   // --- Core Functions ---
 
@@ -224,6 +217,12 @@ const ChangesetsHistorySidebar = ({
       showScrollTop.value = false
       showScrollBottom.value = false
     })
+    fetchedContext.current = {
+      bounds: null,
+      date: undefined,
+      scope: undefined,
+      displayName: undefined,
+    }
     idChangesetMap.current.clear()
     idFirstFeatureIdMap.current.clear()
     idSidebarMap.current.clear()
@@ -321,7 +320,8 @@ const ChangesetsHistorySidebar = ({
 
     // Fit bounds on first load for scoped views (user/nearby/friends)
     const shouldFit =
-      reason.value === "navigation" && Boolean(scope.value || displayName.value)
+      routerCtx.value.reason === "navigation" &&
+      Boolean(scope.value || displayName.value)
     if (shouldFit && visibleChangesetsBounds.current && isFirstLoad)
       map.fitBounds(boundsPadding(visibleChangesetsBounds.current, 0.3), {
         maxZoom: 16,
@@ -369,62 +369,56 @@ const ChangesetsHistorySidebar = ({
     })
   }
 
-  const updateLayersVisibility = throttle(
-    () => {
-      if (!active.value) return
+  const updateLayersVisibilityNow = () => {
+    const sidebarRect = parentSidebar.getBoundingClientRect()
+    const csList = changesets.value
 
-      const sidebarRect = parentSidebar.getBoundingClientRect()
-      const csList = changesets.value
+    // Calculate visibility for each changeset (backwards for early exit on hidden-above)
+    let newHiddenBefore = 0
+    let newHiddenAfter = 0
+    let foundVisible = false
+    const featureUpdates: [string, number, ScrollState["state"], number][] = []
 
-      // Calculate visibility for each changeset (backwards for early exit on hidden-above)
-      let newHiddenBefore = 0
-      let newHiddenAfter = 0
-      let foundVisible = false
-      const featureUpdates: [string, number, ScrollState["state"], number][] = []
+    for (let i = csList.length - 1; i >= 0; i--) {
+      const changeset = csList[i]
+      const changesetId = changeset.id.toString()
+      const element = idSidebarMap.current.get(changesetId)
+      if (!element) continue
 
-      for (let i = csList.length - 1; i >= 0; i--) {
-        const changeset = csList[i]
-        const changesetId = changeset.id.toString()
-        const element = idSidebarMap.current.get(changesetId)
-        if (!element) continue
+      const { state, distance } = getElementScrollState(
+        element.getBoundingClientRect(),
+        sidebarRect,
+      )
+      const hidden = state !== "visible" && distanceOpacity(distance) < 0.05
 
-        const { state, distance } = getElementScrollState(
-          element.getBoundingClientRect(),
-          sidebarRect,
-        )
-        const hidden = state !== "visible" && distanceOpacity(distance) < 0.05
-
-        if (!foundVisible && hidden) {
-          newHiddenAfter++
-        } else if (!hidden) {
-          foundVisible = true
-          featureUpdates.push([changesetId, changeset.bounds.length, state, distance])
-        } else {
-          // foundVisible && hidden → all remaining are hidden above
-          newHiddenBefore = i + 1
-          break
-        }
+      if (!foundVisible && hidden) {
+        newHiddenAfter++
+      } else if (!hidden) {
+        foundVisible = true
+        featureUpdates.push([changesetId, changeset.bounds.length, state, distance])
+      } else {
+        // foundVisible && hidden → all remaining are hidden above
+        newHiddenBefore = i + 1
+        break
       }
+    }
 
-      // Update map layers if hidden ranges changed
-      if (
-        newHiddenBefore !== hiddenBefore.current ||
-        newHiddenAfter !== hiddenAfter.current
-      ) {
-        hiddenBefore.current = newHiddenBefore
-        hiddenAfter.current = newHiddenAfter
-        updateLayers()
-      }
+    // Update map layers if hidden ranges changed
+    if (
+      newHiddenBefore !== hiddenBefore.current ||
+      newHiddenAfter !== hiddenAfter.current
+    ) {
+      hiddenBefore.current = newHiddenBefore
+      hiddenAfter.current = newHiddenAfter
+      updateLayers()
+    }
 
-      // Apply feature state updates
-      for (const [id, numBounds, state, distance] of featureUpdates)
-        updateFeatureState(id, numBounds, state, distance)
+    // Apply feature state updates
+    for (const [id, numBounds, state, distance] of featureUpdates)
+      updateFeatureState(id, numBounds, state, distance)
 
-      updateScrollIndicators(sidebarRect)
-    },
-    50,
-    { ensureLastCall: true },
-  )
+    updateScrollIndicators(sidebarRect)
+  }
 
   // --- Fetch Logic ---
 
@@ -438,48 +432,63 @@ const ChangesetsHistorySidebar = ({
   const determineFetchAction = (
     fetchBounds: LngLatBounds | null,
     fetchDate: string | undefined,
+    fetchScope: "nearby" | "friends" | undefined,
+    fetchDisplayName: string | undefined,
   ) => {
     const ctx = fetchedContext.current
-    const boundsMatch = boundsEqual(ctx.bounds, fetchBounds)
-    const dateMatch = ctx.date === fetchDate
+    const ctxMatch =
+      ctx.date === fetchDate &&
+      ctx.scope === fetchScope &&
+      ctx.displayName === fetchDisplayName
 
-    if (boundsMatch && dateMatch) {
+    if (ctxMatch && boundsEqual(ctx.bounds, fetchBounds)) {
       return noMoreChangesets.value ? "skip" : "paginate"
     }
-    if (ctx.bounds && fetchBounds && dateMatch) {
+    if (ctxMatch && ctx.bounds && fetchBounds) {
       return shouldReloadForBounds(ctx.bounds, fetchBounds) ? "reload" : "skip"
     }
     return "reload"
   }
 
-  const buildFetchParams = (fetchBounds: LngLatBounds | null, fetchDate?: string) => {
+  const buildFetchParams = (
+    fetchBounds: LngLatBounds | null,
+    fetchDate: string | undefined,
+    fetchScope: "nearby" | "friends" | undefined,
+    fetchDisplayName: string | undefined,
+  ) => {
     const params: Record<string, string | undefined> = { date: fetchDate }
     if (fetchBounds) params.bbox = boundsToString(fetchBounds)
-    params.scope = scope.value
-    params.display_name = displayName.value
+    params.scope = fetchScope
+    params.display_name = fetchDisplayName
     return params
   }
 
   const fetchChangesets = async (options?: { fromMapMove?: boolean }) => {
-    if (!active.value) return
-
     // Determine fetch bounds and date
-    const isScoped = Boolean(scope.value || displayName.value)
-    const fetchBounds =
-      fetchedContext.current.bounds || !isScoped ? map.getBounds() : null
+    const fetchDate = date.value
+    const fetchScope = scope.value
+    const fetchDisplayName = displayName.value
+    const isScoped = Boolean(fetchScope || fetchDisplayName)
+    const fetchBounds = isScoped ? null : map.getBounds()
     if (options?.fromMapMove && !fetchBounds) return
 
-    const urlParams = qsParse(window.location.search)
-    const fetchDate = urlParams.date
-    dateFilter.value = fetchDate
-
     // Determine action based on context change
-    const action = determineFetchAction(fetchBounds, fetchDate)
+    const action = determineFetchAction(
+      fetchBounds,
+      fetchDate,
+      fetchScope,
+      fetchDisplayName,
+    )
     if (action === "skip") return
     if (action === "reload") resetChangesets()
 
     // Build request params
-    const params = buildFetchParams(fetchBounds, fetchDate)
+    const params = buildFetchParams(
+      fetchBounds,
+      fetchDate,
+      fetchScope,
+      fetchDisplayName,
+    )
     if (action === "paginate" && changesets.value.length) {
       params.before = changesets.value.at(-1)!.id.toString()
     }
@@ -498,6 +507,7 @@ const ChangesetsHistorySidebar = ({
       assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
       const buffer = await resp.arrayBuffer()
+      thisAbort.signal.throwIfAborted()
       const newChangesets = fromBinary(
         RenderChangesetsDataSchema,
         new Uint8Array(buffer),
@@ -513,13 +523,18 @@ const ChangesetsHistorySidebar = ({
           loading.value = false
 
           updateLayers(isFirstLoad)
-          requestAnimationFramePolyfill(updateLayersVisibility)
-          requestAnimationFramePolyfill(checkLoadMore)
+          scheduleLayersVisibilityUpdateFn.current?.()
+          scheduleCheckLoadMoreFn.current?.()
         } else {
           noMoreChangesets.value = true
         }
 
-        fetchedContext.current = { bounds: fetchBounds, date: fetchDate }
+        fetchedContext.current = {
+          bounds: fetchBounds,
+          date: fetchDate,
+          scope: fetchScope,
+          displayName: fetchDisplayName,
+        }
         loading.value = false
       })
     } catch (error) {
@@ -552,8 +567,9 @@ const ChangesetsHistorySidebar = ({
     const element = idSidebarMap.current.get(id)
     element?.classList.toggle("hover", hover)
 
-    if (hover && scrollIntoView && element)
+    if (hover && scrollIntoView) {
       scrollElementIntoView(parentSidebar, element)
+    }
 
     const firstFeatureId = idFirstFeatureIdMap.current.get(id)
     if (!firstFeatureId) return
@@ -672,63 +688,48 @@ const ChangesetsHistorySidebar = ({
     clearMapHover(map, LAYER_ID)
   }
 
-  // Effect: Page title
-  useSignalEffect(() => {
-    if (!active.value) return
-
-    setPageTitle(sidebarTitle.value.plain)
-  })
+  const onMapClick = (e: MapLayerMouseEvent) => {
+    const id = pickSmallestBoundsFeature(e.features!).properties.id
+    routerNavigate(ChangesetRoute, { id: BigInt(id) })
+  }
 
   // Effect: Map lifecycle and event handlers
-  useSignalEffect(() => {
-    if (!active.value) return
+  useDisposeEffect((scope) => {
+    scheduleLayersVisibilityUpdateFn.current = scope.frame(updateLayersVisibilityNow)
+    scheduleCheckLoadMoreFn.current = scope.frame(checkLoadMore)
 
-    switchActionSidebar(map, sidebar)
-    addMapLayer(map, LAYER_ID)
-    addMapLayer(map, LAYER_ID_BORDERS)
-
-    const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
-
-    const onMoveEnd = () => fetchChangesets({ fromMapMove: true })
-    const onZoomEnd = () => updateLayers()
-    const onMapClick = (e: MapLayerMouseEvent) => {
-      routerNavigateStrict(
-        `/changeset/${pickSmallestBoundsFeature(e.features!).properties.id}`,
-      )
-    }
-
-    map.on("moveend", onMoveEnd)
-    map.on("zoomend", onZoomEnd)
-    map.on("mousemove", fillLayerId, onMapMouseMove)
-    map.on("mouseleave", fillLayerId, onMapMouseLeave)
-    map.on("click", fillLayerId, onMapClick)
-
-    return () => {
-      map.off("moveend", onMoveEnd)
-      map.off("zoomend", onZoomEnd)
-      map.off("mousemove", fillLayerId, onMapMouseMove)
-      map.off("mouseleave", fillLayerId, onMapMouseLeave)
-      map.off("click", fillLayerId, onMapClick)
-
-      removeMapLayer(map, LAYER_ID)
-      removeMapLayer(map, LAYER_ID_BORDERS)
+    scope.defer(() => {
       resetChangesets()
+      scheduleLayersVisibilityUpdateFn.current = null
+      scheduleCheckLoadMoreFn.current = null
+    })
 
-      fetchedContext.current = { bounds: null, date: undefined }
-    }
-  })
+    scope.mapLayerLifecycle(map, LAYER_ID)
+    scope.mapLayerLifecycle(map, LAYER_ID_BORDERS)
+    const fillLayerId = getExtendedLayerId(LAYER_ID, "fill")
+    scope.mapLayer(map, "mousemove", fillLayerId, onMapMouseMove)
+    scope.mapLayer(map, "mouseleave", fillLayerId, onMapMouseLeave)
+    scope.mapLayer(map, "click", fillLayerId, onMapClick)
 
-  // Effect: Initial data fetch (triggers on scope/displayName change)
+    scope.map(map, "moveend", () => fetchChangesets({ fromMapMove: true }))
+    scope.map(map, "zoomend", () => updateLayers())
+
+    scope.dom(parentSidebar, "scroll", () =>
+      scheduleLayersVisibilityUpdateFn.current?.(),
+    )
+  }, [])
+
+  // Effect: Initial data fetch + refetch on context change.
   useSignalEffect(() => {
-    if (!active.value) return
+    date.value
     scope.value
     displayName.value
     fetchChangesets()
   })
 
   // Effect: Infinite scroll observer
-  useSignalEffect(() => {
-    if (!(active.value && loadMoreSentinel.current)) return
+  useEffect(() => {
+    if (!loadMoreSentinel.current) return
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -740,23 +741,16 @@ const ChangesetsHistorySidebar = ({
     )
     observer.observe(loadMoreSentinel.current)
     return () => observer.disconnect()
-  })
-
-  // Effect: Scroll-based visibility updates
-  useSignalEffect(() => {
-    if (!active.value) return
-    parentSidebar.addEventListener("scroll", updateLayersVisibility)
-    return () => parentSidebar.removeEventListener("scroll", updateLayersVisibility)
-  })
+  }, [])
 
   return (
     <div class="sidebar-content">
       <div class="section">
         <SidebarHeader title={sidebarTitle.value.html} />
 
-        {dateFilter.value && (
+        {date.value && (
           <div class="alert alert-info py-2 px-3 mb-3 date-filter">
-            <DateFilter date={dateFilter.value} />
+            <DateFilter date={date.value} />
           </div>
         )}
 
@@ -790,14 +784,12 @@ const ChangesetsHistorySidebar = ({
 }
 
 const DateFilter = ({ date }: { date: string }) => {
-  const params = qsParse(window.location.search)
-  const href = `${window.location.pathname}${qsEncode({ ...params, date: undefined })}`
   return (
     <>
       <span>{t("changeset.viewing_edits_from_date", { date })}</span>
       <a
         class="btn btn-sm btn-link btn-close"
-        href={href}
+        href={routerCtx.value.pathname}
         title={t("action.remove_filter")}
       >
         <span class="visually-hidden">{t("action.remove_filter")}</span>
@@ -879,34 +871,13 @@ const ChangesetEntry = ({
   )
 }
 
-export const getChangesetsHistoryController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("changesets-history")
-  const active = signal(false)
-  const scope = signal<string | undefined>(undefined)
-  const displayName = signal<string | undefined>(undefined)
-  const reason = signal<RouteLoadReason | undefined>(undefined)
-
-  render(
-    <ChangesetsHistorySidebar
-      map={map}
-      active={active}
-      scope={scope}
-      displayName={displayName}
-      reason={reason}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: (matchGroups: Record<string, string>, r?: RouteLoadReason) => {
-      scope.value = matchGroups.scope
-      displayName.value = matchGroups.displayName
-      reason.value = r
-      active.value = true
-    },
-    unload: () => {
-      active.value = false
-    },
-  }
-}
+export const ChangesetsHistoryRoute = defineRoute({
+  id: "changesets-history",
+  path: ["/history", "/history/:scope", "/user/:displayName/history"],
+  params: {
+    scope: routeParam.optional(routeParam.enum(["nearby", "friends"])),
+    displayName: routeParam.optional(routeParam.segment()),
+  },
+  query: { date: queryParam.string() },
+  Component: ChangesetsHistorySidebar,
+})

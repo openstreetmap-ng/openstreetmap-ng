@@ -1,6 +1,8 @@
 // Encoded Polyline Algorithm Format
 // https://developers.google.com/maps/documentation/utilities/polylinealgorithm
 
+export type Polyline = readonly (readonly [lon: number, lat: number])[]
+
 const CHUNK_BITS = 5
 const CHUNK_MASK = (1 << CHUNK_BITS) - 1
 const CONTINUATION_BIT = 1 << CHUNK_BITS
@@ -14,7 +16,29 @@ const ASCII_OFFSET = 63
  */
 const roundPy2 = (value: number) => (value + (value < 0 ? -0.5 : 0.5)) | 0
 
-export const encodeLonLat = (coords: [number, number][], precision: number) => {
+export const polylineEquals = (
+  a: Polyline | undefined,
+  b: Polyline | undefined,
+  precision: number,
+) => {
+  if (a === undefined) return b === undefined
+  if (b === undefined) return false
+  if (a.length !== b.length) return false
+
+  const factor = 10 ** precision
+  for (let i = 0; i < a.length; i++) {
+    const pa = a[i]
+    const pb = b[i]
+    if (
+      roundPy2(pa[0] * factor) !== roundPy2(pb[0] * factor) ||
+      roundPy2(pa[1] * factor) !== roundPy2(pb[1] * factor)
+    )
+      return false
+  }
+  return true
+}
+
+export const polylineEncode = (line: Polyline, precision: number) => {
   const factor = 10 ** precision
   let out = ""
   let prevLatInt = 0
@@ -31,7 +55,7 @@ export const encodeLonLat = (coords: [number, number][], precision: number) => {
     out += String.fromCharCode(coord + ASCII_OFFSET)
   }
 
-  for (const [lon, lat] of coords) {
+  for (const [lon, lat] of line) {
     const latInt = roundPy2(lat * factor)
     const lonInt = roundPy2(lon * factor)
     encodeDelta(latInt - prevLatInt)
@@ -42,7 +66,7 @@ export const encodeLonLat = (coords: [number, number][], precision: number) => {
   return out
 }
 
-export const decodeLonLat = (line: string, precision: number) => {
+export const polylineDecode = (line: string, precision: number) => {
   const len = line.length
   const invFactor = 1 / 10 ** precision
   const coords: [number, number][] = []
@@ -67,5 +91,5 @@ export const decodeLonLat = (line: string, precision: number) => {
     lon += decodeDelta()
     coords.push([lon * invFactor, lat * invFactor])
   }
-  return coords
+  return coords satisfies Polyline
 }

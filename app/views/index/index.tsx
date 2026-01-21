@@ -1,12 +1,11 @@
-import { getActionSidebar, switchActionSidebar } from "@index/_action-sidebar"
-import { searchFormQuery } from "@index/search-form"
+import { defineRoute } from "@index/router"
+import { searchFormQuery } from "@index/search"
 import { isLoggedIn } from "@lib/config"
 import { tRich } from "@lib/i18n"
 import { bannerHidden } from "@lib/local-storage"
 import { setPageTitle } from "@lib/title"
 import { t } from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
+import { useEffect } from "preact/hooks"
 
 const WelcomeBanner = () => {
   const hidden = bannerHidden("welcome")
@@ -114,27 +113,28 @@ const ImageBanner = ({
   )
 }
 
-const IndexSidebar = () => (
-  <div class="sidebar-content">
-    <WelcomeBanner />
-    <ImageBanner
-      name="example2"
-      href="https://example.com"
-      src="/static/img/banner/example2.webp"
-    />
-  </div>
-)
+const IndexSidebar = () => {
+  setPageTitle()
 
-export const getIndexController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("index")
-  render(<IndexSidebar />, sidebar)
+  useEffect(() => {
+    searchFormQuery.value = ""
+  }, [])
 
-  return {
-    load: () => {
-      switchActionSidebar(map, sidebar)
-      setPageTitle()
-      searchFormQuery.value = ""
-    },
-    unload: () => {},
-  }
+  return (
+    <div class="sidebar-content">
+      <WelcomeBanner />
+      <ImageBanner
+        name="example2"
+        href="https://example.com"
+        src="/static/img/banner/example2.webp"
+      />
+    </div>
+  )
 }
+
+export const IndexRoute = defineRoute({
+  id: "index",
+  path: "/",
+  sidebarOverlay: true,
+  Component: IndexSidebar,
+})

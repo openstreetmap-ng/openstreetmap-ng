@@ -1,13 +1,10 @@
-import {
-  getActionSidebar,
-  SidebarContent,
-  SidebarHeader,
-  switchActionSidebar,
-  useSidebarFetch,
-} from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
+import { defineRoute } from "@index/router"
+import { routeParam } from "@lib/codecs"
 import { API_URL, config, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
@@ -34,14 +31,12 @@ import type { OSMChangeset } from "@lib/types"
 import {
   type ReadonlySignal,
   type Signal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 
 const focusPaint: FocusLayerPaint = {
@@ -144,10 +139,9 @@ const SubscriptionForm = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    const disposeForm = configureStandardForm(formRef.current, () => {
+    return configureStandardForm(formRef.current, () => {
       isSubscribed.value = !isSubscribed.value
     })
-    return () => disposeForm?.()
   }, [])
 
   return (
@@ -185,7 +179,7 @@ const CommentForm = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    const disposeForm = configureStandardForm<ChangesetCommentResult>(
+    return configureStandardForm<ChangesetCommentResult>(
       formRef.current,
       (result, headers) => {
         formRef.current!.reset()
@@ -196,7 +190,6 @@ const CommentForm = ({
       },
       { protobuf: ChangesetCommentResultSchema },
     )
-    return () => disposeForm?.()
   }, [])
 
   return (
@@ -311,7 +304,7 @@ const ChangesetElementRow = ({
   type: ElementType
 }) => {
   const idStr = element.id.toString()
-  const typeSlug = ElementType[type] as "node" | "way" | "relation"
+  const typeSlug = ElementType[type] as keyof typeof ElementType
   return (
     <ElementsListRow
       href={`/${typeSlug}/${idStr}`}
@@ -335,19 +328,19 @@ const ChangesetElementRow = ({
 const ChangesetSidebar = ({
   map,
   id,
-  sidebar,
 }: {
   map: MaplibreMap
-  id: ReadonlySignal<string | null>
-  sidebar: HTMLElement
+  id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<PaginationResponse<ChangesetCommentPage> | null>(
     null,
   )
 
-  const url = useComputed(() => (id.value ? `/api/web/changeset/${id.value}` : null))
-  const { resource, data } = useSidebarFetch(url, ChangesetDataSchema)
+  const { resource, data } = useSidebarFetch(
+    useComputed(() => `/api/web/changeset/${id.value}`),
+    ChangesetDataSchema,
+  )
 
   // Effect: Sync derived state
   useSignalEffect(() => {
@@ -359,12 +352,6 @@ const ChangesetSidebar = ({
       isSubscribed.value = d.isSubscribed
       setPageTitle(`${t("browse.in_changeset")}: ${d.id}`)
     }
-  })
-
-  // Effect: Clear preloaded comments on URL change
-  useSignalEffect(() => {
-    url.value
-    preloadedComments.value = null
   })
 
   const refocus = (initial = false) => {
@@ -381,22 +368,12 @@ const ChangesetSidebar = ({
   }
 
   // Effect: Map focus
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     if (!data.value?.bounds.length) return
 
-    const onZoom = () => refocus()
-    map.on("zoomend", onZoom)
+    scope.defer(() => focusObjects(map))
+    scope.map(map, "zoomend", () => refocus())
     refocus(true)
-
-    return () => {
-      map.off("zoomend", onZoom)
-      focusObjects(map)
-    }
-  })
-
-  // Effect: Sidebar visibility
-  useSignalEffect(() => {
-    if (id.value) switchActionSidebar(map, sidebar)
   })
 
   return (
@@ -405,7 +382,7 @@ const ChangesetSidebar = ({
       notFound={() =>
         t("browse.not_found.sorry", {
           type: t("browse.in_changeset").toLowerCase(),
-          id: id.value!,
+          id: id.toString(),
         })
       }
     >
@@ -530,25 +507,9 @@ const ChangesetSidebar = ({
   )
 }
 
-export const getChangesetController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("changeset")
-  const id = signal<string | null>(null)
-
-  render(
-    <ChangesetSidebar
-      map={map}
-      id={id}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: (matchGroups: Record<string, string>) => {
-      id.value = matchGroups.id
-    },
-    unload: () => {
-      id.value = null
-    },
-  }
-}
+export const ChangesetRoute = defineRoute({
+  id: "changeset",
+  path: ["/changeset/:id", "/changeset/:id/unsubscribe"],
+  params: { id: routeParam.positive() },
+  Component: ChangesetSidebar,
+})
