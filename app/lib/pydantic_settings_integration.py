@@ -14,8 +14,9 @@ def pydantic_settings_integration(
     caller_globals: dict[str, Any],
     /,
     config: SettingsConfigDict = BaseSettings.model_config,
-    name_filter: Callable[[str], bool] = lambda name: name[:1] != '_'
-    and name.isupper(),
+    name_filter: Callable[[str], bool] = (
+        lambda name: name[:1] != '_' and name.isupper()
+    ),
 ) -> None:
     """
     Introspects the calling module's globals, creates a dynamic Pydantic

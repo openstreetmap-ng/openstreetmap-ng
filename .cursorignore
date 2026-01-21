@@ -1,7 +1,0 @@
-*.xcf
-.github/copilot*
-config/locale/download/
-!config/locale/download/en.yaml
-resources/
-spec/
-typings/

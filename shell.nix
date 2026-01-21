@@ -202,6 +202,7 @@ let
       rustup
       shfmt
       timescaledb-parallel-copy
+      tombi
       uv
       zstd
 

@@ -300,7 +300,8 @@ async def _load_tables(mode: _Mode) -> None:
                 for chunk in await _filter_index_chunks(name, chunks):
                     chunk_name = f'{chunk.table_name}_{name}'
                     chunk_sql = SQL(
-                        sql.as_string()
+                        sql
+                        .as_string()
                         .replace(name, chunk_name)
                         .replace(
                             f'public.{table}', f'{chunk.schema_name}.{chunk.table_name}'

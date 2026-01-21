@@ -32,12 +32,13 @@ format_files() {
 
 run_formatters() {
   format_files '*.nix' -- nixfmt
-  format_files '*.sh' -- shfmt -w
   format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
   format_files '*.py' '*.pyi' -- ruff format --force-exclude
   format_files '*.scss' -- bunx prettier --cache --write
+  format_files '*.sh' -- shfmt -w
   format_files '*.sql' -- bunx sql-formatter --fix
-  format_files '*.ts' '*.tsx' '*.js' '*.json' -- biome format --write --no-errors-on-unmatched
+  format_files '*.toml' -- tombi format
+  format_files '*.ts' '*.tsx' '*.json' -- biome format --write --no-errors-on-unmatched
   (cd speedup && cargo fmt)
 }
 
