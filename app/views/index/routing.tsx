@@ -96,13 +96,12 @@ const ROUTING_ENGINES = memoize(() => [
 
 export const ROUTING_QUERY_PRECISION = zoomPrecision(19)
 
-type RouteSegmentView = {
-  id: number
+type RouteInstructionView = {
   iconNum: number
   text: string
   distanceText: string
-  end: [number, number]
-  bounds: LngLatBounds
+  point: [number, number]
+  segmentBounds: LngLatBounds
 }
 
 type RouteElevationView = {
@@ -114,7 +113,7 @@ type RouteView = {
   distanceText: string
   timeText: string
   elevation: RouteElevationView | null
-  segments: RouteSegmentView[]
+  instructions: RouteInstructionView[]
   attribution: RoutingResult_Attribution
 }
 
@@ -137,11 +136,12 @@ type EndpointState = {
   loaded: LoadedEndpoint | null
 }
 
-const findSegmentId = (features: MapGeoJSONFeature[] | undefined) => {
+const findInstructionId = (features: MapGeoJSONFeature[] | undefined) => {
   if (features)
     for (const feature of features) {
       const { id } = feature
-      if (typeof id === "number" && id >= 0) return id
+      // We index segment features by the instruction they lead into (1..N-1).
+      if (typeof id === "number" && id > 0) return id
     }
   return null
 }
@@ -158,10 +158,13 @@ const computeRouteRender = (route: RoutingResult) => {
       geometry: { type: "LineString", coordinates: allCoords },
     })
 
-  const segments: RouteSegmentView[] = []
+  const instructions: RouteInstructionView[] = []
   let totalDistance = 0
   let totalTime = 0
   let coordsSliceStart = 0
+  let prevSegmentBounds: LngLatBounds | undefined
+
+  const lastStepIndex = route.steps.length - 1
 
   for (const [stepIndex, step] of route.steps.entries()) {
     totalDistance += step.distance
@@ -169,33 +172,36 @@ const computeRouteRender = (route: RoutingResult) => {
 
     const stepCoords = allCoords.slice(
       coordsSliceStart,
-      coordsSliceStart + step.numCoords,
+      coordsSliceStart + (step.numCoords || 1),
     )
     if (step.numCoords) coordsSliceStart += step.numCoords - 1
 
-    if (stepCoords.length <= 1) continue
+    const point = stepCoords[0]
+    const pointBounds = new LngLatBounds([point, point])
 
-    const end = stepCoords[stepCoords.length - 1]
-    const bounds = stepCoords.reduce(
-      (bounds, coord) => bounds.extend(coord),
-      new LngLatBounds(),
-    )
-
-    segments.push({
-      id: stepIndex,
+    instructions.push({
       iconNum: step.iconNum,
       text: step.text,
       distanceText: formatDistanceRounded(step.distance),
-      end,
-      bounds,
+      point,
+      segmentBounds: prevSegmentBounds ?? pointBounds,
     })
 
-    features.push({
-      type: "Feature",
-      id: stepIndex,
-      properties: {},
-      geometry: { type: "LineString", coordinates: stepCoords },
-    })
+    if (stepCoords.length > 1) {
+      prevSegmentBounds = stepCoords.reduce(
+        (bounds, coord) => bounds.extend(coord),
+        new LngLatBounds(),
+      )
+      if (stepIndex < lastStepIndex)
+        features.push({
+          type: "Feature",
+          id: stepIndex + 1,
+          properties: {},
+          geometry: { type: "LineString", coordinates: stepCoords },
+        })
+    } else {
+      prevSegmentBounds = pointBounds
+    }
   }
 
   return {
@@ -212,7 +218,7 @@ const computeRouteRender = (route: RoutingResult) => {
             descendText: formatHeight(route.elevation.descend),
           }
         : null,
-      segments,
+      instructions,
       attribution: route.attribution!,
     } satisfies RouteView,
   }
@@ -257,18 +263,17 @@ const RoutingSidebar = ({
 
   const loading = useSignal(false)
   const routeView = useSignal<RouteView | null>(null)
-  const hoverSegmentId = useSignal<number | null>(null)
-
-  const contentRef = useRef<HTMLDivElement>(null)
+  const activeInstructionId = useSignal<number | null>(null)
+  const activeFeatureIdRef = useRef<number | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const engineInputId = useId()
 
   const startInputId = useId()
-  const startInputRef = useRef<HTMLInputElement>(null)
+  const startDisplay = useSignal(from.peek() ?? "")
 
   const endInputId = useId()
-  const endInputRef = useRef<HTMLInputElement>(null)
+  const endDisplay = useSignal(to.peek() ?? "")
 
   const endpoints = useRef<Record<EndpointDir, EndpointState>>({
     start: { marker: null, loaded: null },
@@ -282,7 +287,7 @@ const RoutingSidebar = ({
     instruction: HTMLSpanElement
   } | null>(null)
 
-  const sidebarMouse = useRef<[number, number] | null>(null)
+  const sidebarPointerRef = useRef<[number, number] | null>(null)
 
   const parentSidebar = document
     .getElementById("ActionSidebar")!
@@ -290,7 +295,7 @@ const RoutingSidebar = ({
 
   const clearRouteResults = () => {
     popup.current?.remove()
-    updateHover(null)
+    setActiveInstructionId(null)
     clearMapHover(map, LAYER_ID)
     routeView.value = null
     source.setData(emptyFeatureCollection)
@@ -301,12 +306,9 @@ const RoutingSidebar = ({
     to: undefined,
   })
 
-  const getEndpointValue = (dir: EndpointDir) =>
-    (dir === "start" ? startInputRef.current : endInputRef.current)?.value ?? ""
-
-  const setEndpointValue = (dir: EndpointDir, value: string) => {
-    const input = dir === "start" ? startInputRef.current : endInputRef.current
-    if (input) input.value = value
+  const setEndpointDisplay = (dir: EndpointDir, value: string) => {
+    if (dir === "start") startDisplay.value = value
+    else endDisplay.value = value
   }
 
   const setUrlEndpoint = (dir: EndpointDir, value: string | undefined) => {
@@ -341,7 +343,7 @@ const RoutingSidebar = ({
       lon: lngLat.lng,
       lat: lngLat.lat,
     }
-    setEndpointValue(dir, display)
+    setEndpointDisplay(dir, display)
     getMarker(dir).setLngLat(lngLat).addTo(map)
     setUrlEndpoint(dir, urlValue)
   }
@@ -350,7 +352,7 @@ const RoutingSidebar = ({
     const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
     const label = entry.name || query
     endpoints.current[dir].loaded = { query, label, lon: entry.lon, lat: entry.lat }
-    setEndpointValue(dir, label)
+    setEndpointDisplay(dir, label)
     getMarker(dir).setLngLat([entry.lon, entry.lat]).addTo(map)
   }
 
@@ -374,23 +376,59 @@ const RoutingSidebar = ({
     return endpoint.marker
   }
 
-  const updateHover = (segmentId: number | null, scrollIntoView = false) => {
-    const prev = hoverSegmentId.peek()
-    if (segmentId === prev) return
+  const setActiveInstructionId = (
+    instructionId: number | null,
+    scrollIntoView = false,
+  ) => {
+    const route = routeView.peek()
+    const nextId =
+      instructionId !== null && route?.instructions[instructionId]
+        ? instructionId
+        : null
+    const prevId = activeInstructionId.peek()
+    if (prevId === nextId && !scrollIntoView) return
 
-    if (prev !== null)
-      map.setFeatureState({ source: LAYER_ID, id: prev }, { hover: false })
-    hoverSegmentId.value = segmentId
+    activeInstructionId.value = nextId
 
-    if (segmentId === null) return
+    const nextFeatureId = nextId
+    const prevFeatureId = activeFeatureIdRef.current
+    if (prevFeatureId !== nextFeatureId) {
+      if (prevFeatureId !== null)
+        map.setFeatureState({ source: LAYER_ID, id: prevFeatureId }, { hover: false })
+      if (nextFeatureId !== null)
+        map.setFeatureState({ source: LAYER_ID, id: nextFeatureId }, { hover: true })
+      activeFeatureIdRef.current = nextFeatureId
+    }
 
-    if (scrollIntoView) {
-      const row = contentRef.current?.querySelector(
-        `tr[data-segment-id="${segmentId}"]`,
-      )
+    if (nextId !== null && scrollIntoView) {
+      const row = parentSidebar.querySelector(`tr[data-instruction-id="${nextId}"]`)
       scrollElementIntoView(parentSidebar, row)
     }
-    map.setFeatureState({ source: LAYER_ID, id: segmentId }, { hover: true })
+  }
+
+  const selectInstruction = (instructionId: number) => {
+    const route = routeView.value
+    const instruction = route?.instructions[instructionId]
+    if (!instruction) return
+
+    fitBoundsIfNeeded(map, instruction.segmentBounds, {
+      padBounds: 0.3,
+      maxZoom: 16,
+      animate: true,
+    })
+
+    popup.current ??= new Popup({
+      closeButton: false,
+      closeOnClick: false,
+      closeOnMove: true,
+      anchor: "bottom",
+      className: "route-steps",
+    })
+
+    const { root, number, instruction: instructionEl } = getOrCreatePopupContent()
+    number.textContent = `${instructionId + 1}.`
+    instructionEl.textContent = instruction.text
+    popup.current.setDOMContent(root).setLngLat(instruction.point).addTo(map)
   }
 
   const updateEndpoints = (data: RoutingResult) => {
@@ -460,8 +498,8 @@ const RoutingSidebar = ({
 
   const onReverseClick = () => {
     console.debug("Routing: Reverse clicked")
-    const startValue = getEndpointValue("start")
-    const endValue = getEndpointValue("end")
+    const startValue = startDisplay.value
+    const endValue = endDisplay.value
     const startUrl = from.peek()
     const endUrl = to.peek()
     const startLoaded = endpoints.current.start.loaded
@@ -489,39 +527,11 @@ const RoutingSidebar = ({
       endMarker.setLngLat(startLngLat)
     }
 
-    setEndpointValue("start", endValue)
-    setEndpointValue("end", startValue)
+    setEndpointDisplay("start", endValue)
+    setEndpointDisplay("end", startValue)
     setUrlEndpoint("start", endUrl)
     setUrlEndpoint("end", startUrl)
     submitFormIfFilled()
-  }
-
-  const handleSegmentClick = (segmentId: number | null, focus = false) => {
-    const route = routeView.value
-    if (!route) return
-    const segmentIndex = route.segments.findIndex((s) => s.id === segmentId)
-    if (segmentIndex === -1) return
-    const segment = route.segments[segmentIndex]
-
-    if (focus)
-      fitBoundsIfNeeded(map, segment.bounds, {
-        padBounds: 0.3,
-        maxZoom: 16,
-        animate: true,
-      })
-
-    popup.current ??= new Popup({
-      closeButton: false,
-      closeOnClick: false,
-      closeOnMove: true,
-      anchor: "bottom",
-      className: "route-steps",
-    })
-
-    const { root, number, instruction } = getOrCreatePopupContent()
-    number.textContent = `${segmentIndex + 1}.`
-    instruction.textContent = segment.text
-    popup.current.setDOMContent(root).setLngLat(segment.end).addTo(map)
   }
 
   const ensureMarkerFromInput = (dir: EndpointDir) => {
@@ -539,7 +549,6 @@ const RoutingSidebar = ({
   const resetState = () => {
     loading.value = false
     clearRouteResults()
-    sidebarMouse.current = null
     for (const dir of ENDPOINT_DIRS) {
       const endpoint = endpoints.current[dir]
       endpoint.marker?.remove()
@@ -596,21 +605,19 @@ const RoutingSidebar = ({
     scope.defer(disposeForm)
 
     // Event listeners
-    scope.map(map, "click", (e) => {
-      const segmentId = findSegmentId(
-        map.queryRenderedFeatures(e.point, { layers: [LAYER_ID] }),
-      )
-      popup.current?.remove()
-      handleSegmentClick(segmentId)
+    scope.mapLayer(map, "click", LAYER_ID, (e) => {
+      const instructionId = findInstructionId(e.features)
+      if (instructionId === null) return
+      selectInstruction(instructionId)
     })
     scope.mapLayer(map, "mousemove", LAYER_ID, (e) => {
-      const segmentId = findSegmentId(e.features)
+      const instructionId = findInstructionId(e.features)
       setMapHover(map, LAYER_ID)
-      updateHover(segmentId, true)
+      setActiveInstructionId(instructionId, true)
     })
     scope.mapLayer(map, "mouseleave", LAYER_ID, () => {
       clearMapHover(map, LAYER_ID)
-      updateHover(null)
+      setActiveInstructionId(null)
     })
 
     scope.dom(mapContainer, "dragover", (e) => e.preventDefault())
@@ -626,23 +633,26 @@ const RoutingSidebar = ({
 
     scope.dom(
       parentSidebar,
-      "mousemove",
-      (e) => (sidebarMouse.current = [e.clientX, e.clientY]),
+      "pointermove",
+      (e) => (sidebarPointerRef.current = [e.clientX, e.clientY]),
     )
-    scope.dom(parentSidebar, "mouseleave", () => (sidebarMouse.current = null))
+    scope.dom(parentSidebar, "pointerleave", () => (sidebarPointerRef.current = null))
 
     scope.dom(
       parentSidebar,
       "scroll",
       scope.frame(() => {
-        if (!sidebarMouse.current) return
-        const [x, y] = sidebarMouse.current
+        const lastPointer = sidebarPointerRef.current
+        if (!lastPointer) return
+
+        const [x, y] = lastPointer
         const r = parentSidebar.getBoundingClientRect()
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
-        const row = document.elementFromPoint(x, y)?.closest("tr[data-segment-id]")
-        updateHover(
+
+        const row = document.elementFromPoint(x, y)?.closest("tr[data-instruction-id]")
+        setActiveInstructionId(
           row instanceof HTMLElement
-            ? Number.parseInt(row.dataset.segmentId!, 10)
+            ? Number.parseInt(row.dataset.instructionId!, 10)
             : null,
         )
       }),
@@ -670,8 +680,8 @@ const RoutingSidebar = ({
     if (endpointsChanged) {
       resetState()
 
-      setEndpointValue("start", nextStart)
-      setEndpointValue("end", nextEnd)
+      setEndpointDisplay("start", nextStart)
+      setEndpointDisplay("end", nextEnd)
       lastAppliedUrl.current.from = from.value
       lastAppliedUrl.current.to = to.value
 
@@ -684,10 +694,7 @@ const RoutingSidebar = ({
   const routeValue = routeView.value
 
   return (
-    <div
-      ref={contentRef}
-      class="sidebar-content"
-    >
+    <div class="sidebar-content">
       <form
         class="section"
         method="POST"
@@ -704,14 +711,15 @@ const RoutingSidebar = ({
             <label for={startInputId}>{t("site.search.from")}</label>
             <input
               id={startInputId}
-              ref={startInputRef}
               type="text"
               class="form-control"
               required
-              defaultValue={from.peek() ?? ""}
+              value={startDisplay}
               onInput={(e) => {
                 endpoints.current.start.loaded = null
-                setUrlEndpoint("start", e.currentTarget.value)
+                const value = e.currentTarget.value
+                setEndpointDisplay("start", value)
+                setUrlEndpoint("start", value)
               }}
             />
           </div>
@@ -730,14 +738,15 @@ const RoutingSidebar = ({
             <label for={endInputId}>{t("site.search.to")}</label>
             <input
               id={endInputId}
-              ref={endInputRef}
               type="text"
               class="form-control"
               required
-              defaultValue={to.peek() ?? ""}
+              value={endDisplay}
               onInput={(e) => {
                 endpoints.current.end.loaded = null
-                setUrlEndpoint("end", e.currentTarget.value)
+                const value = e.currentTarget.value
+                setEndpointDisplay("end", value)
+                setUrlEndpoint("end", value)
               }}
             />
           </div>
@@ -844,22 +853,21 @@ const RoutingSidebar = ({
             </div>
 
             <table class="route-steps table table-sm align-middle mb-4">
-              <tbody>
-                {routeValue.segments.map((segment, segmentIndex) => (
+              <tbody onMouseLeave={() => setActiveInstructionId(null)}>
+                {routeValue.instructions.map((inst, instId) => (
                   <tr
-                    key={segment.id}
-                    data-segment-id={segment.id.toString()}
-                    class={hoverSegmentId.value === segment.id ? "hover" : ""}
-                    onClick={() => handleSegmentClick(segment.id, true)}
-                    onMouseEnter={() => updateHover(segment.id)}
-                    onMouseLeave={() => updateHover(null)}
+                    key={instId}
+                    data-instruction-id={instId.toString()}
+                    class={activeInstructionId.value === instId ? "hover" : ""}
+                    onClick={() => selectInstruction(instId)}
+                    onMouseEnter={() => setActiveInstructionId(instId)}
                   >
                     <td class="icon">
-                      <div class={`icon-${segment.iconNum} dark-filter-invert`} />
+                      <div class={`icon-${inst.iconNum} dark-filter-invert`} />
                     </td>
-                    <td class="number">{segmentIndex + 1}.</td>
-                    <td class="instruction">{segment.text}</td>
-                    <td class="distance">{segment.distanceText}</td>
+                    <td class="number">{instId + 1}.</td>
+                    <td class="instruction">{inst.text}</td>
+                    <td class="distance">{inst.distanceText}</td>
                   </tr>
                 ))}
               </tbody>
