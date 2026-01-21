@@ -19,6 +19,7 @@ import {
   layersConfig,
 } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
+import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { polylineDecode } from "@lib/polyline"
 import {
   type RoutingResult,
@@ -325,7 +326,7 @@ const RoutingSidebar = ({
   const submitFormIfFilled = () => {
     popup.current?.remove()
     if (!(from.peek() && to.peek())) return
-    queueMicrotask(() => {
+    requestAnimationFramePolyfill(() => {
       formRef.current?.requestSubmit()
     })
   }
