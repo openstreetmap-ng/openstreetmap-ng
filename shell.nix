@@ -28,7 +28,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/bd88d6c13ab85cc842b93d53f68d6d40412e5a18.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/ed142ab1b3a092c4d149245d0c4126a5d7ea00b0.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
@@ -188,7 +188,7 @@ let
       jq
       llvmPackages_latest.lld
       mailpit
-      nixfmt-rfc-style
+      nixfmt
       nodejs-slim_24
       patchelf
       pigz
