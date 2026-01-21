@@ -67,11 +67,11 @@ const focusPaint: FocusLayerPaint = {
 
 const getQueryAt = (at: LonLatZoom | undefined): LonLatZoom | null =>
   at
-    ? ({
+    ? {
         lon: at.lon,
         lat: at.lat,
         zoom: Math.round(Math.max(at.zoom, QUERY_FEATURES_MIN_ZOOM)),
-      } satisfies LonLatZoom)
+      }
     : null
 
 const QueryFeaturesResultsList = ({

@@ -1,7 +1,7 @@
+import { useDisposeEffect } from "@lib/dispose-scope"
 import { useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { union } from "@std/collections/union"
-import { useEffect } from "preact/hooks"
 import { primaryLanguage } from "./config"
 import { getWikiData } from "./tags.macro" with { type: "macro" }
 
@@ -74,20 +74,19 @@ const getWikiUrl = (key: string, value: string | null) => {
 const PhoneLink = ({ text }: { text: string }) => {
   const uri = useSignal<string | null>(null)
 
-  useEffect(() => {
-    uri.value = null
+  useDisposeEffect(
+    (scope) => {
+      uri.value = null
 
-    const abortController = new AbortController()
-
-    phoneLibPromise ??= import("libphonenumber-js/min")
-    phoneLibPromise.then(({ parsePhoneNumberFromString }) => {
-      abortController.signal.throwIfAborted()
-      const phone = parsePhoneNumberFromString(text)
-      if (phone?.isValid()) uri.value = phone.getURI()
-    })
-
-    return () => abortController.abort()
-  }, [text])
+      phoneLibPromise ??= import("libphonenumber-js/min")
+      phoneLibPromise.then(({ parsePhoneNumberFromString }) => {
+        if (scope.signal.aborted) return
+        const phone = parsePhoneNumberFromString(text)
+        if (phone?.isValid()) uri.value = phone.getURI()
+      })
+    },
+    [text],
+  )
 
   return uri.value ? (
     <a
@@ -326,7 +325,7 @@ const computeDiffRows = (
   tags: Record<string, string>,
   tagsOld: Record<string, string> | null,
   diff: boolean,
-): DiffRow[] => {
+) => {
   const rows: DiffRow[] = []
   const deleted: DiffRow[] = []
   const allKeys = union(Object.keys(tags), Object.keys(tagsOld ?? {})).sort((a, b) =>

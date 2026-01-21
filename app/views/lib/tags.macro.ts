@@ -18,7 +18,7 @@ installedLocales.delete("en")
 installedLocales.add("")
 
 // Filter and normalize locale array: lowercase, dedupe, sort
-const normalizeLocales = (locales: string[]): string[] =>
+const normalizeLocales = (locales: string[]) =>
   sortBy(
     distinct(
       locales

@@ -6,7 +6,7 @@ import {
   STANDARD_PAGINATION_MAX_FULL_PAGES,
 } from "@lib/config"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { createDisposeScope, useDisposeSignalEffect } from "@lib/dispose-scope"
 import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
@@ -14,7 +14,6 @@ import {
 import { range } from "@lib/utils"
 import {
   batch,
-  effect,
   type ReadonlySignal,
   type Signal,
   signal,
@@ -444,6 +443,12 @@ const configureStandardPaginationElements = (
 
   console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
 
+  const scope = createDisposeScope()
+  scope.defer(() => {
+    for (const paginationContainer of paginationContainers)
+      render(null, paginationContainer)
+  })
+
   const targetPage = signal(initialPage)
   const currentPage = signal(initialPage)
   const state = signal<StandardPaginationState | null>(null)
@@ -486,7 +491,7 @@ const configureStandardPaginationElements = (
   }
 
   // Effect: Load and render page content when targetPage changes (fetches or uses cache)
-  const disposeCollectionEffect = effect(() => {
+  scope.effect(() => {
     const targetPageValue = targetPage.value
     const targetPageString = targetPageValue.toString()
 
@@ -558,7 +563,7 @@ const configureStandardPaginationElements = (
   })
 
   // Effect: Rebuild pagination UI buttons when page counts or current page changes
-  const disposePaginationEffect = effect(() => {
+  scope.effect(() => {
     const currentState = state.value
     const numPagesValue = customNumPages ?? currentState?.numPages
     const maxKnownPageValue = customNumPages ?? currentState?.maxKnownPage ?? 1
@@ -587,7 +592,7 @@ const configureStandardPaginationElements = (
   })
 
   // Effect: Update pagination meta targets (num items/pages)
-  const disposeMetaEffect = effect(() => {
+  scope.effect(() => {
     const currentState = state.value
     const numItemsValue = currentState?.numItems
     const numPagesValue = customNumPages ?? currentState?.numPages
@@ -604,13 +609,7 @@ const configureStandardPaginationElements = (
     }
   })
 
-  return () => {
-    disposeCollectionEffect()
-    disposePaginationEffect()
-    disposeMetaEffect()
-    for (const paginationContainer of paginationContainers)
-      render(null, paginationContainer)
-  }
+  return scope.dispose
 }
 
 const resolvePaginationElements = (container: Element): StandardPaginationElements => {

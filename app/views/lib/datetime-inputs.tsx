@@ -38,7 +38,7 @@ const TIME_UNITS = [
   [MINUTE, "minute"],
 ] as const
 
-const getDayDiff = (date: Date): number => {
+const getDayDiff = (date: Date) => {
   const now = new Date()
   const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const todayDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -116,7 +116,7 @@ export const Time = (props: TimeProps) => {
   )
 }
 
-const utcStringToLocalInputValue = (utcDateString: string): number => {
+const utcStringToLocalInputValue = (utcDateString: string) => {
   const utcDate = new Date(utcDateString)
   const ms = utcDate.getTime()
   assert(!Number.isNaN(ms), `Invalid UTC datetime string: ${utcDateString}`)
@@ -125,7 +125,7 @@ const utcStringToLocalInputValue = (utcDateString: string): number => {
   return ms - (ms % MINUTE)
 }
 
-const localInputToUtcString = (input: HTMLInputElement): string => {
+const localInputToUtcString = (input: HTMLInputElement) => {
   if (input.value === "") return ""
   const ms = input.valueAsNumber
   assert(!Number.isNaN(ms), `Invalid datetime-local value: ${input.value}`)

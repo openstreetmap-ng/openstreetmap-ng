@@ -1,6 +1,7 @@
 import type { Message } from "@bufbuild/protobuf"
 import { fromBinary } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
+import { createDisposeScope } from "@lib/dispose-scope"
 import {
   appendPasswordsToFormData,
   configurePasswordsForm,
@@ -38,14 +39,19 @@ export const configureStandardForm = <T = any>(
     ) => Promise<ValidationResult> | ValidationResult
     errorCallback?: (error: Error) => void
   },
-): void | (() => void) => {
+): (() => void) | void => {
   if (!form || form.classList.contains("needs-validation")) return
   let formAction = form.getAttribute("action") ?? ""
   console.debug("StandardForm: Initializing", formAction)
 
+  const scope = createDisposeScope()
+
   // Disable browser validation in favor of bootstrap
   // disables maxlength and other browser checks: form.noValidate = true
   form.classList.add("needs-validation")
+  scope.defer(() =>
+    form.classList.remove("needs-validation", "was-validated", "pending"),
+  )
 
   const {
     formBody = form,
@@ -62,7 +68,9 @@ export const configureStandardForm = <T = any>(
   )
   const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
   if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
+
   let abortController = new AbortController()
+  scope.defer(() => abortController.abort())
 
   const setPendingState = (state: boolean) => {
     const currentState = form.classList.contains("pending")
@@ -122,9 +130,9 @@ export const configureStandardForm = <T = any>(
       element.classList.remove("is-valid", "is-invalid")
     }
 
-    element.addEventListener("input", onInput, { once: true })
-    form.addEventListener("invalidate", onInvalidated, { once: true })
-    form.addEventListener("submit", onInvalidated, { once: true })
+    scope.dom(element, "input", onInput, { once: true })
+    scope.dom(form, "invalidate", onInvalidated, { once: true })
+    scope.dom(form, "submit", onInvalidated, { once: true })
   }
 
   /** Handle feedback for the entire form */
@@ -205,8 +213,8 @@ export const configureStandardForm = <T = any>(
       feedback = null
     }
 
-    form.addEventListener("invalidate", onInvalidated, { once: true })
-    form.addEventListener("submit", onInvalidated, { once: true })
+    scope.dom(form, "invalidate", onInvalidated, { once: true })
+    scope.dom(form, "submit", onInvalidated, { once: true })
   }
 
   const processFormFeedback = (detail: string | APIDetail[]) => {
@@ -394,15 +402,10 @@ export const configureStandardForm = <T = any>(
       disposeValidationEffect?.()
     }
   }
-  form.addEventListener("submit", onSubmit)
+  scope.dom(form, "submit", onSubmit)
+  scope.defer(() => form.dispatchEvent(new CustomEvent("invalidate")))
 
-  return () => {
-    console.debug("StandardForm: Disposing", formAction)
-    abortController.abort()
-    form.dispatchEvent(new CustomEvent("invalidate"))
-    form.removeEventListener("submit", onSubmit)
-    form.classList.remove("needs-validation", "was-validated", "pending")
-  }
+  return scope.dispose
 }
 
 /** Find the scrollable container for the form */

@@ -181,7 +181,7 @@ const compareSpecificity = (a: Specificity, b: Specificity) => {
 const matchTokens = <P extends object>(
   tokens: readonly PathToken[],
   segments: readonly string[],
-): P | null => {
+) => {
   if (segments.length !== tokens.length) return null
 
   const out: Record<string, unknown> = {}
@@ -335,7 +335,7 @@ type RouteHrefInput<R extends CompiledRouteDef<any, any>> = OptionalizeUndefined
 export function routerHref<R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-): string {
+) {
   const obj = input ?? {}
   const pathname = route._buildPathname(obj)
   const search = buildSearch(route, obj)
@@ -443,7 +443,7 @@ const normalizeQueryAliases = (aliases: AliasMap | undefined, queryKeys: string[
 const applyQueryAliases = (
   route: AnyRouteDef,
   queryParams: Readonly<Record<string, string[]>>,
-): Record<string, string[] | undefined> => {
+) => {
   const aliases = route._queryAliases
   if (!aliases) return queryParams
 
@@ -479,7 +479,7 @@ const setPath = (mode: "push" | "replace", newPath: string, hash = location.hash
 export function routerNavigate<R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-): void {
+) {
   const path = routerHref(route, input)
   console.debug("IndexRouter: Navigate", route.id, "->", path)
   assert(setPath("push", path), `No route found for path: ${path}`)
@@ -488,7 +488,7 @@ export function routerNavigate<R extends CompiledRouteDef<any, any>>(
 export function routerReplace<R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-): void {
+) {
   const path = routerHref(route, input)
   console.debug("IndexRouter: Replace", route.id, "->", path)
   assert(setPath("replace", path), `No route found for path: ${path}`)
