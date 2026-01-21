@@ -8,7 +8,6 @@ from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# noinspection PyDefaultArgument
 def pydantic_settings_integration(
     caller_name: str,
     caller_globals: dict[str, Any],
