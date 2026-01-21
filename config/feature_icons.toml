@@ -104,7 +104,7 @@ bunker = "_generated/military_bunker.webp"
 "*" = "_generated/building.webp"
 
 [crab]
-yes = "crab_yes.webp" # don't spoil it :-)
+yes = "crab_yes.webp"  # don't spoil it :-)
 
 [diplomatic]
 embassy = "_generated/diplomatic_embassy.webp"

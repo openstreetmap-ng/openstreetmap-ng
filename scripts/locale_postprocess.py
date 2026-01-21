@@ -44,7 +44,8 @@ def resolve_community_name(community: dict[str, Any], locale: dict[str, Any]) ->
     ) is not None:
         # and optionally interpolate the template
         if (
-            template := locale.get('_defaults', {})
+            template := locale
+            .get('_defaults', {})
             .get(community['type'], {})
             .get('name')
         ) is not None:
