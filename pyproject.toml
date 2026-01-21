@@ -127,9 +127,14 @@ reportInvalidCast = "warning"
 reportImplicitAbstractClass = "information"
 strictGenericNarrowing = true
 
-[tool.pytest.ini_options]
-addopts = "--quiet --import-mode=importlib --strict-markers --strict-config"
-minversion = "6.0"
+[tool.pytest]
+addopts = [
+  "--import-mode=importlib",
+  "--quiet",
+  "--strict-config",
+  "--strict-markers",
+]
+minversion = "9.0"
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "session"
 asyncio_mode = "auto"
