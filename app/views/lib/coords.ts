@@ -25,7 +25,7 @@ export const zoomPrecision = (zoom: number) =>
   Math.max(0, Math.ceil(Math.log(Math.round(zoom)) / Math.LN2))
 
 /** Parse "lat, lon" string into [lon, lat], or null if invalid */
-export const tryParsePoint = (text: string) => {
+export const tryParsePoint = (text: string | undefined | null) => {
   if (!text) return null
   const parts = text.split(",")
   if (parts.length !== 2) return null
