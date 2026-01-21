@@ -1,4 +1,5 @@
 import { primaryLanguage } from "@lib/config"
+import { useDisposeEffect } from "@lib/dispose-scope"
 import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { useComputed, useSignal } from "@preact/signals"
@@ -6,7 +7,7 @@ import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import { createRef, type RefObject, render } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import { useRef } from "preact/hooks"
 
 const GUIDE_HREF =
   "https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
@@ -65,11 +66,10 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
   )
 
   // Effect: Focus search on modal open
-  useEffect(() => {
-    const el = modalRef.current!
-    const onShown = () => searchInputRef.current!.focus()
-    el.addEventListener("shown.bs.modal", onShown)
-    return () => el.removeEventListener("shown.bs.modal", onShown)
+  useDisposeEffect((scope) => {
+    scope.dom(modalRef.current!, "shown.bs.modal", () =>
+      searchInputRef.current!.focus(),
+    )
   }, [])
 
   const setLanguage = (code: string) => {

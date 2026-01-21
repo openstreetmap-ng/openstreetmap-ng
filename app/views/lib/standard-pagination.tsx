@@ -6,6 +6,7 @@ import {
   STANDARD_PAGINATION_MAX_FULL_PAGES,
 } from "@lib/config"
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
@@ -234,22 +235,24 @@ const useStandardPagination = <TData,>({
   protobuf: GenMessage<TData & Message> | undefined
   onLoad: ((data: TData, page: number) => void) | undefined
 }) => {
-  const initial = responseSignal?.peek()
-  const initialState = initial?.state ?? null
-  const state = useSignal<StandardPaginationState | null>(initialState)
-  const targetPage = useSignal(initialState?.currentPage ?? initialPage)
-  const resource = useSignal<PaginationResource<TData>>(
-    initial ? { tag: "ready", data: initial.data } : { tag: "boot" },
-  )
+  const state = useSignal<StandardPaginationState | null>(null)
+  const targetPage = useSignal(initialPage)
+  const resource = useSignal<PaginationResource<TData>>({ tag: "boot" })
 
   // Effect: react to external response updates (e.g., after POST)
   useSignalEffect(() => {
     if (!responseSignal) return
-
     const response = responseSignal.value
     if (!response) return
 
+    // Discard stale responses (we are a fresh instance)
+    if (state.peek() === null) {
+      responseSignal.value = null
+      return
+    }
+
     targetPage.value = response.state.currentPage
+    onLoad?.(response.data, response.state.currentPage)
     state.value = response.state
     resource.value = { tag: "ready", data: response.data }
     responseSignal.value = null
@@ -259,7 +262,7 @@ const useStandardPagination = <TData,>({
   const currentPage = useComputed(() => state.value?.currentPage ?? targetPage.value)
 
   // Effect: fetch page when targetPage changes
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     const page = targetPage.value
     const current = resource.peek()
 
@@ -278,17 +281,20 @@ const useStandardPagination = <TData,>({
 
     resource.value = { tag: "loading", prev }
 
-    const abortController = new AbortController()
-
     const fetchPage = async () => {
       try {
         const resp = await fetch(
           action,
-          buildFetchInit(state.peek(), page, abortController.signal),
+          buildFetchInit(state.peek(), page, scope.signal),
         )
         assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
-
         const responseState = parsePaginationHeader(resp.headers)
+
+        // Discard stale responses
+        const currentState = state.peek()
+        if (currentState && responseState.snapshotMaxId < currentState.snapshotMaxId) {
+          return
+        }
 
         // Handle initial jump: if we're booting and target differs from what server returned
         if (current.tag === "boot" && initialPage !== 1) {
@@ -307,7 +313,7 @@ const useStandardPagination = <TData,>({
           ? (fromBinary(protobuf, new Uint8Array(await resp.arrayBuffer())) as TData)
           : ((await resp.text()) as unknown as TData)
 
-        abortController.signal.throwIfAborted()
+        scope.signal.throwIfAborted()
 
         batch(() => {
           onLoad?.(data, responseState.currentPage)
@@ -322,7 +328,6 @@ const useStandardPagination = <TData,>({
     }
 
     fetchPage()
-    return () => abortController.abort()
   })
 
   return { targetPage, resource, currentPage, state }
