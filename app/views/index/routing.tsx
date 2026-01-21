@@ -399,7 +399,7 @@ const RoutingSidebar = ({
     }
 
     if (nextId !== null && scrollIntoView) {
-      const row = parentSidebar.querySelector(`tr[data-instruction-id="${nextId}"]`)
+      const row = parentSidebar.querySelector(`li[data-instruction-id="${nextId}"]`)
       scrollElementIntoView(parentSidebar, row)
     }
   }
@@ -649,12 +649,8 @@ const RoutingSidebar = ({
         const r = parentSidebar.getBoundingClientRect()
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) return
 
-        const row = document.elementFromPoint(x, y)?.closest("tr[data-instruction-id]")
-        focusInstruction(
-          row instanceof HTMLElement
-            ? Number.parseInt(row.dataset.instructionId!, 10)
-            : null,
-        )
+        const row = document.elementFromPoint(x, y)?.closest("li[data-instruction-id]")
+        focusInstruction(row ? Number.parseInt(row.dataset.instructionId!, 10) : null)
       }),
     )
   }, [])
@@ -852,26 +848,49 @@ const RoutingSidebar = ({
               )}
             </div>
 
-            <table class="route-steps table table-sm align-middle mb-4">
-              <tbody onMouseLeave={() => focusInstruction(null)}>
-                {routeValue.instructions.map((inst, instId) => (
-                  <tr
-                    key={instId}
-                    data-instruction-id={instId.toString()}
-                    class={activeInstructionId.value === instId ? "hover" : ""}
+            <ol
+              class="route-steps list-group list-group-flush list-unstyled mb-4"
+              onFocusOut={(e) => {
+                const next = e.relatedTarget
+                if (next instanceof Node && e.currentTarget.contains(next)) return
+                focusInstruction(null)
+              }}
+              onPointerLeave={(e) => {
+                if (e.pointerType === "touch") return
+                if (e.currentTarget.contains(document.activeElement)) return
+                focusInstruction(null)
+              }}
+            >
+              {routeValue.instructions.map((inst, instId) => (
+                <li
+                  key={instId}
+                  data-instruction-id={instId.toString()}
+                  class={`list-group-item p-0 ${
+                    activeInstructionId.value === instId ? "hover" : ""
+                  }`}
+                >
+                  <button
+                    class="d-flex gap-1 w-100 text-start bg-transparent border-0 p-2"
+                    type="button"
+                    aria-current={activeInstructionId.value === instId ? "step" : false}
                     onClick={() => selectInstruction(instId)}
-                    onMouseEnter={() => focusInstruction(instId)}
+                    onFocus={() => focusInstruction(instId)}
+                    onPointerEnter={(e) => {
+                      if (e.pointerType === "touch") return
+                      focusInstruction(instId)
+                    }}
                   >
-                    <td class="icon">
-                      <div class={`icon-${inst.iconNum} dark-filter-invert`} />
-                    </td>
-                    <td class="number">{instId + 1}.</td>
-                    <td class="instruction">{inst.text}</td>
-                    <td class="distance">{inst.distanceText}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    <span
+                      class={`icon-${inst.iconNum} dark-filter-invert flex-shrink-0`}
+                      aria-hidden="true"
+                    />
+                    <span class="number">{instId + 1}.</span>
+                    <span class="instruction flex-grow-1 mx-1">{inst.text}</span>
+                    <span class="distance flex-shrink-0">{inst.distanceText}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
 
             <RoutingAttribution attribution={routeValue.attribution} />
           </>

@@ -31,9 +31,8 @@
 }
 
 .route-steps {
-    // Disable border on the first, icon column
-    .icon {
-        border-bottom: unset;
+    .hover {
+        background: var(--bs-highlight-bg);
     }
 
     .number {
@@ -49,28 +48,12 @@
     .distance {
         @extend .text-muted;
         font-size: 0.75em;
-        text-align: right;
-        vertical-align: middle;
+        white-space: nowrap;
     }
 
     @for $i from 0 through 25 {
         .icon-#{$i} {
             @include legacy-routing-icon($i * -20px, 0px);
-        }
-    }
-
-    tr.hover {
-        cursor: pointer;
-
-        td {
-            background: var(--bs-highlight-bg);
-        }
-    }
-
-    // Disable border on the last row
-    tr:last-child {
-        td {
-            border-bottom: unset;
         }
     }
 }
