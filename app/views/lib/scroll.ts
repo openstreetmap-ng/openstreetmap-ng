@@ -12,5 +12,5 @@ export const scrollElementIntoView = (
 
   if (isVisible) return
 
-  element.scrollIntoView({ behavior: "smooth", block: "center" })
+  element.scrollIntoView({ block: "center" })
 }

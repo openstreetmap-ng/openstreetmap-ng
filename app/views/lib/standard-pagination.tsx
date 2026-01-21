@@ -96,7 +96,12 @@ const PaginationContent = <TData,>({
     case "loading":
       return r.prev ? (
         <div class="sp-content-wrapper">
-          <div class="opacity-50">{children(r.prev)}</div>
+          <div
+            class="opacity-50"
+            inert
+          >
+            {children(r.prev)}
+          </div>
           <div class="sp-loading-overlay">
             <PaginationSpinner />
           </div>

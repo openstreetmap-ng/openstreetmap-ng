@@ -180,15 +180,9 @@ export const configureStandardForm = <T = any>(
 
         // Keep latest content visible if user was at bottom
         if (wasAtBottom && scrollWindow) {
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: "smooth",
-          })
+          window.scrollTo({ top: document.body.scrollHeight })
         } else if (wasAtBottom) {
-          scrollContainer.scrollTo({
-            top: scrollContainer.scrollHeight,
-            behavior: "smooth",
-          })
+          scrollContainer.scrollTo({ top: scrollContainer.scrollHeight })
         }
       } else {
         formBody.prepend(feedback)
