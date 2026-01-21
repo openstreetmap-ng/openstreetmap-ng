@@ -10,24 +10,12 @@
 {% block body %}
 
 <div class="main-map-container">
-    <div class="sidebar sidebar-overlay">
+    <div class="sidebar">
         <div id="SearchForm"></div>
-
-        <div class="action-sidebar index" data-sidebar-overlay="1" hidden></div>
-        <div class="action-sidebar changeset" hidden></div>
-        <div class="action-sidebar changesets-history" hidden></div>
-        <div class="action-sidebar distance" data-sidebar-overlay="1" hidden></div>
-        <div class="action-sidebar element" hidden></div>
-        <div class="action-sidebar element-history" hidden></div>
-        <div class="action-sidebar export" hidden></div>
-        <div class="action-sidebar new-note" hidden></div>
-        <div class="action-sidebar note" hidden></div>
-        <div class="action-sidebar query-features" hidden></div>
-        <div class="action-sidebar routing" hidden></div>
-        <div class="action-sidebar search" hidden></div>
+        <div id="ActionSidebar"></div>
     </div>
 
-    <div class="main-map">
+    <div id="MainMap">
         <div id="MapAlerts"></div>
     </div>
 

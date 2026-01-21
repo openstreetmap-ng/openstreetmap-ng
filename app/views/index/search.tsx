@@ -1,14 +1,13 @@
 import {
-  getActionSidebar,
   SidebarHeader,
   SidebarResourceBody,
-  switchActionSidebar,
   useSidebarFetch,
 } from "@index/_action-sidebar"
-import { getElementTypeLabel, getElementTypeSlug } from "@index/element"
-import { routerNavigateStrict } from "@index/router"
-import { searchFormQuery } from "@index/search-form"
+import { ElementRoute, getElementTypeLabel, getElementTypeSlug } from "@index/element"
+import { defineRoute, routerNavigate } from "@index/router"
+import { queryParam } from "@lib/codecs"
 import { zoomPrecision } from "@lib/coords"
+import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mountMapAlert } from "@lib/map/alerts"
 import {
   boundsIntersection,
@@ -20,17 +19,15 @@ import { clearMapHover, setMapHover } from "@lib/map/hover"
 import { loadMapImage } from "@lib/map/image"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
-  addMapLayer,
   emptyFeatureCollection,
   type LayerId,
   layersConfig,
-  removeMapLayer,
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { encodeMapState, type LonLatZoom, parseLonLatZoom } from "@lib/map/state"
+import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
 import type { ElementIcon, ElementType, SearchData_Result } from "@lib/proto/shared_pb"
 import { SearchDataSchema } from "@lib/proto/shared_pb"
-import { qsEncode, qsParse } from "@lib/qs"
+import { qsEncode } from "@lib/qs"
 import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { OSMObject } from "@lib/types"
@@ -42,14 +39,13 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assertExists } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
 import type { Feature } from "geojson"
 import { t } from "i18next"
 import type { MapLayerMouseEvent } from "maplibre-gl"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import { type MouseEventHandler, type Ref, render } from "preact"
-import { useRef } from "preact/hooks"
+import type { MouseEventHandler, Ref } from "preact"
+import { useEffect, useRef } from "preact/hooks"
 
 const LAYER_ID = "search" as LayerId
 layersConfig.set(LAYER_ID, {
@@ -90,10 +86,7 @@ const focusPaint: FocusLayerPaint = {
 
 const SEARCH_ALERT_CHANGE_THRESHOLD = 0.9
 
-type SearchRoute =
-  | null
-  | { tag: "query"; query: string; localOnly: boolean; at: LonLatZoom | null }
-  | { tag: "where-is-this"; at: LonLatZoom }
+export const searchFormQuery = signal("")
 
 const SearchThisAreaAlert = ({
   visible,
@@ -201,11 +194,16 @@ const SearchResultsList = ({
     <p>{t("results.we_did_not_find_any_results")}</p>
   )
 
-const computeSearchURL = (map: MaplibreMap, route: SearchRoute) => {
-  if (!route) return null
+const getFetchURL = (
+  map: MaplibreMap,
+  q: string | undefined,
+  at: LonLatZoom | undefined,
+  local: boolean,
+) => {
+  if (!q) {
+    if (!at) return null
 
-  if (route.tag === "where-is-this") {
-    const { lon, lat, zoom } = route.at
+    const { lon, lat, zoom } = at
     const precision = zoomPrecision(zoom)
     return `/api/web/search/where-is-this${qsEncode({
       lon: lon.toFixed(precision),
@@ -214,68 +212,83 @@ const computeSearchURL = (map: MaplibreMap, route: SearchRoute) => {
     })}`
   }
 
-  if (!route.query) return null
-
   return `/api/web/search/results${qsEncode({
-    q: route.query,
+    q,
     bbox: boundsToString(boundsPadding(map.getBounds(), -0.01)),
-    local_only: route.localOnly ? "1" : undefined,
+    local_only: local ? "1" : undefined,
   })}`
+}
+
+const getFeatureIndex = (e: MapLayerMouseEvent) => {
+  const featureId = e.features?.[0]?.id
+  return typeof featureId === "number" ? featureId : null
 }
 
 const SearchSidebar = ({
   map,
-  source,
-  sidebar,
-  searchForm,
-  route,
-  searchThisAreaVisible,
+  q,
+  at,
+  local,
 }: {
   map: MaplibreMap
-  source: GeoJSONSource
-  sidebar: HTMLElement
-  searchForm: HTMLElement
-  route: Signal<SearchRoute>
-  searchThisAreaVisible: Signal<boolean>
+  q: Signal<string | undefined>
+  at: Signal<LonLatZoom | undefined>
+  local: Signal<boolean>
 }) => {
-  const scrollSidebar = sidebar.closest(".sidebar")!
+  // Derived: sync page title with the current route state.
+  setPageTitle(
+    !q.value && at.value
+      ? t("site.search.where_am_i")
+      : q.value || t("site.search.search"),
+  )
+  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
 
-  const active = useComputed(() => Boolean(route.value))
-  const url = useComputed(() => computeSearchURL(map, route.value))
-  const { resource, data } = useSidebarFetch(url, SearchDataSchema)
+  const searchThisAreaVisible = useSignal(false)
+  const onSearchThisAreaClick = () => {
+    searchThisAreaVisible.value = false
+
+    const query = q.peek()
+    const { lng, lat } = map.getCenter()
+    const nextAt = { lon: lng, lat, zoom: map.getZoom() }
+
+    if (!query) {
+      if (!at.peek()) return
+      routerNavigate(SearchRoute, { at: nextAt })
+      return
+    }
+
+    routerNavigate(SearchRoute, { q: query, at: nextAt, local: true })
+  }
+
+  // Effect: mount sticky search form + "search this area" alert.
+  useEffect(() => {
+    const searchForm = document.getElementById("SearchForm")!
+    searchForm.classList.add("sticky-top")
+
+    const disposeAlert = mountMapAlert(
+      <SearchThisAreaAlert
+        visible={searchThisAreaVisible}
+        onClick={onSearchThisAreaClick}
+      />,
+    )
+
+    return () => {
+      disposeAlert()
+      searchForm.classList.remove("sticky-top")
+    }
+  }, [])
+
+  // Derived: active fetch URL for this route (null means "no active request").
+  const fetchUrl = useComputed(() => getFetchURL(map, q.value, at.value, local.value))
+  const { resource, data } = useSidebarFetch(fetchUrl, SearchDataSchema)
 
   const hoveredIndex = useSignal<number | null>(null)
   const entryRefs = useRef<(HTMLLIElement | null)[]>([])
   const elementsByIndex = useRef<(() => OSMObject[])[]>([])
 
-  // Effect: sidebar lifecycle (visibility/title) + sticky search form.
+  // Effect: keep the global search input in sync with the active route.
   useSignalEffect(() => {
-    if (!active.value) return
-    switchActionSidebar(map, sidebar)
-    searchForm.classList.add("sticky-top")
-
-    return () => {
-      searchForm.classList.remove("sticky-top")
-    }
-  })
-
-  // Effect: page title.
-  useSignalEffect(() => {
-    const r = route.value
-    if (!r) return
-
-    setPageTitle(
-      r.tag === "where-is-this"
-        ? t("site.search.where_am_i")
-        : r.query || t("site.search.search"),
-    )
-  })
-
-  // Effect: keep search form query in sync with the active route.
-  useSignalEffect(() => {
-    const r = route.value
-    if (!r) return
-    searchFormQuery.value = r.tag === "where-is-this" ? "" : r.query
+    searchFormQuery.value = q.value || ""
   })
 
   const setHoveredIndex = (nextIndex: number | null, scrollIntoView = false) => {
@@ -292,8 +305,11 @@ const SearchSidebar = ({
       map.setFeatureState({ source: LAYER_ID, id: nextIndex }, { hover: true })
 
       if (scrollIntoView) {
+        const scrollSidebar = document
+          .getElementById("ActionSidebar")!
+          .closest(".sidebar")!
         const el = entryRefs.current[nextIndex]
-        if (el) scrollElementIntoView(scrollSidebar, el)
+        scrollElementIntoView(scrollSidebar, el)
       }
 
       const objects = elementsByIndex.current[nextIndex]?.()
@@ -303,99 +319,70 @@ const SearchSidebar = ({
     }
   }
 
-  // Effect: map layer lifecycle + map hover handlers.
-  useSignalEffect(() => {
-    if (!active.value) return
+  const clearResultsState = () => {
+    entryRefs.current.length = 0
+    elementsByIndex.current = []
+    searchThisAreaVisible.value = false
 
+    if (hoveredIndex.peek() !== null) setHoveredIndex(null)
+    else focusObjects(map)
+    clearMapHover(map, LAYER_ID)
+    source.setData(emptyFeatureCollection)
+  }
+
+  // Effect: map layer lifecycle + hover/click handlers (stable; reads latest results via peek()).
+  useDisposeEffect((scope) => {
     loadMapImage(map, "marker-red")
-    addMapLayer(map, LAYER_ID)
+    scope.mapLayerLifecycle(map, LAYER_ID)
+    scope.defer(clearResultsState)
 
-    const getFeatureIndex = (e: MapLayerMouseEvent) => {
-      const featureId = e.features?.[0]?.id
-      return typeof featureId === "number" ? featureId : null
-    }
-
-    const getResultAt = (index: number) => data.peek()?.results[index] ?? null
-
-    const onLayerClick = (e: MapLayerMouseEvent) => {
+    scope.mapLayer(map, "click", LAYER_ID, (e) => {
       const featureIndex = getFeatureIndex(e)
       if (featureIndex === null) return
-
-      const result = getResultAt(featureIndex)
+      const result = data.peek()?.results[featureIndex]
       if (!result) return
-
       const typeSlug = getElementTypeSlug(result.type)
-      routerNavigateStrict(`/${typeSlug}/${result.id.toString()}`)
-    }
+      routerNavigate(ElementRoute, { type: typeSlug, id: result.id })
+    })
 
-    let hoveredFeatureId: number | null = null
-    const onLayerMouseMove = (e: MapLayerMouseEvent) => {
+    scope.mapLayer(map, "mousemove", LAYER_ID, (e) => {
       const featureIndex = getFeatureIndex(e)
       if (featureIndex === null) return
-
-      if (hoveredFeatureId === featureIndex) return
-      if (hoveredFeatureId === null) setMapHover(map, LAYER_ID)
-      hoveredFeatureId = featureIndex
+      setMapHover(map, LAYER_ID)
       setHoveredIndex(featureIndex, true)
-    }
-
-    const onLayerMouseLeave = () => {
-      hoveredFeatureId = null
+    })
+    scope.mapLayer(map, "mouseleave", LAYER_ID, () => {
       clearMapHover(map, LAYER_ID)
       setHoveredIndex(null)
-    }
+    })
+  }, [])
 
-    map.on("click", LAYER_ID, onLayerClick)
-    map.on("mousemove", LAYER_ID, onLayerMouseMove)
-    map.on("mouseleave", LAYER_ID, onLayerMouseLeave)
-
-    return () => {
-      map.off("click", LAYER_ID, onLayerClick)
-      map.off("mousemove", LAYER_ID, onLayerMouseMove)
-      map.off("mouseleave", LAYER_ID, onLayerMouseLeave)
-
-      setHoveredIndex(null)
-      focusObjects(map)
-      clearMapHover(map, LAYER_ID)
-      source.setData(emptyFeatureCollection)
-      removeMapLayer(map, LAYER_ID)
-    }
-  })
-
-  // Effect: route view sync.
+  // Effect: keep the map view synced to the `at` query param.
   useSignalEffect(() => {
-    const view = route.value?.at
+    const view = at.value
     if (!view) return
 
     const { lng, lat } = map.getCenter()
-    const currentView = encodeMapState({ lon: lng, lat, zoom: map.getZoom() }, "")
-    const routeView = encodeMapState(view, "")
-    if (currentView === routeView) return
+    const currentView = { lon: lng, lat, zoom: map.getZoom() }
+    if (lonLatZoomEquals(currentView, view)) return
 
     map.jumpTo({ center: [view.lon, view.lat], zoom: view.zoom })
   })
 
-  // Effect: active route with no URL should clear any stale markers/focus.
+  // Effect: when the route has no active request (no `q` and no `at`), clear any stale UI state.
   useSignalEffect(() => {
-    if (!active.value) return
-    const u = url.value
-    if (u !== null) return
-
-    setHoveredIndex(null)
-    entryRefs.current.length = 0
-    elementsByIndex.current = []
-    source.setData(emptyFeatureCollection)
-    searchThisAreaVisible.value = false
+    if (fetchUrl.value !== null) return
+    clearResultsState()
   })
 
-  // Effect: on each successful load, update markers + initial focus + "search this area" alert.
-  useSignalEffect(() => {
-    if (!active.value) return
-
+  // Effect: on each successful load, update markers + focus cache + auto-fit + "search this area" trigger.
+  useDisposeSignalEffect((scope) => {
     const d = data.value
     if (!d) return
+    searchThisAreaVisible.value = false
 
     // Clear any existing hover state before replacing data.
+    clearMapHover(map, LAYER_ID)
     setHoveredIndex(null)
 
     entryRefs.current.length = d.results.length
@@ -414,11 +401,13 @@ const SearchSidebar = ({
     }))
     source.setData({ type: "FeatureCollection", features })
 
-    // Prepare the "search this area" alert.
-    searchThisAreaVisible.value = false
+    const shouldAutoFit =
+      Boolean(q.peek()) && (Boolean(d.bounds) || d.results.length > 0)
 
-    let initialBounds: LngLatBounds | null = null
-    const onMapZoomOrMoveEnd = () => {
+    let initialBounds = shouldAutoFit ? null : map.getBounds()
+
+    const moveEndScope = scope.child()
+    moveEndScope.map(map, "moveend", () => {
       if (!initialBounds) {
         initialBounds = map.getBounds()
         console.debug("Search: Initial bounds set", initialBounds)
@@ -435,19 +424,16 @@ const SearchSidebar = ({
       if (proportion > SEARCH_ALERT_CHANGE_THRESHOLD) return
 
       searchThisAreaVisible.value = true
-      map.off("moveend", onMapZoomOrMoveEnd)
-    }
-    map.on("moveend", onMapZoomOrMoveEnd)
+      moveEndScope.dispose()
+    })
 
-    const currentRoute = route.peek()
-    if (currentRoute?.tag !== "where-is-this") {
+    if (shouldAutoFit) {
       const b = d.bounds
       if (b) {
         const boundsPadded = boundsPadding(
           new LngLatBounds([b.minLon, b.minLat, b.maxLon, b.maxLat]),
           0.05,
         )
-        console.debug("Search: Focusing on bounds", boundsPadded)
         map.fitBounds(boundsPadded, { maxZoom: 14 })
       } else if (d.results.length) {
         const [first, ...rest] = d.results
@@ -456,14 +442,8 @@ const SearchSidebar = ({
           new LngLatBounds([first.lon, first.lat, first.lon, first.lat]),
         )
         const boundsPadded = boundsPadding(markersBounds, 0.15)
-        console.debug("Search: Focusing on results", boundsPadded)
         map.fitBounds(boundsPadded, { maxZoom: 14 })
       }
-    }
-
-    return () => {
-      searchThisAreaVisible.value = false
-      map.off("moveend", onMapZoomOrMoveEnd)
     }
   })
 
@@ -486,82 +466,14 @@ const SearchSidebar = ({
   )
 }
 
-/** Create a new search controller */
-export const getSearchController = (map: MaplibreMap) => {
-  const source = map.getSource<GeoJSONSource>(LAYER_ID)
-  assertExists(source)
-
-  const sidebar = getActionSidebar("search")
-  const searchForm = document.getElementById("SearchForm")
-  assertExists(searchForm)
-
-  const route = signal<SearchRoute>(null)
-  const searchThisAreaVisible = signal(false)
-
-  const onSearchThisAreaClick = () => {
-    console.debug("Search: New area clicked")
-    searchThisAreaVisible.value = false
-
-    const current = route.peek()
-    if (!current) return
-
-    const { lng, lat } = map.getCenter()
-    const at = encodeMapState({ lon: lng, lat, zoom: map.getZoom() }, "")
-
-    if (current.tag === "where-is-this") {
-      routerNavigateStrict(`/search${qsEncode({ at })}`)
-      return
-    }
-
-    if (!current.query) return
-
-    routerNavigateStrict(
-      `/search${qsEncode({
-        q: current.query,
-        at,
-        local: current.localOnly ? "1" : undefined,
-      })}`,
-    )
-  }
-
-  mountMapAlert(
-    <SearchThisAreaAlert
-      visible={searchThisAreaVisible}
-      onClick={onSearchThisAreaClick}
-    />,
-  )
-
-  render(
-    <SearchSidebar
-      map={map}
-      source={source}
-      sidebar={sidebar}
-      searchForm={searchForm}
-      route={route}
-      searchThisAreaVisible={searchThisAreaVisible}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: () => {
-      const searchParams = qsParse(window.location.search)
-      const query = searchParams.q || searchParams.query || ""
-      const at = parseLonLatZoom(searchParams)
-      const localOnly = searchParams.local !== undefined
-
-      if (query) {
-        route.value = { tag: "query", query, localOnly, at }
-      } else if (at) {
-        route.value = { tag: "where-is-this", at }
-      } else {
-        route.value = { tag: "query", query: "", localOnly: false, at: null }
-      }
-    },
-    unload: (newPath?: string) => {
-      if (newPath?.startsWith("/search")) return
-      route.value = null
-      searchThisAreaVisible.value = false
-    },
-  }
-}
+export const SearchRoute = defineRoute({
+  id: "search",
+  path: "/search",
+  aliases: { query: { query: "q" } },
+  query: {
+    q: queryParam.string(),
+    at: queryParam.lonLatZoom(),
+    local: queryParam.flag(),
+  },
+  Component: SearchSidebar,
+})

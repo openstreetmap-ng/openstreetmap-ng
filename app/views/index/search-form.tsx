@@ -1,12 +1,8 @@
-import { routerNavigateStrict } from "@index/router"
-import { encodeMapState } from "@lib/map/state"
-import { qsEncode } from "@lib/qs"
-import { signal } from "@preact/signals"
+import { routerNavigate } from "@index/router"
+import { SearchRoute, searchFormQuery } from "@index/search"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
-
-export const searchFormQuery = signal("")
 
 const SearchForm = ({ map }: { map: MaplibreMap }) => {
   const onSubmit = (e: Event) => {
@@ -16,15 +12,15 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
     if (!query) return
 
     const { lng, lat } = map.getCenter()
-    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "")
-    routerNavigateStrict(`/search${qsEncode({ q: query, at })}`)
+    const at = { lon: lng, lat, zoom: map.getZoom() }
+    routerNavigate(SearchRoute, { q: query, at })
   }
 
   const onWhereIsThisClick = () => {
     console.debug("SearchForm: Where is this clicked")
     const { lng, lat } = map.getCenter()
-    const at = encodeMapState({ lon: lng, lat: lat, zoom: map.getZoom() }, "?at=")
-    routerNavigateStrict(`/search${at}`)
+    const at = { lon: lng, lat, zoom: map.getZoom() }
+    routerNavigate(SearchRoute, { at })
   }
 
   return (

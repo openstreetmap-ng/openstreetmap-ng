@@ -1,4 +1,5 @@
-import { routerNavigateStrict } from "@index/router"
+import { IndexRoute } from "@index/index"
+import { routerNavigate } from "@index/router"
 import { encodeMapState, type LonLatZoom, type MapState } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
 import { remoteEdit } from "@lib/remote-edit"
@@ -166,7 +167,7 @@ export const handleEditRemotePath = () => {
   if (searchParams.editor !== "remote") return
 
   console.debug("Navbar: Handle edit remote path")
-  routerNavigateStrict("/")
+  routerNavigate(IndexRoute)
   remoteEditButton.click()
 }
 

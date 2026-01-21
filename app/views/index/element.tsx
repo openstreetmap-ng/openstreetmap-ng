@@ -1,10 +1,6 @@
-import {
-  getActionSidebar,
-  SidebarContent,
-  SidebarHeader,
-  switchActionSidebar,
-  useSidebarFetch,
-} from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
+import { routeParam } from "@lib/codecs"
 import { API_URL } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
@@ -23,7 +19,6 @@ import { range } from "@lib/utils"
 import {
   type ReadonlySignal,
   type Signal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
@@ -31,7 +26,7 @@ import {
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { type ComponentChildren, Fragment, render } from "preact"
+import { type ComponentChildren, Fragment } from "preact"
 
 const THEME_COLOR = "#f60"
 export const elementFocusPaint: FocusLayerPaint = {
@@ -122,20 +117,16 @@ export const ElementsSection = <T,>({
   )
 }
 
-type ElementTypeSlug = "node" | "way" | "relation"
-type ElementLocationData = NonNullable<ElementData_Location>
+export type ElementTypeSlug = "node" | "way" | "relation"
 
 export const getElementTypeSlug = (type: ElementType) =>
   ElementType[type] as ElementTypeSlug
 
-export const parseElementType = (value: string | null) => {
-  if (value === "node") return ElementType.node
-  if (value === "way") return ElementType.way
-  if (value === "relation") return ElementType.relation
-  return null
-}
+export const ElementTypeParam = routeParam.enum(["node", "way", "relation"])
+export const ElementIdParam = routeParam.positive()
+export const ElementVersionParam = routeParam.positive()
 
-const formatElementLocation = (location: ElementLocationData) =>
+const formatElementLocation = (location: ElementData_Location) =>
   `${location.lat.toFixed(7)}, ${location.lon.toFixed(7)}`
 
 const getElementTitleText = (data: ElementData) => {
@@ -240,7 +231,7 @@ export const ElementLocation = ({
   location,
 }: {
   map: MaplibreMap
-  location: ElementLocationData
+  location: ElementData_Location
 }) => (
   <p class="location-container mb-2">
     {t("diary_entries.form.location")}:{" "}
@@ -311,59 +302,51 @@ const ElementSidebar = ({
   type,
   id,
   version,
-  sidebar,
 }: {
   map: MaplibreMap
-  type: ReadonlySignal<string | null>
-  id: ReadonlySignal<string | null>
-  version: ReadonlySignal<string | null>
-  sidebar: HTMLElement
+  type: ReadonlySignal<ElementTypeSlug>
+  id: ReadonlySignal<bigint>
+  version: ReadonlySignal<bigint | undefined>
 }) => {
-  const url = useComputed(() => {
-    const etype = type.value
-    const eid = id.value
-    if (!(etype && eid)) return null
-    const v = version.value
-    return v
-      ? `/api/web/element/${etype}/${eid}/history/${v}`
-      : `/api/web/element/${etype}/${eid}`
-  })
-
-  const { resource, data } = useSidebarFetch(url, ElementDataSchema)
+  const { resource, data } = useSidebarFetch(
+    useComputed(() =>
+      version.value !== undefined
+        ? `/api/web/element/${type.value}/${id.value}/history/${version.value}`
+        : `/api/web/element/${type.value}/${id.value}`,
+    ),
+    ElementDataSchema,
+  )
   const renderElements = useComputed(() =>
     convertRenderElementsData(data.value?.params?.render),
   )
 
-  // Effect: Page title
+  // Effect: Sync derived state
   useSignalEffect(() => {
-    if (resource.value.tag === "not-found") {
+    const r = resource.value
+    if (r.tag === "not-found") {
       setPageTitle(t("browse.not_found.title"))
-      return
+    } else {
+      const d = data.value
+      if (d) setPageTitle(getElementTitleText(d))
     }
-    const d = data.value
-    if (d) setPageTitle(getElementTitleText(d))
   })
 
   // Effect: Map focus
   useSignalEffect(() => {
     focusObjects(map, renderElements.value, elementFocusPaint)
-  })
-
-  // Effect: Sidebar visibility
-  useSignalEffect(() => {
-    if (id.value) switchActionSidebar(map, sidebar)
+    return () => focusObjects(map)
   })
 
   return (
     <SidebarContent
       resource={resource}
       notFound={() => {
-        const typeLabel = getElementTypeLabel(
-          parseElementType(type.value)!,
-        ).toLowerCase()
-        const idLabel = version.value
-          ? `${id.value!} ${t("browse.version").toLowerCase()} ${version.value}`
-          : id.value!
+        const typeLabel = getElementTypeLabel(ElementType[type.value]).toLowerCase()
+        const versionValue = version.value
+        const idLabel =
+          versionValue !== undefined
+            ? `${id.value} ${t("browse.version").toLowerCase()} ${versionValue}`
+            : id.toString()
         return t("browse.not_found.sorry", { type: typeLabel, id: idLabel })
       }}
     >
@@ -416,34 +399,16 @@ const ElementSidebar = ({
   )
 }
 
-export const getElementController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("element")
-  const type = signal<string | null>(null)
-  const id = signal<string | null>(null)
-  const version = signal<string | null>(null)
-
-  render(
-    <ElementSidebar
-      map={map}
-      type={type}
-      id={id}
-      version={version}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: (matchGroups: Record<string, string>) => {
-      type.value = matchGroups.type
-      id.value = matchGroups.id
-      version.value = matchGroups.version ?? null
-    },
-    unload: () => {
-      id.value = null
-    },
-  }
-}
+export const ElementRoute = defineRoute({
+  id: "element",
+  path: ["/:type/:id", "/:type/:id/history/:version"],
+  params: {
+    type: ElementTypeParam,
+    id: ElementIdParam,
+    version: routeParam.optional(ElementVersionParam),
+  },
+  Component: ElementSidebar,
+})
 
 export const ElementsListRow = ({
   href,
@@ -507,9 +472,14 @@ const ElementRow = ({ element }: { element: ElementEntry }) => {
 }
 
 export const getElementTypeLabel = memoize((type: ElementType) => {
-  if (type === ElementType.node) return t("javascripts.query.node")
-  if (type === ElementType.way) return t("javascripts.query.way")
-  return t("javascripts.query.relation")
+  switch (type) {
+    case ElementType.node:
+      return t("javascripts.query.node")
+    case ElementType.way:
+      return t("javascripts.query.way")
+    case ElementType.relation:
+      return t("javascripts.query.relation")
+  }
 })
 
 export const getPaginationCountLabel = (page: number, totalItems: number) => {

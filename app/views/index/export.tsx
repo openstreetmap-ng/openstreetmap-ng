@@ -1,99 +1,66 @@
-import {
-  getActionSidebar,
-  SidebarHeader,
-  switchActionSidebar,
-} from "@index/_action-sidebar"
+import { SidebarHeader } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
 import { API_URL, MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { zoomPrecision } from "@lib/coords"
+import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
 import { tRich } from "@lib/i18n"
-import { boundsPadding, boundsToBounds, boundsToString } from "@lib/map/bounds"
+import { boundsEqual, boundsPadding, boundsSize, boundsToString } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
 import { qsEncode } from "@lib/qs"
 import { setPageTitle } from "@lib/title"
-import type { Bounds } from "@lib/types"
-import {
-  type ReadonlySignal,
-  signal,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
-import { equal } from "@std/assert"
-import { throttle } from "@std/async/unstable-throttle"
+import { useSignal } from "@preact/signals"
 import { t } from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
+import type { LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { useRef } from "preact/hooks"
 
-const ExportSidebar = ({
-  map,
-  sidebar,
-  active,
-}: {
-  map: MaplibreMap
-  sidebar: HTMLElement
-  active: ReadonlySignal<boolean>
-}) => {
-  const bounds = useSignal<Bounds>()
+const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
+  setPageTitle(t("map.data_export.title"))
+
+  const bounds = useSignal<LngLatBounds>()
   const boundsPrecision = useSignal(0)
   const locationFilterActive = useSignal(false)
   const locationFilter = useRef<LocationFilterControl>()
 
   const updateBoundsPrecision = () => {
-    if (!active.peek()) return
-
     boundsPrecision.value = zoomPrecision(map.getZoom())
   }
 
   const updateBounds = () => {
-    if (!active.peek()) return
-
-    const newBounds = boundsToBounds(
-      locationFilterActive.peek()
-        ? (locationFilter.current?.getBounds() ?? map.getBounds())
-        : map.getBounds(),
-    )
-    if (!equal(bounds.peek(), newBounds)) bounds.value = newBounds
+    const newBounds = locationFilterActive.peek()
+      ? (locationFilter.current?.getBounds() ?? map.getBounds())
+      : map.getBounds()
+    if (!boundsEqual(bounds.peek(), newBounds)) bounds.value = newBounds
   }
 
-  // Effect: Bind map listeners and init state
-  useSignalEffect(() => {
-    if (!active.value) return
-
-    switchActionSidebar(map, sidebar)
-    setPageTitle(t("map.data_export.title"))
-
-    map.on("zoomend", updateBoundsPrecision)
-    map.on("moveend", updateBounds)
+  // Effect: bind map listeners and init state.
+  useDisposeEffect((scope) => {
+    scope.map(map, "zoomend", updateBoundsPrecision)
+    scope.map(map, "moveend", updateBounds)
+    scope.defer(() => {
+      locationFilterActive.value = false
+    })
 
     updateBoundsPrecision()
     updateBounds()
+  }, [])
 
-    return () => {
-      map.off("zoomend", updateBoundsPrecision)
-      map.off("moveend", updateBounds)
+  // Effect: enable/disable location filter control.
+  useDisposeSignalEffect((scope) => {
+    if (!locationFilterActive.value) return
 
-      locationFilterActive.value = false
-    }
-  })
+    const control = new LocationFilterControl()
+    locationFilter.current = control
+    control.addOnRenderHandler(scope.throttle(250, () => updateBounds()))
 
-  // Effect: Enable/disable location filter control
-  useSignalEffect(() => {
-    if (!(active.value && locationFilterActive.value)) return
-
-    if (!locationFilter.current) {
-      locationFilter.current = new LocationFilterControl()
-      locationFilter.current.addOnRenderHandler(
-        throttle(updateBounds, 250, { ensureLastCall: true }),
-      )
-    }
-
-    locationFilter.current.addTo(map, boundsPadding(map.getBounds(), -0.2))
+    // By default, location filter is slightly smaller than the current view.
+    control.addTo(map, boundsPadding(map.getBounds(), -0.2))
     updateBounds()
 
-    return () => {
-      locationFilter.current!.remove()
+    scope.defer(() => {
+      control.remove()
+      locationFilter.current = undefined
       updateBounds()
-    }
+    })
   })
 
   const b = bounds.value
@@ -107,9 +74,10 @@ const ExportSidebar = ({
   let maxLatText = ""
 
   if (b) {
-    const [minLon, minLat, maxLon, maxLat] = b
     bboxQueryString = qsEncode({ bbox: boundsToString(b) })
-    isFormAvailable = (maxLon - minLon) * (maxLat - minLat) <= MAP_QUERY_AREA_MAX_SIZE
+    isFormAvailable = boundsSize(b) <= MAP_QUERY_AREA_MAX_SIZE
+
+    const [[minLon, minLat], [maxLon, maxLat]] = b.toArray()
     minLonText = minLon.toFixed(bp)
     minLatText = minLat.toFixed(bp)
     maxLonText = maxLon.toFixed(bp)
@@ -295,25 +263,8 @@ const ExportSidebar = ({
   )
 }
 
-export const getExportController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("export")
-  const active = signal(false)
-
-  render(
-    <ExportSidebar
-      map={map}
-      sidebar={sidebar}
-      active={active}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: () => {
-      active.value = true
-    },
-    unload: () => {
-      active.value = false
-    },
-  }
-}
+export const ExportRoute = defineRoute({
+  id: "export",
+  path: "/export",
+  Component: ExportRouteComponent,
+})

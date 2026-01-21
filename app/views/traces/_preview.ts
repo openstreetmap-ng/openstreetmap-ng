@@ -12,7 +12,7 @@ import {
   layersConfig,
 } from "@lib/map/layers/layers"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
-import { decodeLonLat } from "@lib/polyline"
+import { polylineDecode } from "@lib/polyline"
 import { roundTo } from "@std/math/round-to"
 import type { LineString } from "geojson"
 import {
@@ -92,7 +92,7 @@ if (tracePreviewContainer) {
   addMapLayer(map, LAYER_ID_ANT)
 
   // Add trace path
-  const coordinates = decodeLonLat(tracePreviewContainer.dataset.line!, 6)
+  const coordinates = polylineDecode(tracePreviewContainer.dataset.line!, 6)
   const bounds = coordinates.reduce(
     (bounds, coord) => bounds.extend(coord),
     new LngLatBounds(),

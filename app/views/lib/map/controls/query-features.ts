@@ -1,10 +1,10 @@
-import { routerNavigateStrict } from "@index/router"
-import { encodeMapState } from "@lib/map/state"
+import { IndexRoute } from "@index/index"
+import { QUERY_FEATURES_MIN_ZOOM, QueryFeaturesRoute } from "@index/query-features"
+import { routerNavigate, routerReplace, routerRoute } from "@index/router"
+import { effect } from "@preact/signals"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { IControl, Map as MaplibreMap, MapMouseEvent } from "maplibre-gl"
-
-export const QUERY_FEATURES_MIN_ZOOM = 14
 
 export class QueryFeaturesControl implements IControl {
   public _container!: HTMLElement
@@ -32,9 +32,9 @@ export class QueryFeaturesControl implements IControl {
     })
 
     const onMapClick = ({ lngLat }: MapMouseEvent) => {
-      const zoom = Math.max(map.getZoom(), QUERY_FEATURES_MIN_ZOOM)
-      const at = encodeMapState({ lon: lngLat.lng, lat: lngLat.lat, zoom }, "?at=")
-      routerNavigateStrict(`/query${at}`)
+      const zoom = Math.round(Math.max(map.getZoom(), QUERY_FEATURES_MIN_ZOOM))
+      const at = { lon: lngLat.lng, lat: lngLat.lat, zoom }
+      routerReplace(QueryFeaturesRoute, { at })
     }
 
     let active = false
@@ -42,7 +42,6 @@ export class QueryFeaturesControl implements IControl {
       if (active === next) return
       active = next
 
-      button.blur()
       button.classList.toggle("active", active)
       mapContainer.classList.toggle("query-features", active)
       if (active) {
@@ -52,9 +51,16 @@ export class QueryFeaturesControl implements IControl {
       }
     }
 
+    // Effect: Sync active state with the current route
+    effect(() => {
+      setActive(routerRoute.value === QueryFeaturesRoute)
+    })
+
+    // On button click, toggle the query-features sidebar.
     button.addEventListener("click", () => {
-      if (button.disabled) return
-      setActive(!active)
+      const isActive = routerRoute.value === QueryFeaturesRoute
+      routerNavigate(isActive ? IndexRoute : QueryFeaturesRoute)
+      button.blur()
     })
 
     /** On map zoom, change button availability */
@@ -63,7 +69,6 @@ export class QueryFeaturesControl implements IControl {
       if (shouldDisable === button.disabled) return
 
       if (shouldDisable) {
-        setActive(false)
         button.disabled = true
         tooltip.setContent({
           ".tooltip-inner": t("javascripts.site.queryfeature_disabled_tooltip"),

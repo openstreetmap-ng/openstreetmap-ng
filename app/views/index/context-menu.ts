@@ -1,12 +1,13 @@
-import { routerNavigateStrict } from "@index/router"
-import { zoomPrecision } from "@lib/coords"
+import { DistanceRoute } from "@index/distance"
+import { NEW_NOTE_MIN_ZOOM, NewNoteRoute } from "@index/new-note"
+import { QUERY_FEATURES_MIN_ZOOM, QueryFeaturesRoute } from "@index/query-features"
+import { routerNavigate } from "@index/router"
+import { ROUTING_QUERY_PRECISION, RoutingRoute } from "@index/routing"
+import { SearchRoute } from "@index/search"
+import { formatPoint, zoomPrecision } from "@lib/coords"
 import { createDisposeScope } from "@lib/dispose-scope"
 import { formatCoordinate } from "@lib/format"
-import { NEW_NOTE_MIN_ZOOM } from "@lib/map/controls/new-note"
-import { QUERY_FEATURES_MIN_ZOOM } from "@lib/map/controls/query-features"
-import { encodeMapState, getMapGeoUri, type LonLatZoom } from "@lib/map/state"
-import { encodeLonLat } from "@lib/polyline"
-import { qsEncode } from "@lib/qs"
+import { getMapGeoUri, type LonLatZoom } from "@lib/map/state"
 import { Dropdown } from "bootstrap"
 import { type Map as MaplibreMap, Popup } from "maplibre-gl"
 
@@ -118,7 +119,7 @@ export const configureContextMenu = (map: MaplibreMap) => {
     const point = getPopupLonLatZoom()
     const from = formatPoint(point, ROUTING_QUERY_PRECISION)
     closePopup()
-    routerNavigateStrict(`/directions${qsEncode({ from })}`)
+    routerNavigate(RoutingRoute, { from })
   })
 
   // On routing to button click, navigate to routing page
@@ -127,31 +128,31 @@ export const configureContextMenu = (map: MaplibreMap) => {
     const point = getPopupLonLatZoom()
     const to = formatPoint(point, ROUTING_QUERY_PRECISION)
     closePopup()
-    routerNavigateStrict(`/directions${qsEncode({ to })}`)
+    routerNavigate(RoutingRoute, { to })
   })
 
   // On new note button click, navigate to new-note page
   scope.dom(newNoteButton, "click", () => {
     console.debug("ContextMenu: New note clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
+    const at = getPopupLonLatZoom()
     closePopup()
-    routerNavigateStrict(`/note/new${at}`)
+    routerNavigate(NewNoteRoute, { at })
   })
 
   // On show address button click, navigate to search page
   scope.dom(showAddressButton, "click", () => {
     console.debug("ContextMenu: Show address clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
+    const at = getPopupLonLatZoom()
     closePopup()
-    routerNavigateStrict(`/search${at}`)
+    routerNavigate(SearchRoute, { at })
   })
 
   // On query features button click, navigate to query-features page
   scope.dom(queryFeaturesButton, "click", () => {
     console.debug("ContextMenu: Query features clicked")
-    const at = encodeMapState(getPopupLonLatZoom(), "?at=")
+    const at = getPopupLonLatZoom()
     closePopup()
-    routerNavigateStrict(`/query${at}`)
+    routerNavigate(QueryFeaturesRoute, { at })
   })
 
   // On center here button click, center the map
@@ -165,9 +166,9 @@ export const configureContextMenu = (map: MaplibreMap) => {
   scope.dom(measureDistanceButton, "click", () => {
     console.debug("ContextMenu: Measure distance clicked")
     const { lon, lat } = getPopupLonLatZoom()
-    const line = encodeLonLat([[lon, lat]], 5)
+    const line = [[lon, lat]] as const
     closePopup()
-    routerNavigateStrict(`/distance${qsEncode({ line })}`)
+    routerNavigate(DistanceRoute, { line })
   })
 
   return scope.dispose

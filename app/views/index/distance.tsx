@@ -1,62 +1,52 @@
-import {
-  getActionSidebar,
-  SidebarHeader,
-  switchActionSidebar,
-} from "@index/_action-sidebar"
+import { SidebarHeader } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
+import { queryParam } from "@lib/codecs"
+import { type Scheduled, useDisposeEffect } from "@lib/dispose-scope"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { fitBoundsIfNeeded } from "@lib/map/bounds"
 import { closestPointOnSegment } from "@lib/map/geometry"
 import {
-  addMapLayer,
   emptyFeatureCollection,
   type LayerId,
   layersConfig,
-  removeMapLayer,
 } from "@lib/map/layers/layers"
 import {
   getMarkerIconElement,
   MARKER_ICON_ANCHOR,
   type MarkerColor,
 } from "@lib/map/marker"
-import { decodeLonLat, encodeLonLat } from "@lib/polyline"
-import { getSearchParam, updateSearchParams } from "@lib/qs"
+import { type Polyline, polylineEquals } from "@lib/polyline"
 import { setPageTitle } from "@lib/title"
-import {
-  batch,
-  type ReadonlySignal,
-  signal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
-import { throttle } from "@std/async/unstable-throttle"
+import { batch, type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import { assertEquals, assertGreater } from "@std/assert"
 import type { Feature, LineString } from "geojson"
 import { t } from "i18next"
 import {
   type GeoJSONFeatureDiff,
   type GeoJSONSource,
-  LngLat,
+  type GeoJSONSourceDiff,
+  type LngLat,
   LngLatBounds,
   type LngLatLike,
   type Map as MaplibreMap,
-  MapMouseEvent,
   Marker,
   Point,
 } from "maplibre-gl"
-import { render } from "preact"
 import { useRef } from "preact/hooks"
-
-type DistanceUnit = "metric" | "imperial"
 
 type MarkerEntry = {
   id: number
-  index: number
   marker: Marker
+  label: DistanceLabel | null
 }
 
 interface DistanceLabel extends Marker {
   distance: number
 }
+
+const LINE_PRECISION = 5
+const GHOST_POINTER_Y_OFFSET_PX = 20
+const GHOST_QUERY_RADIUS_PX = 20
 
 const LAYER_ID = "distance" as LayerId
 layersConfig.set(LAYER_ID, {
@@ -80,73 +70,70 @@ layersConfig.set(LAYER_ID, {
 
 const DistanceSidebar = ({
   map,
-  mapContainer,
-  source,
-  active,
-  sidebar,
+  line,
 }: {
   map: MaplibreMap
-  mapContainer: HTMLElement
-  source: GeoJSONSource
-  active: ReadonlySignal<boolean>
-  sidebar: HTMLElement
+  line: Signal<Polyline | undefined>
 }) => {
-  const unit = useSignal<DistanceUnit>(isMetricUnit() ? "metric" : "imperial")
+  setPageTitle(t("javascripts.directions.distance"))
+  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
+
+  const unit = useSignal<"metric" | "imperial">(isMetricUnit() ? "metric" : "imperial")
   const markersCount = useSignal(0)
   const totalDistance = useSignal(0)
 
+  const updateMarkerDataFn = useRef<Scheduled<typeof updateMarkerDataNow>>()
+  const updateGhostPositionFn = useRef<Scheduled<typeof updateGhostPositionNow>>()
+
   const nextMarkerId = useRef(0)
-  const positions = useRef<[number, number][]>([])
-  const labels = useRef<Map<string, DistanceLabel>>(new Map())
   const markers = useRef<MarkerEntry[]>([])
+  const markerIdToIndex = useRef<Map<number, number>>(new Map())
   const ghostMarker = useRef<Marker | null>(null)
-  const ghostMarkerIndex = useRef(-1)
-  const dragMode = useRef<"none" | "marker" | "ghost">("none")
+  const ghostEndMarkerId = useRef<number | null>(null)
+  const ghostMaterializedMarkerId = useRef<number | null>(null)
+  const isDragging = useRef(false)
 
-  const totalDistanceText = useComputed(() =>
-    formatDistance(totalDistance.value, unit.value),
-  )
+  const computeLine = () => {
+    const out: (readonly [lon: number, lat: number])[] = []
+    for (const entry of markers.current) {
+      const { lng, lat } = entry.marker.getLngLat()
+      out.push([lng, lat])
+    }
+    return out.length ? (out as Polyline) : undefined
+  }
 
-  const throttledUpdateHistory = throttle(
-    () => {
-      // Allow state mutations during unload without touching the URL after navigation.
-      if (!active.value) return
-
-      updateSearchParams((searchParams) => {
-        if (positions.current.length) {
-          searchParams.set("line", encodeLonLat(positions.current, 5))
-        } else {
-          searchParams.delete("line")
-        }
-      })
-    },
-    500,
-    { ensureLastCall: true },
-  )
+  const updateLine = () => {
+    const currentLine = computeLine()
+    if (!polylineEquals(line.peek(), currentLine, LINE_PRECISION))
+      line.value = currentLine
+  }
 
   const setMarkerIcon = (marker: Marker, color: MarkerColor) => {
     marker.getElement().replaceChildren(...getMarkerIconElement(color, true).children)
   }
 
-  const refreshEndpointColors = () => {
+  const refreshEndpointIcons = () => {
     const count = markers.current.length
-    if (!count) return
-
+    if (count === 0) return
     setMarkerIcon(markers.current[0].marker, "green")
     if (count === 1) return
     setMarkerIcon(markers.current[count - 1].marker, "red")
   }
 
   const commitMarkersChange = (updateUrl = true) => {
-    refreshEndpointColors()
+    refreshEndpointIcons()
     markersCount.value = markers.current.length
-    if (updateUrl) throttledUpdateHistory()
+    if (updateUrl) updateLine()
   }
 
-  const getOrCreateLabel = (segmentId: string) => {
-    const existing = labels.current.get(segmentId)
-    if (existing) return existing
+  const reindexMarkersFrom = (startIndex: number) => {
+    for (let i = startIndex; i < markers.current.length; i++) {
+      const entry = markers.current[i]
+      markerIdToIndex.current.set(entry.id, i)
+    }
+  }
 
+  const createLabel = () => {
     const label = new Marker({
       anchor: "center",
       element: document.createElement("div"),
@@ -155,25 +142,26 @@ const DistanceSidebar = ({
       .setLngLat([0, 0])
       .addTo(map) as DistanceLabel
     label.distance = 0
-    labels.current.set(segmentId, label)
     return label
   }
 
-  const removeLabel = (segmentId: string) => {
-    const label = labels.current.get(segmentId)
-    if (!label) return
+  const removeLabel = (endIndex: number) => {
+    assertGreater(endIndex, 0)
+    const label = markers.current[endIndex].label!
     totalDistance.value = totalDistance.peek() - label.distance
     label.remove()
-    labels.current.delete(segmentId)
+    markers.current[endIndex].label = null
   }
 
-  const updateLabel = (segmentId: string, startIndex: number, endIndex: number) => {
-    const label = getOrCreateLabel(segmentId)
-    const startCoord = positions.current[startIndex]
-    const endCoord = positions.current[endIndex]
+  const updateLabel = (endIndex: number) => {
+    assertGreater(endIndex, 0)
+    const startEntry = markers.current[endIndex - 1]
+    const endEntry = markers.current[endIndex]
+    const startLngLat = startEntry.marker.getLngLat()
+    const endLngLat = endEntry.marker.getLngLat()
 
-    const startScreenPoint = map.project(startCoord)
-    const endScreenPoint = map.project(endCoord)
+    const startScreenPoint = map.project(startLngLat)
+    const endScreenPoint = map.project(endLngLat)
 
     // Calculate middle point
     // TODO: make sure this works correctly with 3d globe (#155)
@@ -191,10 +179,9 @@ const DistanceSidebar = ({
     if (angle > Math.PI / 2) angle -= Math.PI
     if (angle < -Math.PI / 2) angle += Math.PI
 
-    const newDistance = new LngLat(startCoord[0], startCoord[1]).distanceTo(
-      new LngLat(endCoord[0], endCoord[1]),
-    )
+    const newDistance = startLngLat.distanceTo(endLngLat)
 
+    const label = endEntry.label!
     totalDistance.value = totalDistance.peek() + (newDistance - label.distance)
     label.distance = newDistance
     label.setLngLat(middlePoint)
@@ -202,118 +189,107 @@ const DistanceSidebar = ({
     label.getElement().textContent = formatDistance(newDistance, unit.peek())
   }
 
-  const segmentIdAt = (endIndex: number) =>
-    `${markers.current[endIndex - 1].id}:${markers.current[endIndex].id}`
+  const segmentCoords = (endIndex: number) => {
+    assertGreater(endIndex, 0)
+    const startLngLat = markers.current[endIndex - 1].marker.getLngLat()
+    const endLngLat = markers.current[endIndex].marker.getLngLat()
+    return [
+      [startLngLat.lng, startLngLat.lat],
+      [endLngLat.lng, endLngLat.lat],
+    ]
+  }
 
-  const makeSegmentFeatureAt = (endIndex: number): Feature<LineString> => ({
+  const makeSegmentFeature = (endIndex: number): Feature<LineString> => ({
     type: "Feature",
-    id: segmentIdAt(endIndex),
+    id: markers.current[endIndex].id,
     properties: {},
     geometry: {
       type: "LineString",
-      coordinates: [positions.current[endIndex - 1], positions.current[endIndex]],
+      coordinates: segmentCoords(endIndex),
     },
   })
 
-  const makeSegmentUpdateAt = (endIndex: number): GeoJSONFeatureDiff => ({
-    id: segmentIdAt(endIndex),
+  const makeSegmentUpdate = (endIndex: number): GeoJSONFeatureDiff => ({
+    id: markers.current[endIndex].id,
     newGeometry: {
       type: "LineString",
-      coordinates: [positions.current[endIndex - 1], positions.current[endIndex]],
+      coordinates: segmentCoords(endIndex),
     },
   })
-
-  const updateLabelAt = (endIndex: number) => {
-    updateLabel(segmentIdAt(endIndex), endIndex - 1, endIndex)
-  }
-
-  const updateSegmentsAt = (endIndexes: readonly number[]) => {
-    if (!endIndexes.length) return
-
-    source.updateData({
-      update: endIndexes.map(makeSegmentUpdateAt),
-    })
-    for (const endIndex of endIndexes) updateLabelAt(endIndex)
-  }
 
   const updateSegmentsAround = (markerIndex: number) => {
     const count = markers.current.length
     if (count < 2) return
 
-    const segments: number[] = []
-    if (markerIndex > 0) segments.push(markerIndex)
-    if (markerIndex < count - 1) segments.push(markerIndex + 1)
-    updateSegmentsAt(segments)
+    const update: GeoJSONFeatureDiff[] = []
+    if (markerIndex > 0) update.push(makeSegmentUpdate(markerIndex))
+    if (markerIndex < count - 1) update.push(makeSegmentUpdate(markerIndex + 1))
+    source.updateData({ update })
+
+    if (markerIndex > 0) updateLabel(markerIndex)
+    if (markerIndex < count - 1) updateLabel(markerIndex + 1)
   }
 
   const rebuildSegmentsAndLabels = () => {
-    totalDistance.value = 0
-    for (const label of labels.current.values()) label.remove()
-    labels.current.clear()
+    assertEquals(totalDistance.peek(), 0)
 
-    if (markers.current.length < 2) {
-      source.updateData({ removeAll: true })
-      return
-    }
-
-    const segmentEndIndexes: number[] = []
+    const segments: Feature<LineString>[] = []
     for (let endIndex = 1; endIndex < markers.current.length; endIndex++) {
-      segmentEndIndexes.push(endIndex)
+      markers.current[endIndex].label!.distance = 0
+      updateLabel(endIndex)
+      segments.push(makeSegmentFeature(endIndex))
     }
 
-    source.updateData({
-      removeAll: true,
-      add: segmentEndIndexes.map(makeSegmentFeatureAt),
-    })
-
-    for (const endIndex of segmentEndIndexes) updateLabelAt(endIndex)
+    source.setData({ type: "FeatureCollection", features: segments })
   }
 
   const clearMarkers = () => {
-    if (markers.current.length) console.debug("Distance: Clear markers")
+    if (markers.current.length) {
+      console.debug("Distance: Clear markers")
+    }
     resetState()
-    throttledUpdateHistory()
+    updateLine()
   }
 
   const toggleUnit = () => {
-    unit.value = unit.value === "metric" ? "imperial" : "metric"
-    console.debug("Distance: Unit toggled", unit.value)
+    const next = unit.peek() === "metric" ? "imperial" : "metric"
+    console.debug("Distance: Unit toggled", next)
+    unit.value = next
 
-    for (const label of labels.current.values()) {
-      label.getElement().textContent = formatDistance(label.distance, unit.value)
+    for (let i = 1; i < markers.current.length; i++) {
+      const label = markers.current[i].label!
+      label.getElement().textContent = formatDistance(label.distance, next)
     }
   }
 
   const removeMarker = (index: number) => {
     console.debug("Distance: Marker removed", index)
-    if (!active.peek()) return
+    hideGhostMarker()
 
-    const target = markers.current[index]
     const countBefore = markers.current.length
+    const target = markers.current[index]
 
-    const toRemove: string[] = []
-    if (index > 0) toRemove.push(segmentIdAt(index))
-    if (index < countBefore - 1) toRemove.push(segmentIdAt(index + 1))
-
-    target.marker.remove()
-    markers.current.splice(index, 1)
-    positions.current.splice(index, 1)
-    for (let i = index; i < markers.current.length; i++) markers.current[i].index = i
-
-    const bridgeSegmentEndIndex = index
-    const shouldAddBridge =
-      bridgeSegmentEndIndex > 0 && bridgeSegmentEndIndex < markers.current.length
-
-    if (toRemove.length || shouldAddBridge) {
-      const diff = {} as Parameters<GeoJSONSource["updateData"]>[0]
-      if (toRemove.length) diff.remove = toRemove
-      if (shouldAddBridge) diff.add = [makeSegmentFeatureAt(bridgeSegmentEndIndex)]
-      source.updateData(diff)
+    let segmentIdToRemove: number | null = null
+    if (countBefore > 1) {
+      const segmentEndIndexToRemove = Math.max(index, 1)
+      segmentIdToRemove = markers.current[segmentEndIndexToRemove].id
+      removeLabel(segmentEndIndexToRemove)
     }
 
-    for (const id of toRemove) removeLabel(id)
+    target.marker.remove()
+    markerIdToIndex.current.delete(target.id)
+    markers.current.splice(index, 1)
+    reindexMarkersFrom(index)
 
-    if (shouldAddBridge) updateLabelAt(bridgeSegmentEndIndex)
+    if (segmentIdToRemove !== null) {
+      const diff: GeoJSONSourceDiff = { remove: [segmentIdToRemove] }
+      const shouldUpdateBridge = index > 0 && index < countBefore - 1
+      if (shouldUpdateBridge) {
+        diff.update = [makeSegmentUpdate(index)]
+        updateLabel(index)
+      }
+      source.updateData(diff)
+    }
 
     commitMarkersChange()
   }
@@ -327,99 +303,95 @@ const DistanceSidebar = ({
     })
   }
 
-  const updateMarkerDataAt = (index: number, lngLat: LngLat) => {
-    if (!active.peek()) return
-    positions.current[index] = [lngLat.lng, lngLat.lat]
+  const updateMarkerDataNow = (id: number, lngLat: LngLat) => {
+    const index = markerIdToIndex.current.get(id)!
+    markers.current[index].marker.setLngLat(lngLat)
     updateSegmentsAround(index)
-    throttledUpdateHistory()
   }
 
   const createMarkerEntry = (lngLat: LngLatLike, index: number, color: MarkerColor) => {
     const id = nextMarkerId.current++
     const marker = markerFactory(color).setLngLat(lngLat).addTo(map)
 
-    const entry: MarkerEntry = { id, index, marker }
+    const entry: MarkerEntry = {
+      id,
+      marker,
+      label: index > 0 ? createLabel() : null,
+    }
 
     marker.on("dragstart", () => {
-      dragMode.current = "marker"
+      isDragging.current = true
       hideGhostMarker()
     })
-    marker.on(
-      "drag",
-      throttle(
-        () => {
-          updateMarkerDataAt(index, marker.getLngLat())
-        },
-        16,
-        { ensureLastCall: true },
-      ),
-    )
+    marker.on("drag", () => updateMarkerDataFn.current!(id, marker.getLngLat()))
     marker.on("dragend", () => {
-      dragMode.current = "none"
+      isDragging.current = false
+      updateMarkerDataFn.current!.flush()
+      updateLine()
     })
     marker.getElement().addEventListener("click", (e) => {
       e.stopPropagation()
       batch(() => {
-        removeMarker(index)
+        removeMarker(markerIdToIndex.current.get(id)!)
       })
     })
 
-    const normalized = LngLat.convert(lngLat)
-    positions.current.splice(index, 0, [normalized.lng, normalized.lat])
-    markers.current.splice(index, 0, entry)
-    for (let i = index; i < markers.current.length; i++) markers.current[i].index = i
-
+    if (index === markers.current.length) {
+      markers.current.push(entry)
+      markerIdToIndex.current.set(entry.id, index)
+    } else {
+      markers.current.splice(index, 0, entry)
+      reindexMarkersFrom(index)
+    }
     return entry
   }
 
-  const addMarkerAtEnd = (lngLat: LngLatLike, skipUpdates = false) => {
-    if (!active.peek()) return
+  const appendMarker = (lngLat: LngLatLike, skipUpdates = false, updateUrl = true) => {
     const prevCount = markers.current.length
     console.debug("Distance: Marker created", lngLat, skipUpdates)
+    if (skipUpdates) {
+      return createMarkerEntry(lngLat, prevCount, "blue").id
+    }
 
-    if (prevCount >= 2) setMarkerIcon(markers.current[prevCount - 1].marker, "blue")
-    const color: MarkerColor = prevCount === 0 ? "green" : "red"
+    if (prevCount >= 2) {
+      setMarkerIcon(markers.current[prevCount - 1].marker, "blue")
+    }
 
-    createMarkerEntry(lngLat, prevCount, color)
-
-    if (skipUpdates) return
+    const color = prevCount === 0 ? "green" : "red"
+    const entry = createMarkerEntry(lngLat, prevCount, color)
 
     if (prevCount > 0) {
       const segmentEndIndex = prevCount
-      source.updateData({ add: [makeSegmentFeatureAt(segmentEndIndex)] })
-      updateLabelAt(segmentEndIndex)
+      source.updateData({ add: [makeSegmentFeature(segmentEndIndex)] })
+      updateLabel(segmentEndIndex)
     }
 
-    commitMarkersChange()
+    commitMarkersChange(updateUrl)
+    return entry.id
   }
 
-  const insertMarkerAt = (index: number, lngLat: LngLat) => {
-    if (!active.peek()) return
+  const insertMarker = (index: number, lngLat: LngLat, updateUrl = true) => {
     console.debug("Distance: Marker inserted", index, lngLat.lng, lngLat.lat)
-
     if (index <= 0 || index >= markers.current.length) {
-      addMarkerAtEnd(lngLat)
-      return
+      return appendMarker(lngLat, false, updateUrl)
     }
 
-    const oldSegmentId = segmentIdAt(index)
-
-    removeLabel(oldSegmentId)
-
-    createMarkerEntry(lngLat, index, "blue")
+    const inserted = createMarkerEntry(lngLat, index, "blue")
 
     source.updateData({
-      remove: [oldSegmentId],
-      add: [makeSegmentFeatureAt(index), makeSegmentFeatureAt(index + 1)],
+      add: [makeSegmentFeature(index)],
+      update: [makeSegmentUpdate(index + 1)],
     })
-    updateLabelAt(index)
-    updateLabelAt(index + 1)
+    updateLabel(index)
+    updateLabel(index + 1)
 
-    commitMarkersChange()
+    commitMarkersChange(updateUrl)
+    return inserted.id
   }
 
   const hideGhostMarker = () => {
-    ghostMarkerIndex.current = -1
+    ghostEndMarkerId.current = null
+    ghostMaterializedMarkerId.current = null
 
     const marker = ghostMarker.current
     if (!marker) return
@@ -434,190 +406,182 @@ const DistanceSidebar = ({
     marker.setOffset([0, 8])
 
     marker.on("dragstart", () => {
-      dragMode.current = "ghost"
+      isDragging.current = true
       console.debug("Distance: Ghost marker materialized")
       marker.addClassName("dragging")
       batch(() => {
-        insertMarkerAt(ghostMarkerIndex.current, marker.getLngLat())
+        const endId = ghostEndMarkerId.current!
+        const endIndex = markerIdToIndex.current.get(endId)!
+        ghostMaterializedMarkerId.current = insertMarker(
+          endIndex,
+          marker.getLngLat(),
+          false,
+        )
       })
     })
-    marker.on(
-      "drag",
-      throttle(
-        () => {
-          if (dragMode.current !== "ghost") return
-          const entry = markers.current[ghostMarkerIndex.current]
-          if (!entry) return
-          const lngLat = marker.getLngLat()
-          entry.marker.setLngLat(lngLat)
-          updateMarkerDataAt(entry.index, lngLat)
-        },
-        16,
-        { ensureLastCall: true },
-      ),
-    )
+    marker.on("drag", () => {
+      const materializedId = ghostMaterializedMarkerId.current!
+      const lngLat = marker.getLngLat()
+      updateMarkerDataFn.current!(materializedId, lngLat)
+    })
     marker.on("dragend", () => {
-      dragMode.current = "none"
+      isDragging.current = false
+      updateMarkerDataFn.current!.flush()
       hideGhostMarker()
+      updateLine()
     })
     marker.getElement().addEventListener("click", (e) => {
       e.stopPropagation()
       console.debug("Distance: Ghost marker clicked")
       batch(() => {
-        insertMarkerAt(ghostMarkerIndex.current, marker.getLngLat())
+        const endId = ghostEndMarkerId.current!
+        const endIndex = markerIdToIndex.current.get(endId)!
+        insertMarker(endIndex, marker.getLngLat(), false)
         hideGhostMarker()
       })
+      updateLine()
     })
     return marker
   }
 
-  const updateGhostMarkerPositionNow = (e: MapMouseEvent | MouseEvent) => {
-    if (!active.peek()) return
-
-    if (dragMode.current !== "none") return
+  const updateGhostPositionNow = (x: number, y: number) => {
+    if (isDragging.current) return
     if (markers.current.length < 2) {
       hideGhostMarker()
       return
     }
 
-    const marker = ghostMarker.current
-    if (!marker) return
-    if (marker.getElement().hidden) return
-
-    const { clientX, clientY } = e instanceof MapMouseEvent ? e.originalEvent : e
-    const mapRect = mapContainer.getBoundingClientRect()
-    const point = new Point(
-      clientX - mapRect.left,
-      clientY - mapRect.top + 20, // offset for marker height
+    const hitPoint = new Point(x, y + GHOST_POINTER_Y_OFFSET_PX)
+    const r = GHOST_QUERY_RADIUS_PX
+    const features = map.queryRenderedFeatures(
+      [
+        [hitPoint.x - r, hitPoint.y - r],
+        [hitPoint.x + r, hitPoint.y + r],
+      ],
+      { layers: [LAYER_ID] },
     )
 
-    let minDistanceSq = Number.POSITIVE_INFINITY
-    let closestPoint: Point | null = null
-    ghostMarkerIndex.current = -1
-    for (let i = 1; i < markers.current.length; i++) {
-      const segmentClosestPoint = closestPointOnSegment(
-        point,
-        map.project(positions.current[i - 1]),
-        map.project(positions.current[i]),
-      )
-      const dx = segmentClosestPoint.x - point.x
-      const dy = segmentClosestPoint.y - point.y
-      const distanceSq = dx * dx + dy * dy
-      if (distanceSq < minDistanceSq) {
-        minDistanceSq = distanceSq
-        closestPoint = segmentClosestPoint
-        ghostMarkerIndex.current = i
-      }
-    }
-    if (ghostMarkerIndex.current > -1) {
-      marker.setLngLat(map.unproject(closestPoint!))
-    }
-
-    const markerRect = marker.getElement().getBoundingClientRect()
-    if (
-      clientX < markerRect.left ||
-      clientX > markerRect.right ||
-      clientY < markerRect.top ||
-      clientY > markerRect.bottom
-    ) {
+    if (!features.length) {
       hideGhostMarker()
+      return
     }
-  }
 
-  const updateGhostMarkerPosition = throttle(updateGhostMarkerPositionNow, 16, {
-    ensureLastCall: true,
-  })
+    ghostMarker.current ??= ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
+    const marker = ghostMarker.current
+    marker.getElement().hidden = false
+
+    const firstSegmentId = Number(features[0].id)
+    const firstEndIndex = markerIdToIndex.current.get(firstSegmentId)!
+    const firstStartLngLat = markers.current[firstEndIndex - 1].marker.getLngLat()
+    const firstEndLngLat = markers.current[firstEndIndex].marker.getLngLat()
+    let bestEndId = firstSegmentId
+    let bestClosestPoint = closestPointOnSegment(
+      hitPoint,
+      map.project(firstStartLngLat),
+      map.project(firstEndLngLat),
+    )
+    let bestDistanceSq =
+      (bestClosestPoint.x - hitPoint.x) ** 2 + (bestClosestPoint.y - hitPoint.y) ** 2
+
+    for (let i = 1; i < features.length; i++) {
+      const segmentId = Number(features[i].id)
+      const endIndex = markerIdToIndex.current.get(segmentId)!
+      const startLngLat = markers.current[endIndex - 1].marker.getLngLat()
+      const endLngLat = markers.current[endIndex].marker.getLngLat()
+      const closestPoint = closestPointOnSegment(
+        hitPoint,
+        map.project(startLngLat),
+        map.project(endLngLat),
+      )
+      const distanceSq =
+        (closestPoint.x - hitPoint.x) ** 2 + (closestPoint.y - hitPoint.y) ** 2
+      if (distanceSq >= bestDistanceSq) continue
+      bestDistanceSq = distanceSq
+      bestEndId = segmentId
+      bestClosestPoint = closestPoint
+    }
+
+    ghostEndMarkerId.current = bestEndId
+    marker.setLngLat(map.unproject(bestClosestPoint))
+  }
 
   const resetState = () => {
-    dragMode.current = "none"
+    nextMarkerId.current = 0
+    for (const entry of markers.current) {
+      entry.marker.remove()
+      entry.label?.remove()
+    }
+    markers.current.length = 0
+    markerIdToIndex.current.clear()
+    source.setData(emptyFeatureCollection)
+
     ghostMarker.current?.remove()
     ghostMarker.current = null
-    ghostMarkerIndex.current = -1
+    ghostEndMarkerId.current = null
+    ghostMaterializedMarkerId.current = null
+    isDragging.current = false
 
-    for (const { marker } of markers.current) marker.remove()
-    markers.current.length = 0
-    positions.current.length = 0
-
-    for (const label of labels.current.values()) label.remove()
-    labels.current.clear()
-    source.updateData({ removeAll: true })
-
-    totalDistance.value = 0
     markersCount.value = 0
+    totalDistance.value = 0
   }
 
-  useSignalEffect(() => {
-    if (!active.value) return
+  const applyUrlLine = (line: Polyline | undefined) => {
+    resetState()
 
-    switchActionSidebar(map, sidebar)
-    setPageTitle(t("javascripts.directions.distance"))
-    addMapLayer(map, LAYER_ID)
+    line ??= []
+    console.debug("Distance: Loaded", line.length, "points")
+    if (!line.length) return
 
-    // Load markers from URL
-    const line = getSearchParam("line")
-    let loadedPositions: [number, number][] = []
-    if (line) {
-      try {
-        loadedPositions = decodeLonLat(line, 5)
-      } catch (error) {
-        console.error("Distance: Failed to decode line", line, error)
-      }
+    for (const [lon, lat] of line) {
+      appendMarker([lon, lat], true)
     }
-
-    for (const [lon, lat] of loadedPositions) {
-      addMarkerAtEnd([lon, lat], true)
-    }
-
-    console.debug("Distance: Loaded", loadedPositions.length, "points")
 
     rebuildSegmentsAndLabels()
-
     commitMarkersChange(false)
 
     // Focus on the markers if they're offscreen
-    if (markers.current.length) {
-      const first = markers.current[0]
-      const firstLngLat = first?.marker.getLngLat()
-      if (firstLngLat) {
-        let markerBounds = new LngLatBounds(firstLngLat, firstLngLat)
-        for (const entry of markers.current) {
-          markerBounds = markerBounds.extend(entry.marker.getLngLat())
-        }
-        fitBoundsIfNeeded(map, markerBounds, {
-          maxZoom: 16,
-          minProportion: 0,
-        })
-      }
+    const [firstLon, firstLat] = line[0]
+    const markerBounds = new LngLatBounds([firstLon, firstLat, firstLon, firstLat])
+    for (let i = 1; i < line.length; i++) {
+      const [lon, lat] = line[i]
+      markerBounds.extend([lon, lat])
     }
+    fitBoundsIfNeeded(map, markerBounds, {
+      maxZoom: 16,
+      minProportion: 0,
+    })
+  }
 
-    const onLineMouseEnter = (e: MapMouseEvent) => {
-      if (dragMode.current !== "none") return
-      if (markers.current.length < 2) return
+  useDisposeEffect((scope) => {
+    scope.mapLayerLifecycle(map, LAYER_ID)
 
-      if (!ghostMarker.current)
-        ghostMarker.current = ghostMarkerFactory().setLngLat([0, 0]).addTo(map)
-      ghostMarker.current.getElement().hidden = false
-      updateGhostMarkerPositionNow(e)
-    }
+    updateMarkerDataFn.current = scope.frame((_, id, lngLat) => {
+      updateMarkerDataNow(id, lngLat)
+    })
+    updateGhostPositionFn.current = scope.frame((_, x, y) => {
+      updateGhostPositionNow(x, y)
+    })
 
-    const onMapClick = (e: MapMouseEvent) => {
-      batch(() => {
-        addMarkerAtEnd(e.lngLat)
-      })
-    }
-
-    map.on("click", onMapClick)
-    map.on("mousemove", updateGhostMarkerPosition)
-    map.on("mouseenter", LAYER_ID, onLineMouseEnter)
-
-    return () => {
-      map.off("click", onMapClick)
-      map.off("mousemove", updateGhostMarkerPosition)
-      map.off("mouseenter", LAYER_ID, onLineMouseEnter)
-
-      removeMapLayer(map, LAYER_ID)
+    scope.defer(() => {
       resetState()
-    }
+    })
+
+    scope.map(map, "click", (e) => {
+      batch(() => {
+        appendMarker(e.lngLat)
+      })
+    })
+    scope.map(map, "mousemove", (e) => {
+      updateGhostPositionFn.current!(e.point.x, e.point.y)
+    })
+  }, [])
+
+  // Effect: apply external URL changes.
+  useSignalEffect(() => {
+    const nextLine = line.value
+    const currentLine = computeLine()
+    if (polylineEquals(nextLine, currentLine, LINE_PRECISION)) return
+    applyUrlLine(nextLine)
   })
 
   return (
@@ -626,8 +590,10 @@ const DistanceSidebar = ({
         <SidebarHeader class="mb-2">
           <div>
             <i class="bi bi-signpost-2 me-1-5"></i>
-            <span>{t("javascripts.directions.distance")}</span>:{" "}
-            <span class="fw-semibold">{totalDistanceText.value}</span>
+            <span>{t("javascripts.directions.distance")}</span>:
+            <span class="fw-semibold ms-1">
+              {formatDistance(totalDistance.value, unit.value)}
+            </span>
           </div>
         </SidebarHeader>
 
@@ -657,29 +623,10 @@ const DistanceSidebar = ({
   )
 }
 
-export const getDistanceController = (map: MaplibreMap) => {
-  const mapContainer = map.getContainer()
-  const source = map.getSource<GeoJSONSource>(LAYER_ID)!
-  const sidebar = getActionSidebar("distance")
-  const active = signal(false)
-
-  render(
-    <DistanceSidebar
-      map={map}
-      mapContainer={mapContainer}
-      source={source}
-      active={active}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: () => {
-      active.value = true
-    },
-    unload: () => {
-      active.value = false
-    },
-  }
-}
+export const DistanceRoute = defineRoute({
+  id: "distance",
+  path: "/distance",
+  query: { line: queryParam.polyline(LINE_PRECISION) },
+  sidebarOverlay: true,
+  Component: DistanceSidebar,
+})

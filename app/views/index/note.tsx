@@ -1,10 +1,6 @@
-import {
-  getActionSidebar,
-  SidebarContent,
-  SidebarHeader,
-  switchActionSidebar,
-  useSidebarFetch,
-} from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
+import { defineRoute } from "@index/router"
+import { routeParam } from "@lib/codecs"
 import { config, isLoggedIn, isModerator } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { loadMapImage, NOTE_STATUS_MARKERS } from "@lib/map/image"
@@ -35,7 +31,6 @@ import { setPageTitle } from "@lib/title"
 import {
   type ReadonlySignal,
   type Signal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
@@ -43,7 +38,6 @@ import {
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
@@ -187,7 +181,7 @@ const CommentForm = ({
   const commentText = useSignal("")
 
   useEffect(() => {
-    const disposeForm = configureStandardForm<NoteCommentResult>(
+    return configureStandardForm<NoteCommentResult>(
       formRef.current,
       (result, headers) => {
         formRef.current!.reset()
@@ -206,7 +200,6 @@ const CommentForm = ({
         },
       },
     )
-    return () => disposeForm?.()
   }, [])
 
   const hasText = commentText.value.length > 0
@@ -321,10 +314,9 @@ const SubscriptionForm = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    const disposeForm = configureStandardForm(formRef.current, () => {
+    return configureStandardForm(formRef.current, () => {
       isSubscribed.value = !isSubscribed.value
     })
-    return () => disposeForm?.()
   }, [])
 
   return (
@@ -347,20 +339,14 @@ const SubscriptionForm = ({
   )
 }
 
-const NoteSidebar = ({
-  map,
-  id,
-  sidebar,
-}: {
-  map: MaplibreMap
-  id: ReadonlySignal<string | null>
-  sidebar: HTMLElement
-}) => {
+const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint> }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<PaginationResponse<NoteCommentPage> | null>(null)
 
-  const url = useComputed(() => (id.value ? `/api/web/note/${id.value}` : null))
-  const { resource, data } = useSidebarFetch(url, NoteDataSchema)
+  const { resource, data } = useSidebarFetch(
+    useComputed(() => `/api/web/note/${id.value}`),
+    NoteDataSchema,
+  )
 
   // Effect: Sync derived state
   useSignalEffect(() => {
@@ -372,12 +358,6 @@ const NoteSidebar = ({
       isSubscribed.value = d.isSubscribed
       setPageTitle(`${t("note.title")}: ${d.id}`)
     }
-  })
-
-  // Effect: Clear preloaded comments on URL change
-  useSignalEffect(() => {
-    url.value
-    preloadedComments.value = null
   })
 
   // Effect: Map focus
@@ -397,18 +377,13 @@ const NoteSidebar = ({
     return () => focusObjects(map)
   })
 
-  // Effect: Sidebar visibility
-  useSignalEffect(() => {
-    if (id.value) switchActionSidebar(map, sidebar)
-  })
-
   return (
     <SidebarContent
       resource={resource}
       notFound={() =>
         t("browse.not_found.sorry", {
           type: t("note.title").toLowerCase(),
-          id: id.value!,
+          id: id.toString(),
         })
       }
     >
@@ -439,7 +414,7 @@ const NoteSidebar = ({
 
           {/* Location */}
           <p class="location-container mb-0">
-            {t("diary_entries.form.location")}:{" "}
+            {t("diary_entries.form.location")}:
             <button
               class="btn btn-link stretched-link"
               type="button"
@@ -563,25 +538,9 @@ const NoteSidebar = ({
   )
 }
 
-export const getNoteController = (map: MaplibreMap) => {
-  const sidebar = getActionSidebar("note")
-  const id = signal<string | null>(null)
-
-  render(
-    <NoteSidebar
-      map={map}
-      id={id}
-      sidebar={sidebar}
-    />,
-    sidebar,
-  )
-
-  return {
-    load: (matchGroups: Record<string, string>) => {
-      id.value = matchGroups.id
-    },
-    unload: () => {
-      id.value = null
-    },
-  }
-}
+export const NoteRoute = defineRoute({
+  id: "note",
+  path: ["/note/:id", "/note/:id/unsubscribe"],
+  params: { id: routeParam.positive() },
+  Component: NoteSidebar,
+})

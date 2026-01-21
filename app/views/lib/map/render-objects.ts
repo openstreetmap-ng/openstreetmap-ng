@@ -1,4 +1,4 @@
-import { decodeLonLat } from "@lib/polyline"
+import { polylineDecode } from "@lib/polyline"
 import type {
   RenderChangesetsData_Changeset,
   RenderElementsData,
@@ -173,7 +173,7 @@ export const convertRenderElementsData = (render: RenderElementsData | undefined
     result.push({
       type: "way",
       id: way.id,
-      geom: decodeLonLat(way.line, 6),
+      geom: polylineDecode(way.line, 6),
       area: way.area,
     })
   }

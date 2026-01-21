@@ -10,7 +10,7 @@ import { createRef, render } from "preact"
 import { LanguageSwitcher } from "./_language-switcher"
 import { ThemeSwitcher } from "./_theme-switcher"
 
-const hasMainMap = Boolean(document.querySelector("div.main-map"))
+const hasMainMap = document.getElementById("MainMap")?.tagName === "DIV"
 
 const navLinks = [
   {

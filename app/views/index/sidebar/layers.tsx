@@ -418,7 +418,7 @@ const LayersSidebar = ({
           <img
             src="/static/img/favicon/256.webp"
             alt={t("alt.logo", { name: t("project_name") })}
-          />{" "}
+          />
           {t("javascripts.map.base.standard")}
         </LayerTile>
 
@@ -441,7 +441,7 @@ const LayersSidebar = ({
                   t("javascripts.map.base.tracestracktop_topo")}
                 {layerId === LIBERTY_LAYER_ID && (
                   <>
-                    {t("map.layers.liberty")}{" "}
+                    {t("map.layers.liberty")}
                     <span class="vector">{t("map.layers.vector")}</span>
                   </>
                 )}

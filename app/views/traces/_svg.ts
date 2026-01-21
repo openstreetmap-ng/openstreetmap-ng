@@ -1,6 +1,8 @@
-export const renderTrace = (svg: SVGElement, coords: [number, number][]) => {
-  if (!coords.length) return
-  const pathData = generatePathData(coords)
+import type { Polyline } from "@lib/polyline"
+
+export const renderTrace = (svg: SVGElement, line: Polyline) => {
+  if (!line.length) return
+  const pathData = generatePathData(line)
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
   path.setAttribute("d", pathData)
   path.setAttribute("fill", "none")
@@ -10,9 +12,9 @@ export const renderTrace = (svg: SVGElement, coords: [number, number][]) => {
   svg.appendChild(path)
 }
 
-export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][]) => {
-  if (!coords.length) return
-  const pathData = generatePathData(coords)
+export const renderAnimatedTrace = (svg: SVGElement, line: Polyline) => {
+  if (!line.length) return
+  const pathData = generatePathData(line)
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
   path.setAttribute("d", pathData)
   path.setAttribute("fill", "none")
@@ -48,8 +50,8 @@ export const renderAnimatedTrace = (svg: SVGElement, coords: [number, number][])
   }
 }
 
-const generatePathData = (coords: [number, number][]) => {
-  let d = `M${coords[0][0]},${coords[0][1]}`
-  for (let i = 1; i < coords.length; i++) d += ` L${coords[i][0]},${coords[i][1]}`
+const generatePathData = (line: Polyline) => {
+  let d = `M${line[0][0]},${line[0][1]}`
+  for (let i = 1; i < line.length; i++) d += ` L${line[i][0]},${line[i][1]}`
   return d
 }

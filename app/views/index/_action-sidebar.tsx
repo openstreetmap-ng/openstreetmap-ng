@@ -1,18 +1,17 @@
 import { fromBinary, type Message } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
-import { routerNavigateStrict } from "@index/router"
+import { IndexRoute } from "@index/index"
+import { routerNavigate } from "@index/router"
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import {
   type ReadonlySignal,
   type Signal,
   useComputed,
   useSignal,
-  useSignalEffect,
 } from "@preact/signals"
-import { assert, assertExists } from "@std/assert"
+import { assert } from "@std/assert"
 import { t } from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren } from "preact"
-import { collapseNavbar } from "../navbar/navbar"
 
 // State machine for sidebar async resources
 export type SidebarResource<T> =
@@ -25,7 +24,6 @@ export type SidebarResource<T> =
 type SidebarFetchResult<T> = {
   resource: Signal<SidebarResource<T>>
   data: ReadonlySignal<T | null>
-  refresh: () => void
 }
 
 const SidebarOverlaySpinner = () => (
@@ -87,28 +85,25 @@ export const SidebarResourceBody = <T extends object>({
 
 /**
  * Hook for fetching sidebar data with unified state management.
- * Handles AbortController lifecycle, 404 detection, and protobuf decoding.
+ * Handles cancellation lifecycle, 404 detection, and protobuf decoding.
  *
  * @param url - Signal containing the URL to fetch, or null to reset to idle
  * @param schema - Protobuf schema for decoding the response
- * @returns Object with resource signal and refresh function
+ * @returns Resource state and decoded data
  */
 export const useSidebarFetch = <T extends object>(
   url: ReadonlySignal<string | null>,
   schema: GenMessage<T & Message>,
 ): SidebarFetchResult<T> => {
   const resource = useSignal<SidebarResource<T>>({ tag: "idle" })
-  const refreshKey = useSignal(0)
 
   // Effect: Fetch lifecycle
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     const urlValue = url.value
     if (urlValue === null) {
       resource.value = { tag: "idle" }
       return
     }
-
-    refreshKey.value
 
     // Capture prev for stale-while-revalidate
     const current = resource.peek()
@@ -120,10 +115,9 @@ export const useSidebarFetch = <T extends object>(
           : null
 
     resource.value = { tag: "loading", prev }
-    const abortController = new AbortController()
 
     fetch(urlValue, {
-      signal: abortController.signal,
+      signal: scope.signal,
       priority: "high",
     })
       .then(async (resp) => {
@@ -134,7 +128,7 @@ export const useSidebarFetch = <T extends object>(
         assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
         const buffer = await resp.arrayBuffer()
-        abortController.signal.throwIfAborted()
+        scope.signal.throwIfAborted()
         const data = fromBinary(schema, new Uint8Array(buffer)) as T
 
         resource.value = { tag: "ready", data }
@@ -143,20 +137,13 @@ export const useSidebarFetch = <T extends object>(
         if (err.name === "AbortError") return
         resource.value = { tag: "error", error: err.message, prev }
       })
-
-    return () => abortController.abort()
   })
 
   // Derived: extract data when ready
   const data = useComputed(() =>
     resource.value.tag === "ready" ? resource.value.data : null,
   )
-
-  const refresh = () => {
-    refreshKey.value++
-  }
-
-  return { resource, data, refresh }
+  return { resource, data }
 }
 
 export const SidebarHeader = ({
@@ -221,42 +208,8 @@ export const LoadingSpinner = () => (
   </div>
 )
 
-const actionSidebars = document.querySelectorAll("div.action-sidebar")
-const sidebarContainer = actionSidebars.length ? actionSidebars[0].parentElement : null
-
-/** Get the action sidebar with the given class name */
-export const getActionSidebar = (className: string) =>
-  document.querySelector(`div.action-sidebar.${className}`)!
-
-/** Switch the action sidebar with the given class name */
-export const switchActionSidebar = (map: MaplibreMap, actionSidebar: HTMLElement) => {
-  console.debug("ActionSidebar: Switching", actionSidebar.classList)
-  assertExists(sidebarContainer)
-
-  // Toggle all action sidebars
-  for (const sidebar of actionSidebars) {
-    const isTarget = sidebar === actionSidebar
-    if (isTarget) {
-      sidebarContainer.classList.toggle(
-        "sidebar-overlay",
-        sidebar.dataset.sidebarOverlay === "1",
-      )
-    }
-    sidebar.hidden = !isTarget
-  }
-
-  map.resize()
-  collapseNavbar()
-}
-
 /** On sidebar close button click, navigate to index */
 const onCloseButtonClick = () => {
   console.debug("ActionSidebar: Close clicked")
-  routerNavigateStrict("/")
-}
-
-/** Configure action sidebar events */
-export const configureActionSidebar = (sidebar: Element) => {
-  const closeButton = sidebar.querySelector(".sidebar-close-btn")
-  closeButton?.addEventListener("click", onCloseButtonClick)
+  routerNavigate(IndexRoute)
 }
