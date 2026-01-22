@@ -3,8 +3,6 @@
   ''
     rm -rf node_modules/bootstrap/dist/css
 
-    static-img-pipeline &
-
     if [[ ! data/cache/browserslist_versions.json -nt bun.lock ]]; then
       echo "Regenerating browserslist cache"
       mkdir -p data/cache

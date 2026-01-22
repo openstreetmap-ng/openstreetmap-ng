@@ -332,6 +332,8 @@ let
       _patch-shebang &
     ''
     + ''
+      echo "Running [static-img-pipeline]"
+      static-img-pipeline &
       echo "Running [proto-pipeline]"
       proto-pipeline &
     ''
