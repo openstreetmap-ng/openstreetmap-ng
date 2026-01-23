@@ -52,3 +52,12 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',
         )
+
+    @override
+    def diff_null_island(self, count: int) -> NoReturn:
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail=f'Changeset contains {count} elements at null island (0, 0). '
+            'This is typically caused by software bugs. '
+            'Please verify your data and try again.',
+        )
