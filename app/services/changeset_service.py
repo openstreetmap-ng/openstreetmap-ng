@@ -23,7 +23,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -104,11 +104,12 @@ class ChangesetService:
     async def close(changeset_id: ChangesetId) -> None:
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
+        tags: dict[str, str] | None = None
 
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +122,7 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                changeset_user_id, closed_at, tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -137,6 +138,10 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        # Process automatic note closing
+        if tags:
+            await _close_notes_from_tags(tags)
 
     @staticmethod
     @asynccontextmanager
@@ -158,6 +163,47 @@ class ChangesetService:
         _PROCESS_REQUEST_EVENT.set()
         _PROCESS_DONE_EVENT.clear()
         await _PROCESS_DONE_EVENT.wait()
+
+
+async def _close_notes_from_tags(tags: dict[str, str]) -> None:
+    """
+    Close notes listed in the closes:note tag.
+
+    Tag format:
+    - closes:note: IDs separated by ;
+    - closes:note:comment: default comment for all notes
+    - closes:note:ID:comment: individual note comment override
+    """
+    from app.services.note_service import NoteService
+
+    closes_note = tags.get('closes:note')
+    if not closes_note:
+        return
+
+    # Parse note IDs
+    note_ids: list[NoteId] = []
+    for part in closes_note.split(';'):
+        part = part.strip()
+        if part.isdigit():
+            note_ids.append(int(part))
+
+    if not note_ids:
+        return
+
+    # Get default comment from changeset comment tag or closes:note:comment
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+
+    # Close each note
+    for note_id in note_ids:
+        # Check for individual note comment override
+        comment = tags.get(f'closes:note:{note_id}:comment', default_comment)
+
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+            logging.debug('Closed note %d via closes:note tag', note_id)
+        except Exception:
+            # Note may already be closed or not exist - continue with others
+            logging.debug('Failed to close note %d (may already be closed)', note_id)
 
 
 @retry(None)
