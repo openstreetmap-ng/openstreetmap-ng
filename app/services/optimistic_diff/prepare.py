@@ -7,7 +7,7 @@ from typing import Final, Literal
 import cython
 import numpy as np
 from psycopg import AsyncConnection
-from shapely import Point, bounds, box
+from shapely import Point, bounds, box, get_coordinates
 
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
@@ -214,6 +214,9 @@ class OptimisticDiffPrepare:
             num_modify=num_modify,
             num_delete=num_delete,
         )
+
+        # Check for null island elements (coordinates 0, 0)
+        self._check_null_island()
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -564,6 +567,27 @@ class OptimisticDiffPrepare:
             raise_for.changeset_too_big(
                 self.changeset['size'] + num_create + num_modify + num_delete
             )
+
+    def _check_null_island(self) -> None:
+        """
+        Check for elements at null island (0, 0) coordinates.
+
+        Changesets with 2 or more elements at null island are rejected,
+        as this typically indicates a software bug in the editor.
+        """
+        null_island_count: cython.size_t = 0
+
+        for element in self.apply_elements:
+            point = element['point']
+            if point is None:
+                continue
+
+            coords = get_coordinates(point)[0]
+            # Check if coordinates are exactly (0, 0)
+            if coords[0] == 0.0 and coords[1] == 0.0:
+                null_island_count += 1
+                if null_island_count >= 2:
+                    raise_for.diff_null_island(null_island_count)
 
     async def _update_changeset_bounds(
         self,
