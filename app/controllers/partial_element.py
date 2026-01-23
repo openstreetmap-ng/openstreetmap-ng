@@ -5,7 +5,11 @@ from fastapi import APIRouter
 from shapely import get_coordinates
 from starlette import status
 
-from app.config import ELEMENT_HISTORY_PAGE_SIZE
+from typing import Annotated
+
+from fastapi import Query
+
+from app.config import ELEMENT_DEEP_HISTORY_DEFAULT_LIMIT, ELEMENT_HISTORY_PAGE_SIZE
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
 from app.lib.feature_icon import features_icons
@@ -99,6 +103,82 @@ async def get_history(type: ElementType, id: ElementId):
             'type': type,
             'id': id,
             'page_size': ELEMENT_HISTORY_PAGE_SIZE,
+        },
+    )
+
+
+@router.get('/{type:element_type}/{id:int}/deep-history')
+async def get_deep_history(
+    type: ElementType,
+    id: ElementId,
+    limit: Annotated[int, Query(ge=1, le=1000)] = ELEMENT_DEEP_HISTORY_DEFAULT_LIMIT,
+):
+    """Get deep history view showing all versions in a single table."""
+    typed_id = typed_element_id(type, id)
+    at_sequence_id = await ElementQuery.get_current_sequence_id()
+
+    # Get all versions up to the limit
+    elements = await ElementQuery.find_versions_by_ref(
+        typed_id,
+        at_sequence_id=at_sequence_id,
+        sort_dir='desc',
+        limit=limit,
+    )
+    if not elements:
+        return await render_response(
+            'partial/not-found',
+            {'type': type, 'id': id},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Resolve changesets and users for all versions
+    changeset_ids = list({e['changeset_id'] for e in elements})
+    changesets = await ChangesetQuery.find(changeset_ids=changeset_ids, limit=None)
+    await UserQuery.resolve_users(changesets)
+    changeset_map = {cs['id']: cs for cs in changesets}
+
+    # Get parent ways for nodes (at current sequence)
+    parent_ways = []
+    if type == 'node':
+        parent_ways = await ElementQuery.find_parents_by_refs(
+            [typed_id],
+            at_sequence_id=at_sequence_id,
+            parent_type='way',
+            limit=None,
+        )
+
+    # Build version data
+    versions_data = []
+    for element in elements:
+        changeset = changeset_map.get(element['changeset_id'])
+
+        # Get coordinates for nodes
+        coords = None
+        if (point := element['point']) is not None:
+            from shapely import get_coordinates as shapely_get_coords
+            x, y = shapely_get_coords(point)[0].tolist()
+            coords = {'lat': y, 'lon': x}
+
+        versions_data.append({
+            'element': element,
+            'changeset': changeset,
+            'coords': coords,
+        })
+
+    total_versions = elements[0]['version'] if elements else 0
+    has_more = len(elements) == limit and total_versions > limit
+
+    return await render_response(
+        'partial/element-deep-history',
+        {
+            'type': type,
+            'id': id,
+            'versions_data': versions_data,
+            'parent_ways': parent_ways,
+            'total_versions': total_versions,
+            'limit': limit,
+            'has_more': has_more,
+            'default_limit': ELEMENT_DEEP_HISTORY_DEFAULT_LIMIT,
         },
     )
 

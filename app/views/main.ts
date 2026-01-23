@@ -1,4 +1,5 @@
 import "./main.scss"
+import "./index/_edit-help"
 
 import "@lib/polyfills"
 

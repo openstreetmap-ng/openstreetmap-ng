@@ -11,13 +11,19 @@
                     {{ t('browse.relation.history_title_html', name=id) | safe }}
                     {% endif %}
                 </h2>
-                <div class="form-check ms-1">
-                    <label class="form-check-label">
-                        <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
-                        {{- t('element.tags_diff_mode') -}}
-                        <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
-                            data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
-                    </label>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="form-check ms-1">
+                        <label class="form-check-label">
+                            <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
+                            {{- t('element.tags_diff_mode') -}}
+                            <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
+                                data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
+                        </label>
+                    </div>
+                    <a href="/{{ type }}/{{ id }}/deep-history" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-table"></i>
+                        {{ t('element.view_deep_history') }}
+                    </a>
                 </div>
             </div>
             <div class="col-auto">
