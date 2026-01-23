@@ -1,0 +1,146 @@
+<div class="sidebar-content">
+    <div class="section pb-1">
+        <div class="row g-1 mb-1">
+            <div class="col">
+                <h2 class="sidebar-title">
+                    {% if type == 'node' %}
+                    {{ t('browse.node.history_title_html', name=id) | safe }}
+                    {% elif type == 'way' %}
+                    {{ t('browse.way.history_title_html', name=id) | safe }}
+                    {% elif type == 'relation' %}
+                    {{ t('browse.relation.history_title_html', name=id) | safe }}
+                    {% endif %}
+                    <small class="text-muted">({{ t('element.deep_history') }})</small>
+                </h2>
+            </div>
+            <div class="col-auto">
+                <button class="sidebar-close-btn btn-close" aria-label="{{ t('javascripts.close') }}"></button>
+            </div>
+        </div>
+    </div>
+
+    {# Version limit selector #}
+    <div class="section py-2 border-bottom">
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="text-muted small">
+                {{ t('element.showing_versions', count=versions_data | length, total=total_versions) }}
+            </span>
+            <div class="input-group input-group-sm" style="width: auto;">
+                <span class="input-group-text">{{ t('element.limit') }}</span>
+                <select class="form-select form-select-sm version-limit" style="width: auto;">
+                    {% for opt in [10, 25, 50, 100, 250, 500, 1000] %}
+                    <option value="{{ opt }}" {% if opt == limit %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        {% if has_more %}
+        <div class="text-warning small mt-1">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ t('element.more_versions_available') }}
+        </div>
+        {% endif %}
+    </div>
+
+    {# Parent ways (for nodes only) #}
+    {% if parent_ways %}
+    <div class="section py-2 border-bottom">
+        <h5 class="mb-2">{{ t('element.part_of_ways') }}</h5>
+        <ul class="list-unstyled mb-0 small">
+            {% for way in parent_ways[:10] %}
+            <li>
+                <a href="/way/{{ way.typed_id | element_id }}">
+                    {{ t('browse.way.title', name=way.typed_id | element_id) }}
+                </a>
+            </li>
+            {% endfor %}
+            {% if parent_ways | length > 10 %}
+            <li class="text-muted">{{ t('element.and_more', count=parent_ways | length - 10) }}</li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {# Versions table #}
+    <div class="section p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover deep-history-table mb-0">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>{{ t('browse.version') }}</th>
+                        <th>{{ t('element.date') }}</th>
+                        <th>{{ t('element.user') }}</th>
+                        {% if type == 'node' %}
+                        <th>{{ t('element.coordinates') }}</th>
+                        {% endif %}
+                        <th>{{ t('element.tags') }}</th>
+                        <th>{{ t('element.changeset') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in versions_data %}
+                    {% set element = data.element %}
+                    {% set changeset = data.changeset %}
+                    {% set coords = data.coords %}
+                    <tr class="version-row {% if not element.visible %}table-danger{% endif %}"
+                        data-version="{{ element.version }}"
+                        data-href="/{{ type }}/{{ id }}/history/{{ element.version }}">
+                        <td>
+                            <a href="/{{ type }}/{{ id }}/history/{{ element.version }}">
+                                {{ element.version }}
+                            </a>
+                            {% if not element.visible %}
+                            <span class="badge bg-danger ms-1" title="{{ t('action.deleted') }}">
+                                <i class="bi bi-trash-fill"></i>
+                            </span>
+                            {% endif %}
+                            {% if element.latest %}
+                            <span class="badge bg-success ms-1">{{ t('state.latest') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <time datetime="{{ element.created_at.isoformat() }}" data-style="short"></time>
+                        </td>
+                        <td>
+                            {% if changeset and changeset.user %}
+                            <a href="/user/{{ changeset.user.display_name }}">
+                                <img class="avatar avatar-sm" src="{{ user_avatar_url(changeset.user) }}"
+                                     alt="{{ t('alt.profile_picture') }}" loading="lazy">
+                                <span class="small">{{ changeset.user.display_name }}</span>
+                            </a>
+                            {% else %}
+                            <span class="text-muted small">{{ t('browse.anonymous') }}</span>
+                            {% endif %}
+                        </td>
+                        {% if type == 'node' %}
+                        <td class="small">
+                            {% if coords %}
+                            <code>{{ '%.5f' | format(coords.lat) }}, {{ '%.5f' | format(coords.lon) }}</code>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>
+                            <span class="badge bg-secondary">{{ element.tags | length }}</span>
+                        </td>
+                        <td>
+                            <a href="/changeset/{{ element.changeset_id }}" class="small">
+                                {{ element.changeset_id }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Back to regular history link #}
+    <div class="section py-2">
+        <a href="/{{ type }}/{{ id }}/history" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            {{ t('element.back_to_history') }}
+        </a>
+    </div>
+</div>
