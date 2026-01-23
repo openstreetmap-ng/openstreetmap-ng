@@ -243,7 +243,13 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
+    try:
+        img = open_image(BytesIO(data))
+    except Exception as e:
+        # Handle decompression bomb (image too large in megapixels)
+        if 'DecompressionBomb' in type(e).__name__ or 'decompression bomb' in str(e).lower():
+            raise_for.image_too_big()
+        raise
     ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
