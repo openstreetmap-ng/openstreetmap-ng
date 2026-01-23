@@ -9,6 +9,12 @@ import {
 } from "@index/element"
 import type { IndexController } from "@index/router"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
+import {
+  type DiffElement,
+  hideDiff,
+  parseOsmChange,
+  showDiff,
+} from "@lib/map/layers/diff-layer"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
   type PartialChangesetParams_Element as Element,
@@ -36,6 +42,8 @@ const focusPaint: FocusLayerPaint = {
 export const getChangesetController = (map: MaplibreMap) => {
   let params: PartialChangesetParams
   let paramsBounds: Bounds[]
+  let diffElements: DiffElement[] | null = null
+  let diffEnabled = false
 
   const base = getBaseFetchController(map, "changeset", (sidebarContent) => {
     configureTagsFormat(sidebarContent.querySelector("div.tags"))
@@ -84,11 +92,20 @@ export const getChangesetController = (map: MaplibreMap) => {
     )
     configureStandardForm(sidebarContent.querySelector("form.comment-form"), reload)
 
+    // Configure diff button
+    const diffButton = sidebarContent.querySelector<HTMLButtonElement>(".diff-toggle-btn")
+    if (diffButton) {
+      diffButton.addEventListener("click", () => toggleDiff(diffButton))
+    }
+
     return () => {
       disposeElements()
       disposePagination()
       map.off("zoomend", refocus)
       focusObjects(map)
+      hideDiff(map)
+      diffEnabled = false
+      diffElements = null
     }
   })
 
@@ -103,6 +120,34 @@ export const getChangesetController = (map: MaplibreMap) => {
       // Fit the bounds only on the initial update
       fitBounds: !e,
     })
+  }
+
+  const toggleDiff = async (button: HTMLButtonElement) => {
+    diffEnabled = !diffEnabled
+    button.classList.toggle("active", diffEnabled)
+
+    if (diffEnabled) {
+      // Fetch and show diff if not already loaded
+      if (!diffElements) {
+        button.disabled = true
+        try {
+          const response = await fetch(`/api/0.6/changeset/${params.id}/download`)
+          if (response.ok) {
+            const xml = await response.text()
+            diffElements = parseOsmChange(xml)
+            console.debug("Changeset: Loaded diff with", diffElements.length, "elements")
+          }
+        } catch (error) {
+          console.error("Changeset: Failed to load diff", error)
+        }
+        button.disabled = false
+      }
+      if (diffElements) {
+        showDiff(map, diffElements)
+      }
+    } else {
+      hideDiff(map)
+    }
   }
 
   const controller: IndexController = {
