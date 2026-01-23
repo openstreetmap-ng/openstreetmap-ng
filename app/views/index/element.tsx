@@ -11,6 +11,7 @@ import {
   PartialElementParamsSchema,
 } from "@lib/proto/shared_pb"
 import { configureStandardPagination } from "@lib/standard-pagination"
+import { configureTagsEdit } from "@lib/tags-edit"
 import { configureTagsFormat } from "@lib/tags-format"
 import { setPageTitle } from "@lib/title"
 import { memoize } from "@std/cache/memoize"
@@ -72,8 +73,9 @@ export const getElementController = (map: MaplibreMap): IndexController => {
 export const initializeElementContent = (map: MaplibreMap, container: HTMLElement) => {
   console.debug("Element: Initializing content")
 
-  // Enhance tags table
+  // Enhance tags table and configure edit functionality
   configureTagsFormat(container.querySelector("div.tags"))
+  configureTagsEdit(container)
 
   const locationButton = container.querySelector(".location-container button")
   locationButton?.addEventListener("click", () => {

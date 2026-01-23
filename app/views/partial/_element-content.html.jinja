@@ -55,18 +55,61 @@
 {% endif %}
 
 {# Tags #}
-{% if tags %}
-<div class="tags" {% if tags_old %} data-tags-old="{{ tags_old | tojson | forceescape }}" {% endif %}>
-    <table class="table table-sm">
-        <tbody dir="auto">
-            {%- for key, value in tags | dictsort -%}
-            <tr>
-                <td>{{ key }}</td>
-                <td>{{ value }}</td>
-            </tr>
-            {%- endfor -%}
-        </tbody>
-    </table>
+{% if tags or (user is not none and next_version is none and element.visible) %}
+<div class="tags-section">
+    {# Tags header with edit button #}
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <h4 class="mb-0">{{ t('browse.tags') }}</h4>
+        {% if user is not none and next_version is none and element.visible %}
+        <button class="btn btn-link p-0 edit-tags-btn" type="button">
+            {{ t('action.edit_tags') }}
+        </button>
+        {% endif %}
+    </div>
+
+    {# Tags view (default) #}
+    {% if tags %}
+    <div class="tags tags-view"
+         data-tags="{{ tags | tojson | forceescape }}"
+         {% if tags_old %} data-tags-old="{{ tags_old | tojson | forceescape }}" {% endif %}>
+        <table class="table table-sm">
+            <tbody dir="auto">
+                {%- for key, value in tags | dictsort -%}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ value }}</td>
+                </tr>
+                {%- endfor -%}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="tags tags-view" data-tags="{}">
+        <p class="text-muted mb-0">{{ t('state.none') }}</p>
+    </div>
+    {% endif %}
+
+    {# Tags edit form (hidden by default) #}
+    {% if user is not none and next_version is none and element.visible %}
+    <form class="tags-edit-form d-none" method="POST" action="/api/0.7/element/{{ element.typed_id }}/tags">
+        <div class="mb-2">
+            <textarea class="form-control tags-textarea" name="tags" rows="8"
+                      placeholder="{{ t('browse.tags_format_hint') }}"></textarea>
+        </div>
+        <div class="mb-2">
+            <input class="form-control" type="text" name="comment"
+                   placeholder="{{ t('changeset.comment') }}" required>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-secondary discard-tags-btn" type="button">
+                {{ t('action.discard') }}
+            </button>
+            <button class="btn btn-primary" type="submit">
+                {{ t('action.save') }}
+            </button>
+        </div>
+    </form>
+    {% endif %}
 </div>
 {% endif %}
 
