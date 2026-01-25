@@ -1,8 +1,16 @@
+import type {
+  DescMessage,
+  DescMethodUnary,
+  MessageInitShape,
+  MessageValidType,
+} from "@bufbuild/protobuf"
 import { fromBinary, type Message } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
+import { type CallOptions, Code, ConnectError } from "@connectrpc/connect"
 import { IndexRoute } from "@index/index"
 import { routerNavigate } from "@index/router"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { connectErrorToMessage, rpcClient } from "@lib/rpc"
 import {
   type ReadonlySignal,
   type Signal,
@@ -88,6 +96,46 @@ export const SidebarResourceBody = <T extends object>({
   }
 }
 
+const useSidebarRequest = <Req, Res extends object>(
+  request: ReadonlySignal<Req | null>,
+  call: (request: Req, signal: AbortSignal) => Promise<Res | null>,
+  getErrorMessage: (reason: Error) => string = (e) => e.message,
+): SidebarFetchResult<Res> => {
+  const resource = useSignal<SidebarResource<Res>>({ tag: "idle" })
+
+  useDisposeSignalEffect((scope) => {
+    const req = request.value
+    if (req === null) {
+      resource.value = { tag: "idle" }
+      return
+    }
+
+    const current = resource.peek()
+    const prev =
+      current.tag === "ready"
+        ? current.data
+        : (current.tag === "loading" || current.tag === "error") && current.prev
+          ? current.prev
+          : null
+
+    resource.value = { tag: "loading", prev }
+
+    call(req, scope.signal)
+      .then((data) => {
+        resource.value = data === null ? { tag: "not-found" } : { tag: "ready", data }
+      })
+      .catch((reason) => {
+        if (scope.signal.aborted) return
+        resource.value = { tag: "error", error: getErrorMessage(reason), prev }
+      })
+  })
+
+  const data = useComputed(() =>
+    resource.value.tag === "ready" ? resource.value.data : null,
+  )
+  return { resource, data }
+}
+
 /**
  * Hook for fetching sidebar data with unified state management.
  * Handles cancellation lifecycle, 404 detection, and protobuf decoding.
@@ -100,55 +148,37 @@ export const useSidebarFetch = <T extends object>(
   url: ReadonlySignal<string | null>,
   schema: GenMessage<T & Message>,
 ): SidebarFetchResult<T> => {
-  const resource = useSignal<SidebarResource<T>>({ tag: "idle" })
-
-  // Effect: Fetch lifecycle
-  useDisposeSignalEffect((scope) => {
-    const urlValue = url.value
-    if (urlValue === null) {
-      resource.value = { tag: "idle" }
-      return
-    }
-
-    // Capture prev for stale-while-revalidate
-    const current = resource.peek()
-    const prev =
-      current.tag === "ready"
-        ? current.data
-        : (current.tag === "loading" || current.tag === "error") && current.prev
-          ? current.prev
-          : null
-
-    resource.value = { tag: "loading", prev }
-
-    fetch(urlValue, {
-      signal: scope.signal,
-      priority: "high",
-    })
-      .then(async (resp) => {
-        if (resp.status === 404) {
-          resource.value = { tag: "not-found" }
-          return
-        }
-        assert(resp.ok, `${resp.status} ${resp.statusText}`)
-
-        const buffer = await resp.arrayBuffer()
-        scope.signal.throwIfAborted()
-        const data = fromBinary(schema, new Uint8Array(buffer)) as T
-
-        resource.value = { tag: "ready", data }
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return
-        resource.value = { tag: "error", error: err.message, prev }
-      })
+  return useSidebarRequest(url, async (urlValue, signal) => {
+    const resp = await fetch(urlValue, { signal, priority: "high" })
+    if (resp.status === 404) return null
+    assert(resp.ok, `${resp.status} ${resp.statusText}`)
+    const buffer = await resp.arrayBuffer()
+    signal.throwIfAborted()
+    return fromBinary(schema, new Uint8Array(buffer)) as T
   })
+}
 
-  // Derived: extract data when ready
-  const data = useComputed(() =>
-    resource.value.tag === "ready" ? resource.value.data : null,
+export const useSidebarRpc = <I extends DescMessage, O extends DescMessage>(
+  request: ReadonlySignal<MessageInitShape<I> | null>,
+  method: DescMethodUnary<I, O>,
+): SidebarFetchResult<MessageValidType<O>> => {
+  return useSidebarRequest(
+    request,
+    async (req, signal) => {
+      try {
+        const fn = rpcClient(method.parent)[method.localName] as (
+          request: MessageInitShape<I>,
+          options?: CallOptions,
+        ) => Promise<MessageValidType<O>>
+        return await fn(req, { signal })
+      } catch (reason) {
+        const err = ConnectError.from(reason)
+        if (err.code === Code.NotFound) return null
+        throw err
+      }
+    },
+    (reason) => connectErrorToMessage(ConnectError.from(reason)),
   )
-  return { resource, data }
 }
 
 export const SidebarHeader = ({

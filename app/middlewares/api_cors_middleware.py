@@ -2,7 +2,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import CORS_MAX_AGE
-from app.middlewares.request_context_middleware import get_request
 
 
 class APICorsMiddleware:
@@ -25,10 +24,8 @@ class APICorsMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        path: str = get_request().url.path
-        app = (
-            self.cors
-            if (path.startswith('/api/') and not path.startswith('/api/web/'))
-            else self.app
-        )
-        return await app(scope, receive, send)
+        path: str = scope['path']
+        if path.startswith('/api/') and not path.startswith('/api/web/'):
+            return await self.cors(scope, receive, send)
+
+        return await self.app(scope, receive, send)

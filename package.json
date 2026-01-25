@@ -7,6 +7,8 @@
     "@babel/preset-typescript": "latest",
     "@bufbuild/protobuf": "latest",
     "@bufbuild/protoc-gen-es": "latest",
+    "@connectrpc/connect": "latest",
+    "@connectrpc/connect-web": "latest",
     "@noble/hashes": "npm:@jsr/noble__hashes",
     "@preact/signals": "latest",
     "@rapideditor/rapid": "latest",

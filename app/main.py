@@ -26,7 +26,7 @@ from starlette.types import ASGIApp
 from starlette_compress import CompressMiddleware
 
 import app.lib.cython_detect  # DO NOT REMOVE
-import app.lib.sentry  # noqa: F401
+import app.lib.sentry
 from app.config import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
@@ -58,6 +58,7 @@ from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
+from app.rpc.app import app as rpc_app
 from app.services.admin_task_service import AdminTaskService
 from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
@@ -121,60 +122,68 @@ async def lifespan(_):
 
 register_url_convertor('element_type', ElementTypeConvertor())
 
-main = FastAPI(
+app = FastAPI(
     debug=ENV != 'prod',
     title=NAME,
     lifespan=lifespan,
+    openapi_url='/api/openapi.json',
+    docs_url='/api/docs',
+    redoc_url='/api/redoc',
 )
 
-main.add_middleware(ParallelTasksMiddleware)
+app.add_middleware(ParallelTasksMiddleware)
 
 if ENV == 'test':
-    main.add_middleware(TestSiteMiddleware)
+    app.add_middleware(TestSiteMiddleware)
 
-main.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
-main.add_middleware(
+app.add_middleware(UnsupportedBrowserMiddleware)  # depends on: session, translation
+app.add_middleware(
     CompressMiddleware,
     minimum_size=COMPRESS_HTTP_MIN_SIZE,
     zstd_level=COMPRESS_HTTP_ZSTD_LEVEL,
     brotli_quality=COMPRESS_HTTP_BROTLI_QUALITY,
     gzip_level=COMPRESS_HTTP_GZIP_LEVEL,
+    # Workaround for ConnectRPC compression issues
+    # https://github.com/connectrpc/connect-python/issues/96
+    remove_accept_encoding=True,
 )
-main.add_middleware(APICorsMiddleware)
-main.add_middleware(CacheControlMiddleware)
-main.add_middleware(RateLimitMiddleware)
-main.add_middleware(FormatStyleMiddleware)
-main.add_middleware(TranslationMiddleware)  # depends on: auth
-main.add_middleware(AuthMiddleware)
-main.add_middleware(RequestBodyMiddleware)
-main.add_middleware(SubdomainMiddleware)
-main.add_middleware(LimitUrlSizeMiddleware)
-main.add_middleware(ExceptionsMiddleware)
+app.add_middleware(CacheControlMiddleware)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(FormatStyleMiddleware)
+app.add_middleware(TranslationMiddleware)  # depends on: auth
+app.add_middleware(AuthMiddleware)
+app.add_middleware(RequestBodyMiddleware)
+app.add_middleware(SubdomainMiddleware)
+app.add_middleware(LimitUrlSizeMiddleware)
+app.add_middleware(ExceptionsMiddleware)
 
 if ENV == 'dev':
-    main.add_middleware(LocalhostRedirectMiddleware)
+    app.add_middleware(LocalhostRedirectMiddleware)
 
 if ENV != 'prod':
-    main.add_middleware(ProfilerMiddleware)
+    app.add_middleware(ProfilerMiddleware)
 
-main.add_middleware(RequestContextMiddleware)
-main.add_middleware(DefaultHeadersMiddleware)
+app.add_middleware(RequestContextMiddleware)
+app.add_middleware(APICorsMiddleware)
+app.add_middleware(DefaultHeadersMiddleware)
 
 if ENV != 'prod':
-    main.add_middleware(RuntimeMiddleware)
+    app.add_middleware(RuntimeMiddleware)
+
+app.mount('/rpc', rpc_app, name='rpc')
 
 # TODO: /static default cache control
-main.mount(
+app.mount(
     '/static/',
     PrecompressedStaticFiles('app/static'),
     name='static',
 )
-main.mount(
+app.mount(
     '/static-locale/',
     PrecompressedStaticFiles('config/locale/i18next'),
     name='static-locale',
 )
-main.mount(
+app.mount(
     '/static-node_modules/',
     PrecompressedStaticFiles('node_modules'),
     name='static-node_modules',
@@ -186,7 +195,7 @@ def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
     router = APIRouter(prefix=prefix)
     router_counter: int = 0
     routes_counter: int = 0
-    for p in path.glob('*.py'):
+    for p in sorted(path.glob('*.py')):
         module_name = p.as_posix().replace('/', '.')[:-3]
         module = importlib.import_module(module_name)
         router_attr: APIRouter | None = getattr(module, 'router', None)
@@ -198,7 +207,7 @@ def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
         router_counter += 1
         routes_counter += len(router_attr.routes)
     logging.info(
-        'Loaded (%d routers, %d routes) from %s as %r',
+        'Loaded %d routers, %d routes from %s as %r',
         router_counter,
         routes_counter,
         path,
@@ -207,8 +216,8 @@ def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
     return router
 
 
-main.include_router(_make_router(pathlib.Path('app/controllers'), ''))
-user_name_blacklist_routes(main)
+app.include_router(_make_router(pathlib.Path('app/controllers'), ''))
+user_name_blacklist_routes(app)
 
 
 def _build_middleware_stack(self: Starlette) -> ASGIApp:
@@ -236,10 +245,10 @@ def _build_middleware_stack(self: Starlette) -> ASGIApp:
     return app
 
 
-main.build_middleware_stack = _build_middleware_stack.__get__(main, Starlette)
+app.build_middleware_stack = _build_middleware_stack.__get__(app, Starlette)
 
 
-@main.exception_handler(ExceptionGroup)
+@app.exception_handler(ExceptionGroup)
 async def exception_group_handler(request: Request, exc: ExceptionGroup):
     """Unpack supported exception groups."""
     for e in exc.exceptions:
@@ -249,3 +258,6 @@ async def exception_group_handler(request: Request, exc: ExceptionGroup):
     capture_exception(exc)
     traceback.print_exception(exc.__class__, exc, exc.__traceback__)
     return Response('Internal Server Error', status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+__all__ = ('app',)

@@ -3,7 +3,6 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from app.exceptions import Exceptions
 from app.exceptions06 import Exceptions06
 from app.lib.exceptions_context import exceptions_context
-from app.middlewares.request_context_middleware import get_request
 
 
 class ExceptionsMiddleware:
@@ -18,9 +17,10 @@ class ExceptionsMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
+        path: str = scope['path']
         implementation = (
             Exceptions06()
-            if get_request().url.path.startswith((
+            if path.startswith((
                 '/api/0.6/',
                 '/api/versions',
                 '/api/capabilities',

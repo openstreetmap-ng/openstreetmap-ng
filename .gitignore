@@ -392,13 +392,16 @@ scripts/**/*.c
 scripts/**/*.html
 app/**/*.c
 app/**/*.html
-app/views/lib/proto
+app/models/proto/**/*_connect.py*
+app/models/proto/**/*_pb2.py*
 app/static/**/*.br
 app/static/**/*.zst
 app/static/img/browser
 app/static/vite
-app/models/proto/**/*_pb2.py*
+app/views/lib/proto
+buf/validate
 typings/app
+typings/google/protobuf
 
 _generated
 temp

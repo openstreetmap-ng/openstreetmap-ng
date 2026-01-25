@@ -1,0 +1,19 @@
+version: v2
+
+plugins:
+  - protoc_builtin: python
+    out: .
+    include_imports: true
+
+  - local:
+      - python
+      - scripts/protoc_gen_pyi.py
+    out: .
+    include_imports: true
+    opt:
+      - paths=source_relative
+
+  - local: protoc-gen-connect-python
+    out: .
+    opt:
+      - paths=source_relative

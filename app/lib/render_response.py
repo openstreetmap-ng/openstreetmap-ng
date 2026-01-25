@@ -1,7 +1,6 @@
 from base64 import urlsafe_b64encode
 from typing import Any
 
-from shapely import get_coordinates
 from starlette.responses import HTMLResponse
 
 from app.lib.auth_context import auth_user
@@ -40,10 +39,10 @@ async def render_response(
             crash_reporting=user['crash_reporting'],
         )
 
-        user_home_point = user['home_point']
-        if user_home_point is not None:
-            x, y = get_coordinates(user_home_point)[0].tolist()
-            user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
+        # user_home_point = user['home_point']
+        # if user_home_point is not None:
+        #     x, y = get_coordinates(user_home_point)[0].tolist()
+        #     user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
 
         messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
         user_config.messages_count_unread = messages_count_unread or 0

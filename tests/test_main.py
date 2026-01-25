@@ -2,13 +2,13 @@ from collections import defaultdict
 
 from starlette.routing import Route
 
-from app.main import main
+from app.main import app
 
 
 def test_route_conflicts():
     capture_paths = defaultdict(list)
 
-    for route in main.routes:
+    for route in app.routes:
         if not isinstance(route, Route) or not (route_methods := route.methods):
             continue
 

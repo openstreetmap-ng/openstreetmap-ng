@@ -2,8 +2,7 @@ from fastapi import Response
 from starlette import status
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.config import REQUEST_PATH_QUERY_MAX_LENGTH
-from app.middlewares.request_context_middleware import get_request
+from app.config import REQUEST_TARGET_MAX_BYTES
 
 
 class LimitUrlSizeMiddleware:
@@ -18,11 +17,14 @@ class LimitUrlSizeMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        url = get_request().url
-        path_query_length = len(url.path) + len(url.query)
-        if path_query_length > REQUEST_PATH_QUERY_MAX_LENGTH:
+        raw_path: bytes = scope['raw_path']
+        query_string: bytes = scope['query_string']
+        request_target_size = len(raw_path) + (
+            1 + len(query_string) if query_string else 0
+        )
+        if request_target_size > REQUEST_TARGET_MAX_BYTES:
             return await Response(
-                f'Request URI exceeded {REQUEST_PATH_QUERY_MAX_LENGTH} character limit',
+                f'Request target exceeded {REQUEST_TARGET_MAX_BYTES} byte limit',
                 status.HTTP_414_REQUEST_URI_TOO_LONG,
             )(scope, receive, send)
 

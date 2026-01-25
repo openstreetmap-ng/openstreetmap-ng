@@ -1,8 +1,7 @@
+import cython
 from pyinstrument import Profiler
 from starlette.responses import HTMLResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-
-from app.middlewares.request_context_middleware import get_request
 
 
 class ProfilerMiddleware:
@@ -21,7 +20,7 @@ class ProfilerMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        if 'profile' not in get_request().query_params:
+        if not _has_query_param(scope['query_string'], b'profile'):
             return await self.app(scope, receive, send)
 
         profiler = Profiler()
@@ -39,3 +38,15 @@ class ProfilerMiddleware:
         finally:
             if profiler.is_running:
                 profiler.stop()
+
+
+@cython.cfunc
+def _has_query_param(query_string: bytes, name: bytes):
+    if not query_string:
+        return False
+
+    for part in query_string.split(b'&'):
+        if part.split(b'=', 1)[0] == name:
+            return True
+
+    return False

@@ -15,6 +15,7 @@ This is the single set of ground rules for this repo. It orients new contributor
 - `app/middlewares/` — Request/translation contexts, CORS, cache‑control, profiling, unsupported browser.
 - `app/models/db/` — Row `TypedDict`s mirroring tables plus helpers.
 - `app/models/proto/` — Protobuf schemas + generated Python.
+- `app/rpc/` — Connect RPC services (protobuf over HTTP) mounted at `/rpc`.
 - `app/queries/` — Pure SELECT data access; compose dynamic SQL safely.
 - `app/responses/` — Response helpers including `PrecompressedStaticFiles` for `.zst`/`.br` assets.
 - `app/services/` — Mutations and workflows (write paths, audits, email, OAuth2). Use `db(write=True)`.
@@ -101,6 +102,8 @@ static-precompress    # Produce .zst/.br for large static assets
 
 - StandardForm (client): `configureStandardForm(form, onSuccess, options)` wires Bootstrap validation, handles pending state, posts via fetch, maps backend `detail` into field tooltips or a form alert, and integrates client‑side password hashing. Use it for all interactive forms (examples across `app/views/**`).
 - StandardFeedback (server): build JSON responses that StandardForm understands using `StandardFeedback`. For simple success/info messages, return `StandardFeedback.success_result(None, '...')`/`info_result(...)`; for validation failures, call `StandardFeedback.raise_error(field, '...')`.
+- StandardFeedbackDetail (RPC): the same feedback is available for Connect RPC calls as a typed protobuf error detail (`StandardFeedbackDetail` in `app/models/proto/shared.proto`).
+- Protovalidate (RPC): prefer `(buf.validate.field)...` rules in `.proto` request messages; the server validates and returns `StandardFeedbackDetail` (and raw `buf.validate.Violations`) on invalid arguments.
 - StandardPagination (client + server): use `configureStandardPagination(container, opts)` to drive list/table pagination.
   - Markup: a render container (`ul.list-unstyled` or `tbody`) and a trailing `ul.pagination` with `data-action="/api/..."`.
   - Target scoping: pass a container that includes any counters you want updated (e.g. header `[data-sp-num-items]`); `configureStandardPagination` scopes pagination UI + render area internally around the action pagination.

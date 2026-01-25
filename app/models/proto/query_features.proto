@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service QueryFeaturesService {
+  rpc Nearby(NearbyRequest) returns (NearbyResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message NearbyRequest {
+  LonLatZoom at = 1 [(buf.validate.field).required = true];
+}
+
+message NearbyResponse {
+  message Result {
+    ElementType type = 1;
+    uint64 id = 2;
+    string prefix = 3;
+    optional string display_name = 4;
+    optional ElementIcon icon = 5;
+    RenderElementsData render = 6 [(buf.validate.field).required = true];
+  }
+
+  repeated Result results = 1;
+}

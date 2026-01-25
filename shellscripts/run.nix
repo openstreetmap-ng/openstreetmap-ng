@@ -7,7 +7,7 @@
 (
   if isDevelopment then
     ''
-      exec python -m uvicorn app.main:main \
+      exec python -m uvicorn app.main:app \
         --reload \
         --reload-include "*.mo" \
         --reload-exclude scripts \
@@ -16,10 +16,10 @@
     ''
   else
     ''
-      exec python -m gunicorn app.main:main \
+      exec python -m gunicorn app.main:app \
         --bind localhost:${toString gunicornPort} \
         --workers ${toString gunicornWorkers} \
-        --worker-class uvicorn.workers.UvicornWorker \
+        --worker-class uvicorn_worker.UvicornWorker \
         --max-requests 10000 \
         --max-requests-jitter 1000 \
         --graceful-timeout 5 \

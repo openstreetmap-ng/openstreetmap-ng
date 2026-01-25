@@ -120,7 +120,7 @@ POSTGRES_STATEMENT_TIMEOUT = timedelta(seconds=30)
 URLSAFE_BLACKLIST = '/;.,?%#'
 TRACE_FILE_UPLOAD_MAX_SIZE = _ByteSize('50 MiB')
 XML_PARSE_MAX_SIZE = _ByteSize('50 MiB')  # the same as CGImap
-REQUEST_PATH_QUERY_MAX_LENGTH = 2000
+REQUEST_TARGET_MAX_BYTES = 8192
 
 # Compression settings
 COMPRESS_HTTP_MIN_SIZE = _ByteSize('1 KiB')
@@ -554,6 +554,7 @@ dictConfig({
             module: {'handlers': [], 'level': 'INFO'}
             for module in (
                 'botocore',
+                'celtypes',
                 'filelock',
                 'hpack',
                 'httpcore',
@@ -562,6 +563,16 @@ dictConfig({
                 'multipart',
                 'PIL',
                 'python_multipart',
+            )
+        },
+        **{
+            # reduce logging verbosity of some modules
+            module: {'handlers': [], 'level': 'WARNING'}
+            for module in (
+                'Environment',
+                'evaluation',
+                'Evaluator',
+                'NameContainer',
             )
         },
     },

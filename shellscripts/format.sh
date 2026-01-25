@@ -17,8 +17,14 @@ list_files() {
   fi
 }
 
-# format_files <patterns...> -- <command...>
+# format_files [--per-file] <patterns...> -- <command>
 format_files() {
+  local per_file=0
+  if [[ ${1-} == --per-file ]]; then
+    per_file=1
+    shift
+  fi
+
   local patterns=()
   while [[ $1 != -- ]]; do
     patterns+=("$1")
@@ -27,7 +33,12 @@ format_files() {
   shift # Skip the --
 
   echo "Formatting ${patterns[*]} files..."
-  list_files "${patterns[@]}" | xargs -0 -r "$@"
+  local xargs_args=(-0 -r)
+  if ((per_file)); then
+    xargs_args+=(-n 1)
+  fi
+  list_files "${patterns[@]}" |
+    xargs "${xargs_args[@]}" "$@"
 }
 
 run_formatters() {
@@ -39,6 +50,7 @@ run_formatters() {
   format_files '*.sql' -- bunx sql-formatter --fix
   format_files '*.toml' -- tombi format
   format_files '*.ts' '*.tsx' '*.json' -- biome format --write --no-errors-on-unmatched
+  format_files --per-file '*.proto' -- buf format -w
   (cd speedup && cargo fmt)
 }
 
@@ -48,6 +60,7 @@ run_linters() {
   ruff check --fix || status=$?
   biome check --fix --formatter-enabled=false || status=$?
   bunx typescript --noEmit || status=$?
+  buf lint --path app/models/proto || status=$?
   (cd speedup && cargo clippy --locked -- -D warnings) || status=$?
   return $status
 }
