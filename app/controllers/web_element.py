@@ -228,7 +228,7 @@ async def _get_data(
             id=element['changeset_id'],
             user=(
                 ElementData.User(
-                    id=changeset['user_id'],
+                    id=user['id'],
                     display_name=user['display_name'],
                     avatar_url=user_avatar_url(user),
                 )

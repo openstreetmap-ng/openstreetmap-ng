@@ -6,7 +6,6 @@ from starlette.types import ASGIApp, Receive, Send
 from starlette.types import Scope as StarletteScope
 
 from app.lib.auth_context import auth_scopes, auth_user
-from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import user_is_admin, user_is_moderator
 from app.queries.message_query import MessageQuery
 from app.queries.report_query import ReportQuery, _ReportCountResult
@@ -18,14 +17,11 @@ _REPORTS_COUNT_ATTENTION_CTX = ContextVar[Task[_ReportCountResult]](
 
 
 @contextmanager
-def _messages_count_unread(tg: TaskGroup):
+def _messages_count_unread(tg: TaskGroup, path: str):
     # skip count_unread for API and static requests
     if (
         'web_user' not in auth_scopes()  #
-        or get_request().url.path.startswith((
-            '/api/',
-            '/static',
-        ))
+        or path.startswith(('/api/', '/rpc/', '/static'))
     ):
         yield
         return
@@ -39,7 +35,7 @@ def _messages_count_unread(tg: TaskGroup):
 
 
 @contextmanager
-def _reports_count_attention(tg: TaskGroup):
+def _reports_count_attention(tg: TaskGroup, path: str):
     # Only count reports for moderators and admins
     user = auth_user()
     if user is None or not user_is_moderator(user):
@@ -47,10 +43,7 @@ def _reports_count_attention(tg: TaskGroup):
         return
 
     # Skip for API and static requests
-    if get_request().url.path.startswith((
-        '/api/',
-        '/static',
-    )):
+    if path.startswith(('/api/', '/rpc/', '/static')):
         yield
         return
 
@@ -79,7 +72,11 @@ class ParallelTasksMiddleware:
             return await self.app(scope, receive, send)
 
         async with TaskGroup() as tg:
-            with _messages_count_unread(tg), _reports_count_attention(tg):
+            path: str = scope['path']
+            with (
+                _messages_count_unread(tg, path),
+                _reports_count_attention(tg, path),
+            ):
                 try:
                     return await self.app(scope, receive, send)
                 except Exception as e:

@@ -14,6 +14,7 @@ dependencies = [
   "brotli",
   "cairosvg",
   "cbor2",
+  "connect-python",
   "coverage",
   "cryptography",
   "cython",
@@ -42,7 +43,9 @@ dependencies = [
   "phonenumbers",
   "pillow",
   "polyline-rs",
-  "protobuf==6.33.2",
+  "protobuf==6.33.4",
+  "protoc-gen-connect-python",
+  "protovalidate",
   "psycopg[binary,pool]",
   "pyarrow",
   "pyarrow-stubs",
@@ -71,6 +74,7 @@ dependencies = [
   "transformers[timm,vision]",
   "types-aioboto3[s3]",
   "types-protobuf",
+  "uvicorn-worker",
   "uvicorn[standard]",
   "websockets",
   "zid",
@@ -92,8 +96,10 @@ exclude = [
   "**/node_modules",
   "/nix/store/**",
   "app/models/proto/**",
+  "buf/validate/**",
   "build",
   "data",
+  "scripts/protoc_gen_pyi.py",
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
@@ -140,7 +146,11 @@ asyncio_default_fixture_loop_scope = "session"
 asyncio_mode = "auto"
 
 [tool.ruff]
-extend-exclude = ["app/models/proto/**"]
+extend-exclude = [
+  "app/models/proto/**",
+  "buf/validate/**",
+  "typings/google/protobuf/**"
+]
 indent-width = 4
 line-length = 88
 target-version = "py313"

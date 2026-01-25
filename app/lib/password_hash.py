@@ -49,7 +49,7 @@ class PasswordHash:
         """Verify a password against a hash."""
         transmit_password = TransmitUserPassword.FromString(password)
         password_pb_ = UserPassword.FromString(password_pb)
-        password_pb_schema: PasswordSchema = password_pb_.WhichOneof('schema')
+        password_pb_schema = password_pb_.WhichOneof('schema')
 
         if password_pb_schema == 'v1':
             return _verify_v1(transmit_password.v1, password_pb_.v1)

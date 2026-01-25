@@ -10,7 +10,7 @@ from app.exceptions06 import Exceptions06
 from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.lib.xmltodict import XMLToDict
-from app.main import main
+from app.main import app
 from app.models.types import ChangesetId, DisplayName
 from app.queries.user_query import UserQuery
 from tests.utils.lifespan_manager import LifespanManager
@@ -49,8 +49,8 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 @pytest_asyncio.fixture(scope='session', autouse=True)
 async def transport():
-    async with LifespanManager(main):
-        yield ASGITransport(main)
+    async with LifespanManager(app):
+        yield ASGITransport(app)
 
 
 @pytest.fixture

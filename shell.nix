@@ -175,6 +175,7 @@ let
       b3sum
       biome
       brotli
+      buf
       bun
       coreutils
       curl

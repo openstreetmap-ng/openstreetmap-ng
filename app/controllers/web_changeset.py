@@ -177,11 +177,11 @@ async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
         id=changeset_id,
         user=(
             ChangesetData.User(
-                id=changeset['user_id'],
+                id=user['id'],
                 display_name=user['display_name'],
                 avatar_url=user_avatar_url(user),
             )
-            if user
+            if user is not None
             else None
         ),
         created_at=int(changeset['created_at'].timestamp()),

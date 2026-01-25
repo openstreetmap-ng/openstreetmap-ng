@@ -39,10 +39,10 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
 
     # Generate continuous date range
     dates_range: list[date] = np.arange(
-        created_since.replace(tzinfo=None),
-        today.replace(tzinfo=None) + timedelta(days=1),
-        timedelta(days=1),
-        'datetime64[D]',
+        np.datetime64(created_since.date(), 'D'),
+        np.datetime64((today + timedelta(days=1)).date(), 'D'),
+        np.timedelta64(1, 'D'),
+        dtype='datetime64[D]',
     ).tolist()
 
     # Map activity counts to each date

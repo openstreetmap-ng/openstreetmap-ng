@@ -30,6 +30,12 @@ class RequestBodyMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
+        # Connect RPC endpoints manage request decoding themselves (including streaming
+        # semantics). This middleware eagerly buffers and can interfere with Connect's
+        # request processing.
+        if scope['path'].startswith('/rpc/'):
+            return await self.app(scope, receive, send)
+
         req = get_request()
         input_size: cython.size_t = 0
         buffer = BytesIO()

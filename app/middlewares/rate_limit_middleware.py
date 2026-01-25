@@ -35,7 +35,7 @@ class RateLimitMiddleware:
 
         async def wrapper(message: Message) -> None:
             if message['type'] == 'http.response.start':
-                state = get_request().state._state  # noqa: SLF001
+                state: dict = scope.setdefault('state', {})
                 rate_limit_headers: dict | None = state.get('rate_limit_headers')
                 if rate_limit_headers is not None:
                     headers = MutableHeaders(raw=message['headers'])
@@ -117,5 +117,4 @@ def rate_limit(*, weight: float = 1):
 def set_rate_limit_weight(weight: float) -> None:
     """Increase the request weight for rate limiting. Decreasing weights are ignored."""
     logging.debug('Overriding rate limit weight to %s', weight)
-    state = get_request().state._state  # noqa: SLF001
-    state['rate_limit_weight'] = weight
+    get_request().state.rate_limit_weight = weight

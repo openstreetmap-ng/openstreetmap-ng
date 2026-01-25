@@ -102,10 +102,7 @@ def _get_user(require_security_scopes: SecurityScopes) -> User:
     if user is None:
         if (
             'web_user' not in require_scopes  #
-            or get_request().url.path.startswith((
-                '/api/',
-                '/static',
-            ))
+            or get_request().url.path.startswith(('/api/', '/rpc/', '/static'))
         ):
             raise_for.unauthorized(request_basic_auth=True)
         raise HTTPException(

@@ -1,27 +1,28 @@
-reference_file="app/models/proto/shared_pb2.py"
-if [[ ! -f $reference_file ]]; then
-  echo "No protobuf outputs found, compiling..."
-else
-  changed=0
-  for proto in app/models/proto/*.proto; do
-    [[ $proto -nt $reference_file ]] || continue
-    changed=1
-    break
-  done
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
 
-  if ((changed == 0)); then
-    exit 0
-  fi
-  echo "Proto files have changed, recompiling..."
-fi
+mapfile -t service_protos < <(rg -l '^service ' app/models/proto --glob '*.proto' | sort)
 
-mkdir -p app/views/lib/proto
-protoc \
-  -I app/models/proto \
-  --plugin=node_modules/.bin/protoc-gen-es \
-  --es_out app/views/lib/proto \
-  --es_opt target=ts \
-  --python_out app/models/proto \
-  --pyi_out app/models/proto \
-  app/models/proto/*.proto
-rm app/views/lib/proto/server*
+buf_export_args=(. -o "$tmp/export" --path app/models/proto/shared.proto)
+for p in "${service_protos[@]}"; do
+  buf_export_args+=(--path "$p")
+done
+
+buf export "${buf_export_args[@]}"
+
+for src in "$tmp/export"/**/*.proto; do
+  sed -E 's@^import "(app/models/proto|buf/validate)/([^"]+)";@import "\2";@' "$src" >"$tmp/${src##*/}"
+done
+rm -rf "$tmp/export"
+
+printf 'version: v2\nmodules:\n  - path: .\n' >"$tmp/buf.yaml"
+
+buf generate \
+  --template "$PWD/buf.gen.web.yaml" \
+  --output "$PWD" \
+  --config "$tmp/buf.yaml" \
+  "$tmp"
+
+buf generate \
+  --template buf.gen.yaml \
+  --path app/models/proto

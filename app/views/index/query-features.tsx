@@ -1,7 +1,7 @@
 import {
   SidebarHeader,
   SidebarResourceBody,
-  useSidebarFetch,
+  useSidebarRpc,
 } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { queryParam } from "@lib/codecs"
@@ -17,10 +17,9 @@ import {
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import type { LonLat, LonLatZoom } from "@lib/map/state"
 import {
-  type QueryFeaturesNearbyData_Result,
-  QueryFeaturesNearbyDataSchema,
-} from "@lib/proto/shared_pb"
-import { qsEncode } from "@lib/qs"
+  type NearbyResponse_ResultValid,
+  QueryFeaturesService,
+} from "@lib/proto/query_features_pb"
 import { setPageTitle } from "@lib/title"
 import { type Signal, useComputed, useSignalEffect } from "@preact/signals"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
@@ -79,7 +78,7 @@ const QueryFeaturesResultsList = ({
   results,
 }: {
   map: MaplibreMap
-  results: QueryFeaturesNearbyData_Result[]
+  results: NearbyResponse_ResultValid[]
 }) => {
   const focusEntries = results.map((entry) => convertRenderElementsData(entry.render))
 
@@ -117,18 +116,12 @@ const QueryFeaturesSidebar = ({
 
   const queryAt = useComputed(() => getQueryAt(at.value))
 
-  const { resource } = useSidebarFetch(
+  const { resource } = useSidebarRpc(
     useComputed(() => {
       const p = queryAt.value
-      return p
-        ? `/api/web/query-features/nearby${qsEncode({
-            lon: p.lon.toString(),
-            lat: p.lat.toString(),
-            zoom: p.zoom.toString(),
-          })}`
-        : null
+      return p ? { at: p } : null
     }),
-    QueryFeaturesNearbyDataSchema,
+    QueryFeaturesService.method.nearby,
   )
 
   // Effect: Map layer lifecycle.

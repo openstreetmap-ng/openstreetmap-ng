@@ -1,0 +1,9 @@
+version: v2
+
+plugins:
+  - local: protoc-gen-es
+    out: app/views/lib/proto
+    opt:
+      - target=ts
+      - json_types=false
+      - valid_types=protovalidate_required

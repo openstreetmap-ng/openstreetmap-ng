@@ -6,8 +6,8 @@ syntax = "proto3";
 
 // Cursor tracks pagination state for API data fetching operations
 message Cursor {
-    uint64 id = 1; // Last fetched object's database identifier
-    optional uint64 timestamp = 2;  // Optional timestamp for point-in-time pagination
+  uint64 id = 1; // Last fetched object's database identifier
+  optional uint64 timestamp = 2; // Optional timestamp for point-in-time pagination
 }
 
 // =============================================
@@ -16,28 +16,28 @@ message Cursor {
 
 // Encapsulates cached binary data with additional metadata
 message FileCacheMeta {
-    bytes data = 1; // Raw binary payload
-    optional uint64 expires_at = 2;  // Unix timestamp when this cache entry becomes invalid
-    bool volatile = 3; // Disable in-process memory caching when true
+  bytes data = 1; // Raw binary payload
+  optional uint64 expires_at = 2; // Unix timestamp when this cache entry becomes invalid
+  bool volatile = 3; // Disable in-process memory caching when true
 }
 
 // Image proxy cached data with normalization fallback
 message ImageProxyCache {
-    oneof result {
-        bytes normalized = 1; // Normalized image
-        HttpError error = 2; // HTTP or processing error
-        RawImage raw = 3; // Raw passthrough when normalization fails
-    }
+  oneof result {
+    bytes normalized = 1; // Normalized image
+    HttpError error = 2; // HTTP or processing error
+    RawImage raw = 3; // Raw passthrough when normalization fails
+  }
 
-    message HttpError {
-        uint32 status_code = 1;
-        string message = 2;
-    }
+  message HttpError {
+    uint32 status_code = 1;
+    string message = 2;
+  }
 
-    message RawImage {
-        bytes data = 1;
-        optional string content_type = 2;  // Preserved from HTTP response
-    }
+  message RawImage {
+    bytes data = 1;
+    optional string content_type = 2; // Preserved from HTTP response
+  }
 }
 
 // =============================================
@@ -46,56 +46,56 @@ message ImageProxyCache {
 
 // User token with unique identifier for fast retrieval
 message UserTokenStruct {
-    uint64 id = 1; // Internal system identifier for the token
-    bytes token = 2; // Hashed authentication token bytes
+  uint64 id = 1; // Internal system identifier for the token
+  bytes token = 2; // Hashed authentication token bytes
 }
 
 // Stateless user token that doesn't require database storage
 message StatelessUserTokenStruct {
-    uint64 timestamp = 1; // Token creation timestamp
-    uint64 user_id = 2; // User identifier
-    bytes email_hashed = 3; // Hash of user's email for validation
+  uint64 timestamp = 1; // Token creation timestamp
+  uint64 user_id = 2; // User identifier
+  bytes email_hashed = 3; // Hash of user's email for validation
 
-    // Optional unsubscribe related fields
-    message UnsubscribeData {
-        string target = 1; // Target type to unsubscribe from (e.g., "diary", "changeset")
-        uint64 target_id = 2; // Target resource identifier
-    }
-    optional UnsubscribeData unsubscribe = 4;
+  // Optional unsubscribe related fields
+  message UnsubscribeData {
+    string target = 1; // Target type to unsubscribe from (e.g., "diary", "changeset")
+    uint64 target_id = 2; // Target resource identifier
+  }
+  optional UnsubscribeData unsubscribe = 4;
 }
 
 // Password storage schema with versioning support
 message UserPassword {
-    message Legacy {
-        string digest = 1; // Precomputed hash digest (argon2/md5/pbkdf2)
-        optional string extra = 2;  // Algorithm-specific parameters (e.g., salt, iterations)
-    }
+  message Legacy {
+    string digest = 1; // Precomputed hash digest (argon2/md5/pbkdf2)
+    optional string extra = 2; // Algorithm-specific parameters (e.g., salt, iterations)
+  }
 
-    message V1 {
-        bytes hash = 1; // Argon2id hash output (server-side computed from client-side hash)
-        bytes salt = 2; // Cryptographically random salt
-    }
+  message V1 {
+    bytes hash = 1; // Argon2id hash output (server-side computed from client-side hash)
+    bytes salt = 2; // Cryptographically random salt
+  }
 
-    oneof schema {
-        Legacy legacy = 1;
-        V1 v1 = 2;
-    }
+  oneof schema {
+    Legacy legacy = 1;
+    V1 v1 = 2;
+  }
 }
 
 // Represents state during OAuth/OpenID Connect authentication flows
 message AuthProviderState {
-    uint64 timestamp = 1; // Flow initiation timestamp
-    string provider = 2; // Provider identifier (e.g., "google", "github")
-    string action = 3; // Authentication intent (e.g., "login", "signup")
-    optional string referer = 4;  // Original referring page URL
-    bytes nonce = 5; // Cryptographic nonce
+  uint64 timestamp = 1; // Flow initiation timestamp
+  string provider = 2; // Provider identifier (e.g., "google", "github")
+  string action = 3; // Authentication intent (e.g., "login", "signup")
+  optional string referer = 4; // Original referring page URL
+  bytes nonce = 5; // Cryptographic nonce
 }
 
 // Successful authentication result from external provider
 message AuthProviderVerification {
-    uint64 timestamp = 1; // Verification timestamp
-    string provider = 2; // Provider identifier matching AuthProviderState
-    string uid = 3; // Provider's unique user identifier
-    optional string name = 4;  // Human-readable name (if available)
-    optional string email = 5;  // Verified email address (if available)
+  uint64 timestamp = 1; // Verification timestamp
+  string provider = 2; // Provider identifier matching AuthProviderState
+  string uid = 3; // Provider's unique user identifier
+  optional string name = 4; // Human-readable name (if available)
+  optional string email = 5; // Verified email address (if available)
 }

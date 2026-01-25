@@ -197,13 +197,15 @@ async def _build_note_data(note_id: NoteId) -> NoteData:
         lat=y,
         status=status,
         header=NoteData.Header(
-            user=NoteData.User(
-                id=header['user_id'],
-                display_name=header_user['display_name'],
-                avatar_url=user_avatar_url(header_user),
-            )
-            if header_user
-            else None,
+            user=(
+                NoteData.User(
+                    id=header_user['id'],
+                    display_name=header_user['display_name'],
+                    avatar_url=user_avatar_url(header_user),
+                )
+                if header_user is not None
+                else None
+            ),
             created_at=int(header['created_at'].timestamp()),
             body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
         ),
