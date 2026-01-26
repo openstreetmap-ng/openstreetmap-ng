@@ -19,7 +19,7 @@ from speedup import buffered_randbytes
 
 class UserTokenEmailService:
     @staticmethod
-    async def send_email(new_email: Email | None = None) -> None:
+    async def send_email(new_email: Email | None = None):
         """Send a confirmation email for account confirmation or email change."""
         user = auth_user(required=True)
         token = await _create_token(new_email)
@@ -53,9 +53,7 @@ class UserTokenEmailService:
         )
 
     @staticmethod
-    async def confirm(
-        token_struct: UserTokenStruct, *, is_account_confirm: bool
-    ) -> None:
+    async def confirm(token_struct: UserTokenStruct, *, is_account_confirm: bool):
         """Confirm account activation or email change."""
         token_type = 'account_confirm' if is_account_confirm else 'email_change'
         token = await UserTokenQuery.find_by_token_struct(token_type, token_struct)
@@ -113,7 +111,7 @@ class UserTokenEmailService:
                 await audit('change_email', conn, user_id=user_id, extra=audit_extra)
 
 
-async def _create_token(new_email: Email | None) -> UserTokenStruct:
+async def _create_token(new_email: Email | None):
     """Create a new user email confirmation or change token."""
     user = auth_user(required=True)
     token_bytes = buffered_randbytes(32)

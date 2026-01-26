@@ -50,7 +50,7 @@ class NominatimPlace(TypedDict):
 
 class NominatimQuery:
     @staticmethod
-    async def reverse(point: Point, zoom: int = 14) -> SearchResult | None:
+    async def reverse(point: Point, zoom: int = 14):
         """Reverse geocode a point into a human-readable name."""
         x, y = get_coordinates(point)[0].tolist()
         path = '/reverse?' + urlencode({
@@ -61,7 +61,7 @@ class NominatimQuery:
             'accept-language': primary_translation_locale(),
         })
 
-        async def factory() -> bytes:
+        async def factory():
             logging.debug('Nominatim reverse cache miss for path %r', path)
             r = await HTTP.get(
                 NOMINATIM_URL + path,
@@ -87,7 +87,7 @@ class NominatimQuery:
         bounds: Polygon | MultiPolygon | None = None,
         at_sequence_id: SequenceId | None,
         limit: int,
-    ) -> list[SearchResult]:
+    ):
         """Search for a location by name and optional bounds."""
         polygons = bounds.geoms if isinstance(bounds, MultiPolygon) else [bounds]
 
@@ -116,7 +116,7 @@ async def _search(
     bounds: Polygon | None,
     at_sequence_id: SequenceId | None,
     limit: int,
-) -> list[SearchResult]:
+):
     path = '/search?' + urlencode({
         'format': 'jsonv2',
         'q': q,
@@ -132,7 +132,7 @@ async def _search(
         'accept-language': primary_translation_locale(),
     })
 
-    async def factory() -> bytes:
+    async def factory():
         logging.debug('Nominatim search cache miss for path %r', path)
         r = await HTTP.get(
             NOMINATIM_URL + path,
@@ -160,7 +160,7 @@ async def _get_search_result(
     *,
     at_sequence_id: SequenceId | None,
     response_entries: list[NominatimPlace],
-) -> list[SearchResult]:
+):
     """Convert nominatim places into search results."""
     typed_ids: list[TypedElementId] = []
     entries: list[NominatimPlace] = []

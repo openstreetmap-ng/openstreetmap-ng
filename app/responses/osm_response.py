@@ -1,6 +1,6 @@
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from functools import wraps
-from typing import Any, NoReturn, override
+from typing import Any, ParamSpec, TypeVar, override
 
 import cython
 import orjson
@@ -46,11 +46,11 @@ class OSMResponse(Response):
     xml_root = 'osm'
 
     @override
-    def render(self, content) -> NoReturn:
+    def render(self, content):
         raise RuntimeError('Setup APIRouter with setup_api_router_response')
 
     @classmethod
-    def serialize(cls, content: Any) -> Response:
+    def serialize(cls, content: Any):
         style = format_style()
 
         if style == 'json':
@@ -75,6 +75,10 @@ class DiffResultResponse(OSMResponse):
 
 class GPXResponse(OSMResponse):
     xml_root = 'gpx'
+
+
+_P = ParamSpec('_P')
+_T = TypeVar('_T')
 
 
 @cython.cfunc
@@ -127,7 +131,7 @@ def _serialize_gpx(xml_root: str, content: Any):
     return Response(encoded, media_type='application/gpx+xml; charset=utf-8')
 
 
-def setup_api_router_response(router: APIRouter) -> None:
+def setup_api_router_response(router: APIRouter):
     """
     Setup APIRouter to use optimized OSMResponse serialization.
     Default FastAPI serialization is slow and redundant.
@@ -153,9 +157,12 @@ def setup_api_router_response(router: APIRouter) -> None:
 
 
 @cython.cfunc
-def _get_serializing_endpoint(endpoint: Callable, response_class: type[OSMResponse]):
+def _get_serializing_endpoint(
+    endpoint: Callable[_P, Coroutine[Any, Any, _T]],
+    response_class: type[OSMResponse],
+):
     @wraps(endpoint)
-    async def serializing_endpoint(*args, **kwargs):
+    async def serializing_endpoint(*args: _P.args, **kwargs: _P.kwargs):
         content = await endpoint(*args, **kwargs)
 
         # Serialize responses only if needed

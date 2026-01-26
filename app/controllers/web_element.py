@@ -1,14 +1,13 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Query
 from psycopg.sql import SQL, Identifier
 from shapely import get_coordinates
 
 from app.config import ELEMENT_HISTORY_PAGE_SIZE
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
-from app.lib.exceptions_context import raise_for
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
 from app.lib.rich_text import process_rich_text_plain
@@ -21,63 +20,21 @@ from app.lib.standard_pagination import (
 from app.lib.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
-from app.models.db.user import user_avatar_url
+from app.models.db.user import user_proto
 from app.models.element import ElementId, ElementType
-from app.models.proto.shared_pb2 import (
+from app.models.proto.element_pb2 import (
     ElementData,
     ElementHistoryPage,
-    ElementIcon,
-    PartialElementParams,
     RenderElementsData,
 )
+from app.models.proto.shared_pb2 import ElementIcon, ElementVersionRef, LonLat
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
-from speedup import element_type, split_typed_element_id, typed_element_id
+from speedup import split_typed_element_id, typed_element_id
 
 router = APIRouter(prefix='/api/web/element')
-
-
-@router.get('/{type:element_type}/{id:int}')
-async def get_element(type: ElementType, id: ElementId):
-    typed_id = typed_element_id(type, id)
-    at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.find_by_refs(
-        [typed_id], at_sequence_id=at_sequence_id, limit=1
-    )
-    element = next(iter(elements), None)
-    if element is None:
-        raise_for.element_not_found(typed_id)
-
-    data = await _get_data(element, at_sequence_id)
-    return Response(
-        data.SerializeToString(),
-        media_type='application/x-protobuf',
-    )
-
-
-@router.get('/{type:element_type}/{id:int}/history/{version:int}')
-async def get_version(type: ElementType, id: ElementId, version: int):
-    typed_id = typed_element_id(type, id)
-    versioned_typed_id = (typed_id, version)
-    at_sequence_id = await ElementQuery.get_current_sequence_id()
-    elements = await ElementQuery.find_by_versioned_refs(
-        [versioned_typed_id], at_sequence_id=at_sequence_id, limit=1
-    )
-    element = next(iter(elements), None)
-    if element is None:
-        raise_for.element_not_found(versioned_typed_id)
-
-    data = await _get_data(
-        element,
-        at_sequence_id,
-        include_parents_entries=element['latest'],
-    )
-    return Response(
-        data.SerializeToString(),
-        media_type='application/x-protobuf',
-    )
 
 
 @router.post('/{type:element_type}/{id:int}/history')
@@ -119,7 +76,7 @@ async def get_history(
 
     async with TaskGroup() as tg:
         changesets_t = tg.create_task(ChangesetQuery.find_by_ids(changeset_ids))
-        previous_task = (
+        previous_t = (
             tg.create_task(
                 ElementQuery.find_by_versioned_refs(
                     [(typed_id, elements[-1]['version'] - 1)],
@@ -140,7 +97,7 @@ async def get_history(
         async def data_task(element: Element):
             changeset = changeset_id_map.get(element['changeset_id'])
             assert changeset is not None, 'Parent changeset must exist'
-            return await _get_data(
+            return await build_element_data(
                 element,
                 at_sequence_id,
                 changeset=changeset,
@@ -152,12 +109,12 @@ async def get_history(
 
     elements_data = [task.result() for task in elements_tasks]
 
-    # Compute tags_old for diff mode (compare consecutive versions)
-    if previous_task is not None:
-        previous_element_ = previous_task.result()
+    # Compute tags_old for diff mode (compare consecutive versions).
+    if previous_t is not None:
+        previous_element_ = previous_t.result()
         previous_tags = previous_element_[0]['tags'] if previous_element_ else None
 
-        # Iterate in reverse (oldest to newest) to chain previous tags
+        # Iterate in reverse (oldest to newest) to chain previous tags.
         for element, element_data in zip(
             reversed(elements),
             reversed(elements_data),
@@ -171,21 +128,20 @@ async def get_history(
     return sp_render_response_bytes(page.SerializeToString(), state)
 
 
-async def _get_data(
+async def build_element_data(
     element: Element,
     at_sequence_id: SequenceId,
     *,
     changeset: Changeset | None = None,
     include_members_entries: bool = True,
     include_parents_entries: bool = True,
-) -> ElementData:
-    typed_id = element['typed_id']
-    type, id = split_typed_element_id(typed_id)
+):
+    type, id = split_typed_element_id(element['typed_id'])
     version = element['version']
 
     async with TaskGroup() as tg:
-        params_t = tg.create_task(
-            _fetch_params(
+        context_t = tg.create_task(
+            build_element_context(
                 element,
                 at_sequence_id,
                 include_members_entries=include_members_entries,
@@ -211,10 +167,8 @@ async def _get_data(
     icon = features_icons([element])[0]
     name = features_names([element])[0]
 
-    element_data = ElementData(
-        type=type,
-        id=id,
-        version=element['version'],
+    return ElementData(
+        ref=ElementVersionRef(type=type, id=id, version=version),
         visible=element['visible'],
         name=name,
         icon=(
@@ -223,47 +177,34 @@ async def _get_data(
             else None
         ),
         tags=element['tags'] or {},
-        params=params_t.result(),
+        context=context_t.result(),
         changeset=ElementData.Changeset(
             id=element['changeset_id'],
-            user=(
-                ElementData.User(
-                    id=user['id'],
-                    display_name=user['display_name'],
-                    avatar_url=user_avatar_url(user),
-                )
-                if (user := changeset.get('user')) is not None
-                else None
-            ),
+            user=user_proto(changeset.get('user')),
             created_at=int(changeset['created_at'].timestamp()),
             comment_rich=comment_html,
         ),
         prev_version=prev_version,
         next_version=next_version,
         location=(
-            ElementData.Location(lon=location[0], lat=location[1])
+            LonLat(lon=location[0], lat=location[1])  #
             if location is not None
             else None
         ),
     )
 
-    return element_data
 
-
-async def _fetch_params(
+async def build_element_context(
     element: Element,
     at_sequence_id: SequenceId,
     *,
     include_members_entries: bool,
     include_parents_entries: bool,
-) -> PartialElementParams:
+):
     typed_id = element['typed_id']
-    type = element_type(typed_id)
 
     if not element['visible']:
-        return PartialElementParams(
-            type=type, members=(), parents=(), render=RenderElementsData()
-        )
+        return ElementData.Context(members=(), parents=(), render=RenderElementsData())
 
     async def members_task():
         members = element['members']
@@ -301,6 +242,4 @@ async def _fetch_params(
 
     members, render = members_t.result()
 
-    return PartialElementParams(
-        type=type, members=members, parents=parents, render=render
-    )
+    return ElementData.Context(members=members, parents=parents, render=render)

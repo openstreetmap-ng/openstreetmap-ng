@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 import cython
 import numpy as np
@@ -9,7 +8,7 @@ from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.models.db.element import Element, ElementInit, validate_elements
-from app.models.element import ElementId, ElementType, TypedElementId
+from app.models.element import ElementType, TypedElementId
 from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
 from speedup import (
@@ -23,7 +22,7 @@ from speedup import (
 
 class Element06Mixin:
     @staticmethod
-    def encode_element(element: Element) -> dict:
+    def encode_element(element: Element):
         """
         >>> encode_element(Element(type='node', id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
@@ -35,7 +34,7 @@ class Element06Mixin:
         return {type: _encode_element(element, is_json=False)}
 
     @staticmethod
-    def encode_elements(elements: list[Element]) -> dict[str, list[dict]]:
+    def encode_elements(elements: list[Element]) -> dict:
         """
         >>> encode_elements([
         ...     Element(type='node', id=1, version=1, ...),
@@ -51,14 +50,15 @@ class Element06Mixin:
             }
 
         # Merge elements of the same type together
-        result: dict[ElementType, list[dict]] = {'node': [], 'way': [], 'relation': []}
+        result: dict[ElementType, list[dict]]
+        result = {'node': [], 'way': [], 'relation': []}
         for element in elements:
             type = element_type(element['typed_id'])
             result[type].append(_encode_element(element, is_json=False))
-        return result  # pyright: ignore[reportReturnType]
+        return result
 
     @staticmethod
-    def decode_elements(elements: list[tuple[ElementType, dict]]) -> list[ElementInit]:
+    def decode_elements(elements: list[tuple[ElementType, dict]]):
         """
         >>> decode_elements(('node', {'@id': 1, '@version': 1, ...}))
         Element(type='node', ...)
@@ -71,7 +71,7 @@ class Element06Mixin:
     @staticmethod
     def encode_osmchange(
         elements: list[Element],
-    ) -> list[tuple[OSMChangeAction, dict[ElementType, dict]]]:
+    ):
         """
         >>> encode_osmchange([
         ...     Element(type='node', id=1, version=1, ...),
@@ -110,7 +110,7 @@ class Element06Mixin:
     def decode_osmchange(
         changeset_id: ChangesetId | None,
         changes: list[tuple[OSMChangeAction, list[tuple[ElementType, dict]]]] | dict,
-    ) -> list[ElementInit]:
+    ):
         """
         If changeset_id is None, it will be extracted from the element data.
 
@@ -120,12 +120,13 @@ class Element06Mixin:
         ... ])
         [Element(type=ElementType, ...), Element(type=ElementType.way, ...)]
         """
+        result: list[ElementInit] = []
+
         # skip attributes-only osmChange (empty)
         if isinstance(changes, dict):
             logging.debug('Skipped empty osmChange')
-            return []
+            return result
 
-        result: list[ElementInit] = []
         for action, elements_data in changes:
             # skip osmChange attributes
             if action[:1] == '@':
@@ -183,12 +184,12 @@ class Element06Mixin:
 
 
 @cython.cfunc
-def _encode_nodes_json(nodes: list[TypedElementId]) -> list[ElementId]:
+def _encode_nodes_json(nodes: list[TypedElementId]):
     return list(map(element_id, nodes))
 
 
 @cython.cfunc
-def _encode_nodes_xml(nodes: list[TypedElementId]) -> list[dict[str, int]]:
+def _encode_nodes_xml(nodes: list[TypedElementId]):
     """
     >>> _encode_nodes_xml([
     ...     ElementMember(type='node', id=1, role=''),
@@ -200,7 +201,7 @@ def _encode_nodes_xml(nodes: list[TypedElementId]) -> list[dict[str, int]]:
 
 
 @cython.cfunc
-def _decode_nodes(nodes: list[dict]) -> list[TypedElementId]:
+def _decode_nodes(nodes: list[dict]):
     """
     >>> _decode_nodes([{'@ref': '1'}])
     [ElementMember(type='node', id=1, role='')]
@@ -209,9 +210,7 @@ def _decode_nodes(nodes: list[dict]) -> list[TypedElementId]:
 
 
 @cython.cfunc
-def _encode_members_json(
-    members: list[TypedElementId], members_roles: list[str]
-) -> list[dict[str, Any]]:
+def _encode_members_json(members: list[TypedElementId], members_roles: list[str]):
     """
     >>> _encode_members_json([
     ...     ElementMember(type='node', id=1, role='a'),
@@ -233,9 +232,7 @@ def _encode_members_json(
 
 
 @cython.cfunc
-def _encode_members_xml(
-    members: list[TypedElementId], members_roles: list[str]
-) -> list[dict[str, Any]]:
+def _encode_members_xml(members: list[TypedElementId], members_roles: list[str]):
     """
     >>> _encode_members_xml([
     ...     ElementMember(type='node', id=1, role='a'),
@@ -259,9 +256,7 @@ def _encode_members_xml(
 # TODO: validate role length
 # TODO: validate type
 @cython.cfunc
-def _decode_members_unsafe(
-    members: list[dict],
-) -> tuple[list[TypedElementId], list[str]]:
+def _decode_members_unsafe(members: list[dict]):
     """
     This method does not validate the input data.
 
@@ -279,7 +274,7 @@ def _decode_members_unsafe(
 
 
 @cython.cfunc
-def _encode_element(element: Element, *, is_json: cython.bint) -> dict:
+def _encode_element(element: Element, *, is_json: cython.bint):
     """
     >>> _encode_element(Element(type='node', id=1, version=1, ...))
     {'@id': 1, '@version': 1, ...}
@@ -408,7 +403,7 @@ def _decode_element_unsafe(
 
 
 @cython.cfunc
-def _encode_point_json(point: Point) -> dict[str, float]:
+def _encode_point_json(point: Point):
     """
     >>> _encode_point_json(Point(1, 2))
     {'lon': 1, 'lat': 2}
@@ -418,7 +413,7 @@ def _encode_point_json(point: Point) -> dict[str, float]:
 
 
 @cython.cfunc
-def _encode_point_xml(point: Point) -> dict[str, float]:
+def _encode_point_xml(point: Point):
     """
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}
@@ -428,7 +423,7 @@ def _encode_point_xml(point: Point) -> dict[str, float]:
 
 
 @cython.cfunc
-def _decode_tags_unsafe(tags: list[dict]) -> dict:
+def _decode_tags_unsafe(tags: list[dict]):
     """
     This method does not validate the input data.
 

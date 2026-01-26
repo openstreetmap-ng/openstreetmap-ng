@@ -16,9 +16,7 @@ ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile))
 
 class ValhallaQuery:
     @staticmethod
-    async def route(
-        start: Point, end: Point, *, profile: ValhallaProfile
-    ) -> RoutingResult:
+    async def route(start: Point, end: Point, *, profile: ValhallaProfile):
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.post(

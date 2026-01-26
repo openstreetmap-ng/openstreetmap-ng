@@ -75,7 +75,7 @@ class ElementQuery:
             )
 
     @staticmethod
-    async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]) -> bool:
+    async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]):
         """Check if the given elements are currently up to date."""
         if not versioned_refs:
             return True
@@ -106,7 +106,7 @@ class ElementQuery:
         conn: AsyncConnection,
         members: list[TypedElementId],
         after_sequence_id: SequenceId,
-    ) -> bool:
+    ):
         """Check if the given elements are currently unreferenced."""
         if not members:
             return True
@@ -675,14 +675,14 @@ class ElementQuery:
                 async def fetch_parents(
                     typed_ids: list[TypedElementId],
                     parent_type: ElementType,
-                ) -> list[Element]:
+                ):
                     parents = await ElementQuery.find_parents_by_refs(
                         typed_ids, conn, parent_type=parent_type, limit=None
                     )
                     result_sequences.append(parents)
                     return parents
 
-                async def way_task() -> None:
+                async def way_task():
                     # fetch parent ways
                     ways = await fetch_parents(nodes_typed_ids, 'way')
                     if not ways:

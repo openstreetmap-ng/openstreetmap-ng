@@ -23,7 +23,7 @@ _MESSAGES_HEADER_RE = re2.compile(
 )
 
 
-async def get_download_locales() -> list[LocaleCode]:
+async def get_download_locales():
     r = await HTTP.get(
         'https://translatewiki.net/wiki/Special:ExportTranslations',
         params={'group': 'out-osm-site'},
@@ -38,7 +38,7 @@ async def get_download_locales() -> list[LocaleCode]:
 
 
 @retry(timedelta(minutes=2))
-async def download_locale(locale: LocaleCode) -> LocaleName | None:
+async def download_locale(locale: LocaleCode):
     async with _download_limiter:
         r = await HTTP.get(
             'https://translatewiki.net/wiki/Special:ExportTranslations',

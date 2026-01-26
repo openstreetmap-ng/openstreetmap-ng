@@ -18,7 +18,7 @@ _MANIFEST: dict[str, dict[str, Any]] | None = (
 
 
 @cache
-def vite_render_asset(path: str, *, rtl: bool = False) -> str:
+def vite_render_asset(path: str, *, rtl: bool = False):
     suffix = Path(path).suffix
     lines: list[str] = []
 
@@ -97,7 +97,7 @@ def vite_render_asset(path: str, *, rtl: bool = False) -> str:
 
 
 @cython.cfunc
-def _choose_css_asset(css: str, *, rtl: bool) -> str:
+def _choose_css_asset(css: str, *, rtl: bool):
     if not rtl:
         return css
 

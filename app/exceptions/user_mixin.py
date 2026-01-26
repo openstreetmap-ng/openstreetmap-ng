@@ -8,7 +8,7 @@ from app.models.types import ApplicationId, DisplayName, UserId, UserPrefKey
 
 
 class UserExceptionsMixin:
-    def user_not_found(self, name_or_id: DisplayName | UserId) -> NoReturn:
+    def user_not_found(self, name_or_id: DisplayName | UserId):
         raise APIError(status.HTTP_404_NOT_FOUND, detail=f'User {name_or_id} not found')
 
     @abstractmethod

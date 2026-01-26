@@ -11,16 +11,16 @@ from speedup import element_type
 
 
 @overload
-def features_prefixes(  # pyright: ignore [reportOverlappingOverload]
+def features_prefixes(  # type: ignore
     elements: Iterable[Element | ElementInit],
 ) -> list[str]: ...
 @overload
 def features_prefixes(
     elements: Iterable[Element | ElementInit | None],
 ) -> list[str | None]: ...
-def features_prefixes(  # pyright: ignore [reportInconsistentOverload]
+def features_prefixes(  # type: ignore
     elements: Iterable[Element | ElementInit | None],
-) -> list[str | None]:
+):
     """
     Returns a human-readable prefix for a feature based on its type and tags.
 
@@ -31,7 +31,7 @@ def features_prefixes(  # pyright: ignore [reportInconsistentOverload]
 
 
 @cython.cfunc
-def _feature_prefix(element: Element | ElementInit) -> str:
+def _feature_prefix(element: Element | ElementInit):
     # tag-specific translations
     tags = element['tags']
     if tags and (r := _feature_prefix_tags(tags)) is not None:
@@ -74,7 +74,7 @@ def _feature_prefix_tags(tags: dict[str, str]):
 
 
 @cython.cfunc
-def _feature_prefix_administrative(tags: dict[str, str]) -> str:
+def _feature_prefix_administrative(tags: dict[str, str]):
     """
     Returns a human-readable prefix for an administrative boundary based on its tags.
 
@@ -95,7 +95,7 @@ def _feature_prefix_administrative(tags: dict[str, str]) -> str:
 
 
 @cython.cfunc
-def _feature_prefix_type(type: ElementType) -> str:
+def _feature_prefix_type(type: ElementType):
     if type == 'node':
         return t('javascripts.query.node')
     if type == 'way':

@@ -113,7 +113,7 @@ class ReportCommentQuery:
         return comments
 
     @staticmethod
-    async def resolve_objects(comments: list[ReportComment]) -> None:
+    async def resolve_objects(comments: list[ReportComment]):
         """Resolve objects for report comments."""
         if not comments:
             return
@@ -210,7 +210,7 @@ class ReportCommentQuery:
                     comment['object'] = trace
 
     @staticmethod
-    async def resolve_num_comments(reports: list[Report]) -> None:
+    async def resolve_num_comments(reports: list[Report]):
         """Resolve the number of comments for reports."""
         if not reports:
             return

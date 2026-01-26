@@ -26,7 +26,7 @@ class UnsupportedBrowserMiddleware:
         send: Send,
         *,
         _app_prefix=APP_URL + '/',
-    ) -> None:
+    ):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -43,7 +43,7 @@ class UnsupportedBrowserMiddleware:
 
         capture: cython.bint = False
 
-        async def wrapper(message: Message) -> None:
+        async def wrapper(message: Message):
             nonlocal capture
 
             if message['type'] == 'http.response.start':
@@ -62,7 +62,7 @@ class UnsupportedBrowserMiddleware:
 
 
 @cython.cfunc
-def _should_capture(message: Message) -> cython.bint:
+def _should_capture(message: Message):
     status_code: cython.size_t = message['status']
     if status_code < 200 or status_code >= 300:
         return False

@@ -14,11 +14,11 @@ _CTX = CacheContext('Gravatar')
 
 class GravatarQuery:
     @staticmethod
-    async def load(email: Email) -> bytes:
+    async def load(email: Email):
         """Load an avatar from Gravatar by email."""
         key = StorageKey(md5(email.lower().encode()).hexdigest())  # noqa: S324
 
-        async def factory() -> bytes:
+        async def factory():
             logging.debug('Gravatar cache miss')
             r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
             if r.status_code == status.HTTP_404_NOT_FOUND:

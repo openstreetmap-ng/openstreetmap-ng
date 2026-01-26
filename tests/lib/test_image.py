@@ -31,7 +31,7 @@ def test_default_avatar_url(app, expected):
 
 
 @pytest.fixture(scope='module')
-def animation() -> bytes:
+def animation():
     return Path('tests/data/animation.gif').read_bytes()
 
 

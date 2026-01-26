@@ -48,11 +48,11 @@ class DefaultHeadersMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        async def wrapper(message: Message) -> None:
+        async def wrapper(message: Message):
             if message['type'] == 'http.response.start':
                 headers = MutableHeaders(raw=message['headers'])
                 headers.setdefault('Content-Security-Policy', CSP_HEADER)

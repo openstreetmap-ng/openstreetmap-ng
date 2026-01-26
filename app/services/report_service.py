@@ -214,7 +214,7 @@ class ReportService:
     async def add_comment(
         report_id: ReportId,
         body: str,
-    ) -> None:
+    ):
         user = auth_user(required=True)
         user_id = user['id']
 
@@ -258,7 +258,7 @@ class ReportService:
         )
 
     @staticmethod
-    async def set_state(report_id: ReportId, body: str, *, close: bool) -> None:
+    async def set_state(report_id: ReportId, body: str, *, close: bool):
         """Close or reopen a report."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -325,7 +325,7 @@ async def _validate_integrity(
     type_id: ReportTypeId,
     action: ReportAction,
     action_id: ReportActionId,
-) -> None:
+):
     if type == 'user':
         assert action.startswith('user_')
     elif type == 'anonymous_note':
@@ -376,7 +376,7 @@ async def _add_report_comment(
     conn: AsyncConnection,
     /,
     comment_init: ReportCommentInit,
-) -> None:
+):
     await conn.execute(
         """
         INSERT INTO report_comment (

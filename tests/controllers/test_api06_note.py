@@ -20,7 +20,7 @@ async def test_note_create_xml(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_create_xml.__qualname__},
     )
     assert r.is_success, r.text
-    note: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
+    note: dict = XMLToDict.parse(r.content)['osm']['note'][0]
     comments = note['comments']['comment']
 
     assert_model(
@@ -75,7 +75,7 @@ async def test_note_create_gpx(client: AsyncClient):
         params={'lon': 0, 'lat': 0, 'text': test_note_create_gpx.__qualname__},
     )
     assert r.is_success, r.text
-    waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt']  # type: ignore
+    waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt']
 
     assert_model(
         waypoint,

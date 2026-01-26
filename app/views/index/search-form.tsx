@@ -33,6 +33,7 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
               class="form-control"
               placeholder={t("site.search.search")}
               enterKeyHint="search"
+              maxLength={255}
               required
               value={searchFormQuery.value}
               onInput={(e) => (searchFormQuery.value = e.currentTarget.value)}

@@ -31,10 +31,10 @@ class UserPasswordService:
         error_message: Literal['ignore'] | Callable[[], str] | None = None,
         audit_failure: str | None = None,
         skip_rehash: bool = False,
-    ) -> bool:
+    ):
         user_id = user['id']
 
-        async def check() -> bool:
+        async def check():
             # Test user accepts any password in non-prod environment
             if user_is_test(user):
                 return ENV != 'prod'
@@ -94,7 +94,7 @@ class UserPasswordService:
     @staticmethod
     async def set_password_unsafe(
         conn: AsyncConnection, user_id: UserId, password: Password
-    ) -> None:
+    ):
         """Set or update password for user (upsert)."""
         password_pb = PasswordHash.hash(password)
         assert password_pb is not None, 'Provided password schema cannot be used'
@@ -114,7 +114,7 @@ class UserPasswordService:
         *,
         old_password: Password,
         new_password: Password,
-    ) -> None:
+    ):
         """Update password for authenticated user."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -137,7 +137,7 @@ class UserPasswordService:
         *,
         new_password: Password,
         revoke_other_sessions: bool,
-    ) -> None:
+    ):
         """Reset password via token."""
         token_struct = UserTokenStructUtils.from_str(token)
         user_token = await UserTokenQuery.find_by_token_struct(

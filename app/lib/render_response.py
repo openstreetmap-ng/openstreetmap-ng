@@ -21,7 +21,7 @@ async def render_response(
     template_data: dict[str, Any] | None = None,
     *,
     status: int = 200,
-) -> HTMLResponse:
+):
     """Render the given Jinja2 template with translation, returning an HTMLResponse."""
     data = {
         'request': get_request(),

@@ -24,7 +24,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 
 class ChangesetCommentService:
     @staticmethod
-    async def comment(changeset_id: ChangesetId, text: str) -> None:
+    async def comment(changeset_id: ChangesetId, text: str):
         """Comment on a changeset."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -85,7 +85,7 @@ class ChangesetCommentService:
 
     # TODO: hide, audit
     @staticmethod
-    async def delete_comment_unsafe(comment_id: ChangesetCommentId) -> ChangesetId:
+    async def delete_comment_unsafe(comment_id: ChangesetCommentId):
         """Delete any changeset comment. Returns the parent changeset id."""
         async with (
             db(True) as conn,
@@ -111,7 +111,7 @@ class ChangesetCommentService:
             return changeset_id
 
 
-async def _send_activity_email(comment: ChangesetComment) -> None:
+async def _send_activity_email(comment: ChangesetComment):
     changeset_id = comment['changeset_id']
 
     async def changeset_task():
@@ -174,7 +174,7 @@ async def _send_activity_email(comment: ChangesetComment) -> None:
 def _get_activity_email_subject(
     comment_user_name: DisplayName,
     is_changeset_owner: cython.bint,
-) -> str:
+):
     return t(
         'user_mailer.changeset_comment_notification.commented.subject_own'
         if is_changeset_owner

@@ -73,7 +73,7 @@ async def _get_data(
     *,
     user: User | None,
     tag: str | None,
-) -> dict:
+):
     base_url = f'/user/{user["display_name"]}/traces' if user is not None else '/traces'
     base_url_notag = base_url
     if tag is not None:
@@ -101,7 +101,7 @@ async def _get_data(
 
 
 @cython.cfunc
-def _get_active_tab(user: User | None) -> int:
+def _get_active_tab(user: User | None):
     """Get the active tab number for the traces page."""
     if user is not None:
         current_user = auth_user()

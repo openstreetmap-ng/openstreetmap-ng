@@ -34,7 +34,7 @@ _ISO_FRACTION_TRUNC_RE = re2.compile(r'\.(\d{6})\d+')
 def legacy_date(dt: None, /) -> None: ...
 @overload
 def legacy_date(dt: datetime, /) -> datetime: ...
-def legacy_date(dt: datetime | None, /) -> datetime | None:
+def legacy_date(dt: datetime | None, /):
     """
     Convert date to legacy format (strip microseconds).
 
@@ -44,7 +44,7 @@ def legacy_date(dt: datetime | None, /) -> datetime | None:
     return dt if dt is None or LEGACY_HIGH_PRECISION_TIME else dt.replace(microsecond=0)
 
 
-def format_sql_date(dt: datetime | None, /) -> str:
+def format_sql_date(dt: datetime | None, /):
     """
     Format a datetime object as a string in SQL format.
 
@@ -61,7 +61,7 @@ def format_sql_date(dt: datetime | None, /) -> str:
 
 
 @cython.cfunc
-def _babel_locale(locale: LocaleCode, /, _CACHE: dict[str, Locale] = {}) -> Locale:
+def _babel_locale(locale: LocaleCode, /, _CACHE: dict[str, Locale] = {}):
     if (cached := _CACHE.get(locale)) is not None:
         return cached
 
@@ -74,7 +74,7 @@ def _babel_locale(locale: LocaleCode, /, _CACHE: dict[str, Locale] = {}) -> Loca
     return parsed
 
 
-def format_rfc2822_date(dt: date | datetime, /) -> str:
+def format_rfc2822_date(dt: date | datetime, /):
     """Format a date/datetime similar to RFC2822, using the active translation locale."""
     if isinstance(dt, datetime):
         dt = dt if dt.tzinfo is not None else dt.replace(tzinfo=UTC)
@@ -85,12 +85,12 @@ def format_rfc2822_date(dt: date | datetime, /) -> str:
     return format_datetime(dt, 'EEE, dd MMM yyyy HH:mm:ss Z', locale=locale)
 
 
-def utcnow() -> datetime:
+def utcnow():
     """Return a datetime object representing the current time in UTC."""
     return datetime.now(UTC)
 
 
-def parse_date(s: str, /) -> datetime:
+def parse_date(s: str, /):
     """
     Parse a string into a datetime object.
     Timezone information is ignored and the returned datetime object is always in UTC.

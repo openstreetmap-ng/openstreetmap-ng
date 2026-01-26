@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+import "app/models/proto/element.proto";
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service SearchService {
+  rpc Search(SearchRequest) returns (SearchResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc Reverse(ReverseRequest) returns (ReverseResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message SearchRequest {
+  string query = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  Bounds bbox = 2 [(buf.validate.field).required = true];
+  bool local_only = 3;
+}
+
+message SearchResponse {
+  SearchData data = 1 [(buf.validate.field).required = true];
+}
+
+message ReverseRequest {
+  LonLatZoom at = 1 [(buf.validate.field).required = true];
+}
+
+message ReverseResponse {
+  SearchData data = 1 [(buf.validate.field).required = true];
+}
+
+message SearchData {
+  message Result {
+    ElementType type = 1;
+    uint64 id = 2;
+    string prefix = 3;
+    string display_name = 4;
+    optional ElementIcon icon = 5;
+    RenderElementsData render = 6 [(buf.validate.field).required = true];
+    LonLat location = 7 [(buf.validate.field).required = true];
+  }
+
+  optional Bounds bounds = 1;
+  repeated Result results = 2;
+}

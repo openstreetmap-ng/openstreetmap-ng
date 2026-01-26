@@ -27,9 +27,7 @@ from app.services.image_proxy_service import ImageProxyService
 TextFormat = Literal['html', 'markdown', 'plain']
 
 
-async def process_rich_text_markdown(
-    text: str,
-) -> tuple[str, list[ImageProxyId] | None]:
+async def process_rich_text_markdown(text: str):
     """Render markdown text and collect image proxy data."""
     text = text.strip()
     env: dict[str, Any] = {}
@@ -44,7 +42,7 @@ async def process_rich_text_markdown(
     ), proxy_ids
 
 
-def process_rich_text_plain(text: str) -> str:
+def process_rich_text_plain(text: str):
     """Render plain text with linkification."""
     text = text.strip()
     text = escape(text)
@@ -68,7 +66,7 @@ async def rich_text(
     """
     proxy_result: list[ImageProxyId] | None = None
 
-    async def factory() -> bytes:
+    async def factory():
         nonlocal proxy_result
         if text_format == 'markdown':
             processed_text, proxy_result = await process_rich_text_markdown(text)
@@ -101,7 +99,7 @@ def _iter_image_tokens(tokens: list[Token]) -> Generator[Token]:
             yield from _iter_image_tokens(children)
 
 
-async def _prepare_image_proxies(tokens: list[Token]) -> list[ImageProxyId] | None:
+async def _prepare_image_proxies(tokens: list[Token]):
     occurrences: list[tuple[Token, str]] = []
     unique_urls: list[str] = []
     seen: set[str] = set()
@@ -148,7 +146,7 @@ async def resolve_rich_text(
     text_format: TextFormat,
     *,
     pk_field: LiteralString = 'id',
-) -> None:
+):
     rich_field_name = field + '_rich'
     rich_hash_field_name = field + '_rich_hash'
 
@@ -217,7 +215,7 @@ async def _update_image_proxy_ids(
     proxy_results: dict[Any, list[ImageProxyId]],
     *,
     pk_field: LiteralString = 'id',
-) -> None:
+):
     """Update image proxy ID arrays in database and prune unused entries."""
     image_proxy_field = field + '_image_proxy_ids'
 
@@ -275,7 +273,7 @@ def _render_image(
     idx: int,
     options: OptionsDict,
     env: EnvType,
-) -> str:
+):
     token = tokens[idx]
     attrs: dict[str, str | int | float] = token.attrs
     attrs['decoding'] = 'async'
@@ -289,7 +287,7 @@ def _render_link(
     idx: int,
     options: OptionsDict,
     env: EnvType,
-) -> str:
+):
     token = tokens[idx]
     attrs: dict[str, str | int | float] = token.attrs
     trusted_href = _process_trusted_link(attrs.get('href'))
@@ -324,7 +322,7 @@ def _process_trusted_link(href: str | float | None):
 
 
 @cython.cfunc
-def _process_plain(text: str) -> str:
+def _process_plain(text: str):
     """
     Process plain text by linkifying URLs,
     converting newlines to <br> tags,

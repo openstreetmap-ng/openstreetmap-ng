@@ -33,7 +33,7 @@ _HASHER_V1 = PasswordHasher(
 
 class PasswordHash:
     @staticmethod
-    def hash(password: Password) -> bytes | None:
+    def hash(password: Password):
         """
         Hash a password using the latest recommended algorithm.
         Returns None if the given password schema cannot be used.
@@ -45,7 +45,7 @@ class PasswordHash:
         return None
 
     @staticmethod
-    def verify(password_pb: bytes, password: Password) -> VerifyResult:
+    def verify(password_pb: bytes, password: Password):
         """Verify a password against a hash."""
         transmit_password = TransmitUserPassword.FromString(password)
         password_pb_ = UserPassword.FromString(password_pb)
@@ -62,7 +62,7 @@ class PasswordHash:
 
 
 @cython.cfunc
-def _hash_v1(password_bytes: bytes) -> bytes:
+def _hash_v1(password_bytes: bytes):
     if len(password_bytes) != 64:
         raise ValueError(
             f'Invalid password length, expected 64, got {len(password_bytes)}'

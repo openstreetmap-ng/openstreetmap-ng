@@ -1,11 +1,11 @@
 import cython
 
-from app.models.db.trace import Trace, TraceMetaInit, TraceMetaInitValidator
+from app.models.db.trace import Trace, TraceMetaInitValidator
 
 
 class Trace06Mixin:
     @staticmethod
-    def encode_gpx_file(trace: Trace) -> dict:
+    def encode_gpx_file(trace: Trace):
         """
         >>> encode_gpx_file(Trace(...))
         {'gpx_file': {'@id': 1, '@uid': 1234, ...}}
@@ -13,7 +13,7 @@ class Trace06Mixin:
         return {'gpx_file': _encode_gpx_file(trace)}
 
     @staticmethod
-    def encode_gpx_files(traces: list[Trace]) -> dict:
+    def encode_gpx_files(traces: list[Trace]):
         """
         >>> encode_gpx_files([
         ...     Trace(...),
@@ -24,7 +24,7 @@ class Trace06Mixin:
         return {'gpx_file': list(map(_encode_gpx_file, traces))}
 
     @staticmethod
-    def decode_gpx_file(gpx_file: dict) -> TraceMetaInit:
+    def decode_gpx_file(gpx_file: dict):
         """Decode trace metadata from gpx_file structure."""
         return TraceMetaInitValidator.validate_python({
             'name': gpx_file.get('@name'),
@@ -35,7 +35,7 @@ class Trace06Mixin:
 
 
 @cython.cfunc
-def _encode_gpx_file(trace: Trace) -> dict:
+def _encode_gpx_file(trace: Trace):
     """
     >>> _encode_gpx_file(Trace(...))
     {'@id': 1, '@uid': 1234, ...}

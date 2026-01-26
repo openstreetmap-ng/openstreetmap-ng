@@ -2,7 +2,7 @@ import asyncio
 import logging
 from argparse import ArgumentParser
 from asyncio.subprocess import PIPE, create_subprocess_exec
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from functools import cache
 from pathlib import Path
@@ -45,12 +45,12 @@ _NUM_WORKERS_PIGZ = calc_num_workers(COMPRESS_REPLICATION_GZIP_THREADS)
 logging.debug('Configured pigz compression: %d workers', _NUM_WORKERS_PIGZ)
 
 
-def _make_tmp_path(path: Path) -> Path:
+def _make_tmp_path(path: Path):
     """Create a temporary file path by prefixing filename with dot."""
     return path.with_name(f'.{path.name}.tmp')
 
 
-def _next_timestamp(delta: timedelta) -> datetime:
+def _next_timestamp(delta: timedelta):
     """Calculate timespan-aligned timestamp for next replication."""
     now = utcnow()
     result = now - timedelta(seconds=now.timestamp() % delta.total_seconds())
@@ -58,14 +58,12 @@ def _next_timestamp(delta: timedelta) -> datetime:
 
 
 @cache
-def _replication_dir(timespan: _TimeSpan) -> Path:
+def _replication_dir(timespan: _TimeSpan):
     """Get the replication directory for the given timespan."""
     return PLANET_DIR.joinpath('replication', timespan)
 
 
-def _get_sequence_path(
-    timespan: _TimeSpan, sequence_number: int, suffix: str = ''
-) -> Path:
+def _get_sequence_path(timespan: _TimeSpan, sequence_number: int, suffix: str = ''):
     """Calculate path with standard DDD/DDD/DDD nesting structure."""
     seq_str = f'{sequence_number:09d}'
 
@@ -76,7 +74,7 @@ def _get_sequence_path(
     return _replication_dir(timespan).joinpath(first, middle, last + suffix)
 
 
-def _write_state(path: Path, state: _State) -> None:
+def _write_state(path: Path, state: _State):
     """Write replication state with standard formatting."""
     date_parts = datetime.now(UTC).ctime().split()
     date_parts.insert(-1, 'UTC')
@@ -164,7 +162,7 @@ async def _read_last_state(timespan: _TimeSpan, no_backfill: bool) -> _State:
     }
 
 
-async def _wait_db_sync(next_timestamp: datetime) -> None:
+async def _wait_db_sync(next_timestamp: datetime):
     """Ensure database timestamp exceeds replication timestamp."""
     while True:
         async with (
@@ -225,7 +223,7 @@ async def _binary_search_boundary(
     low: cython.size_t,
     high: cython.size_t,
     timestamp: datetime,
-) -> int | None:
+):
     """Binary search helper that finds boundary sequence_id based on timestamp comparison."""
     assert low > 0
     result: cython.size_t = 0
@@ -264,7 +262,7 @@ async def _binary_search_boundary(
 
 async def _fetch_changes(
     from_timestamp: datetime, to_timestamp: datetime
-) -> AsyncGenerator[list[Element]]:
+) -> AsyncIterator[list[Element]]:
     """Stream database changes between timestamps in chunks using sequence_id."""
     seq_range = await _find_sequence_range_for_timespan(from_timestamp, to_timestamp)
     if seq_range is None:
@@ -285,7 +283,7 @@ async def _fetch_changes(
         ) as r,
     ):
         while True:
-            rows = await r.fetchmany(_CHUNK_SIZE)
+            rows: list[Element] = await r.fetchmany(_CHUNK_SIZE)  # type: ignore
             if not rows:
                 break
 
@@ -293,14 +291,12 @@ async def _fetch_changes(
             num_elements += num_rows
             num_chunks += 1
             logging.debug('Fetched chunk %d: %d elements', num_chunks, num_rows)
-            yield rows  # type: ignore
+            yield rows
 
     logging.info('Fetched %d elements in %d chunk(s)', num_elements, num_chunks)
 
 
-async def _generate_diff(
-    timespan: _TimeSpan, state: _State, next_timestamp: datetime
-) -> None:
+async def _generate_diff(timespan: _TimeSpan, state: _State, next_timestamp: datetime):
     """Create osmChange diff between current and next timestamp."""
     assert state['timestamp'] < next_timestamp
     await _wait_db_sync(next_timestamp)
@@ -388,7 +384,7 @@ async def _generate_diff(
     logging.info('Diff #%d created successfully', next_sequence_number)
 
 
-async def _run(timespan: _TimeSpan, no_backfill: bool) -> None:
+async def _run(timespan: _TimeSpan, no_backfill: bool):
     """Run replication service main loop."""
     delta = _TIMESPAN_DELTA[timespan]
     state = await _read_last_state(timespan, no_backfill)
@@ -411,7 +407,7 @@ async def _run(timespan: _TimeSpan, no_backfill: bool) -> None:
         await _generate_diff(timespan, state, next_timestamp)
 
 
-def main() -> None:
+def main():
     parser = ArgumentParser(description='Generate replication diffs continuously')
     parser.add_argument(
         'timespan',

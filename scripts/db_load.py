@@ -75,11 +75,11 @@ _INDEX_CHUNKS_RANGE: dict[str, tuple[int, int]] = {
 }
 
 
-def _get_csv_path(table: _Table) -> Path:
+def _get_csv_path(table: _Table):
     return PRELOAD_DIR.joinpath(f'{table}.csv.zst')
 
 
-def _get_csv_header(path: Path) -> str:
+def _get_csv_header(path: Path):
     with (
         path.open('rb') as f,
         ZstdDecompressor().stream_reader(f) as stream,
@@ -88,7 +88,7 @@ def _get_csv_header(path: Path) -> str:
         return reader.readline().strip()
 
 
-async def _detect_settings() -> _PostgresSettings:
+async def _detect_settings():
     async with (
         db() as conn,
         await conn.execute(
@@ -103,7 +103,7 @@ async def _detect_settings() -> _PostgresSettings:
         return _PostgresSettings(*(await r.fetchone()))  # type: ignore
 
 
-async def _gather_table_chunks(table: _Table) -> list[_TimescaleChunk]:
+async def _gather_table_chunks(table: _Table):
     async with (
         db() as conn,
         await conn.execute(
@@ -120,9 +120,7 @@ async def _gather_table_chunks(table: _Table) -> list[_TimescaleChunk]:
         return list(starmap(_TimescaleChunk, await r.fetchall()))
 
 
-async def _filter_index_chunks(
-    name: str, chunks: list[_TimescaleChunk]
-) -> list[_TimescaleChunk]:
+async def _filter_index_chunks(name: str, chunks: list[_TimescaleChunk]):
     chunks_range = _INDEX_CHUNKS_RANGE.get(name)
     if chunks_range is None:
         return chunks
@@ -144,7 +142,7 @@ async def _filter_index_chunks(
         return [c for c in chunks if c.table_name in chunk_names]
 
 
-async def _load_table(mode: _Mode, table: _Table) -> None:
+async def _load_table(mode: _Mode, table: _Table):
     if mode == 'preload' or table in {
         'note',
         'note_comment',
@@ -192,7 +190,7 @@ async def _load_table(mode: _Mode, table: _Table) -> None:
         raise
 
 
-async def _load_tables(mode: _Mode) -> None:
+async def _load_tables(mode: _Mode):
     all_tables: tuple[_Table, ...] = get_args(_Table)
 
     settings = await _detect_settings()
@@ -254,17 +252,17 @@ async def _load_tables(mode: _Mode) -> None:
                     )
                 )
 
-    async def load_task(table: _Table) -> None:
+    async def load_task(table: _Table):
         async with _TABLE_LOCK if mode == 'replication' else nullcontext():
             await _load_table(mode, table)
 
-    async def execute(sql: Query) -> None:
+    async def execute(sql: Query):
         async with maintenance_semaphore, db(True, autocommit=True) as conn:
             ts = monotonic()
             await conn.execute(sql)
             logging.debug('Executed %r in %.1fs', sql, monotonic() - ts)
 
-    async def index_task(table: _Table, tg: TaskGroup) -> None:
+    async def index_task(table: _Table, tg: TaskGroup):
         chunks = await _gather_table_chunks(table)
         indexes, constraints = table_data[table]
         logging.info(
@@ -340,7 +338,7 @@ async def _load_tables(mode: _Mode) -> None:
 
 
 @psycopg_pool_open_decorator
-async def main(mode: _Mode) -> None:
+async def main(mode: _Mode):
     if mode == 'replication':
         if not (has_changesets := CHANGESETS_PARQUET_PATH.is_file()):
             logging.error(
@@ -386,7 +384,7 @@ async def main(mode: _Mode) -> None:
         await conn.execute('CHECKPOINT')
 
 
-def main_cli() -> None:
+def main_cli():
     parser = ArgumentParser()
     parser.add_argument(
         '-m',

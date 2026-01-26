@@ -11,7 +11,7 @@ _USER_AGENT_RE = re2.compile(r'(Chrome|Firefox)/(\d{1,4})')
 
 
 @lru_cache(maxsize=512)
-def is_browser_supported(user_agent: str) -> bool:
+def is_browser_supported(user_agent: str):
     """
     Check if the given user agent supports the targeted web standards.
 

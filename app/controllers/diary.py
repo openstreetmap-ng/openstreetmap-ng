@@ -175,7 +175,7 @@ async def _get_index_data(
     *,
     profile: User | UserDisplay | None,
     language: LocaleCode | None,
-) -> dict:
+):
     data = _diary_page_meta(profile=profile, language=language)
 
     pagination_action = '/api/web/diary/page'
@@ -193,7 +193,7 @@ def _diary_page_meta(
     *,
     profile: User | UserDisplay | None,
     language: LocaleCode | None,
-) -> dict:
+):
     primary_locale = primary_translation_locale()
     primary_locale_name = INSTALLED_LOCALES_NAMES_MAP[primary_locale].native
 
@@ -230,7 +230,7 @@ def _get_active_tab(
     profile: User | UserDisplay | None,
     language: LocaleCode | None,
     primary_locale: LocaleCode,
-) -> int:
+):
     """Get the active tab number for the diaries page."""
     if language is not None:
         if language == primary_locale:

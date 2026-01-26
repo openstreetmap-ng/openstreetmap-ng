@@ -19,27 +19,23 @@ class StandardFeedback:
         self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]]
         self._messages = defaultdict(list)
 
-    def success(self, field: str | None, message: str) -> None:
+    def success(self, field: str | None, message: str):
         """Collect a success message for a field."""
         self._messages[field].append(('success', message))
 
     @classmethod
-    def success_result(
-        cls, field: str | None, message: str
-    ) -> dict[Literal['detail'], list[dict[str, Any]]]:
+    def success_result(cls, field: str | None, message: str):
         """Collect a success message for a field. Instantly returns the result."""
         tmp = cls()
         tmp.success(field, message)
         return tmp.result
 
-    def info(self, field: str | None, message: str) -> None:
+    def info(self, field: str | None, message: str):
         """Collect an info message for a field."""
         self._messages[field].append(('info', message))
 
     @classmethod
-    def info_result(
-        cls, field: str | None, message: str
-    ) -> dict[Literal['detail'], list[dict[str, Any]]]:
+    def info_result(cls, field: str | None, message: str):
         """Collect an info message for a field. Instantly returns the result."""
         tmp = cls()
         tmp.info(field, message)

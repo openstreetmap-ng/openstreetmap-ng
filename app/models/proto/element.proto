@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service ElementService {
+  rpc GetElement(GetElementRequest) returns (GetElementResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message GetElementRequest {
+  oneof ref {
+    option (buf.validate.oneof).required = true;
+    ElementRef element = 1;
+    ElementVersionRef version = 2;
+  }
+}
+
+message GetElementResponse {
+  ElementData element = 1 [(buf.validate.field).required = true];
+}
+
+message ElementData {
+  message Changeset {
+    uint64 id = 1;
+    optional User user = 2;
+    uint64 created_at = 3;
+    string comment_rich = 4;
+  }
+
+  message Context {
+    message Entry {
+      ElementRef ref = 1 [(buf.validate.field).required = true];
+      optional string role = 2;
+      optional string name = 3;
+      optional ElementIcon icon = 4;
+    }
+
+    repeated Entry members = 1;
+    repeated Entry parents = 2;
+    RenderElementsData render = 3 [(buf.validate.field).required = true];
+  }
+
+  ElementVersionRef ref = 1 [(buf.validate.field).required = true];
+  bool visible = 2;
+  optional string name = 3;
+  optional ElementIcon icon = 4;
+  map<string, string> tags = 5;
+  Context context = 6 [(buf.validate.field).required = true];
+  Changeset changeset = 7 [(buf.validate.field).required = true];
+  optional uint64 prev_version = 8;
+  optional uint64 next_version = 9;
+  optional LonLat location = 10;
+  map<string, string> tags_old = 11;
+}
+
+message ElementHistoryPage {
+  repeated ElementData elements = 1;
+}
+
+message RenderElementsData {
+  message Node {
+    uint64 id = 1;
+    LonLat location = 2 [(buf.validate.field).required = true];
+  }
+
+  message Way {
+    uint64 id = 1;
+    string line = 2;
+    bool is_area = 3;
+  }
+
+  repeated Node nodes = 1;
+  repeated Way ways = 2;
+  bool too_much_data = 3;
+}

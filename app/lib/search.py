@@ -41,7 +41,7 @@ class Search:
         *,
         local_only: bool = False,
         local_max_iterations: int | None = None,
-    ) -> list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]]:
+    ):
         """
         Get search bounds from a bbox string.
 
@@ -99,7 +99,7 @@ class Search:
         return result
 
     @staticmethod
-    def best_results_index(task_results: list[list[SearchResult]]) -> int:
+    def best_results_index(task_results: list[list[SearchResult]]):
         """Determine the best results index."""
         # local_only mode
         if len(task_results) == 1:
@@ -125,7 +125,7 @@ class Search:
     @staticmethod
     def improve_point_accuracy(
         results: list[SearchResult], members_map: dict[TypedElementId, Element]
-    ) -> None:
+    ):
         """Improve accuracy of points by analyzing relations members."""
         for result in results:
             if element_type(result.element['typed_id']) != 'relation':
@@ -152,7 +152,7 @@ class Search:
                 success = True
 
     @staticmethod
-    def remove_overlapping_points(results: list[SearchResult]) -> None:
+    def remove_overlapping_points(results: list[SearchResult]):
         """Remove overlapping points, preserving most important results."""
         relations = [
             result
@@ -175,7 +175,7 @@ class Search:
                 relations[i2].point = None
 
     @staticmethod
-    def deduplicate_similar_results(results: list[SearchResult]) -> list[SearchResult]:
+    def deduplicate_similar_results(results: list[SearchResult]):
         """Deduplicate similar results."""
         # Deduplicate by type and id
         seen: set[TypedElementId] = set()
@@ -213,7 +213,7 @@ class Search:
 
 
 @cython.cfunc
-def _should_use_global_search(task_results: list[list[SearchResult]]) -> cython.bint:
+def _should_use_global_search(task_results: list[list[SearchResult]]):
     """
     Determine whether to use global search or local search.
     Global search is used when there are no relevant local results.

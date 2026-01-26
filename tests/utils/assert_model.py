@@ -5,7 +5,7 @@ from annotated_types import BaseMetadata, GroupedMetadata, Predicate
 from pydantic import ConfigDict, create_model
 
 
-def _assert_list(data: Sequence, validators: list) -> None:
+def _assert_list(data: Sequence, validators: list):
     for item, validator in zip(data, validators, strict=True):
         if isinstance(validator, dict):
             assert_model(item, validator)
@@ -21,7 +21,7 @@ def assert_model(
     /,
     *,
     strict: bool = False,
-) -> None:
+):
     """
     Assert that a dictionary matches expected field types and values.
 

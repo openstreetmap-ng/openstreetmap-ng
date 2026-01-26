@@ -1,4 +1,9 @@
-import type { DescService } from "@bufbuild/protobuf"
+import {
+  type DescMessage,
+  type DescService,
+  fromBinary,
+  type MessageValidType,
+} from "@bufbuild/protobuf"
 import type { ConnectError } from "@connectrpc/connect"
 import { createClient } from "@connectrpc/connect"
 import { createConnectTransport } from "@connectrpc/connect-web"
@@ -8,6 +13,11 @@ import {
 } from "@lib/proto/shared_pb"
 import type { APIDetail } from "@lib/standard-form"
 import { memoize } from "@std/cache/memoize"
+
+export const fromBinaryValid = <Desc extends DescMessage>(
+  schema: Desc,
+  bytes: Uint8Array,
+) => fromBinary(schema, bytes) as MessageValidType<Desc>
 
 const connectErrorToStandardFeedback = (err: ConnectError) => {
   const details = err.findDetails(StandardFeedbackDetailSchema)

@@ -6,10 +6,9 @@ from pydantic import SecretStr
 from app.config import ENV
 from app.lib.testmethod import testmethod
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.oauth2_token import OAuth2Token
-from app.models.db.user import User, user_extend_scopes
+from app.models.db.user import user_extend_scopes
 from app.models.scope import PUBLIC_SCOPES, Scope
-from app.models.types import ApplicationId, DisplayName, OAuth2TokenId
+from app.models.types import DisplayName
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
@@ -21,9 +20,7 @@ _EMPTY_SCOPES = frozenset[Scope]()
 
 class AuthService:
     @staticmethod
-    async def authenticate_request() -> tuple[
-        User | None, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId] | None
-    ]:
+    async def authenticate_request():
         """Authenticate the request. Returns the authenticated user (if any) and scopes."""
         req = get_request()
         path: str = req.url.path
@@ -52,7 +49,7 @@ class AuthService:
         return None, _EMPTY_SCOPES, None
 
     @staticmethod
-    async def authenticate_oauth2(access_token: SecretStr | None) -> OAuth2Token | None:
+    async def authenticate_oauth2(access_token: SecretStr | None):
         """
         Authenticate a user with OAuth2.
         If param is None, it will be read from the request cookies.
@@ -72,7 +69,7 @@ class AuthService:
         return token
 
 
-async def _extract_oauth2_token(request: Request) -> SecretStr | None:
+async def _extract_oauth2_token(request: Request):
     # Check in Authorization header
     authorization = request.headers.get('Authorization')
     if authorization:
@@ -90,9 +87,7 @@ async def _extract_oauth2_token(request: Request) -> SecretStr | None:
     return None
 
 
-async def _authenticate_with_oauth2(
-    request: Request,
-) -> tuple[User, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId]] | None:
+async def _authenticate_with_oauth2(request: Request):
     access_token = await _extract_oauth2_token(request)
     if access_token is None:
         return None
@@ -109,9 +104,7 @@ async def _authenticate_with_oauth2(
     return user, scopes, oauth2
 
 
-async def _authenticate_with_cookie(
-    request: Request,
-) -> tuple[User, frozenset[Scope], tuple[ApplicationId, OAuth2TokenId]] | None:
+async def _authenticate_with_cookie(request: Request):
     auth = request.cookies.get('auth')
     if auth is None:
         return None
@@ -131,9 +124,7 @@ async def _authenticate_with_cookie(
 
 
 @testmethod
-async def _authenticate_with_test_user(
-    request: Request,
-) -> tuple[User, frozenset[Scope], None] | None:
+async def _authenticate_with_test_user(request: Request):
     authorization = request.headers.get('Authorization')
     if authorization is None:
         return None

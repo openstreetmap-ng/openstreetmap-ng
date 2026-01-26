@@ -71,7 +71,7 @@ class TestService:
         language: LocaleCode = DEFAULT_LOCALE,
         created_at: datetime | None = None,
         roles: list[UserRole] | None = None,
-    ) -> None:
+    ):
         """Create a test user."""
         user_init: UserInit = {
             'email': Email(f'{name}{TEST_USER_EMAIL_SUFFIX}'),
@@ -134,7 +134,7 @@ class TestService:
         client_secret: str | None,
         scopes: frozenset[PublicScope],
         is_confidential: bool,
-    ) -> None:
+    ):
         """Create a test OAuth2 application."""
         app_init: OAuth2ApplicationInit = {
             'id': zid(),  # type: ignore

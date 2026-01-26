@@ -63,7 +63,7 @@ class ChangesetService:
         return changeset_id
 
     @staticmethod
-    async def update_tags(changeset_id: ChangesetId, tags: dict[str, str]) -> None:
+    async def update_tags(changeset_id: ChangesetId, tags: dict[str, str]):
         """Update changeset tags."""
         user_id = auth_user(required=True)['id']
 
@@ -101,7 +101,7 @@ class ChangesetService:
             await audit('update_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
-    async def close(changeset_id: ChangesetId) -> None:
+    async def close(changeset_id: ChangesetId):
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
 
@@ -161,8 +161,8 @@ class ChangesetService:
 
 
 @retry(None)
-async def _process_task() -> None:
-    async def sleep(delay: float) -> None:
+async def _process_task():
+    async def sleep(delay: float):
         if delay > 0:
             try:
                 await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
@@ -195,7 +195,7 @@ async def _process_task() -> None:
                 await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
-async def _close_inactive() -> None:
+async def _close_inactive():
     """Close all inactive changesets."""
     async with db(True) as conn:
         result = await conn.execute(
@@ -215,7 +215,7 @@ async def _close_inactive() -> None:
             logging.debug('Closed %d inactive changesets', result.rowcount)
 
 
-async def _delete_empty() -> None:
+async def _delete_empty():
     """Delete empty changesets after a timeout."""
     async with db(True) as conn:
         async with await conn.execute(

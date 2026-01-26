@@ -14,7 +14,7 @@ def transform(
     *,
     target_path_po: Path,
     target_path_mo: Path,
-) -> None:
+):
     locale = source_path.stem
     target_path_po.parent.mkdir(parents=True, exist_ok=True)
 
@@ -63,7 +63,7 @@ def transform(
     utime(target_path_mo, (effective_mtime, effective_mtime))
 
 
-def main() -> None:
+def main():
     script_mtime = Path(__file__).stat().st_mtime
 
     with Pool() as pool:

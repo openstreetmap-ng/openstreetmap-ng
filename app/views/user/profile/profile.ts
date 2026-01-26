@@ -1,8 +1,8 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { formatMonthName, formatShortDate, formatWeekdayName } from "@lib/format"
 import { mount } from "@lib/mount"
 import { UserActivityChartSchema } from "@lib/proto/shared_pb"
+import { fromBinaryValid } from "@lib/rpc"
 import { configureStandardForm } from "@lib/standard-form"
 import { range } from "@lib/utils"
 import { DAY } from "@std/datetime/constants"
@@ -197,7 +197,7 @@ mount("user-profile-body", (body) => {
 
   const chartTable = body.querySelector("table.activity-chart[data-chart]")!
   const chartBody = document.createElement("tbody")
-  const chart = fromBinary(
+  const chart = fromBinaryValid(
     UserActivityChartSchema,
     base64Decode(chartTable.dataset.chart!),
   )

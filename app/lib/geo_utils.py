@@ -20,31 +20,31 @@ else:
 
 
 @cython.cfunc
-def _radians(degrees: cython.double) -> cython.double:
+def _radians(degrees: cython.double):
     return degrees * 0.017453292519943295  # pi / 180
 
 
-def meters_to_radians(meters: float) -> float:
+def meters_to_radians(meters: float):
     """Convert a distance in meters to radians."""
     return meters / 6371000  # R
 
 
-def radians_to_meters(radians: float) -> float:
+def radians_to_meters(radians: float):
     """Convert a distance in radians to meters."""
     return radians * 6371000  # R
 
 
-def meters_to_degrees(meters: float) -> float:
+def meters_to_degrees(meters: float):
     """Convert a distance in meters to degrees."""
     return meters / (6371000 / 57.29577951308232)  # R / (180 / pi)
 
 
-def degrees_to_meters(degrees: float) -> float:
+def degrees_to_meters(degrees: float):
     """Convert a distance in degrees to meters."""
     return degrees * (6371000 / 57.29577951308232)  # R / (180 / pi)
 
 
-def haversine_distance(p1: Point, p2: Point) -> float:
+def haversine_distance(p1: Point, p2: Point):
     """
     Calculate the distance between two points on the Earth's surface using the Haversine formula.
 
@@ -73,7 +73,7 @@ def haversine_distance(p1: Point, p2: Point) -> float:
 def parse_bbox(s: str, /) -> Polygon | MultiPolygon: ...
 @overload
 def parse_bbox(s: None, /) -> None: ...
-def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
+def parse_bbox(s: str | None, /):
     """
     Parse a bbox string or bounds.
 
@@ -127,7 +127,7 @@ def parse_bbox(s: str | None, /) -> Polygon | MultiPolygon | None:
     )
 
 
-def try_parse_point(lat_lon: str, /) -> Point | None:
+def try_parse_point(lat_lon: str, /):
     """
     Try to parse a point string.
 
@@ -182,7 +182,7 @@ def _h3_optimal_resolution(
     area_km2: cython.double,
     balance_factor: cython.double,
     max_resolution: cython.size_t,
-) -> int:
+):
     """Calculate H3 resolution directly based on area and balance factor."""
     # Target cells - scaled by area logarithmically
     # Small areas get fewer cells, large areas get more cells proportionally

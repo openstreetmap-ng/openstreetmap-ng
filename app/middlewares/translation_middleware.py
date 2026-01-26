@@ -20,7 +20,7 @@ class TranslationMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -54,7 +54,7 @@ def _get_request_language():
 
 
 @lru_cache(maxsize=512)
-def _parse_accept_language(accept_language: str) -> LocaleCode:
+def _parse_accept_language(accept_language: str):
     """
     Parse the accept language header.
     Returns the most preferred and supported language.

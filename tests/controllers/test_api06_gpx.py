@@ -45,7 +45,7 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict, has_z: bool):
     # Verify created trace
     r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
     assert r.is_success, r.text
-    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]  # type: ignore
+    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]
 
     assert_model(
         gpx_file,
@@ -81,7 +81,7 @@ async def test_gpx_crud(client: AsyncClient, gpx: dict, has_z: bool):
     # Verify updated trace
     r = await client.get(f'/api/0.6/gpx/{trace_id}/details')
     assert r.is_success, r.text
-    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]  # type: ignore
+    gpx_file = XMLToDict.parse(r.content)['osm']['gpx_file'][0]
 
     assert_model(
         gpx_file,
@@ -167,7 +167,7 @@ async def test_gpx_files(client: AsyncClient, gpx: dict):
     # List and verify traces
     r = await client.get('/api/0.6/user/gpx_files')
     assert r.is_success, r.text
-    gpx_files: list[dict] = XMLToDict.parse(r.content)['osm']['gpx_file']  # type: ignore
+    gpx_files: list[dict] = XMLToDict.parse(r.content)['osm']['gpx_file']
     gpx_file = next(f for f in gpx_files if f['@id'] == trace_id)
 
     assert_model(
@@ -260,7 +260,7 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
     )
     assert r.is_success, r.text
 
-    trks = XMLToDict.parse(r.content)['gpx']['trk']  # type: ignore
+    trks = XMLToDict.parse(r.content)['gpx']['trk']
     trk = next((t for t in trks if t.get('url') == f'/trace/{trace_id}'), None)
     assert trk is None, 'Private trace must not be identified in trackpoints query'
 
@@ -286,7 +286,7 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
     )
     assert r.is_success, r.text
 
-    trks = XMLToDict.parse(r.content)['gpx']['trk']  # type: ignore
+    trks = XMLToDict.parse(r.content)['gpx']['trk']
     trk = next(t for t in trks if t.get('url') == f'/trace/{trace_id}')
     trkpt = trk['trkseg'][0]['trkpt'][0]
 

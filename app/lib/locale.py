@@ -16,7 +16,7 @@ class LocaleName(NamedTuple):
     native: str
 
     @property
-    def display_name(self) -> str:
+    def display_name(self):
         return (
             self.native
             if self.english == self.native
@@ -30,7 +30,7 @@ _NON_ALPHA_RE = re2.compile(r'[^a-z]+')
 
 
 @cython.cfunc
-def _load_locale() -> tuple[dict[LocaleCode, str], dict[LocaleCode, LocaleName]]:
+def _load_locale():
     i18next_map: dict[LocaleCode, str]
     i18next_map = orjson.loads(Path('config/locale/i18next/map.json').read_bytes())
     locales_codes_normalized_map = {_normalize(k): k for k in i18next_map}
@@ -100,7 +100,7 @@ logging.info(
 )
 
 
-def map_i18next_files(locales: tuple[LocaleCode, ...]) -> tuple[str] | tuple[str, str]:
+def map_i18next_files(locales: tuple[LocaleCode, ...]):
     """
     Map the locales to i18next files.
     Returns at most two files: primary and fallback locale.
@@ -121,13 +121,13 @@ if ENV == 'dev':
 
     def map_i18next_files(
         locales: tuple[LocaleCode, ...],
-    ) -> tuple[str] | tuple[str, str]:
+    ):
         global _I18NEXT_MAP
         _I18NEXT_MAP = _load_locale()[0]  # pyright: ignore [reportConstantRedefinition]
         return _map_i18next_files_inner(locales)
 
 
-def is_installed_locale(code: LocaleCode) -> bool:
+def is_installed_locale(code: LocaleCode):
     """
     Check if the locale code is installed.
 
@@ -143,7 +143,7 @@ def is_installed_locale(code: LocaleCode) -> bool:
 def normalize_locale(code: None) -> None: ...
 @overload
 def normalize_locale(code: LocaleCode) -> LocaleCode | None: ...
-def normalize_locale(code: LocaleCode | None) -> LocaleCode | None:
+def normalize_locale(code: LocaleCode | None):
     """
     Normalize locale code case.
     Returns None if the locale is not installed.

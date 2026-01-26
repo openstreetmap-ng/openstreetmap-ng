@@ -41,7 +41,7 @@ class OAuth2Application(OAuth2ApplicationInit):
     user: NotRequired[UserDisplay]
 
 
-def oauth2_app_avatar_url(app: OAuth2Application) -> str:
+def oauth2_app_avatar_url(app: OAuth2Application):
     """Get the url for the application's avatar image."""
     avatar_id = app['avatar_id']
     return (
@@ -51,6 +51,6 @@ def oauth2_app_avatar_url(app: OAuth2Application) -> str:
     )
 
 
-def oauth2_app_is_system(app: OAuth2Application) -> bool:
+def oauth2_app_is_system(app: OAuth2Application):
     """Check if the application is a system app."""
     return app['user_id'] is None

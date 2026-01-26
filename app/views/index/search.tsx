@@ -1,20 +1,11 @@
-import {
-  SidebarHeader,
-  SidebarResourceBody,
-  useSidebarFetch,
-} from "@index/_action-sidebar"
+import { SidebarHeader, SidebarResourceBody } from "@index/_action-sidebar"
 import { ElementRoute, getElementTypeLabel, getElementTypeSlug } from "@index/element"
 import { defineRoute, routerNavigate } from "@index/router"
+import { useSidebarSearchRpc } from "@index/search-rpc"
 import { queryParam } from "@lib/codecs"
-import { zoomPrecision } from "@lib/coords"
 import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mountMapAlert } from "@lib/map/alerts"
-import {
-  boundsIntersection,
-  boundsPadding,
-  boundsSize,
-  boundsToString,
-} from "@lib/map/bounds"
+import { boundsIntersection, boundsPadding, boundsSize } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import { loadMapImage } from "@lib/map/image"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
@@ -25,9 +16,8 @@ import {
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
-import type { ElementIcon, ElementType, SearchData_Result } from "@lib/proto/shared_pb"
-import { SearchDataSchema } from "@lib/proto/shared_pb"
-import { qsEncode } from "@lib/qs"
+import type { SearchData_ResultValid } from "@lib/proto/search_pb"
+import type { ElementIcon, ElementType } from "@lib/proto/shared_pb"
 import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { OSMObject } from "@lib/types"
@@ -35,7 +25,6 @@ import {
   type ReadonlySignal,
   type Signal,
   signal,
-  useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
@@ -170,7 +159,7 @@ const SearchResultsList = ({
   onHoverChange,
   entryRefs,
 }: {
-  results: SearchData_Result[]
+  results: SearchData_ResultValid[]
   hoveredIndex: ReadonlySignal<number | null>
   onHoverChange: (index: number | null) => void
   entryRefs: (HTMLLIElement | null)[]
@@ -179,7 +168,7 @@ const SearchResultsList = ({
     <ul class="search-list social-list list-unstyled mb-0">
       {results.map((result, i) => (
         <ElementResultEntry
-          key={`${result.type}:${result.id.toString()}`}
+          key={`${result.type}:${result.id}`}
           result={result}
           hovered={hoveredIndex.value === i}
           entryRef={(el) => {
@@ -193,31 +182,6 @@ const SearchResultsList = ({
   ) : (
     <p>{t("results.we_did_not_find_any_results")}</p>
   )
-
-const getFetchURL = (
-  map: MaplibreMap,
-  q: string | undefined,
-  at: LonLatZoom | undefined,
-  local: boolean,
-) => {
-  if (!q) {
-    if (!at) return null
-
-    const { lon, lat, zoom } = at
-    const precision = zoomPrecision(zoom)
-    return `/api/web/search/where-is-this${qsEncode({
-      lon: lon.toFixed(precision),
-      lat: lat.toFixed(precision),
-      zoom: Math.round(zoom).toString(),
-    })}`
-  }
-
-  return `/api/web/search/results${qsEncode({
-    q,
-    bbox: boundsToString(boundsPadding(map.getBounds(), -0.01)),
-    local_only: local ? "1" : undefined,
-  })}`
-}
 
 const getFeatureIndex = (e: MapLayerMouseEvent) => {
   const featureId = e.features?.[0]?.id
@@ -260,9 +224,7 @@ const SearchSidebar = ({
     routerNavigate(SearchRoute, { q: query, at: nextAt, local: true })
   }
 
-  // Derived: active fetch URL for this route (null means "no active request").
-  const fetchUrl = useComputed(() => getFetchURL(map, q.value, at.value, local.value))
-  const { resource, data } = useSidebarFetch(fetchUrl, SearchDataSchema)
+  const { resource, data } = useSidebarSearchRpc({ map, q, at, local })
 
   const hoveredIndex = useSignal<number | null>(null)
   const entryRefs = useRef<(HTMLLIElement | null)[]>([])
@@ -366,7 +328,7 @@ const SearchSidebar = ({
 
   // Effect: when the route has no active request (no `q` and no `at`), clear any stale UI state.
   useSignalEffect(() => {
-    if (fetchUrl.value !== null) return
+    if (q.value || at.value) return
     clearResultsState()
   })
 
@@ -391,7 +353,7 @@ const SearchSidebar = ({
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [result.lon, result.lat],
+        coordinates: [result.location.lon, result.location.lat],
       },
     }))
     source.setData({ type: "FeatureCollection", features })
@@ -433,8 +395,13 @@ const SearchSidebar = ({
       } else if (d.results.length) {
         const [first, ...rest] = d.results
         const markersBounds = rest.reduce(
-          (bounds, r) => bounds.extend([r.lon, r.lat]),
-          new LngLatBounds([first.lon, first.lat, first.lon, first.lat]),
+          (bounds, r) => bounds.extend([r.location.lon, r.location.lat]),
+          new LngLatBounds([
+            first.location.lon,
+            first.location.lat,
+            first.location.lon,
+            first.location.lat,
+          ]),
         )
         const boundsPadded = boundsPadding(markersBounds, 0.15)
         map.fitBounds(boundsPadded, { maxZoom: 14 })

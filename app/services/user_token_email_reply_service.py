@@ -26,7 +26,7 @@ class UserTokenEmailReplyService:
         mail_source: MailSource,
         *,
         reply_to_user_id: UserId | None = None,
-    ) -> Email:
+    ):
         """
         Create a new user email reply address.
         Replying user can use this address to send a message to the current user.
@@ -40,7 +40,7 @@ class UserTokenEmailReplyService:
 
     # TODO: limit size
     @staticmethod
-    async def reply(reply_address: Email, subject: str, body: str) -> None:
+    async def reply(reply_address: Email, subject: str, body: str):
         """Reply to a user with a message."""
         token = await UserTokenEmailReplyQuery.find_by_reply_address(reply_address)
         if token is None:
@@ -74,7 +74,7 @@ async def _create_token(
     mail_source: MailSource,
     *,
     reply_to_user_id: UserId | None = None,
-) -> UserTokenStruct:
+):
     """
     Create a new user email reply token.
     Replying user can use this token to send a message to the current user.

@@ -1,6 +1,8 @@
 import logging
 from asyncio import TaskGroup
+from collections.abc import Callable, Coroutine
 from functools import wraps
+from typing import Any, ParamSpec, TypeVar
 
 from fastapi import HTTPException
 from starlette.datastructures import MutableHeaders
@@ -16,6 +18,9 @@ from app.services.rate_limit_service import RateLimitService
 
 _BLACKLIST = FileCache('RateLimit')
 
+_P = ParamSpec('_P')
+_R = TypeVar('_R')
+
 
 class RateLimitMiddleware:
     """
@@ -29,11 +34,11 @@ class RateLimitMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        async def wrapper(message: Message) -> None:
+        async def wrapper(message: Message):
             if message['type'] == 'http.response.start':
                 state: dict = scope.setdefault('state', {})
                 rate_limit_headers: dict | None = state.get('rate_limit_headers')
@@ -52,9 +57,9 @@ def rate_limit(*, weight: float = 1):
     The weight can be increased in runtime using the set_rate_limit_weight method.
     """
 
-    def decorator(func):
+    def decorator(func: Callable[_P, Coroutine[Any, Any, _R]]):
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: _P.args, **kwargs: _P.kwargs):
             req = get_request()
             user = auth_user()
             if user is not None:
@@ -114,7 +119,7 @@ def rate_limit(*, weight: float = 1):
     return decorator
 
 
-def set_rate_limit_weight(weight: float) -> None:
+def set_rate_limit_weight(weight: float):
     """Increase the request weight for rate limiting. Decreasing weights are ignored."""
     logging.debug('Overriding rate limit weight to %s', weight)
     get_request().state.rate_limit_weight = weight

@@ -10,12 +10,12 @@ from app.lib.anonymizer import anonymize_ip
 _CTX = ContextVar[Request]('Request')
 
 
-def is_request() -> bool:
+def is_request():
     """Check if running in a HTTP request context."""
     return _CTX.get(None) is not None
 
 
-def get_request() -> Request:
+def get_request():
     """Get the HTTP request."""
     return _CTX.get()
 
@@ -34,7 +34,7 @@ class RequestContextMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 

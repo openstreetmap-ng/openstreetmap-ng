@@ -1,13 +1,11 @@
-from typing import Any
-
-from fastapi import Depends, params
+from fastapi import Depends
 
 from app.lib.exceptions_context import raise_for
 from app.lib.xmltodict import XMLToDict
 from app.middlewares.request_context_middleware import get_request
 
 
-def xml_body(path: str) -> params.Depends:
+def xml_body(path: str):
     """Returns a dependency for extracting XML data from the request body."""
     parts: list[str] = path.split('/')
     bad_xml_name = parts[-1]
@@ -17,7 +15,7 @@ def xml_body(path: str) -> params.Depends:
     if bad_xml_name == 'gpx_file':
         bad_xml_name = 'trace'
 
-    def dependency() -> list[tuple[str, Any]] | dict[str, Any]:
+    def dependency():
         xml = get_request()._body  # noqa: SLF001
         data = XMLToDict.parse(xml)
 

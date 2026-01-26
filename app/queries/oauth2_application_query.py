@@ -107,7 +107,7 @@ class OAuth2ApplicationQuery:
         interacted_user: str | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
-    ) -> tuple[Composable, tuple[Any, ...]]:
+    ):
         conditions: list[Composable] = []
         params: list[Any] = []
 

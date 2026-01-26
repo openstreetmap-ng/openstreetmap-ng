@@ -14,7 +14,7 @@ class _FollowStatusResult(NamedTuple):
 
 class UserFollowQuery:
     @staticmethod
-    async def get_follow_status(target_user_id: UserId) -> _FollowStatusResult:
+    async def get_follow_status(target_user_id: UserId):
         """Get follow status between current user and target user."""
         user = auth_user()
         if user is None:

@@ -7,7 +7,7 @@ from app.lib.translation import t
 _BLACKLIST_ISDISJOINT = frozenset(URLSAFE_BLACKLIST).isdisjoint
 
 
-def _validate_url_safe(v: str) -> str:
+def _validate_url_safe(v: str):
     if not _BLACKLIST_ISDISJOINT(v):
         raise ValueError(t('validations.url_characters', characters=URLSAFE_BLACKLIST))
     return v

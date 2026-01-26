@@ -65,9 +65,7 @@ class ParallelTasksMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(
-        self, scope: StarletteScope, receive: Receive, send: Send
-    ) -> None:
+    async def __call__(self, scope: StarletteScope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -88,13 +86,13 @@ class ParallelTasksMiddleware:
         raise exception
 
     @staticmethod
-    async def messages_count_unread() -> int | None:
+    async def messages_count_unread():
         """Get the number of unread messages."""
         task = _MESSAGES_COUNT_UNREAD_CTX.get(None)
         return (await task) if task is not None else None
 
     @staticmethod
-    async def reports_count_attention() -> _ReportCountResult | None:
+    async def reports_count_attention():
         """Get the number of reports requiring attention."""
         task = _REPORTS_COUNT_ATTENTION_CTX.get(None)
         return (await task) if task is not None else None

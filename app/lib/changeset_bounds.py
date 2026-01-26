@@ -26,7 +26,7 @@ def extend_changeset_bounds(
     points: list[Point],
     *,
     CHANGESET_BBOX_LIMIT: cython.size_t = CHANGESET_BBOX_LIMIT,
-) -> MultiPolygon:
+):
     bboxes: list[_BBox]
     bboxes = measurement.bounds(bounds.geoms).tolist() if bounds is not None else []  # type: ignore
     num_bboxes: cython.size_t = len(bboxes)
@@ -110,7 +110,7 @@ def _merge_bbox(
     dirty_mask: list[bool],
     bbox: _BBox,
     i: int,
-) -> cython.bint:
+):
     existing = bboxes[i]
     merged = _union_bbox(bbox, existing)
     if merged == existing:
@@ -168,7 +168,7 @@ def _reduce_labels_to_bboxes_xy(
     y: NDArray[np.float64],
     labels: NDArray[np.integer],
     num_clusters: int,
-) -> NDArray[np.float64]:
+):
     minx = np.full(num_clusters, np.inf, dtype=np.float64)
     miny = np.full(num_clusters, np.inf, dtype=np.float64)
     maxx = np.full(num_clusters, -np.inf, dtype=np.float64)
@@ -363,12 +363,12 @@ def _get_buffer_bbox(bound: _BBox, /) -> _BBox:
 
 
 @cython.cfunc
-def _bbox_intersects(a: _BBox, b: _BBox, /) -> cython.bint:
+def _bbox_intersects(a: _BBox, b: _BBox, /):
     return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a[3] >= b[1]
 
 
 @cython.cfunc
-def _bbox_distance2(a: _BBox, b: _BBox, /) -> cython.double:
+def _bbox_distance2(a: _BBox, b: _BBox, /):
     a0: cython.double
     a1: cython.double
     a2: cython.double

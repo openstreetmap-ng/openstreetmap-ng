@@ -1,11 +1,11 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import type { ElementTypeSlug } from "@index/element"
 import { ElementRoute } from "@index/element"
 import { routerNavigate } from "@index/router"
 import { dataLayerLoading } from "@index/sidebar/layers"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
-import { RenderElementsDataSchema } from "@lib/proto/shared_pb"
+import { RenderElementsDataSchema } from "@lib/proto/element_pb"
 import { qsEncode } from "@lib/qs"
+import { fromBinaryValid } from "@lib/rpc"
 import type { OSMNode, OSMWay } from "@lib/types"
 import { signal } from "@preact/signals"
 import { fail } from "@std/assert"
@@ -250,7 +250,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       }
 
       const buffer = await resp.arrayBuffer()
-      const render = fromBinary(RenderElementsDataSchema, new Uint8Array(buffer))
+      const render = fromBinaryValid(RenderElementsDataSchema, new Uint8Array(buffer))
       fetchedBounds = fetchBounds
       if (render.tooMuchData) {
         loadDataAlertVisible.value = true

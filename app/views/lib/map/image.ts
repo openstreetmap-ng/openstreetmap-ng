@@ -1,4 +1,4 @@
-import { NoteStatus } from "@lib/proto/shared_pb"
+import { NoteStatus } from "@lib/proto/note_pb"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 const MARKER_IMAGES = {

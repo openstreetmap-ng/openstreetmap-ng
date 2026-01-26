@@ -88,7 +88,7 @@ class EmailService:
         template_data: dict[str, Any],
         ref: str | None = None,
         priority: int = 0,
-    ) -> None:
+    ):
         """Schedule mail and start async processing."""
         # render in the to_user's language
         with auth_context(to_user), translation_context(to_user['language']):
@@ -132,7 +132,7 @@ class EmailService:
         loop.create_task(_process_task())  # noqa: RUF006
 
 
-async def _process_task() -> None:
+async def _process_task():
     """Process scheduled mail in the database."""
     if _PROCESS_LOCK.locked():
         return
@@ -148,7 +148,7 @@ async def _process_task() -> None:
     await _process_task_inner()
 
 
-async def _process_task_inner() -> None:
+async def _process_task_inner():
     logging.debug('Started scheduled mail processing')
 
     async with _smtp_factory() as smtp, db(True) as conn:
@@ -212,7 +212,7 @@ async def _process_task_inner() -> None:
                     )
 
 
-async def _send_mail(smtp: SMTP, mail: Mail) -> None:
+async def _send_mail(smtp: SMTP, mail: Mail):
     mail_id = mail['id']
     to_user_id = mail['to_user_id']
     from_user_id = mail['from_user_id']

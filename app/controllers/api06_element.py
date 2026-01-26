@@ -245,9 +245,7 @@ async def get_parent_ways(id: ElementId):
     return await _encode_elements(elements)
 
 
-def _get_elements_data(
-    elements: list[tuple[ElementType, dict]], type: ElementType
-) -> list[tuple[ElementType, dict]]:
+def _get_elements_data(elements: list[tuple[ElementType, dict]], type: ElementType):
     """Get the first element of the given type from the sequence of elements."""
     return [s for s in elements if s[0] == type]
 

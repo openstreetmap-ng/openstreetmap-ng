@@ -6,10 +6,10 @@ from shapely import Point, get_coordinates
 from starlette import status
 
 from app.lib.geo_utils import try_parse_point
-from app.lib.search import Search
+from app.lib.search import Search, SearchResult
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.models.proto.shared_pb2 import RoutingResult, SharedBounds
+from app.models.proto.shared_pb2 import Bounds, LonLat, RoutingResult
 from app.models.types import Latitude, Longitude, SequenceId
 from app.queries.element_query import ElementQuery
 from app.queries.graphhopper_query import GraphHopperProfiles, GraphHopperQuery
@@ -37,11 +37,11 @@ async def route(
         bbox, start, start_loaded, end, end_loaded
     )
     if start_endpoint is not None:
-        start_loaded_lon = start_endpoint.lon
-        start_loaded_lat = start_endpoint.lat
+        start_loaded_lon = start_endpoint.location.lon
+        start_loaded_lat = start_endpoint.location.lat
     if end_endpoint is not None:
-        end_loaded_lon = end_endpoint.lon
-        end_loaded_lat = end_endpoint.lat
+        end_loaded_lon = end_endpoint.location.lon
+        end_loaded_lat = end_endpoint.location.lat
     start_point = Point(start_loaded_lon, start_loaded_lat)
     end_point = Point(end_loaded_lon, end_loaded_lat)
 
@@ -88,18 +88,15 @@ async def _resolve_names(
     return resolve_from, resolve_to
 
 
-async def _resolve_name(
-    field: str, query: str, bbox: str, at_sequence_id: SequenceId
-) -> RoutingResult.Endpoint:
+async def _resolve_name(field: str, query: str, bbox: str, at_sequence_id: SequenceId):
     # Try to parse as literal point
     point = try_parse_point(query)
     if point is not None:
         x, y = get_coordinates(point)[0].tolist()
         return RoutingResult.Endpoint(
             name=query,
-            bounds=SharedBounds(min_lon=x, min_lat=y, max_lon=x, max_lat=y),
-            lon=x,
-            lat=y,
+            bounds=Bounds(min_lon=x, min_lat=y, max_lon=x, max_lat=y),
+            location=LonLat(lon=x, lat=y),
         )
 
     # Fallback to nominatim search
@@ -118,6 +115,7 @@ async def _resolve_name(
             for search_bound in search_bounds
         ]
 
+    task_results: list[list[SearchResult]]
     task_results = list(map(Task.result, tasks))
     task_index = Search.best_results_index(task_results)
     results = task_results[task_index]
@@ -131,9 +129,8 @@ async def _resolve_name(
     min_lon, min_lat, max_lon, max_lat = result.bounds
     return RoutingResult.Endpoint(
         name=result.display_name,
-        bounds=SharedBounds(
+        bounds=Bounds(
             min_lon=min_lon, min_lat=min_lat, max_lon=max_lon, max_lat=max_lat
         ),
-        lon=x,
-        lat=y,
+        location=LonLat(lon=x, lat=y),
     )

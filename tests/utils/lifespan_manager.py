@@ -21,10 +21,10 @@ class LifespanManager:
         self._shutdown_finished = Event()
         self._exc: BaseException | None = None
 
-    async def _receive(self) -> Message:
+    async def _receive(self):
         return await self._message_queue.get()
 
-    async def _send(self, message: Message) -> None:
+    async def _send(self, message: Message):
         if message['type'] == 'lifespan.startup.complete':
             self._startup_finished.set()
         elif message['type'] == 'lifespan.shutdown.complete':

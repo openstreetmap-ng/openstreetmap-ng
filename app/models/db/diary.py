@@ -32,6 +32,6 @@ class Diary(DiaryInit):
     is_subscribed: NotRequired[Literal[True]]
 
 
-async def diaries_resolve_rich_text(objs: list[Diary]) -> None:
+async def diaries_resolve_rich_text(objs: list[Diary]):
     await resolve_rich_text(objs, 'diary', 'body', 'markdown')
     await ImageProxyService.inline_thumbnails(objs, 'body_rich')  # type: ignore

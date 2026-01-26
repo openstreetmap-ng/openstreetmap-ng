@@ -20,7 +20,7 @@ class APICorsMiddleware:
             max_age=int(CORS_MAX_AGE.total_seconds()),
         )
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 

@@ -1,18 +1,17 @@
-import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
 import { API_URL } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
+import type { LonLat } from "@lib/map/state"
 import {
-  type ElementData,
-  type ElementData_Location,
-  ElementDataSchema,
-  type PartialElementParams_Entry as ElementEntry,
-  type ElementIcon,
-  ElementType,
-} from "@lib/proto/shared_pb"
+  type ElementData_Context_EntryValid,
+  type ElementDataValid,
+  ElementService,
+} from "@lib/proto/element_pb"
+import { type ElementIcon, ElementType } from "@lib/proto/shared_pb"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import { range } from "@lib/utils"
@@ -117,7 +116,7 @@ export const ElementsSection = <T,>({
   )
 }
 
-export type ElementTypeSlug = "node" | "way" | "relation"
+export type ElementTypeSlug = keyof typeof ElementType
 
 export const getElementTypeSlug = (type: ElementType) =>
   ElementType[type] as ElementTypeSlug
@@ -126,25 +125,18 @@ export const ElementTypeParam = routeParam.enum(["node", "way", "relation"])
 export const ElementIdParam = routeParam.positive()
 export const ElementVersionParam = routeParam.positive()
 
-const formatElementLocation = (location: ElementData_Location) =>
-  `${location.lat.toFixed(7)}, ${location.lon.toFixed(7)}`
+const formatElementLocation = ({ lon, lat }: LonLat) =>
+  `${lat.toFixed(7)}, ${lon.toFixed(7)}`
 
-const getElementTitleText = (data: ElementData) => {
-  const idText = data.id.toString()
-  const typeLabel = getElementTypeLabel(data.type)
-  return data.name
-    ? `${typeLabel}: ${data.name} (${idText})`
-    : `${typeLabel}: ${idText}`
+const getElementTitleText = (data: ElementDataValid) => {
+  const { type, id } = data.ref
+  const typeLabel = getElementTypeLabel(type)
+  return data.name ? `${typeLabel}: ${data.name} (${id})` : `${typeLabel}: ${id}`
 }
 
-const ElementHeader = ({ data }: { data: ElementData }) => {
-  const idText = data.id.toString()
-  const typeLabel = getElementTypeLabel(data.type)
-  const versionText = data.version.toString()
+const ElementHeader = ({ data }: { data: ElementDataValid }) => {
+  const { type, id, version } = data.ref
   const isLatest = data.nextVersion === undefined
-  const badgeTitle = isLatest
-    ? `${t("browse.version")} ${versionText} (${t("state.latest")})`
-    : `${t("browse.version")} ${versionText}`
 
   return (
     <SidebarHeader class="mb-1">
@@ -158,28 +150,32 @@ const ElementHeader = ({ data }: { data: ElementData }) => {
           />
         )}
         <span class="sidebar-title me-1-5">
-          {typeLabel}:{" "}
+          {getElementTypeLabel(type)}:{" "}
           {data.name ? (
             <>
-              <bdi>{data.name}</bdi> ({idText})
+              <bdi>{data.name}</bdi> ({id})
             </>
           ) : (
-            idText
+            id
           )}
         </span>
         <span
           class={`version-badge badge ${isLatest ? "is-latest" : ""}`}
-          title={badgeTitle}
+          title={
+            isLatest
+              ? `${t("browse.version")} ${version} (${t("state.latest")})`
+              : `${t("browse.version")} ${version}`
+          }
         >
-          v{versionText}
+          v{version}
         </span>
       </h2>
     </SidebarHeader>
   )
 }
 
-export const ElementMeta = ({ data }: { data: ElementData }) => {
-  const changeset = data.changeset!
+export const ElementMeta = ({ data }: { data: ElementDataValid }) => {
+  const changeset = data.changeset
   const user = changeset.user
   return (
     <div class="social-entry">
@@ -213,9 +209,7 @@ export const ElementMeta = ({ data }: { data: ElementData }) => {
       <div class="body">
         <p class="position-relative mb-1">
           {t("browse.in_changeset")} #
-          <a href={`/changeset/${changeset.id.toString()}`}>
-            {changeset.id.toString()}
-          </a>
+          <a href={`/changeset/${changeset.id}`}>{changeset.id}</a>
         </p>
         <div
           class="fst-italic"
@@ -231,28 +225,28 @@ export const ElementLocation = ({
   location,
 }: {
   map: MaplibreMap
-  location: ElementData_Location
+  location: LonLat
 }) => (
   <p class="location-container mb-2">
     {t("diary_entries.form.location")}:{" "}
     <button
       class="btn btn-link stretched-link"
       type="button"
-      onClick={() => {
+      onClick={() =>
         map.flyTo({
           center: [location.lon, location.lat],
           zoom: Math.max(map.getZoom(), 15),
         })
-      }}
+      }
     >
       {formatElementLocation(location)}
     </button>
   </p>
 )
 
-const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
-  const idText = data.id.toString()
-  const typeText = getElementTypeSlug(data.type)
+const ElementHistoryLinks = ({ data }: { data: ElementDataValid }) => {
+  const { type, id, version } = data.ref
+  const typeText = getElementTypeSlug(type)
   const prev = data.prevVersion
   const next = data.nextVersion
 
@@ -262,23 +256,23 @@ const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
         <div class="mb-2">
           {prev !== undefined && (
             <a
-              href={`/${typeText}/${idText}/history/${prev.toString()}`}
+              href={`/${typeText}/${id}/history/${prev}`}
               rel="prev"
             >
-              « v{prev.toString()}
+              « v{prev}
             </a>
           )}
           {prev !== undefined && " · "}
-          <a href={`/${typeText}/${idText}/history`}>{t("browse.view_history")}</a>
+          <a href={`/${typeText}/${id}/history`}>{t("browse.view_history")}</a>
           {next !== undefined && (
             <>
               {" "}
               ·{" "}
               <a
-                href={`/${typeText}/${idText}/history/${next.toString()}`}
+                href={`/${typeText}/${id}/history/${next}`}
                 rel="next"
               >
-                v{next.toString()} »
+                v{next} »
               </a>
             </>
           )}
@@ -286,9 +280,7 @@ const ElementHistoryLinks = ({ data }: { data: ElementData }) => {
       )}
       {data.visible && (
         <small>
-          <a
-            href={`${API_URL}/api/0.6/${typeText}/${idText}/${data.version.toString()}`}
-          >
+          <a href={`${API_URL}/api/0.6/${typeText}/${id}/${version}`}>
             {t("browse.download_xml")}
           </a>
         </small>
@@ -308,16 +300,30 @@ const ElementSidebar = ({
   id: ReadonlySignal<bigint>
   version: ReadonlySignal<bigint | undefined>
 }) => {
-  const { resource, data } = useSidebarFetch(
-    useComputed(() =>
-      version.value !== undefined
-        ? `/api/web/element/${type.value}/${id.value}/history/${version.value}`
-        : `/api/web/element/${type.value}/${id.value}`,
-    ),
-    ElementDataSchema,
+  const { resource, data } = useSidebarRpc(
+    useComputed(() => {
+      const typeValue = ElementType[type.value]
+      const idValue = id.value
+      const versionValue = version.value
+      return versionValue !== undefined
+        ? {
+            ref: {
+              case: "version" as const,
+              value: { type: typeValue, id: idValue, version: versionValue },
+            },
+          }
+        : {
+            ref: {
+              case: "element" as const,
+              value: { type: typeValue, id: idValue },
+            },
+          }
+    }),
+    ElementService.method.getElement,
+    (r) => r.element,
   )
   const renderElements = useComputed(() =>
-    convertRenderElementsData(data.value?.params?.render),
+    convertRenderElementsData(data.value?.context.render),
   )
 
   // Effect: Sync derived state
@@ -351,8 +357,8 @@ const ElementSidebar = ({
       }}
     >
       {(d) => {
-        const params = d.params!
-        const hasRelations = params.parents.length > 0 || params.members.length > 0
+        const { parents, members } = d.context
+        const hasRelations = parents.length > 0 || members.length > 0
 
         return (
           <>
@@ -372,21 +378,21 @@ const ElementSidebar = ({
               {hasRelations && (
                 <div class="elements mt-3">
                   <ElementsSection
-                    items={params.parents}
+                    items={parents}
                     title={(count) => `${t("browse.part_of")} (${count})`}
                     renderRow={(el) => <ElementRow element={el} />}
-                    keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                   />
                   <ElementsSection
-                    items={params.members}
+                    items={members}
                     title={(count) =>
-                      params.type === ElementType.way
+                      d.ref.type === ElementType.way
                         ? // @ts-expect-error
                           t("browse.changeset.node", { count })
                         : `${t("browse.relation.members")} (${count})`
                     }
                     renderRow={(el) => <ElementRow element={el} />}
-                    keyFn={(el) => `${el.type}-${el.id}-${el.role ?? ""}`}
+                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                   />
                 </div>
               )}
@@ -446,19 +452,17 @@ export const ElementsListRow = ({
   </tr>
 )
 
-const ElementRow = ({ element }: { element: ElementEntry }) => {
-  const idStr = element.id.toString()
-  const href = `/${getElementTypeSlug(element.type)}/${idStr}`
-
+const ElementRow = ({ element }: { element: ElementData_Context_EntryValid }) => {
+  const { type, id } = element.ref
   return (
     <ElementsListRow
-      href={href}
+      href={`/${getElementTypeSlug(type)}/${id}`}
       icon={element.icon}
-      title={element.name || idStr}
+      title={element.name || id}
       meta={
         <>
-          <span>{getElementTypeLabel(element.type)}</span>
-          {element.name && <span>{`#${idStr}`}</span>}
+          <span>{getElementTypeLabel(type)}</span>
+          {element.name && <span>{`#${id}`}</span>}
           {element.role && (
             <>
               <span aria-hidden="true"> · </span>

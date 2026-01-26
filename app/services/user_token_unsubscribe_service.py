@@ -13,7 +13,7 @@ class UserTokenUnsubscribeService:
         target: UserSubscriptionTarget,
         target_id: UserSubscriptionTargetId,
         token_struct: StatelessUserTokenStruct,
-    ) -> None:
+    ):
         """Unsubscribe user from the given target."""
         if not (
             token_struct.HasField('unsubscribe')

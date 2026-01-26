@@ -1,12 +1,17 @@
 import asyncio
 import logging
+from collections.abc import Callable, Coroutine
 from datetime import timedelta
 from functools import wraps
 from random import uniform
 from time import monotonic
+from typing import Any, ParamSpec, TypeVar
 
 import cython
 from sentry_sdk import capture_exception
+
+_P = ParamSpec('_P')
+_R = TypeVar('_R')
 
 
 def retry(
@@ -18,9 +23,9 @@ def retry(
     """Decorator to retry a function until it succeeds or the timeout is reached."""
     timeout_seconds: cython.double = 0 if timeout is None else timeout.total_seconds()
 
-    def decorator(func):
+    def decorator(func: Callable[_P, Coroutine[Any, Any, _R]]):
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: _P.args, **kwargs: _P.kwargs):
             ts: cython.double = monotonic()
             sleep: cython.double = sleep_init
             attempt: cython.size_t = 0

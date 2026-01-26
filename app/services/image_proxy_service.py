@@ -2,7 +2,6 @@ import logging
 from asyncio import TaskGroup
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
-from datetime import timedelta
 
 import cython
 import re2
@@ -92,7 +91,7 @@ class ImageProxyService:
             result = [rows[url] for url in urls]
 
         # Prefetch
-        async def prefetch(proxy_id: ImageProxyId) -> None:
+        async def prefetch(proxy_id: ImageProxyId):
             try:
                 await ImageProxyService.fetch(proxy_id)
             except Exception:
@@ -111,8 +110,8 @@ class ImageProxyService:
         return result
 
     @staticmethod
-    async def fetch(proxy_id: ImageProxyId) -> tuple[bytes, str | None]:
-        async def factory() -> tuple[bytes, timedelta]:
+    async def fetch(proxy_id: ImageProxyId):
+        async def factory():
             return await _generate(proxy_id)
 
         raw = await CacheService.get(
@@ -137,7 +136,7 @@ class ImageProxyService:
     async def inline_thumbnails(
         items: Iterable[dict],
         html_field: str,
-    ) -> None:
+    ):
         workload: list[tuple[dict, str]] = []
         ids: set[ImageProxyId] = set()
 
@@ -174,7 +173,7 @@ class ImageProxyService:
 
         for item, html in workload:
 
-            def repl(match: 're2._Match[str]') -> str:
+            def repl(match: 're2._Match[str]'):
                 entry = entries.get(int(match[1]))  # type: ignore
                 if not entry or not entry['thumbnail']:
                     return match[0]
@@ -187,7 +186,7 @@ class ImageProxyService:
             item[html_field] = _INLINE_RE.sub(repl, html)
 
     @staticmethod
-    async def prune_unused(ids: list[ImageProxyId]) -> None:
+    async def prune_unused(ids: list[ImageProxyId]):
         if not ids:
             return
 
@@ -208,7 +207,7 @@ class ImageProxyService:
                 logging.debug('Pruned %d unused image proxies', result.rowcount)
 
 
-async def _generate(proxy_id: ImageProxyId) -> tuple[bytes, timedelta]:
+async def _generate(proxy_id: ImageProxyId):
     async with db(True) as conn:
         async with await conn.cursor(row_factory=dict_row).execute(
             """
@@ -294,7 +293,7 @@ async def _generate(proxy_id: ImageProxyId) -> tuple[bytes, timedelta]:
         )
 
 
-async def _clear_thumbnail(conn: AsyncConnection, proxy_id: ImageProxyId) -> None:
+async def _clear_thumbnail(conn: AsyncConnection, proxy_id: ImageProxyId):
     await conn.execute(
         """
         UPDATE image_proxy

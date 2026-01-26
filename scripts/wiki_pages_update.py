@@ -28,7 +28,7 @@ class WikiPageInfo(NamedTuple):
     locale: str
 
 
-async def discover_sitemap_urls() -> list[str]:
+async def discover_sitemap_urls():
     r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
     r.raise_for_status()
     matches = _SITEMAP_URL_RE.finditer(r.text)
@@ -38,7 +38,7 @@ async def discover_sitemap_urls() -> list[str]:
 
 
 @retry(timedelta(minutes=1))
-async def fetch_and_parse_sitemap(url: str) -> list[WikiPageInfo]:
+async def fetch_and_parse_sitemap(url: str):
     async with _download_limiter:
         r = await HTTP.get(url)
         r.raise_for_status()

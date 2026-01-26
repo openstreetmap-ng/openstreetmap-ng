@@ -85,7 +85,7 @@ class MessageQuery:
         limit: int,
         resolve_recipients: bool = False,
         show: MessageId | None = None,
-    ) -> list[Message]:
+    ):
         """Get user messages."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -157,9 +157,7 @@ class MessageQuery:
         return rows
 
     @staticmethod
-    async def resolve_recipients(
-        current_user_id: UserId | None, items: list[Message]
-    ) -> None:
+    async def resolve_recipients(current_user_id: UserId | None, items: list[Message]):
         """Resolve recipients for a list of messages."""
         if not items:
             return
@@ -216,7 +214,7 @@ class MessageQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def count_by_user(user_id: UserId) -> _MessageCountByUserResult:
+    async def count_by_user(user_id: UserId):
         """Count received messages by user id."""
         async with (
             db() as conn,

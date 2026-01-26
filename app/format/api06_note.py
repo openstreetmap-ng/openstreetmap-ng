@@ -12,7 +12,7 @@ from speedup import CDATA
 
 class Note06Mixin:
     @staticmethod
-    def encode_note(note: Note) -> dict:
+    def encode_note(note: Note):
         """
         >>> encode_note(Note(...))
         {'note': {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}}
@@ -26,7 +26,7 @@ class Note06Mixin:
             return {'note': _encode_note(note, is_json=False, is_gpx=False)}
 
     @staticmethod
-    def encode_notes(notes: list[Note]) -> dict:
+    def encode_notes(notes: list[Note]):
         """
         >>> encode_notes([
         ...     Note(...),
@@ -57,7 +57,7 @@ class Note06Mixin:
 
 
 @cython.cfunc
-def _encode_note_comment(comment: NoteComment) -> dict:
+def _encode_note_comment(comment: NoteComment):
     """
     >>> _encode_note_comment(NoteComment(...))
     {'date': '2019-06-15 08:26:04 UTC', 'uid': 1234, 'user': 'userName', ...}
@@ -80,7 +80,7 @@ def _encode_note_comment(comment: NoteComment) -> dict:
 
 
 @cython.cfunc
-def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> dict:
+def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint):
     """
     >>> _encode_note(Note(...))
     {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}
@@ -187,7 +187,7 @@ def _encode_note(note: Note, *, is_json: cython.bint, is_gpx: cython.bint) -> di
 
 
 @cython.cfunc
-def _encode_point_json(point: Point) -> list[float]:
+def _encode_point_json(point: Point):
     """
     >>> _encode_point_json(Point(1, 2))
     [1, 2]
@@ -196,7 +196,7 @@ def _encode_point_json(point: Point) -> list[float]:
 
 
 @cython.cfunc
-def _encode_point_xml(point: Point) -> dict[str, float]:
+def _encode_point_xml(point: Point):
     """
     >>> _encode_point_xml(Point(1, 2))
     {'@lon': 1, '@lat': 2}

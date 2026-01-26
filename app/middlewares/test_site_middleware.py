@@ -20,7 +20,7 @@ class TestSiteMiddleware:
         send: Send,
         *,
         _app_prefix=APP_URL + '/',
-    ) -> None:
+    ):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 

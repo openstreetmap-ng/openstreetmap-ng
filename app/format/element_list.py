@@ -4,11 +4,9 @@ from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.models.db.element import Element
 from app.models.element import ElementType, TypedElementId
-from app.models.proto.shared_pb2 import (
-    ChangesetData,
-    ElementIcon,
-    PartialElementParams,
-)
+from app.models.proto.changeset_pb2 import ChangesetData
+from app.models.proto.element_pb2 import ElementData
+from app.models.proto.shared_pb2 import ElementIcon, ElementRef
 from app.queries.element_query import ElementQuery
 from speedup import split_typed_element_id
 
@@ -58,7 +56,7 @@ class FormatElementList:
     def element_parents(
         ref: TypedElementId,
         parents: list[Element],
-    ) -> list[PartialElementParams.Entry]:
+    ):
         return (
             _encode_parents(
                 ref,
@@ -75,7 +73,7 @@ class FormatElementList:
         members: list[TypedElementId] | None,
         members_roles: list[str] | None,
         members_elements: list[Element],
-    ) -> list[PartialElementParams.Entry]:
+    ) -> list[ElementData.Context.Entry]:
         if not members:
             return []
 
@@ -129,7 +127,7 @@ def _encode_parents(
     names: list[str | None],
     feature_icons: list[FeatureIcon | None],
 ):
-    result: list[PartialElementParams.Entry] = []
+    result: list[ElementData.Context.Entry] = []
     for parent, name, feature_icon in zip(parents, names, feature_icons, strict=True):
         type, id = split_typed_element_id(parent['typed_id'])
         role = (
@@ -153,9 +151,8 @@ def _encode_parents(
             else None
         )
         result.append(
-            PartialElementParams.Entry(
-                type=type,
-                id=id,
+            ElementData.Context.Entry(
+                ref=ElementRef(type=type, id=id),
                 role=role,
                 name=name,
                 icon=icon,
@@ -173,7 +170,7 @@ def _encode_members(
     if members_roles is None:
         members_roles = [None] * len(members)
 
-    result: list[PartialElementParams.Entry] = []
+    result: list[ElementData.Context.Entry] = []
     for member, role in zip(members, members_roles, strict=True):
         type, id = split_typed_element_id(member)
         data = type_id_map.get(member)
@@ -184,9 +181,8 @@ def _encode_members(
             else None
         )
         result.append(
-            PartialElementParams.Entry(
-                type=type,
-                id=id,
+            ElementData.Context.Entry(
+                ref=ElementRef(type=type, id=id),
                 role=role,
                 name=name,
                 icon=icon,
@@ -196,5 +192,5 @@ def _encode_members(
 
 
 @cython.cfunc
-def _sort_key(element: ChangesetData.Element) -> tuple:
+def _sort_key(element: ChangesetData.Element):
     return not element.visible, element.id, element.version

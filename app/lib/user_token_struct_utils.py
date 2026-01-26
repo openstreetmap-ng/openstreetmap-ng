@@ -18,7 +18,7 @@ else:
 
 class UserTokenStructUtils:
     @staticmethod
-    def from_str(s: SecretStr) -> UserTokenStruct:
+    def from_str(s: SecretStr):
         """Parse the given string into a user token struct."""
         try:
             payload = b32decode(_add_b32_padding(s.get_secret_value()), casefold=True)
@@ -33,7 +33,7 @@ class UserTokenStructUtils:
             raise_for.bad_user_token_struct()
 
     @staticmethod
-    async def from_str_stateless(s: SecretStr) -> StatelessUserTokenStruct:
+    async def from_str_stateless(s: SecretStr):
         """Parse the given string into a stateless user token struct."""
         try:
             payload = b32decode(_add_b32_padding(s.get_secret_value()), casefold=True)
@@ -66,7 +66,7 @@ class UserTokenStructUtils:
         return token
 
     @staticmethod
-    def to_str(u: UserTokenStruct | StatelessUserTokenStruct) -> str:
+    def to_str(u: UserTokenStruct | StatelessUserTokenStruct):
         """Convert the given user token struct into a string."""
         payload = u.SerializeToString()
 
@@ -77,7 +77,7 @@ class UserTokenStructUtils:
 
 
 @cython.cfunc
-def _add_b32_padding(s: str) -> str:
+def _add_b32_padding(s: str):
     s_len: cython.size_t = len(s)
     pad_len: cython.size_t = int(ceil(s_len / 8) * 8 - s_len)
     return s + ('=' * pad_len)

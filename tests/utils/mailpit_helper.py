@@ -72,7 +72,7 @@ class MailpitHelper:
         *,
         recipient: User | None = None,
         timeout: float = 5,
-    ) -> MailpitMessageSummary:
+    ):
         """Search for messages in Mailpit."""
 
         async def check_message(msg: MailpitMessage) -> MailpitMessageSummary | None:
@@ -139,7 +139,7 @@ class MailpitHelper:
         return r.json()
 
     @staticmethod
-    def extract_list_unsubscribe_token(headers: dict[str, list[str]]) -> str | None:
+    def extract_list_unsubscribe_token(headers: dict[str, list[str]]):
         """Extract the unsubscribe token from a message."""
         for key, values in headers.items():
             if key.lower() != 'list-unsubscribe':

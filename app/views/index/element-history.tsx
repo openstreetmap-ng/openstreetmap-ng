@@ -13,7 +13,7 @@ import { BTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { type ElementData, ElementHistoryPageSchema } from "@lib/proto/shared_pb"
+import { type ElementDataValid, ElementHistoryPageSchema } from "@lib/proto/element_pb"
 import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
@@ -36,21 +36,17 @@ const getPageTitle = (type: ElementTypeSlug, id: string) => {
 const ElementHistoryEntry = ({
   map,
   data,
-  tagsDiff,
 }: {
   map: MaplibreMap
-  data: ElementData
-  tagsDiff: boolean
+  data: ElementDataValid
 }) => {
-  const idText = data.id.toString()
-  const typeText = getElementTypeSlug(data.type)
-  const versionText = data.version.toString()
+  const { type, id, version } = data.ref
   const isLatest = data.nextVersion === undefined
   const location = data.location
 
   const elementsRef = useRef<ReturnType<typeof convertRenderElementsData>>()
   const getElements = () => {
-    elementsRef.current ??= convertRenderElementsData(data.params!.render!)
+    elementsRef.current ??= convertRenderElementsData(data.context.render)
     return elementsRef.current
   }
 
@@ -58,14 +54,12 @@ const ElementHistoryEntry = ({
     <div class="version-section section position-relative">
       <a
         class="stretched-link"
-        href={`/${typeText}/${idText}/history/${versionText}`}
-        onMouseEnter={() => {
-          focusObjects(map, getElements(), elementFocusPaint)
-        }}
+        href={`/${getElementTypeSlug(type)}/${id}/history/${version}`}
+        onMouseEnter={() => focusObjects(map, getElements(), elementFocusPaint)}
         onMouseLeave={() => focusObjects(map)}
       />
       <h3 class={`version-badge badge mb-3 ${isLatest ? "is-latest" : ""}`}>
-        {t("browse.version")} {versionText}
+        {t("browse.version")} {version}
       </h3>
 
       <ElementMeta data={data} />
@@ -80,7 +74,7 @@ const ElementHistoryEntry = ({
       <Tags
         tags={data.tags}
         tagsOld={data.tagsOld}
-        diff={tagsDiff}
+        diff={tagsDiffStorage.value}
       />
     </div>
   )
@@ -137,19 +131,16 @@ const ElementHistorySidebar = ({
         small={true}
         navClassBottom="mb-0"
         protobuf={ElementHistoryPageSchema}
-        onLoad={() => {
-          focusObjects(map)
-        }}
+        onLoad={() => focusObjects(map)}
       >
         {(page) => (
           <div class="section p-0">
             <div>
               {page.elements.map((entry) => (
                 <ElementHistoryEntry
-                  key={entry.version.toString()}
+                  key={entry.ref.version}
                   map={map}
                   data={entry}
-                  tagsDiff={tagsDiffStorage.value}
                 />
               ))}
             </div>

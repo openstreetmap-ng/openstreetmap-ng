@@ -26,7 +26,7 @@ class RequestBodyMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -105,7 +105,7 @@ def _decompress_zstd(
     buffer: bytes,
     *,
     chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
-) -> bytes:
+):
     decompressor = ZstdDecompressor().decompressobj()
     chunks: list[bytes] = []
     total_size: cython.size_t = 0
@@ -128,7 +128,7 @@ def _decompress_brotli(
     buffer: bytes,
     *,
     chunk_size: cython.size_t = (1 << 16) - 1,
-) -> bytes:
+):
     decompressor = brotli.Decompressor()
     chunks: list[bytes] = []
     total_size: cython.size_t = 0
@@ -147,7 +147,7 @@ def _decompress_brotli(
     return b''.join(chunks)
 
 
-def _decompress_gzip(buffer: bytes) -> bytes:
+def _decompress_gzip(buffer: bytes):
     decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
 
@@ -159,7 +159,7 @@ def _decompress_gzip(buffer: bytes) -> bytes:
     return result
 
 
-def _decompress_zlib(buffer: bytes) -> bytes:
+def _decompress_zlib(buffer: bytes):
     decompressor = zlib.decompressobj()
     result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
 

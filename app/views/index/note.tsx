@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
 import { config, isLoggedIn, isModerator } from "@lib/config"
@@ -11,15 +11,15 @@ import {
 } from "@lib/map/layers/focus-layer"
 import {
   NoteCommentPage_Comment_Event as Event,
-  type NoteCommentPage,
-  type NoteCommentPage_Comment,
+  type NoteCommentPage_CommentValid,
   NoteCommentPageSchema,
-  type NoteCommentResult,
+  type NoteCommentPageValid,
   NoteCommentResultSchema,
-  type NoteData,
-  NoteDataSchema,
+  type NoteCommentResultValid,
+  type NoteDataValid,
+  NoteService,
   NoteStatus,
-} from "@lib/proto/shared_pb"
+} from "@lib/proto/note_pb"
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import {
@@ -70,7 +70,7 @@ const getEventLabel = memoize((event: Event) => {
   }
 })
 
-const NoteComment = ({ comment }: { comment: NoteCommentPage_Comment }) => {
+const NoteComment = ({ comment }: { comment: NoteCommentPage_CommentValid }) => {
   return (
     <li class="social-entry">
       <p class="header text-muted">
@@ -105,7 +105,7 @@ const NoteComment = ({ comment }: { comment: NoteCommentPage_Comment }) => {
   )
 }
 
-const NoteHeader = ({ data }: { data: NoteData }) => {
+const NoteHeader = ({ data }: { data: NoteDataValid }) => {
   const header = data.header!
   const avatarUrl =
     header.user?.avatarUrl ?? `/api/web/img/avatar/anonymous_note/${data.id}`
@@ -162,8 +162,8 @@ const NoteHeader = ({ data }: { data: NoteData }) => {
 }
 
 type CommentResult = {
-  result: NoteCommentResult
-  commentsResponse: PaginationResponse<NoteCommentPage>
+  result: NoteCommentResultValid
+  commentsResponse: PaginationResponse<NoteCommentPageValid>
   deep: boolean
 }
 
@@ -181,14 +181,14 @@ const CommentForm = ({
   const commentText = useSignal("")
 
   useEffect(() => {
-    return configureStandardForm<NoteCommentResult>(
+    return configureStandardForm<NoteCommentResultValid>(
       formRef.current,
       (result, headers) => {
         formRef.current!.reset()
         commentText.value = ""
         onSuccess({
           result,
-          commentsResponse: toPaginationResponse(result.comments!, headers),
+          commentsResponse: toPaginationResponse(result.comments, headers),
           deep: eventRef.current !== "commented",
         })
       },
@@ -341,11 +341,14 @@ const SubscriptionForm = ({
 
 const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint> }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments = useSignal<PaginationResponse<NoteCommentPage> | null>(null)
+  const preloadedComments = useSignal<PaginationResponse<NoteCommentPageValid> | null>(
+    null,
+  )
 
-  const { resource, data } = useSidebarFetch(
-    useComputed(() => `/api/web/note/${id.value}`),
-    NoteDataSchema,
+  const { resource, data } = useSidebarRpc(
+    useComputed(() => ({ id: id.value })),
+    NoteService.method.getNote,
+    (r) => r.note,
   )
 
   // Effect: Sync derived state
@@ -368,7 +371,15 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
     loadMapImage(map, NOTE_STATUS_MARKERS[d.status])
     focusObjects(
       map,
-      [{ type: "note", id: null, geom: [d.lon, d.lat], status: d.status, text: "" }],
+      [
+        {
+          type: "note",
+          id: null,
+          geom: [d.location.lon, d.location.lat],
+          status: d.status,
+          text: "",
+        },
+      ],
       focusPaint,
       focusLayout,
       { padBounds: 0, maxZoom: 15, minProportion: 0 },
@@ -393,7 +404,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           <SidebarHeader class="mb-1">
             <h2>
               <span class="sidebar-title me-2">
-                {t("note.title")}: {d.id.toString()}
+                {t("note.title")}: {d.id}
               </span>
               <span
                 class={`status-badge badge ${d.status === NoteStatus.closed ? "text-bg-green" : "text-muted bg-body-secondary"}`}
@@ -420,12 +431,12 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
               type="button"
               onClick={() =>
                 map.flyTo({
-                  center: [d.lon, d.lat],
+                  center: [d.location.lon, d.location.lat],
                   zoom: Math.max(map.getZoom(), 15),
                 })
               }
             >
-              {`${d.lat.toFixed(5)}, ${d.lon.toFixed(5)}`}
+              {`${d.location.lat.toFixed(5)}, ${d.location.lon.toFixed(5)}`}
             </button>
           </p>
 
@@ -478,7 +489,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
 
           {/* Comments pagination */}
           <StandardPagination
-            key={d.id.toString()}
+            key={d.id}
             action={`/api/web/note/${d.id}/comments`}
             label={t("alt.comments_page_navigation")}
             small={true}
@@ -515,7 +526,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
               noteId={d.id}
               status={d.status}
               onSuccess={({ result, commentsResponse, deep }) => {
-                resource.value = { tag: "ready", data: result.note! }
+                resource.value = { tag: "ready", data: result.note }
                 preloadedComments.value = commentsResponse
                 if (deep) map.fire("reloadnoteslayer")
               }}

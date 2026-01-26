@@ -24,7 +24,7 @@ _PARQUET_PATHS = [
 ]
 
 
-def _process_changeset(header_only: bool) -> None:
+def _process_changeset(header_only: bool):
     with duckdb_connect(progress=False) as conn:
         # Utility for escaping text
         conn.execute("""
@@ -86,7 +86,7 @@ def _process_changeset(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_changeset_bounds(header_only: bool) -> None:
+def _process_changeset_bounds(header_only: bool):
     with duckdb_connect(progress=False) as conn:
         query = f"""
         SELECT
@@ -108,7 +108,7 @@ def _process_changeset_bounds(header_only: bool) -> None:
 
 def _process_element(
     header_only: bool, *, batch_size=REPLICATION_CONVERT_ELEMENT_BATCH_SIZE
-) -> None:
+):
     with duckdb_connect(progress=False) as conn:
         r: tuple[int, ...] = (
             conn.execute(f"""
@@ -200,7 +200,7 @@ def _process_element(
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def _process_user(header_only: bool) -> None:
+def _process_user(header_only: bool):
     with duckdb_connect(progress=False) as conn:
         sources = [
             f"""
@@ -251,7 +251,7 @@ def _process_user(header_only: bool) -> None:
         conn.sql(query).write_csv('/dev/stdout')
 
 
-def main() -> None:
+def main():
     choices = ['changeset', 'changeset_bounds', 'element', 'user']
     parser = ArgumentParser()
     parser.add_argument('--header-only', action='store_true')

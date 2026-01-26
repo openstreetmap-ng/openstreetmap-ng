@@ -101,7 +101,7 @@ class NoteService:
         return note_id
 
     @staticmethod
-    async def comment(note_id: NoteId, text: str, event: NoteEvent) -> None:
+    async def comment(note_id: NoteId, text: str, event: NoteEvent):
         """Comment on a note."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -228,7 +228,7 @@ class NoteService:
             tg.create_task(UserSubscriptionService.subscribe('note', note_id))
 
 
-async def _send_activity_email(note: Note, comment: NoteComment) -> None:
+async def _send_activity_email(note: Note, comment: NoteComment):
     async def place_task():
         try:
             # Reverse geocode the note point
@@ -300,7 +300,7 @@ def _get_activity_email_subject(
     comment_user_name: DisplayName,
     event: NoteEvent,
     is_note_owner: cython.bint,
-) -> str:
+):
     if event == 'commented':
         if is_note_owner:
             return t(

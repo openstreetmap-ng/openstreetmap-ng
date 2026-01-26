@@ -27,14 +27,13 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.db.user import User, user_avatar_url
-from app.models.proto.shared_pb2 import (
+from app.models.db.user import User, user_proto
+from app.models.proto.changeset_pb2 import (
     ChangesetCommentPage,
     ChangesetCommentResult,
     ChangesetData,
-    SharedBounds,
-    StandardPaginationState,
 )
+from app.models.proto.shared_pb2 import Bounds
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_comment_query import ChangesetCommentQuery
@@ -59,20 +58,14 @@ async def create_comment(
     await ChangesetCommentService.comment(changeset_id, comment)
 
     async with TaskGroup() as tg:
-        changeset_t = tg.create_task(_build_changeset_data(changeset_id))
-        comments_t = tg.create_task(_build_comments_page(changeset_id))
+        changeset_t = tg.create_task(build_changeset_data(changeset_id))
+        comments_t = tg.create_task(build_changeset_comments_page(changeset_id))
 
     comments_page, state = comments_t.result()
     result = ChangesetCommentResult(
         changeset=changeset_t.result(), comments=comments_page
     )
     return sp_render_response_bytes(result.SerializeToString(), state)
-
-
-@router.get('/{changeset_id:int}')
-async def get_changeset(changeset_id: ChangesetId):
-    result = await _build_changeset_data(changeset_id)
-    return Response(result.SerializeToString(), media_type='application/x-protobuf')
 
 
 @router.get('/map')
@@ -127,11 +120,11 @@ async def comments_page(
     changeset_id: ChangesetId,
     sp_state: StandardPaginationStateBody = b'',
 ):
-    page, state = await _build_comments_page(changeset_id, sp_state)
+    page, state = await build_changeset_comments_page(changeset_id, sp_state)
     return sp_render_response_bytes(page.SerializeToString(), state)
 
 
-async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
+async def build_changeset_data(changeset_id: ChangesetId):
     changeset = await ChangesetQuery.find_by_id(changeset_id)
     if changeset is None:
         raise_for.changeset_not_found(changeset_id)
@@ -163,7 +156,7 @@ async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
     prev_changeset_id, next_changeset_id = adjacent_t.result()
 
     tags = changeset['tags']
-    comment_text = tags.pop('comment') or t('browse.no_comment')
+    comment_text = tags.pop('comment', None) or t('browse.no_comment')
     comment_html = process_rich_text_plain(comment_text)
 
     bboxes: list[list[float]] = (
@@ -175,15 +168,7 @@ async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
     user = changeset.get('user')
     return ChangesetData(
         id=changeset_id,
-        user=(
-            ChangesetData.User(
-                id=user['id'],
-                display_name=user['display_name'],
-                avatar_url=user_avatar_url(user),
-            )
-            if user is not None
-            else None
-        ),
+        user=user_proto(user),
         created_at=int(changeset['created_at'].timestamp()),
         closed_at=(
             int(changeset['closed_at'].timestamp()) if changeset['closed_at'] else None
@@ -194,7 +179,7 @@ async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
         comment_rich=comment_html,
         tags=tags,
         bounds=[
-            SharedBounds(min_lon=b[0], min_lat=b[1], max_lon=b[2], max_lat=b[3])
+            Bounds(min_lon=b[0], min_lat=b[1], max_lon=b[2], max_lat=b[3])
             for b in bboxes
         ],
         nodes=elements['node'],
@@ -206,9 +191,9 @@ async def _build_changeset_data(changeset_id: ChangesetId) -> ChangesetData:
     )
 
 
-async def _build_comments_page(
+async def build_changeset_comments_page(
     changeset_id: ChangesetId, sp_state: bytes = b''
-) -> tuple[ChangesetCommentPage, StandardPaginationState]:
+):
     comments, state = await sp_paginate_table(
         ChangesetComment,
         sp_state,
@@ -227,10 +212,7 @@ async def _build_comments_page(
     page = ChangesetCommentPage(
         comments=[
             ChangesetCommentPage.Comment(
-                user=ChangesetCommentPage.Comment.User(
-                    display_name=c['user']['display_name'],  # type: ignore
-                    avatar_url=user_avatar_url(c['user']),  # type: ignore
-                ),
+                user=user_proto(c['user']),  # type: ignore
                 created_at=int(c['created_at'].timestamp()),
                 body_rich=c['body_rich'],  # type: ignore
             )

@@ -18,7 +18,7 @@ def _validate_tags(
     TAGS_MAX_LEN_SAFE_SIZE: cython.size_t = (
         TAGS_MAX_SIZE // (TAGS_KEY_MAX_LENGTH + 255)
     ),
-) -> dict[str, str]:
+):
     num_tags: cython.size_t = len(v)
 
     if num_tags > TAGS_LIMIT:

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class AuthExceptionsMixin:
-    def unauthorized(self, *, request_basic_auth: bool = False) -> NoReturn:
+    def unauthorized(self, *, request_basic_auth: bool = False):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail='Unauthorized',
@@ -26,7 +26,7 @@ class AuthExceptionsMixin:
     def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
         raise NotImplementedError
 
-    def bad_user_token_struct(self) -> NoReturn:
+    def bad_user_token_struct(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid user token')
 
     @abstractmethod
@@ -37,12 +37,12 @@ class AuthExceptionsMixin:
     def oauth2_bearer_missing(self) -> NoReturn:
         raise NotImplementedError
 
-    def oauth2_bad_code_challenge_params(self) -> NoReturn:
+    def oauth2_bad_code_challenge_params(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST, detail='Invalid code challenge parameters'
         )
 
-    def oauth2_challenge_method_not_set(self) -> NoReturn:
+    def oauth2_challenge_method_not_set(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='code_verifier was provided but code_challenge_method is not set',
@@ -54,19 +54,19 @@ class AuthExceptionsMixin:
     ) -> NoReturn:
         raise NotImplementedError
 
-    def oauth_bad_client_id(self) -> NoReturn:
+    def oauth_bad_client_id(self):
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client id')
 
-    def oauth_bad_client_secret(self) -> NoReturn:
+    def oauth_bad_client_secret(self):
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid client secret')
 
-    def oauth_bad_user_token(self) -> NoReturn:
+    def oauth_bad_user_token(self):
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='Invalid access token')
 
-    def oauth_bad_redirect_uri(self) -> NoReturn:
+    def oauth_bad_redirect_uri(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid redirect URI')
 
-    def oauth_bad_scopes(self) -> NoReturn:
+    def oauth_bad_scopes(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST, detail='Invalid authorization scopes'
         )

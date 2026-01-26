@@ -22,7 +22,7 @@ _CITY_CENTERS: list[tuple[str, float, float]] = [
 ]
 
 
-def _parse_args() -> ArgumentParser:
+def _parse_args():
     parser = ArgumentParser(
         description=(
             'Dev-only helper: create many random-ish GPX traces via the web API.\n'
@@ -70,19 +70,19 @@ def _parse_args() -> ArgumentParser:
     return parser
 
 
-def _is_local_base_url(url: str) -> bool:
+def _is_local_base_url(url: str):
     host = urlparse(url).hostname
     return host in {'127.0.0.1', 'localhost', None}
 
 
-def _origin_from_base_url(url: str) -> str:
+def _origin_from_base_url(url: str):
     parsed = urlparse(url)
     if not parsed.scheme or not parsed.netloc:
         raise ValueError(f'Invalid --base-url: {url!r}')
     return f'{parsed.scheme}://{parsed.netloc}'
 
 
-def _build_transmit_password_v1(password: str, *, origin: str) -> bytes:
+def _build_transmit_password_v1(password: str, *, origin: str):
     salt = f'{origin}/zaczero@osm.ng'.encode()
     password_bytes = pbkdf2_hmac(
         'sha512',
@@ -94,14 +94,14 @@ def _build_transmit_password_v1(password: str, *, origin: str) -> bytes:
     return TransmitUserPassword(v1=password_bytes).SerializeToString()
 
 
-def _pick_visibility(rng: random.Random, mode: str) -> str:
+def _pick_visibility(rng: random.Random, mode: str):
     if mode != 'mix':
         return mode
     # Keep most traces visible in public listings.
     return 'public' if rng.random() < 0.8 else 'identifiable'
 
 
-def _wrap_lon(lon: float) -> float:
+def _wrap_lon(lon: float):
     if lon > 180:
         return lon - 360
     if lon < -180:
@@ -109,7 +109,7 @@ def _wrap_lon(lon: float) -> float:
     return lon
 
 
-def _clamp_lat(lat: float) -> float:
+def _clamp_lat(lat: float):
     if lat > 89.9:
         return 89.9
     if lat < -89.9:
@@ -123,7 +123,7 @@ def _random_walk_points(
     center_lat: float,
     center_lon: float,
     points: int,
-) -> list[tuple[float, float]]:
+):
     lat = center_lat + rng.uniform(-0.05, 0.05)
     lon = center_lon + rng.uniform(-0.05, 0.05)
     out: list[tuple[float, float]] = []
@@ -134,7 +134,7 @@ def _random_walk_points(
     return out
 
 
-def _build_gpx(points: list[tuple[float, float]], *, name: str) -> bytes:
+def _build_gpx(points: list[tuple[float, float]], *, name: str):
     parts: list[str] = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<gpx version="1.1" creator="openstreetmap-ng-dev-seed" xmlns="http://www.topografix.com/GPX/1/1">',
@@ -150,7 +150,7 @@ def _build_gpx(points: list[tuple[float, float]], *, name: str) -> bytes:
 
 def _login_and_get_cookie(
     client: httpx.Client, *, base_url: str, who: str, password: str
-) -> str:
+):
     origin = _origin_from_base_url(base_url)
     transmit_password = _build_transmit_password_v1(password, origin=origin)
     resp = client.post(
@@ -190,7 +190,7 @@ def _upload_one(
     rng_seed: int,
     points: int,
     visibility_mode: str,
-) -> int:
+):
     rng = random.Random(rng_seed + index)
     city_name, city_lat, city_lon = rng.choice(_CITY_CENTERS)
 
@@ -228,7 +228,7 @@ def _upload_one(
     return int(id_resp.id)
 
 
-def main() -> None:
+def main():
     parser = _parse_args()
     args = parser.parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level))
@@ -281,7 +281,7 @@ def main() -> None:
     for _ in range(args.concurrency):
         queue.put(None)
 
-    def worker(worker_id: int) -> None:
+    def worker(worker_id: int):
         nonlocal created, failed, error_logs, last_log
 
         with httpx.Client(

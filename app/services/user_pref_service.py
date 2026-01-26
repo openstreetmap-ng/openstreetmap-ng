@@ -19,7 +19,7 @@ from app.services.audit_service import audit
 
 class UserPrefService:
     @staticmethod
-    async def upsert(prefs: list[UserPref]) -> None:
+    async def upsert(prefs: list[UserPref]):
         """Set user preferences."""
         num_prefs: cython.size_t = len(prefs)
         if num_prefs == 0:
@@ -50,9 +50,7 @@ class UserPrefService:
             )
 
     @staticmethod
-    async def delete(
-        app_id: ApplicationId | None, *, key: UserPrefKey | None = None
-    ) -> None:
+    async def delete(app_id: ApplicationId | None, *, key: UserPrefKey | None = None):
         """Delete user preference(s) by app id and optional key."""
         user_id = auth_user(required=True)['id']
 

@@ -16,9 +16,7 @@ GraphHopperProfiles = frozenset[GraphHopperProfile](get_args(GraphHopperProfile)
 
 class GraphHopperQuery:
     @staticmethod
-    async def route(
-        start: Point, end: Point, *, profile: GraphHopperProfile
-    ) -> RoutingResult:
+    async def route(start: Point, end: Point, *, profile: GraphHopperProfile):
         if not len(GRAPHHOPPER_API_KEY):
             raise HTTPException(
                 status.HTTP_503_SERVICE_UNAVAILABLE,

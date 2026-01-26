@@ -140,7 +140,7 @@ class AuditQuery:
         type: AuditType | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
-    ) -> tuple[Composable, tuple[Any, ...]]:
+    ):
         """Build the WHERE clause for audit log filters."""
         conditions: list[Composable] = []
         params: list[Any] = []
@@ -195,7 +195,7 @@ class AuditQuery:
         return where_clause, tuple(params)
 
     @staticmethod
-    async def resolve_last_activity(tokens: list[OAuth2Token]) -> None:
+    async def resolve_last_activity(tokens: list[OAuth2Token]):
         """Resolve last_activity for tokens."""
         if not tokens:
             return

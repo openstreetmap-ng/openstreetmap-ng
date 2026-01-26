@@ -40,7 +40,7 @@ class Changeset(ChangesetInit):
 
 def changeset_increase_size(
     changeset: Changeset, *, num_create: int, num_modify: int, num_delete: int
-) -> bool:
+):
     """Try to increase the changeset size. Returns True if successful."""
     assert num_create >= 0, 'num_create must be non-negative'
     assert num_modify >= 0, 'num_modify must be non-negative'

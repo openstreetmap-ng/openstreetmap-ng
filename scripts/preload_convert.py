@@ -98,7 +98,7 @@ def _get_worker_path(base: Path, i: int):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 
-def planet_worker(args: tuple[int, int, int, int]) -> None:
+def planet_worker(args: tuple[int, int, int, int]):
     i, num_tasks, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
@@ -113,7 +113,7 @@ def planet_worker(args: tuple[int, int, int, int]) -> None:
         input_buffer = b''.join(parts)
 
     elements: list[tuple[ElementType, dict]]
-    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']  # type: ignore
+    elements = XMLToDict.parse(input_buffer, size_limit=None)['osm']
     del input_buffer, parts  # free memory
 
     type: str
@@ -171,7 +171,7 @@ def planet_worker(args: tuple[int, int, int, int]) -> None:
     gc.collect()
 
 
-def run_planet_workers() -> None:
+def run_planet_workers():
     input_size = PLANET_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     from_seek_search = [b'  <node', b'  <way', b'  <relation']
@@ -206,7 +206,7 @@ def run_planet_workers() -> None:
             pass
 
 
-def merge_planet_worker_results() -> None:
+def merge_planet_worker_results():
     input_size = PLANET_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     paths = [_get_worker_path(PLANET_PARQUET_PATH, i) for i in range(num_tasks)]
@@ -237,7 +237,7 @@ def merge_planet_worker_results() -> None:
         path.unlink()
 
 
-def changesets_worker(args: tuple[int, int, int, int]) -> None:
+def changesets_worker(args: tuple[int, int, int, int]):
     i, num_tasks, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
@@ -252,7 +252,7 @@ def changesets_worker(args: tuple[int, int, int, int]) -> None:
         input_buffer = b''.join(parts)
 
     changesets: list[dict]
-    changesets = XMLToDict.parse(input_buffer, size_limit=None)['osm']['changeset']  # type: ignore
+    changesets = XMLToDict.parse(input_buffer, size_limit=None)['osm']['changeset']
     del input_buffer, parts  # free memory
 
     changeset: dict
@@ -287,7 +287,7 @@ def changesets_worker(args: tuple[int, int, int, int]) -> None:
     gc.collect()
 
 
-def run_changesets_workers() -> None:
+def run_changesets_workers():
     input_size = CHANGESETS_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     from_seek_search = [b' <changeset']
@@ -322,7 +322,7 @@ def run_changesets_workers() -> None:
             pass
 
 
-def merge_changesets_worker_results() -> None:
+def merge_changesets_worker_results():
     input_size = CHANGESETS_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     paths = [_get_worker_path(CHANGESETS_PARQUET_PATH, i) for i in range(num_tasks)]
@@ -345,7 +345,7 @@ def merge_changesets_worker_results() -> None:
         path.unlink()
 
 
-def notes_worker(args: tuple[int, int, int, int]) -> None:
+def notes_worker(args: tuple[int, int, int, int]):
     i, num_tasks, from_seek, to_seek = args  # from_seek(inclusive), to_seek(exclusive)
     data: list[dict] = []
 
@@ -360,7 +360,7 @@ def notes_worker(args: tuple[int, int, int, int]) -> None:
         input_buffer = b''.join(parts)
 
     notes: list[dict]
-    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']  # type: ignore
+    notes = XMLToDict.parse(input_buffer, size_limit=None)['osm-notes']['note']
     del input_buffer, parts  # free memory
 
     note: dict
@@ -420,7 +420,7 @@ def notes_worker(args: tuple[int, int, int, int]) -> None:
     gc.collect()
 
 
-def run_notes_workers() -> None:
+def run_notes_workers():
     input_size = NOTES_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     from_seek_search = [b'<note']
@@ -458,7 +458,7 @@ def run_notes_workers() -> None:
             pass
 
 
-def merge_notes_worker_results() -> None:
+def merge_notes_worker_results():
     input_size = NOTES_INPUT_PATH.stat().st_size
     num_tasks = input_size // _TASK_SIZE
     paths = [_get_worker_path(NOTES_PARQUET_PATH, i) for i in range(num_tasks)]
@@ -477,7 +477,7 @@ def merge_notes_worker_results() -> None:
         path.unlink()
 
 
-def _write_changeset() -> None:
+def _write_changeset():
     with duckdb_connect() as conn:
         # Utility for escaping text
         conn.execute("""
@@ -537,7 +537,7 @@ def _write_changeset() -> None:
         """)
 
 
-def _write_changeset_bounds() -> None:
+def _write_changeset_bounds():
     with duckdb_connect() as conn:
         conn.sql(f"""
         COPY (
@@ -555,7 +555,7 @@ def _write_changeset_bounds() -> None:
         """)
 
 
-def _write_element() -> None:
+def _write_element():
     with duckdb_connect() as conn:
         # Utility for escaping text
         conn.execute("""
@@ -614,7 +614,7 @@ def _write_element() -> None:
         """)
 
 
-def _write_note() -> None:
+def _write_note():
     with duckdb_connect() as conn:
         conn.sql(f"""
         COPY (
@@ -631,7 +631,7 @@ def _write_note() -> None:
         """)
 
 
-def _write_note_comment() -> None:
+def _write_note_comment():
     with duckdb_connect() as conn:
         conn.sql(f"""
         COPY (
@@ -646,7 +646,7 @@ def _write_note_comment() -> None:
         """)
 
 
-def _write_user(modes: set[str]) -> None:
+def _write_user(modes: set[str]):
     with duckdb_connect() as conn:
         sources = []
 
@@ -692,7 +692,7 @@ def _write_user(modes: set[str]) -> None:
 
 
 @psycopg_pool_open_decorator
-async def _write_element_spatial() -> None:
+async def _write_element_spatial():
     path = _get_csv_path('element_spatial')
     path_watermark = _get_csv_path('element_spatial_watermark')
 
@@ -735,7 +735,7 @@ async def _write_element_spatial() -> None:
         )
 
 
-async def main() -> None:
+async def main():
     # Freeze all gc objects before starting for improved performance
     gc.collect()
     gc.freeze()

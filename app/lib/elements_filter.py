@@ -17,7 +17,7 @@ class ElementsFilter:
         member_nodes: set[TypedElementId],
         *,
         detailed: cython.bint,
-    ) -> list[_T]:
+    ):
         """Return only interesting nodes."""
         return [
             node
@@ -26,7 +26,7 @@ class ElementsFilter:
         ]
 
     @staticmethod
-    def filter_tags_interesting(elements: list[_T]) -> list[_T]:
+    def filter_tags_interesting(elements: list[_T]):
         """Return only elements with interesting tags."""
         return [
             element  #
@@ -41,7 +41,7 @@ def _check_node_interesting(
     member_nodes: set[TypedElementId],
     *,
     detailed: cython.bint,
-) -> cython.bint:
+):
     if node['point'] is None:
         return False
 

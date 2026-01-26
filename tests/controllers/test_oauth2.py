@@ -376,7 +376,7 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope):
     if valid_scope:
         # With valid scope, the request should succeed
         assert r.is_success, r.text
-        props: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
+        props: dict = XMLToDict.parse(r.content)['osm']['note'][0]
         assert len(props['comments']['comment']) == 1
         assert_model(
             props['comments']['comment'][0], {'user': 'user1', 'action': 'opened'}

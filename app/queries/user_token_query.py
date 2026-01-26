@@ -47,7 +47,7 @@ class UserTokenQuery:
         token_struct: UserTokenStruct,
         *,
         check_email_hash: bool = True,
-    ) -> UserToken | None:
+    ):
         """Find a user token by token struct."""
         async with db() as conn:
             async with await conn.cursor(row_factory=dict_row).execute(

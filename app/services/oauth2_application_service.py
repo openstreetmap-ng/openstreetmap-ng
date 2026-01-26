@@ -36,7 +36,7 @@ from speedup import buffered_rand_urlsafe
 
 class OAuth2ApplicationService:
     @staticmethod
-    async def create(*, name: str) -> ApplicationId:
+    async def create(*, name: str):
         """Create an OAuth2 application."""
         user_id = auth_user(required=True)['id']
         client_id = ClientId(buffered_rand_urlsafe(32))
@@ -126,7 +126,7 @@ class OAuth2ApplicationService:
         redirect_uris: list[OAuth2Uri],
         scopes: frozenset[PublicScope],
         revoke_all_authorizations: bool,
-    ) -> None:
+    ):
         """Update an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 
@@ -182,7 +182,7 @@ class OAuth2ApplicationService:
                     await audit('revoke_app_all_users', conn, extra={'id': app_id})
 
     @staticmethod
-    async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile) -> str:
+    async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile):
         """Update app's avatar. Returns the new avatar URL."""
         data = await avatar_file.read()
         user_id = auth_user(required=True)['id']
@@ -224,7 +224,7 @@ class OAuth2ApplicationService:
         return oauth2_app_avatar_url({'avatar_id': avatar_id, 'client_id': client_id})  # type: ignore
 
     @staticmethod
-    async def reset_client_secret(app_id: ApplicationId) -> SecretStr:
+    async def reset_client_secret(app_id: ApplicationId):
         """Reset the client secret and return the new one."""
         client_secret_ = buffered_rand_urlsafe(32)
         client_secret_hashed = hash_bytes(client_secret_)
@@ -250,7 +250,7 @@ class OAuth2ApplicationService:
         return client_secret
 
     @staticmethod
-    async def delete(app_id: ApplicationId) -> None:
+    async def delete(app_id: ApplicationId):
         """Delete an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 

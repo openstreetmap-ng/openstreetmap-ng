@@ -1,4 +1,3 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { LoadingSpinner, SidebarHeader } from "@index/_action-sidebar"
 import { ChangesetRoute, ChangesetStats } from "@index/changeset"
 import { defineRoute, routerCtx, routerNavigate } from "@index/router"
@@ -28,8 +27,9 @@ import { convertRenderChangesetsData, renderObjects } from "@lib/map/render-obje
 import {
   type RenderChangesetsData_Changeset,
   RenderChangesetsDataSchema,
-} from "@lib/proto/shared_pb"
+} from "@lib/proto/changeset_pb"
 import { qsEncode } from "@lib/qs"
+import { fromBinaryValid } from "@lib/rpc"
 import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { Bounds, OSMChangeset } from "@lib/types"
@@ -508,7 +508,7 @@ const ChangesetsHistorySidebar = ({
 
       const buffer = await resp.arrayBuffer()
       thisAbort.signal.throwIfAborted()
-      const newChangesets = fromBinary(
+      const newChangesets = fromBinaryValid(
         RenderChangesetsDataSchema,
         new Uint8Array(buffer),
       ).changesets
@@ -823,14 +823,14 @@ const ChangesetEntry = ({
         <span>
           <span class="me-1">
             {changeset.user ? (
-              <a href={`/user/${changeset.user.name}`}>
+              <a href={`/user/${changeset.user.displayName}`}>
                 <img
                   class="avatar"
                   src={changeset.user.avatarUrl}
                   alt={t("alt.profile_picture")}
                   loading="lazy"
                 />
-                {changeset.user.name}
+                {changeset.user.displayName}
               </a>
             ) : (
               t("browse.anonymous")
@@ -857,7 +857,7 @@ const ChangesetEntry = ({
         <div class="d-flex justify-content-between">
           <div class="comment">{changeset.comment || t("browse.no_comment")}</div>
           <div class={`num-comments${hasComments ? "" : " no-comments"}`}>
-            {changeset.numComments.toString()}
+            {changeset.numComments}
             <i class={`bi ${hasComments ? "bi-chat-left-text" : "bi-chat-left"}`} />
           </div>
         </div>

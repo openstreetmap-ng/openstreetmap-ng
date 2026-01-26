@@ -17,7 +17,7 @@ from app.lib.standard_pagination import (
     sp_render_response_bytes,
 )
 from app.models.db.message import Message, messages_resolve_rich_text
-from app.models.db.user import User, UserDisplay, user_avatar_url
+from app.models.db.user import User, user_proto
 from app.models.proto.shared_pb2 import MessagePage, MessageRead
 from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
@@ -72,25 +72,15 @@ async def read_message(
             else False
         )
 
-    from_user = message['from_user']  # type: ignore
-    time_unix = int(message['created_at'].timestamp())
-
     result = MessageRead(
         was_unread=was_unread,
-        sender=MessageRead.Sender(
-            id=message['from_user_id'],
-            display_name=from_user['display_name'],
-            avatar_url=user_avatar_url(from_user),
-        ),
+        sender=user_proto(message['from_user']),  # type: ignore
         recipients=[
-            MessageRead.Recipient(
-                display_name=r['user']['display_name'],  # type: ignore
-                avatar_url=user_avatar_url(r['user']),  # type: ignore
-            )
+            user_proto(r['user'])  # type: ignore
             for r in message['recipients']
         ],
         is_recipient=is_recipient,
-        time=time_unix,
+        time=int(message['created_at'].timestamp()),
         subject=message['subject'],
         body_rich=message['body_rich'],  # type: ignore
     )
@@ -187,17 +177,14 @@ def _build_message_summary(
     message: Message,
     *,
     inbox: bool,
-) -> MessagePage.Summary:
-
+):
     if inbox:
-        sender = message['from_user']  # type: ignore
-        unread = not message['user_recipient']['read']  # type: ignore
         return MessagePage.Summary(
             id=message['id'],
-            sender=_message_user_summary(sender),
+            sender=user_proto(message['from_user']),  # type: ignore
             recipients=[],
             recipients_count=0,
-            unread=unread,
+            unread=not message['user_recipient']['read'],  # type: ignore
             time=int(message['created_at'].timestamp()),
             subject=message['subject'],
             body_preview=_message_body_preview(message['body']),
@@ -205,9 +192,9 @@ def _build_message_summary(
 
     recipients = message['recipients']  # type: ignore
     recipients_users = [
-        _message_user_summary(r['user'])  # type: ignore
+        user_proto(r_user)
         for r in recipients[:3]
-        if r.get('user') is not None
+        if (r_user := r.get('user')) is not None
     ]
     return MessagePage.Summary(
         id=message['id'],
@@ -221,14 +208,7 @@ def _build_message_summary(
     )
 
 
-def _message_user_summary(user: UserDisplay) -> MessagePage.Summary.User:
-    return MessagePage.Summary.User(
-        display_name=user['display_name'],
-        avatar_url=user_avatar_url(user),
-    )
-
-
-def _message_body_preview(value: str) -> str:
+def _message_body_preview(value: str):
     if len(value) <= _MESSAGE_BODY_PREVIEW_MAX:
         return value
     trimmed = value[: _MESSAGE_BODY_PREVIEW_MAX - 3].rstrip()

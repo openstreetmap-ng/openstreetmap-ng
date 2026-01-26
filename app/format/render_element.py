@@ -7,7 +7,8 @@ from app.lib.elements_filter import ElementsFilter
 from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
-from app.models.proto.shared_pb2 import RenderElementsData
+from app.models.proto.element_pb2 import RenderElementsData
+from app.models.proto.shared_pb2 import LonLat
 from speedup import element_id, element_type, split_typed_element_id
 
 
@@ -18,7 +19,7 @@ class RenderElementMixin:
         *,
         detailed: cython.bint,
         areas: cython.bint = True,
-    ) -> RenderElementsData:
+    ):
         """Format elements into a minimal structure, suitable for map rendering."""
         node_id_map: dict[TypedElementId, Element] = {}
         ways: list[Element] = []
@@ -43,9 +44,7 @@ class RenderElementMixin:
         )
 
     @staticmethod
-    def encode_query_features(
-        results: list[QueryFeatureResult],
-    ) -> list[RenderElementsData]:
+    def encode_query_features(results: list[QueryFeatureResult]):
         """Format query features results into a minimal structure, suitable for map rendering."""
         encoded: list[RenderElementsData] = []
 
@@ -55,7 +54,9 @@ class RenderElementMixin:
 
             if type == 'node':
                 point = sequences[0][0]
-                render_node = RenderElementsData.Node(id=id, lon=point[0], lat=point[1])
+                render_node = RenderElementsData.Node(
+                    id=id, location=LonLat(lon=point[0], lat=point[1])
+                )
                 encoded.append(RenderElementsData(nodes=[render_node]))
 
             elif type == 'way':
@@ -71,7 +72,9 @@ class RenderElementMixin:
                     if len(seq) == 1:
                         point = seq[0]
                         nodes.append(
-                            RenderElementsData.Node(id=id, lon=point[0], lat=point[1])
+                            RenderElementsData.Node(
+                                id=id, location=LonLat(lon=point[0], lat=point[1])
+                            )
                         )
                     else:
                         ways.append(
@@ -92,7 +95,7 @@ def _render_ways(
     node_id_map: dict[TypedElementId, Element],
     areas: cython.bint,
     member_nodes: set[TypedElementId],
-) -> list[RenderElementsData.Way]:
+):
     result: list[RenderElementsData.Way] = []
 
     for way in ways:
@@ -128,7 +131,7 @@ def _render_ways(
         for segment in segments:
             geom: list[list[float]] = get_coordinates(segment).tolist()
             line = encode_lonlat(geom, 6)
-            result.append(RenderElementsData.Way(id=way_id, line=line, area=is_area))
+            result.append(RenderElementsData.Way(id=way_id, line=line, is_area=is_area))
 
     return result
 
@@ -148,7 +151,9 @@ def _render_nodes(
     points = [node['point'] for node in nodes]
     geoms: list[list[float]] = get_coordinates(points).tolist()
     return [
-        RenderElementsData.Node(id=node['typed_id'], lon=geom[0], lat=geom[1])
+        RenderElementsData.Node(
+            id=node['typed_id'], location=LonLat(lon=geom[0], lat=geom[1])
+        )
         for node, geom in zip(nodes, geoms, strict=True)
     ]
 
@@ -192,7 +197,7 @@ def _geometry_to_sequences(geometry: BaseGeometry) -> list[list[list[float]]]:
 def _check_way_area(
     tags: dict[str, str] | None,
     members: list[TypedElementId],
-) -> cython.bint:
+):
     """Check if the way should be displayed as an area."""
     return (
         tags is not None
@@ -208,7 +213,7 @@ def _has_area_tag(
     /,
     *,
     _AREA_TAGS=_AREA_TAGS,
-) -> cython.bint:
+):
     if not tags:
         return False
 

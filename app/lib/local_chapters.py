@@ -11,7 +11,7 @@ class LocalChapter(NamedTuple):
 
 
 @cython.cfunc
-def _get_local_chapters() -> list[LocalChapter]:
+def _get_local_chapters():
     resources = Path(
         'node_modules/osm-community-index/dist/json/resources.min.json'
     ).read_bytes()

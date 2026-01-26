@@ -29,5 +29,5 @@ class NoteComment(NoteCommentInit):
     legacy_note: NotRequired[Note]
 
 
-async def note_comments_resolve_rich_text(objs: list[NoteComment]) -> None:
+async def note_comments_resolve_rich_text(objs: list[NoteComment]):
     await resolve_rich_text(objs, 'note_comment', 'body', 'plain')

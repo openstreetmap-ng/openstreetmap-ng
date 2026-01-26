@@ -8,7 +8,7 @@ from app.queries.user_query import UserQuery
 
 class UserFollowService:
     @staticmethod
-    async def follow(target_user_id: UserId) -> None:
+    async def follow(target_user_id: UserId):
         follower_id = auth_user(required=True)['id']
 
         # Prevent self-follow
@@ -39,7 +39,7 @@ class UserFollowService:
         logging.debug('User %d followed user %d', follower_id, target_user_id)
 
     @staticmethod
-    async def unfollow(target_user_id: UserId) -> None:
+    async def unfollow(target_user_id: UserId):
         follower_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
