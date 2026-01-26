@@ -25,14 +25,14 @@ def _encode_changeset(changeset: Changeset):
     ]
 
     closed_at = changeset['closed_at']
-    timeago = int((closed_at or changeset['created_at']).timestamp())
+    status_changed_at = int((closed_at or changeset['created_at']).timestamp())
 
     return RenderChangesetsData.Changeset(
         id=changeset['id'],
         user=user_proto(changeset.get('user')),
         bounds=params_bounds,
         closed=closed_at is not None,
-        timeago=timeago,
+        status_changed_at=status_changed_at,
         comment=changeset['tags'].get('comment'),
         num_create=changeset['num_create'],
         num_modify=changeset['num_modify'],

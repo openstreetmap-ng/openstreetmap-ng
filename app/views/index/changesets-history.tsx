@@ -841,7 +841,7 @@ const ChangesetEntry = ({
               ? t("browse.closed").toLowerCase()
               : t("browse.created").toLowerCase()}{" "}
             <Time
-              unix={changeset.timeago}
+              unix={changeset.statusChangedAt}
               relativeStyle="long"
             />
           </span>

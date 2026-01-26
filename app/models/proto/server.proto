@@ -7,7 +7,7 @@ syntax = "proto3";
 // Cursor tracks pagination state for API data fetching operations
 message Cursor {
   uint64 id = 1; // Last fetched object's database identifier
-  optional uint64 timestamp = 2; // Optional timestamp for point-in-time pagination
+  optional uint64 snapshot_at = 2; // Optional snapshot time (Unix seconds, UTC)
 }
 
 // =============================================
@@ -52,7 +52,7 @@ message UserTokenStruct {
 
 // Stateless user token that doesn't require database storage
 message StatelessUserTokenStruct {
-  uint64 timestamp = 1; // Token creation timestamp
+  uint64 issued_at = 1; // Token issuance time (Unix seconds, UTC)
   uint64 user_id = 2; // User identifier
   bytes email_hashed = 3; // Hash of user's email for validation
 
@@ -84,7 +84,7 @@ message UserPassword {
 
 // Represents state during OAuth/OpenID Connect authentication flows
 message AuthProviderState {
-  uint64 timestamp = 1; // Flow initiation timestamp
+  uint64 issued_at = 1; // Flow initiation time (Unix seconds, UTC)
   string provider = 2; // Provider identifier (e.g., "google", "github")
   string action = 3; // Authentication intent (e.g., "login", "signup")
   optional string referer = 4; // Original referring page URL
@@ -93,7 +93,7 @@ message AuthProviderState {
 
 // Successful authentication result from external provider
 message AuthProviderVerification {
-  uint64 timestamp = 1; // Verification timestamp
+  uint64 issued_at = 1; // Verification time (Unix seconds, UTC)
   string provider = 2; // Provider identifier matching AuthProviderState
   string uid = 3; // Provider's unique user identifier
   optional string name = 4; // Human-readable name (if available)

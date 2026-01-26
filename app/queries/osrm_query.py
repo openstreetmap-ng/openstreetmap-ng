@@ -58,7 +58,7 @@ class OSRMQuery:
             routing_steps[i] = RoutingResult.Step(
                 num_coords=len(step_points),
                 distance=step['distance'],
-                time=step['duration'],
+                duration_seconds=step['duration'],
                 icon_num=_MANEUVER_ID_TO_ICON_MAP.get(maneuver_id, 0),
                 text=_get_step_text(step, maneuver_id),
             )

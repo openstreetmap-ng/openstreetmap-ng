@@ -65,7 +65,7 @@ message RenderChangesetsData {
     optional User user = 2;
     repeated Bounds bounds = 3;
     bool closed = 4;
-    uint64 timeago = 5;
+    uint64 status_changed_at = 5;
     optional string comment = 6;
     uint32 num_create = 7;
     uint32 num_modify = 8;

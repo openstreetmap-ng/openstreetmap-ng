@@ -307,7 +307,7 @@ def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
     # Append stateless token param
     token = UserTokenStructUtils.to_str(
         StatelessUserTokenStruct(
-            timestamp=int(time()),
+            issued_at=int(time()),
             user_id=to_user['id'],
             email_hashed=hash_bytes(to_user['email']),
             unsubscribe=StatelessUserTokenStruct.UnsubscribeData(
