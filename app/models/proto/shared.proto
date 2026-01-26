@@ -191,7 +191,7 @@ message MessagePage {
     repeated User recipients = 3;
     uint32 recipients_count = 4;
     bool unread = 5;
-    uint64 time = 6; // Timestamp in seconds (UTC)
+    uint64 created_at = 6; // Unix timestamp in seconds (UTC)
     string subject = 7;
     string body_preview = 8;
   }
@@ -205,7 +205,7 @@ message MessageRead {
   User sender = 2; // Message author
   repeated User recipients = 3; // Message recipients
   bool is_recipient = 4; // Whether current user is a recipient
-  uint64 time = 5; // Timestamp in seconds (UTC)
+  uint64 created_at = 5; // Unix timestamp in seconds (UTC)
   string subject = 6; // Message subject
   string body_rich = 7; // Rich text HTML body
 }
@@ -233,7 +233,7 @@ message RoutingResult {
   message Step {
     uint32 num_coords = 1; // Number of coordinates in the polyline (incl. overlapping ends)
     float distance = 2; // Meters
-    float time = 3; // Seconds
+    float duration_seconds = 3; // Seconds
     uint32 icon_num = 4; // Icon code for this instruction
     string text = 5; // Human-readable instruction
   }

@@ -52,7 +52,7 @@ class GraphHopperQuery:
             RoutingResult.Step(
                 num_coords=instr['interval'][1] - instr['interval'][0] + 1,
                 distance=instr['distance'],
-                time=instr['time'] / 1000,
+                duration_seconds=instr['time'] / 1000,
                 icon_num=_SIGN_TO_ICON_MAP.get(instr['sign'], 0),
                 text=instr['text'],
             )

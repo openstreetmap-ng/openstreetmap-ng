@@ -125,7 +125,7 @@ const MessagesListItem = ({
           <span>
             <SummaryUserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
             <Time
-              unix={message.time}
+              unix={message.createdAt}
               relativeStyle="long"
             />
           </span>
@@ -133,7 +133,7 @@ const MessagesListItem = ({
           <span>
             <SummaryRecipients message={message} /> {t("messages.action_delivered")}{" "}
             <Time
-              unix={message.time}
+              unix={message.createdAt}
               relativeStyle="long"
             />
           </span>
@@ -262,7 +262,7 @@ const MessagePreview = ({
                     </a>
                     <div>
                       <Time
-                        unix={message.time}
+                        unix={message.createdAt}
                         dateStyle="long"
                         timeStyle="short"
                       />

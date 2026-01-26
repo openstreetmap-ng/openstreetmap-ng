@@ -51,7 +51,7 @@ class ValhallaQuery:
                     maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1
                 ),
                 distance=maneuver['length'] * 1000,
-                time=maneuver['time'],
+                duration_seconds=maneuver['time'],
                 icon_num=_MANEUVER_TYPE_TO_ICON_MAP.get(maneuver['type'], 0),
                 text=maneuver['instruction'],
             )

@@ -49,7 +49,7 @@ async def test_message_crud(client: AsyncClient):
     assert msg.recipients[0].display_name == 'user2'
     assert msg.recipients[0].avatar_url
     assert not msg.is_recipient
-    assert msg.time
+    assert msg.created_at
     assert msg.subject == 'Test Subject'
     assert msg.body_rich == '<p>Test Body</p>\n'
 
@@ -71,7 +71,7 @@ async def test_message_crud(client: AsyncClient):
     assert msg.recipients[0].display_name == 'user2'
     assert msg.recipients[0].avatar_url
     assert msg.is_recipient
-    assert msg.time
+    assert msg.created_at
     assert msg.subject == 'Test Subject'
     assert msg.body_rich == '<p>Test Body</p>\n'
 

@@ -160,7 +160,7 @@ const computeRouteRender = (route: RoutingResultValid) => {
 
   const instructions: RouteInstructionView[] = []
   let totalDistance = 0
-  let totalTime = 0
+  let totalSeconds = 0
   let coordsSliceStart = 0
   let prevSegmentBounds: LngLatBounds | undefined
 
@@ -168,7 +168,7 @@ const computeRouteRender = (route: RoutingResultValid) => {
 
   for (const [stepIndex, step] of route.steps.entries()) {
     totalDistance += step.distance
-    totalTime += step.time
+    totalSeconds += step.durationSeconds
 
     const stepCoords = allCoords.slice(
       coordsSliceStart,
@@ -211,7 +211,7 @@ const computeRouteRender = (route: RoutingResultValid) => {
     } satisfies FeatureCollection,
     view: {
       distanceText: formatDistance(totalDistance),
-      timeText: formatTime(totalTime),
+      timeText: formatTime(totalSeconds),
       elevation: route.elevation
         ? {
             ascendText: formatHeight(route.elevation.ascend),

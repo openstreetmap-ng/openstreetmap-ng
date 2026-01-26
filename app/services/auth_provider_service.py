@@ -76,7 +76,7 @@ class AuthProviderService:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state hmac')
 
         state = AuthProviderState.FromString(urlsafe_b64decode(buffer_b64))
-        if state.timestamp + AUTH_PROVIDER_STATE_MAX_AGE.total_seconds() < time():
+        if state.issued_at + AUTH_PROVIDER_STATE_MAX_AGE.total_seconds() < time():
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again'
             )
@@ -204,7 +204,7 @@ class AuthProviderService:
             urlsafe_b64decode(buffer_b64)
         )
         verification_expires_at = (
-            verification.timestamp + AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds()
+            verification.issued_at + AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds()
         )
         if verification_expires_at < time():
             logging.debug('Auth provider verification is expired')
@@ -228,7 +228,7 @@ def _create_signed_state(
     """
     buffer_b64 = urlsafe_b64encode(
         AuthProviderState(
-            timestamp=int(time()),
+            issued_at=int(time()),
             provider=provider,
             action=action,
             referer=referer,
@@ -254,7 +254,7 @@ def _create_signed_verification(
     """
     buffer_b64 = urlsafe_b64encode(
         AuthProviderVerification(
-            timestamp=int(time()),
+            issued_at=int(time()),
             provider=provider,
             uid=uid,
             name=name,

@@ -80,7 +80,7 @@ async def read_message(
             for r in message['recipients']
         ],
         is_recipient=is_recipient,
-        time=int(message['created_at'].timestamp()),
+        created_at=int(message['created_at'].timestamp()),
         subject=message['subject'],
         body_rich=message['body_rich'],  # type: ignore
     )
@@ -185,7 +185,7 @@ def _build_message_summary(
             recipients=[],
             recipients_count=0,
             unread=not message['user_recipient']['read'],  # type: ignore
-            time=int(message['created_at'].timestamp()),
+            created_at=int(message['created_at'].timestamp()),
             subject=message['subject'],
             body_preview=_message_body_preview(message['body']),
         )
@@ -202,7 +202,7 @@ def _build_message_summary(
         recipients=recipients_users,
         recipients_count=len(recipients),
         unread=False,
-        time=int(message['created_at'].timestamp()),
+        created_at=int(message['created_at'].timestamp()),
         subject=message['subject'],
         body_preview=_message_body_preview(message['body']),
     )
