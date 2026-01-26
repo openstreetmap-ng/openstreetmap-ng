@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, NoReturn, override
+from typing import TYPE_CHECKING, override
 
 from starlette import status
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class AuthExceptions06Mixin(AuthExceptionsMixin):
     @override
-    def unauthorized(self, *, request_basic_auth: bool = False) -> NoReturn:
+    def unauthorized(self, *, request_basic_auth: bool = False):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail="Couldn't authenticate you",
@@ -22,55 +22,53 @@ class AuthExceptions06Mixin(AuthExceptionsMixin):
         )
 
     @override
-    def insufficient_scopes(self, scopes: Iterable[str]) -> NoReturn:
+    def insufficient_scopes(self, scopes: Iterable[str]):
         raise APIError(
             status.HTTP_403_FORBIDDEN,
             detail=f'The request requires higher privileges than authorized ({", ".join(scopes)})',
         )
 
     @override
-    def bad_basic_auth_format(self) -> NoReturn:
+    def bad_basic_auth_format(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST, detail='Malformed basic auth credentials'
         )
 
     @override
-    def oauth2_bearer_missing(self) -> NoReturn:
+    def oauth2_bearer_missing(self):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail='OAuth2 bearer authorization header missing',
         )
 
     @override
-    def oauth2_challenge_method_not_set(self) -> NoReturn:
+    def oauth2_challenge_method_not_set(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='OAuth2 verifier provided but code challenge method is not set',
         )
 
     @override
-    def oauth2_bad_verifier(
-        self, code_challenge_method: 'OAuth2CodeChallengeMethod'
-    ) -> NoReturn:
+    def oauth2_bad_verifier(self, code_challenge_method: 'OAuth2CodeChallengeMethod'):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED,
             detail=f'OAuth2 verifier invalid for {code_challenge_method} code challenge method',
         )
 
     @override
-    def oauth_bad_client_secret(self) -> NoReturn:
+    def oauth_bad_client_secret(self):
         raise APIError(
             status.HTTP_401_UNAUTHORIZED, detail='OAuth application token invalid'
         )
 
     @override
-    def oauth_bad_user_token(self) -> NoReturn:
+    def oauth_bad_user_token(self):
         raise APIError(status.HTTP_401_UNAUTHORIZED, detail='OAuth user token invalid')
 
     @override
-    def oauth_bad_redirect_uri(self) -> NoReturn:
+    def oauth_bad_redirect_uri(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth redirect uri invalid')
 
     @override
-    def oauth_bad_scopes(self) -> NoReturn:
+    def oauth_bad_scopes(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='OAuth scopes invalid')

@@ -10,27 +10,49 @@ message IdResponse {
   uint64 id = 1;
 }
 
+message User {
+  uint64 id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+}
+
 message LonLat {
-  double lon = 1 [(buf.validate.field).double = {
+  float lon = 1 [(buf.validate.field).float = {
     gte: -180
     lte: 180
   }];
-  double lat = 2 [(buf.validate.field).double = {
+  float lat = 2 [(buf.validate.field).float = {
     gte: -90
     lte: 90
   }];
 }
 
 message LonLatZoom {
-  double lon = 1 [(buf.validate.field).double = {
+  float lon = 1 [(buf.validate.field).float = {
     gte: -180
     lte: 180
   }];
-  double lat = 2 [(buf.validate.field).double = {
+  float lat = 2 [(buf.validate.field).float = {
     gte: -90
     lte: 90
   }];
   uint32 zoom = 3;
+}
+
+message Bounds {
+  option (buf.validate.message).cel_expression = "this.min_lon <= this.max_lon";
+  option (buf.validate.message).cel_expression = "this.min_lat <= this.max_lat";
+
+  float min_lon = 1;
+  float min_lat = 2 [(buf.validate.field).float = {
+    gte: -90
+    lte: 90
+  }];
+  float max_lon = 3;
+  float max_lat = 4 [(buf.validate.field).float = {
+    gte: -90
+    lte: 90
+  }];
 }
 
 message StandardFeedbackDetail {
@@ -96,16 +118,10 @@ message StandardPaginationState {
 message WebConfig {
   // User-specific preferences
   message UserConfig {
-    // Geographical home point
-    message HomePoint {
-      float lon = 1;
-      float lat = 2;
-    }
-
     uint64 id = 1; // User ID
     string display_name = 2; // User display name
     string avatar_url = 3; // User avatar URL
-    optional HomePoint home_point = 4; // User's home point
+    optional LonLat home_point = 4; // User's home point
     bool activity_tracking = 5; // Enable usage analytics
     bool crash_reporting = 6; // Enable automatic error reports
     uint32 messages_count_unread = 7; // Unread messages count
@@ -170,11 +186,6 @@ message LoginResponse {
 // Messages list pagination payload
 message MessagePage {
   message Summary {
-    message User {
-      string display_name = 1; // Display name
-      string avatar_url = 2; // Profile image URL
-    }
-
     uint64 id = 1;
     optional User sender = 2;
     repeated User recipients = 3;
@@ -190,106 +201,13 @@ message MessagePage {
 
 // Message read response
 message MessageRead {
-  message Sender {
-    uint64 id = 1; // User ID
-    string display_name = 2; // Display name
-    string avatar_url = 3; // Profile image URL
-  }
-
-  message Recipient {
-    string display_name = 1; // Display name
-    string avatar_url = 2; // Profile image URL
-  }
-
   bool was_unread = 1; // Whether this fetch transitioned from unread -> read
-  Sender sender = 2; // Message author
-  repeated Recipient recipients = 3; // Message recipients
+  User sender = 2; // Message author
+  repeated User recipients = 3; // Message recipients
   bool is_recipient = 4; // Whether current user is a recipient
   uint64 time = 5; // Timestamp in seconds (UTC)
   string subject = 6; // Message subject
   string body_rich = 7; // Rich text HTML body
-}
-
-// =============================================
-// Geographical Data Structures
-// =============================================
-
-// Axis-aligned geographical bounding box
-message SharedBounds {
-  float min_lon = 1; // Minimum longitude
-  float min_lat = 2; // Minimum latitude
-  float max_lon = 3; // Maximum longitude
-  float max_lat = 4; // Maximum latitude
-}
-
-// =============================================
-// Rendering Data Structures
-// =============================================
-
-// OSM elements to render on map (nodes/ways)
-message RenderElementsData {
-  // Node representation
-  message Node {
-    uint64 id = 1; // Node ID
-    float lon = 2; // Longitude
-    float lat = 3; // Latitude
-  }
-
-  // Way representation
-  message Way {
-    uint64 id = 1; // Way ID
-    string line = 2; // Encoded polyline coordinates
-    bool area = 3; // Whether to render as closed area
-  }
-
-  repeated Node nodes = 1; // Nodes in current query
-  repeated Way ways = 2; // Ways in current query
-  optional bool too_much_data = 3; // Error flag for too large responses
-}
-
-// Changeset metadata for rendering in UI timeline
-message RenderChangesetsData {
-  // Single changeset in the rendering set
-  message Changeset {
-    // User attribution information
-    message User {
-      string name = 1; // Display name
-      string avatar_url = 2; // Profile image URL
-    }
-
-    uint64 id = 1; // Changeset ID
-    optional User user = 2; // Author information
-    repeated SharedBounds bounds = 3; // Affected map areas
-    bool closed = 4; // Whether changeset is closed
-    uint64 timeago = 5; // Timestamp in seconds
-    optional string comment = 6; // Commit message
-    uint32 num_create = 7; // Number of created elements
-    uint32 num_modify = 8; // Number of modified elements
-    uint32 num_delete = 9; // Number of deleted elements
-    uint64 num_comments = 10; // Associated discussion count
-  }
-
-  repeated Changeset changesets = 1; // Changesets in current query
-}
-
-enum NoteStatus {
-  open = 0;
-  closed = 1;
-  hidden = 2;
-}
-
-// OpenStreetMap notes for rendering on map
-message RenderNotesData {
-  // Single map note representation
-  message Note {
-    uint64 id = 1; // Note ID
-    float lon = 2; // Longitude
-    float lat = 3; // Latitude
-    string text = 4; // Plain-text content
-    NoteStatus status = 5; // Current status
-  }
-
-  repeated Note notes = 1; // Notes in current query
 }
 
 // =============================================
@@ -301,9 +219,8 @@ message RoutingResult {
   // Start/end location metadata
   message Endpoint {
     string name = 1; // Location display name
-    SharedBounds bounds = 2; // Approximate endpoint area
-    float lon = 3; // Precise longitude
-    float lat = 4; // Precise latitude
+    Bounds bounds = 2 [(buf.validate.field).required = true]; // Approximate endpoint area
+    LonLat location = 3 [(buf.validate.field).required = true];
   }
 
   // Data provider attribution metadata
@@ -329,7 +246,7 @@ message RoutingResult {
 
   optional Endpoint start = 1; // Route origin
   optional Endpoint end = 2; // Route destination
-  Attribution attribution = 3; // Data provider attribution
+  Attribution attribution = 3 [(buf.validate.field).required = true]; // Data provider attribution
   repeated Step steps = 4; // Navigation steps
   uint32 line_quality = 5; // Quality of the polyline encoding
   string line = 6; // Encoded polyline for the route
@@ -340,11 +257,21 @@ message RoutingResult {
 // UI Element Metadata
 // =============================================
 
-// OSM element type
 enum ElementType {
   node = 0;
   way = 1;
   relation = 2;
+}
+
+message ElementRef {
+  ElementType type = 1 [(buf.validate.field).enum.defined_only = true];
+  uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ElementVersionRef {
+  ElementType type = 1 [(buf.validate.field).enum.defined_only = true];
+  uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
+  uint64 version = 3 [(buf.validate.field).uint64.gt = 0];
 }
 
 // Icon with tooltip for map elements
@@ -358,193 +285,4 @@ message UserActivityChart {
   string start_date = 1; // ISO date (YYYY-MM-DD) of the first cell (UTC)
   repeated uint32 values = 2; // Raw activity count per day, chronological
   bytes levels = 3; // Intensity levels per day (0-19) aligned with values
-}
-
-// =============================================
-// Partial Response Structures
-// =============================================
-
-// Partial element response params
-message PartialElementParams {
-  // Hierarchical element relationship entry
-  message Entry {
-    ElementType type = 1; // Element type
-    uint64 id = 2; // OSM ID
-    optional string role = 3; // Relation member role
-    optional string name = 4; // Localized display name
-    optional ElementIcon icon = 5; // Associated visualization
-  }
-
-  ElementType type = 1; // Primary element type
-  repeated Entry members = 2; // Child elements (for ways and relations)
-  repeated Entry parents = 3; // Parent elements
-  RenderElementsData render = 4; // Visual representation data
-}
-
-// Element sidebar data
-message ElementData {
-  message User {
-    uint64 id = 1; // User ID
-    string display_name = 2; // Display name
-    string avatar_url = 3; // Profile image URL
-  }
-
-  message Changeset {
-    uint64 id = 1; // Changeset ID
-    optional User user = 2; // Author (can be anonymous)
-    uint64 created_at = 3; // Unix timestamp
-    string comment_rich = 4; // Rendered HTML comment
-  }
-
-  message Location {
-    float lon = 1; // Longitude
-    float lat = 2; // Latitude
-  }
-
-  ElementType type = 1; // Element type
-  uint64 id = 2; // Object ID
-  uint64 version = 3; // Object version
-  bool visible = 4; // Whether element is visible
-  optional string name = 5; // Localized display name
-  optional ElementIcon icon = 6; // Associated icon visualization
-  map<string, string> tags = 7; // Element tags
-  PartialElementParams params = 8; // Related elements + render data
-  Changeset changeset = 9; // Changeset metadata
-  optional uint64 prev_version = 10; // Previous element version
-  optional uint64 next_version = 11; // Next element version
-  optional Location location = 12; // Element location
-  map<string, string> tags_old = 13; // Previous tags (diff mode)
-}
-
-// Element history pagination page
-message ElementHistoryPage {
-  repeated ElementData elements = 1; // Elements on this page
-  bool not_found = 2; // Element does not exist
-}
-
-// Note sidebar data
-message NoteData {
-  message User {
-    uint64 id = 1; // User ID
-    string display_name = 2; // Display name
-    string avatar_url = 3; // Profile image URL
-  }
-
-  message Header {
-    optional User user = 1; // Note author (can be anonymous)
-    uint64 created_at = 2; // Unix timestamp
-    string body_rich = 3; // Rendered HTML body
-  }
-
-  uint64 id = 1; // Note ID
-  float lon = 2; // Longitude
-  float lat = 3; // Latitude
-  NoteStatus status = 4; // Current status
-  Header header = 5; // First comment (note creation)
-  bool is_subscribed = 6; // User is subscribed to this note
-  optional uint32 disappear_days = 7; // Days until note disappears
-}
-
-// Note comments pagination page
-message NoteCommentPage {
-  message Comment {
-    enum Event {
-      opened = 0;
-      closed = 1;
-      reopened = 2;
-      commented = 3;
-      hidden = 4;
-    }
-
-    message User {
-      string display_name = 1; // Display name
-      string avatar_url = 2; // Profile image URL
-    }
-
-    optional User user = 1; // Comment author (can be anonymous)
-    Event event = 2; // Event type
-    uint64 created_at = 3; // Unix timestamp
-    string body_rich = 4; // Rendered HTML body (may be empty)
-  }
-
-  repeated Comment comments = 1; // Comments on this page
-}
-
-message NoteCommentResult {
-  NoteData note = 1; // Updated note data
-  NoteCommentPage comments = 2; // Initial page of comments
-}
-
-// Changeset sidebar data
-message ChangesetData {
-  message User {
-    uint64 id = 1; // User ID
-    string display_name = 2; // Display name
-    string avatar_url = 3; // Profile image URL
-  }
-
-  // Versioned OSM element reference
-  message Element {
-    uint64 id = 1; // Object ID
-    uint64 version = 2; // Object version
-    bool visible = 3; // Whether element is visible
-    optional string name = 4; // Localized display name
-    optional ElementIcon icon = 5; // Associated icon visualization
-  }
-
-  uint64 id = 1; // Changeset ID
-  optional User user = 2; // Author (anonymous if missing)
-  uint64 created_at = 3; // Unix timestamp
-  optional uint64 closed_at = 4; // Unix timestamp (open if missing)
-  uint32 num_create = 5; // Created elements count
-  uint32 num_modify = 6; // Modified elements count
-  uint32 num_delete = 7; // Deleted elements count
-  string comment_rich = 8; // Rendered HTML comment
-  map<string, string> tags = 9; // Changeset tags (excluding 'comment')
-  repeated SharedBounds bounds = 10; // Geographical scope
-  repeated Element nodes = 11; // Modified nodes
-  repeated Element ways = 12; // Modified ways
-  repeated Element relations = 13; // Modified relations
-  optional uint64 prev_changeset_id = 14; // Previous changeset by same user
-  optional uint64 next_changeset_id = 15; // Next changeset by same user
-  bool is_subscribed = 16; // User is subscribed to this changeset
-}
-
-// Changeset comments pagination page
-message ChangesetCommentPage {
-  message Comment {
-    message User {
-      string display_name = 1; // Display name
-      string avatar_url = 2; // Profile image URL
-    }
-
-    User user = 1; // Comment author (always present for changeset comments)
-    uint64 created_at = 2; // Unix timestamp
-    string body_rich = 3; // Rendered HTML body
-  }
-
-  repeated Comment comments = 1; // Comments on this page
-}
-
-message ChangesetCommentResult {
-  ChangesetData changeset = 1; // Updated changeset data
-  ChangesetCommentPage comments = 2; // Initial page of comments
-}
-
-// Query features nearby response
-// Search results response
-message SearchData {
-  message Result {
-    ElementType type = 1; // Element type
-    uint64 id = 2; // OSM ID
-    string prefix = 3; // Search result prefix text
-    string display_name = 4; // Display name
-    optional ElementIcon icon = 5; // Search result icon
-    RenderElementsData render = 6; // Visual representation data
-    float lon = 7; // Search result marker longitude
-    float lat = 8; // Search result marker latitude
-  }
-
-  optional SharedBounds bounds = 1; // Search bounds (absent for global and where-is-this)
-  repeated Result results = 2; // Search results
 }

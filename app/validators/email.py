@@ -32,7 +32,7 @@ _RESOLVER.cache = None  # using custom cache
 _RESOLVER.retry_servfail = True
 
 
-def validate_email(email: str) -> Email:
+def validate_email(email: str):
     """
     Validate and normalize email address.
 
@@ -53,7 +53,7 @@ def validate_email(email: str) -> Email:
         raise ValueError(f'Invalid email address {email!r}') from e
 
 
-async def validate_email_deliverability(email: Email) -> bool:
+async def validate_email_deliverability(email: Email):
     """Validate deliverability of an email address."""
     try:
         info = validate_email_(
@@ -66,7 +66,7 @@ async def validate_email_deliverability(email: Email) -> bool:
 
     domain = info.ascii_domain
 
-    async def factory() -> bytes:
+    async def factory():
         logging.debug('Email domain deliverability cache miss for %r', domain)
         return b'\xff' if await _check_domain_deliverability(domain) else b'\x00'
 

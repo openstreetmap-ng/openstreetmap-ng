@@ -27,13 +27,13 @@ def measure():
     result.ms = int(tt * 1000)
 
 
-def get_output_path(input: Path, /, *, root: Path) -> Path:
+def get_output_path(input: Path, /, *, root: Path):
     output_dir = root.joinpath('_generated', input.parent.relative_to(root))
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir.joinpath(input.stem + '.webp')
 
 
-def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
+def rasterize(input: Path, output: Path, /, *, size: int, quality: int):
     png_data = cairosvg.svg2png(url=str(input), output_width=size, output_height=size)
     img = open_image(BytesIO(png_data))
     img_bytes = _save(img, quality, method=6)
@@ -51,7 +51,7 @@ def rasterize(input: Path, output: Path, /, *, size: int, quality: int) -> None:
     utime(output, (mtime, mtime))
 
 
-def file(input: list[Path], size: int, quality: int) -> None:
+def file(input: list[Path], size: int, quality: int):
     root = Path()
     for i in input:
         output = get_output_path(i, root=root)
@@ -63,7 +63,7 @@ def file(input: list[Path], size: int, quality: int) -> None:
         )
 
 
-def static_img_pipeline(verbose: bool) -> None:
+def static_img_pipeline(verbose: bool):
     with measure() as time, Pool() as pool:
         jobs: list[AsyncResult[None]] = []
 

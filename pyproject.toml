@@ -99,7 +99,7 @@ exclude = [
   "buf/validate/**",
   "build",
   "data",
-  "scripts/protoc_gen_pyi.py",
+  "scripts/protoc_gen_pyi*",
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
@@ -149,7 +149,8 @@ asyncio_mode = "auto"
 extend-exclude = [
   "app/models/proto/**",
   "buf/validate/**",
-  "typings/google/protobuf/**"
+  "scripts/protoc_gen_pyi*",
+  "typings/google/protobuf/**",
 ]
 indent-width = 4
 line-length = 88

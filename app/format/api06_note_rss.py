@@ -15,7 +15,7 @@ from app.queries.nominatim_query import NominatimQuery
 
 class NoteRSS06Mixin:
     @staticmethod
-    async def encode_notes(fg: FeedGenerator, notes: list[Note]) -> None:
+    async def encode_notes(fg: FeedGenerator, notes: list[Note]):
         """Encode notes into a feed."""
         fg.load_extension('dc')
         fg.load_extension('geo')
@@ -25,9 +25,7 @@ class NoteRSS06Mixin:
                 tg.create_task(_encode_note(fe, note))
 
     @staticmethod
-    async def encode_note_comments(
-        fg: FeedGenerator, comments: list[NoteComment]
-    ) -> None:
+    async def encode_note_comments(fg: FeedGenerator, comments: list[NoteComment]):
         """Encode note comments into a feed."""
         fg.load_extension('dc')
         fg.load_extension('geo')
@@ -37,7 +35,7 @@ class NoteRSS06Mixin:
                 tg.create_task(_encode_note_comment(fe, comment))
 
 
-async def _encode_note(fe: FeedEntry, note: Note) -> None:
+async def _encode_note(fe: FeedEntry, note: Note):
     note_id = note['id']
     comments = note['comments']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     api_permalink = f'{API_URL}/api/0.6/notes/{note_id}'
@@ -87,7 +85,7 @@ async def _encode_note(fe: FeedEntry, note: Note) -> None:
             break
 
 
-async def _encode_note_comment(fe: FeedEntry, comment: NoteComment) -> None:
+async def _encode_note_comment(fe: FeedEntry, comment: NoteComment):
     legacy_note = comment['legacy_note']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     permalink = f'{APP_URL}/note/{comment["note_id"]}#c{comment["id"]}'
     point = legacy_note['point']

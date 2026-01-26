@@ -8,16 +8,16 @@ from speedup import split_typed_element_id, split_typed_element_ids
 
 class Element07Mixin:
     @staticmethod
-    def encode_element(element: Element) -> dict:
+    def encode_element(element: Element):
         return _encode_element(element)
 
     @staticmethod
-    def encode_elements(elements: list[Element]) -> list[dict]:
+    def encode_elements(elements: list[Element]):
         return list(map(_encode_element, elements))
 
 
 @cython.cfunc
-def _encode_element(element: Element) -> dict:
+def _encode_element(element: Element):
     type, id = split_typed_element_id(element['typed_id'])
     visible = element['visible']
     result = {
@@ -51,7 +51,7 @@ def _encode_element(element: Element) -> dict:
 
 
 @cython.cfunc
-def _encode_way_members(members: list[TypedElementId] | None) -> list[dict]:
+def _encode_way_members(members: list[TypedElementId] | None):
     return (
         [{'type': type, 'id': id} for type, id in split_typed_element_ids(members)]
         if members
@@ -62,7 +62,7 @@ def _encode_way_members(members: list[TypedElementId] | None) -> list[dict]:
 @cython.cfunc
 def _encode_relation_members(
     members: list[TypedElementId] | None, members_roles: list[str] | None
-) -> list[dict]:
+):
     return (
         [
             {'type': type, 'id': id, 'role': role}
@@ -78,7 +78,7 @@ def _encode_relation_members(
 
 
 @cython.cfunc
-def _encode_point(point: Point) -> dict:
+def _encode_point(point: Point):
     """
     >>> _encode_point(Point(1, 2))
     {'lon': 1, 'lat': 2}

@@ -1,11 +1,12 @@
 import logging
 from asyncio import Future, TaskGroup, sleep
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from contextlib import asynccontextmanager, contextmanager
 from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import monotonic
+from typing import Any, ParamSpec, TypeVar
 from weakref import WeakSet
 
 import cython
@@ -32,8 +33,11 @@ from app.config import (
 )
 from app.middlewares.request_context_middleware import is_request
 
+_P = ParamSpec('_P')
+_R = TypeVar('_R')
 
-async def _configure_connection(conn: AsyncConnection) -> None:
+
+async def _configure_connection(conn: AsyncConnection):
     cursor = conn.cursor
 
     @wraps(cursor)
@@ -85,11 +89,11 @@ async def psycopg_pool_open():
         yield
 
 
-def psycopg_pool_open_decorator(func):
+def psycopg_pool_open_decorator(func: Callable[_P, Coroutine[Any, Any, _R]]):
     """Convenience decorator to open and close the psycopg pool. For use in scripts."""
 
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: _P.args, **kwargs: _P.kwargs):
         async with psycopg_pool_open():
             return await func(*args, **kwargs)
 
@@ -106,7 +110,7 @@ async def _register_types():
         text_loader = adapters.get_loader(adapters.types['text'].oid, Format.BINARY)
         assert text_loader is not None, 'Binary text loader not found'
 
-        async def register_enum(name: str) -> None:
+        async def register_enum(name: str):
             info = await EnumInfo.fetch(conn, name)
             assert info is not None, f'{name} enum not found'
             info.register(None)
@@ -133,7 +137,7 @@ async def _register_types():
         async def register_type(
             name: str,
             register_callable: Callable[[TypeInfo, AdaptContext | None], None],
-        ) -> None:
+        ):
             info = await TypeInfo.fetch(conn, name)
             assert info is not None, f'{name} type not found'
             register_callable(info, None)
@@ -142,7 +146,7 @@ async def _register_types():
         await register_type('hstore', register_hstore)
         await register_type('geometry', register_shapely)
 
-        async def register_composite_type(name: str) -> None:
+        async def register_composite_type(name: str):
             info = await CompositeInfo.fetch(conn, name)
             assert info is not None, f'{name} type not found'
             register_composite(info, None)

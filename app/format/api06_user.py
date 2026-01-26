@@ -20,7 +20,7 @@ from app.queries.user_profile_query import UserProfileQuery
 
 class User06Mixin:
     @staticmethod
-    async def encode_user(user: User) -> dict:
+    async def encode_user(user: User):
         """
         >>> encode_user(User(...))
         {'user': {'@id': 1234, '@display_name': 'userName', ...}}
@@ -28,7 +28,7 @@ class User06Mixin:
         return {'user': await _encode_user(user, is_json=format_is_json())}
 
     @staticmethod
-    async def encode_users(users: list[User]) -> dict:
+    async def encode_users(users: list[User]):
         """
         >>> encode_users([
         ...     User(...),
@@ -46,7 +46,7 @@ class User06Mixin:
         return {('users' if is_json else 'user'): list(map(Task.result, tasks))}
 
     @staticmethod
-    def encode_user_preferences(prefs: list[UserPref]) -> dict:
+    def encode_user_preferences(prefs: list[UserPref]):
         """
         >>> encode_user_preferences([
         ...     UserPref(key='key1', value='value1'),
@@ -66,7 +66,7 @@ class User06Mixin:
         }
 
     @staticmethod
-    def decode_user_preferences(prefs: list[dict[str, str]] | None) -> list[UserPref]:
+    def decode_user_preferences(prefs: list[dict[str, str]] | None):
         """
         >>> decode_user_preferences([{'@k': 'key', '@v': 'value'}])
         [UserPref(key='key', value='value')]
@@ -95,7 +95,7 @@ class User06Mixin:
         return UserPrefListValidator.validate_python(user_prefs)
 
 
-async def _encode_user(user: User, *, is_json: cython.bint) -> dict:
+async def _encode_user(user: User, *, is_json: cython.bint):
     """
     >>> _encode_user(User(...))
     {'@id': 1234, '@display_name': 'userName', ...}
@@ -196,7 +196,7 @@ def _encode_language(language: str, *, is_json: cython.bint):
 
 
 @cython.cfunc
-def _encode_point(point: Point, *, is_json: cython.bint) -> dict:
+def _encode_point(point: Point, *, is_json: cython.bint):
     """
     >>> _encode_point(Point(1, 2), is_json=False)
     {'@lon': 1, '@lat': 2}

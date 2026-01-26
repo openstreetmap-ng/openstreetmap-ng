@@ -1,5 +1,3 @@
-import type { Message } from "@bufbuild/protobuf"
-import { fromBinary } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { createDisposeScope } from "@lib/dispose-scope"
 import {
@@ -7,6 +5,7 @@ import {
   configurePasswordsForm,
   handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
+import { fromBinaryValid } from "@lib/rpc"
 import { batch, effect } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { parseMediaType } from "@std/media-types/parse-media-type"
@@ -33,7 +32,7 @@ export const configureStandardForm = <T = any>(
     formAppend?: boolean
     cancelOnValidationChange?: boolean
     removeEmptyFields?: boolean
-    protobuf?: GenMessage<T & Message>
+    protobuf?: GenMessage<any, { validType: T }>
     validationCallback?: (
       formData: FormData,
     ) => Promise<ValidationResult> | ValidationResult
@@ -368,7 +367,7 @@ export const configureStandardForm = <T = any>(
       if (isJson) {
         data = await resp.json()
       } else if (isProtobuf) {
-        data = fromBinary(protobuf!, new Uint8Array(await resp.arrayBuffer()))
+        data = fromBinaryValid(protobuf!, new Uint8Array(await resp.arrayBuffer()))
       } else if (contentType) {
         data = { detail: await resp.text() }
       }

@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Literal, TypedDict, get_args
+from typing import Literal, TypedDict, get_args, overload
 
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.image import Image, UserAvatarType
+from app.models.proto.shared_pb2 import User as ProtoUser
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 
@@ -46,17 +47,17 @@ class UserDisplay(TypedDict):
     avatar_id: StorageKey
 
 
-def user_is_test(user: User | UserInit) -> bool:
+def user_is_test(user: User | UserInit):
     """Check if the user is a test user."""
     return user['email'].endswith(TEST_USER_EMAIL_SUFFIX)
 
 
-def user_is_deleted(user: User | UserInit) -> bool:
+def user_is_deleted(user: User | UserInit):
     """Check if the user is a deleted user."""
     return user['email'].endswith(DELETED_USER_EMAIL_SUFFIX)
 
 
-def user_is_moderator(user: User | None) -> bool:
+def user_is_moderator(user: User | None):
     """Check if the user is a moderator."""
     if user is None:
         return False
@@ -64,14 +65,14 @@ def user_is_moderator(user: User | None) -> bool:
     return 'moderator' in roles or 'administrator' in roles
 
 
-def user_is_admin(user: User | None) -> bool:
+def user_is_admin(user: User | None):
     """Check if the user is an administrator."""
     if user is None:
         return False
     return 'administrator' in user['roles']
 
 
-def user_extend_scopes(user: User, scopes: frozenset[Scope]) -> frozenset[Scope]:
+def user_extend_scopes(user: User, scopes: frozenset[Scope]):
     """Extend the given scopes with the user-specific scopes."""
     if not user['roles']:
         return scopes
@@ -83,7 +84,7 @@ def user_extend_scopes(user: User, scopes: frozenset[Scope]) -> frozenset[Scope]
     return scopes | extra
 
 
-def user_avatar_url(user: User | UserDisplay) -> str:
+def user_avatar_url(user: User | UserDisplay):
     """Get the relative url for the user's avatar image."""
     avatar_type = user['avatar_type']
     if avatar_type is None:
@@ -95,6 +96,22 @@ def user_avatar_url(user: User | UserDisplay) -> str:
         assert avatar_id is not None, 'avatar_id must be set'
         return Image.get_avatar_url('custom', avatar_id)
     raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')
+
+
+@overload
+def user_proto(user: None) -> None: ...
+@overload
+def user_proto(user: User | UserDisplay) -> ProtoUser: ...
+def user_proto(user: User | UserDisplay | None):
+    return (
+        ProtoUser(
+            id=user['id'],
+            display_name=user['display_name'],
+            avatar_url=user_avatar_url(user),
+        )
+        if user is not None
+        else None
+    )
 
 
 # TODO: remove

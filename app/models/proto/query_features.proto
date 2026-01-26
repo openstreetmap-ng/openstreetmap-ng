@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "app/models/proto/element.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 

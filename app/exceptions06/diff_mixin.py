@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, NoReturn, override
+from typing import TYPE_CHECKING, override
 
 from starlette import status
 
@@ -12,21 +12,21 @@ if TYPE_CHECKING:
 
 class DiffExceptions06Mixin(DiffExceptionsMixin):
     @override
-    def diff_multiple_changesets(self) -> NoReturn:
+    def diff_multiple_changesets(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='Only one changeset can be modified at a time',
         )
 
     @override
-    def diff_unsupported_action(self, action: str) -> NoReturn:
+    def diff_unsupported_action(self, action: str):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'Unknown action {action}, choices are create, modify, delete',
         )
 
     @override
-    def diff_create_bad_id(self, element: 'ElementInit') -> NoReturn:
+    def diff_create_bad_id(self, element: 'ElementInit'):
         type = element_type(element['typed_id'])
         if type == 'node':
             raise APIError(
@@ -47,7 +47,7 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
             raise NotImplementedError(f'Unsupported element type {type!r}')
 
     @override
-    def diff_update_bad_version(self, element: 'ElementInit') -> NoReturn:
+    def diff_update_bad_version(self, element: 'ElementInit'):
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',

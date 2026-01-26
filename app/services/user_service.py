@@ -7,7 +7,6 @@ from typing import Any
 from fastapi import UploadFile
 from psycopg import AsyncConnection
 from psycopg.sql import SQL, Composable
-from pydantic import SecretStr
 
 from app.config import (
     ENV,
@@ -52,7 +51,7 @@ class UserService:
         totp_code: str | None,
         recovery_code: str | None,
         bypass_2fa: bool = False,
-    ) -> SecretStr | LoginResponse:
+    ):
         """Attempt to login as a user. Returns access_token or LoginResponse for 2FA."""
         if passkey is None:
             if display_name_or_email is None or password is None:
@@ -104,9 +103,7 @@ class UserService:
         return access_token.token
 
     @staticmethod
-    async def update_avatar(
-        avatar_type: UserAvatarType, avatar_file: UploadFile
-    ) -> str:
+    async def update_avatar(avatar_type: UserAvatarType, avatar_file: UploadFile):
         """Update user's avatar. Returns the new avatar URL."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -143,7 +140,7 @@ class UserService:
         return user_avatar_url(user)
 
     @staticmethod
-    async def update_background(background_file: UploadFile) -> str | None:
+    async def update_background(background_file: UploadFile):
         """Update user's background. Returns the new background URL."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -175,7 +172,7 @@ class UserService:
         language: LocaleCode,
         activity_tracking: bool,
         crash_reporting: bool,
-    ) -> None:
+    ):
         """Update user settings."""
         if not await UserQuery.check_display_name_available(display_name):
             StandardFeedback.raise_error(
@@ -209,7 +206,7 @@ class UserService:
     @staticmethod
     async def update_editor(
         editor: Editor | None,
-    ) -> None:
+    ):
         """Update default editor"""
         user_id = auth_user(required=True)['id']
 
@@ -228,7 +225,7 @@ class UserService:
         *,
         new_email: Email,
         password: Password,
-    ) -> None:
+    ):
         """Update user email. Sends a confirmation email for the email change."""
         user = auth_user(required=True)
         if user['email'] == new_email:
@@ -256,7 +253,7 @@ class UserService:
         await UserTokenEmailService.send_email(new_email)
 
     @staticmethod
-    async def update_timezone(timezone: str) -> None:
+    async def update_timezone(timezone: str):
         """Update the user timezone."""
         user_id = auth_user(required=True)['id']
 
@@ -275,7 +272,7 @@ class UserService:
 
     # TODO: UI
     @staticmethod
-    async def request_scheduled_delete() -> None:
+    async def request_scheduled_delete():
         """Request a scheduled deletion of the user."""
         user_id = auth_user(required=True)['id']
 
@@ -290,7 +287,7 @@ class UserService:
             )
 
     @staticmethod
-    async def abort_scheduled_delete() -> None:
+    async def abort_scheduled_delete():
         """Abort a scheduled deletion of the user."""
         user_id = auth_user(required=True)['id']
 
@@ -305,7 +302,7 @@ class UserService:
             )
 
     @staticmethod
-    async def delete_old_pending_users() -> None:
+    async def delete_old_pending_users():
         """Find old pending users and delete them."""
         logging.debug('Deleting old pending users')
 
@@ -328,7 +325,7 @@ class UserService:
         email_verified: bool,
         new_password: Password | None,
         roles: list[UserRole],
-    ) -> None:
+    ):
         roles.sort()
         if 'administrator' in roles and 'moderator' in roles:
             StandardFeedback.raise_error(
@@ -449,9 +446,7 @@ class UserService:
                 await op(conn)
 
 
-async def _login_with_passkey(
-    passkey: bytes, *, require_uv: bool
-) -> UserId | LoginResponse:
+async def _login_with_passkey(passkey: bytes, *, require_uv: bool):
     """Authenticate via passkey."""
     assertion = PasskeyAssertion.FromString(passkey)
     result = await UserPasskeyService.verify_passkey(assertion, require_uv=require_uv)
@@ -467,7 +462,7 @@ async def _login_with_credentials(
     totp_code: str | None,
     recovery_code: str | None,
     bypass_2fa: bool,
-) -> UserId | LoginResponse:
+):
     """
     Authenticate via password with 2FA handling.
 

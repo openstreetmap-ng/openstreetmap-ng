@@ -41,7 +41,7 @@ async def test_changeset_crud(client: AsyncClient):
     # Read the changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
     assert_model(
@@ -74,7 +74,7 @@ async def test_changeset_crud(client: AsyncClient):
         }),
     )
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
     tags = Format06.decode_tags_and_validate(changeset['tag'])
 
     assert_model(changeset, {'@updated_at': Gt(last_updated_at)})
@@ -92,7 +92,7 @@ async def test_changeset_crud(client: AsyncClient):
     # Read the closed changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert_model(
         changeset,
@@ -148,7 +148,7 @@ async def test_changeset_upload(client: AsyncClient):
     # Read the changeset to verify changes were applied
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert_model(
         changeset,
@@ -202,7 +202,7 @@ async def test_changeset_with_discussion(client: AsyncClient, include):
         params={'include_discussion': 'true'} if include else None,
     )
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
 
     if include:
         # Verify the comment exists

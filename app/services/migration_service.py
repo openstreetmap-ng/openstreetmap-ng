@@ -28,7 +28,7 @@ _MIGRATIONS_DIR = Path('app/migrations')
 
 class MigrationService:
     @staticmethod
-    async def fix_sequence_counters() -> None:
+    async def fix_sequence_counters():
         """Fix the sequence counters."""
         async with db(True, autocommit=True) as conn:
             # For each table, get the correct sequence name and then set its value
@@ -70,7 +70,7 @@ class MigrationService:
         *,
         parallelism: int | float = 2.0,
         batch_size: int = 100_000,
-    ) -> None:
+    ):
         parallelism = calc_num_workers(parallelism)
 
         async with (
@@ -111,7 +111,7 @@ class MigrationService:
         *,
         parallelism: int | float = 2.0,
         batch_size: int = 1_000_000,
-    ) -> None:
+    ):
         """
         Fix changeset counts where size != 0 but num_create = 0, num_modify = 0, and num_delete = 0.
         Calculates the counts based on the actual data in the element table.
@@ -169,7 +169,7 @@ class MigrationService:
                 tg.create_task(process_chunk(start_id, end_id))
 
     @staticmethod
-    async def cleanup_orphan_changesets_and_elements() -> None:
+    async def cleanup_orphan_changesets_and_elements():
         async with db(True) as conn:
             async with await conn.execute(
                 """
@@ -210,7 +210,7 @@ class MigrationService:
                 )
 
     @staticmethod
-    async def migrate_database() -> None:
+    async def migrate_database():
         """
         This function checks the current database version and applies
         any pending migrations in sequential order, identified by files
@@ -272,7 +272,7 @@ class MigrationService:
 def _get_element_typed_id_batches(
     ranges: list[tuple[int, int]],
     batch_size: int,
-) -> list[tuple[int, int]]:
+):
     # Create balanced batches
     current_chunk_start: int | None = None
     current_chunk_size: int = 0
@@ -305,7 +305,7 @@ def _get_element_typed_id_batches(
     return chunks
 
 
-async def _ensure_db_table(conn: AsyncConnection) -> None:
+async def _ensure_db_table(conn: AsyncConnection):
     async with conn.pipeline():
         await conn.execute(
             """
@@ -323,7 +323,7 @@ async def _ensure_db_table(conn: AsyncConnection) -> None:
         )
 
 
-async def _get_current_migration(conn: AsyncConnection) -> _MigrationInfo | None:
+async def _get_current_migration(conn: AsyncConnection):
     """Get the current database schema version."""
     async with await conn.execute("""
         SELECT version, hash FROM migration
@@ -336,7 +336,7 @@ async def _get_current_migration(conn: AsyncConnection) -> _MigrationInfo | None
 
 def _find_migrations(
     current_migration: _MigrationInfo | None,
-) -> list[tuple[Version, Path]]:
+):
     migrations = [(Version(p.stem), p) for p in _MIGRATIONS_DIR.glob('*.sql')]
     migrations.sort(key=itemgetter(0))
     assert migrations, 'No migration files found'
@@ -379,7 +379,7 @@ def _find_migrations(
 
 async def _apply_migrations(
     conn: AsyncConnection, migrations: list[tuple[Version, Path]]
-) -> None:
+):
     for version, path in migrations:
         try:
             content = path.read_text()

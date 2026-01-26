@@ -19,7 +19,7 @@ OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile))
 
 class OSRMQuery:
     @staticmethod
-    async def route(start: Point, end: Point, *, profile: OSRMProfile) -> RoutingResult:
+    async def route(start: Point, end: Point, *, profile: OSRMProfile):
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
         r = await HTTP.get(
@@ -75,7 +75,7 @@ class OSRMQuery:
 
 
 @cache
-def _get_maneuver_id(type: str, modifier: str) -> str:
+def _get_maneuver_id(type: str, modifier: str):
     if type in {'on ramp', 'off ramp', 'merge', 'end of road', 'fork'}:
         direction = 'left' if 'left' in modifier else 'right'
         return f'{type} {direction}'
@@ -92,7 +92,7 @@ def _get_maneuver_id(type: str, modifier: str) -> str:
 
 
 @cython.cfunc
-def _get_step_text(step: OSRMStep, maneuver_id: str) -> str:
+def _get_step_text(step: OSRMStep, maneuver_id: str):
     translation = _MANEUVER_ID_TO_TRANSLATION_MAP.get(maneuver_id)
     if translation is None:
         logging.warning('Unsupported OSRM maneuver id %r', maneuver_id)

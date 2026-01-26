@@ -12,7 +12,7 @@ def mercator(
     coords: NDArray[np.floating],
     width: cython.size_t,
     height: cython.size_t,
-) -> NDArray[np.floating]:
+):
     xs = coords[:, 0]
     ys = _y_sheet(coords[:, 1])
 

@@ -25,7 +25,7 @@ class MessageService:
     @staticmethod
     async def send(
         recipients: list[DisplayName] | list[UserId], subject: str, body: str
-    ) -> MessageId:
+    ):
         """Send a message to a user."""
         assert recipients, 'Recipients must be set'
 
@@ -131,7 +131,7 @@ class MessageService:
         return message_id
 
     @staticmethod
-    async def set_state(message_id: MessageId, *, read: bool) -> bool:
+    async def set_state(message_id: MessageId, *, read: bool):
         """Mark a message as read or unread."""
         user_id = auth_user(required=True)['id']
 
@@ -154,7 +154,7 @@ class MessageService:
             return bool(result.rowcount)
 
     @staticmethod
-    async def delete_message(message_id: MessageId) -> None:
+    async def delete_message(message_id: MessageId):
         """Delete a message."""
         # TODO: account delete, prune messages
         user_id = auth_user(required=True)['id']
@@ -214,7 +214,7 @@ class MessageService:
                 # message_recipient is deleted by cascade
 
 
-async def _send_activity_email(message: Message) -> None:
+async def _send_activity_email(message: Message):
     assert 'recipients' in message, 'Message recipients must be set'
 
     async with TaskGroup() as tg:

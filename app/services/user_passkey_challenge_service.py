@@ -12,7 +12,7 @@ from speedup import buffered_randbytes
 
 class UserPasskeyChallengeService:
     @staticmethod
-    async def create() -> bytes:
+    async def create():
         """Create a new passkey challenge."""
         challenge = buffered_randbytes(32)
         async with db(True) as conn:
@@ -48,7 +48,7 @@ class UserPasskeyChallengeService:
                 return row[0] if row is not None else None
 
 
-async def _delete_expired(conn: AsyncConnection) -> None:
+async def _delete_expired(conn: AsyncConnection):
     result = await conn.execute(
         """
         DELETE FROM user_passkey_challenge

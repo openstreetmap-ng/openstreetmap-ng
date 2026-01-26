@@ -10,7 +10,7 @@ class UserSubscriptionService:
     @staticmethod
     async def subscribe(
         target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
-    ) -> None:
+    ):
         """Subscribe the user to the target."""
         user_id = auth_user(required=True)['id']
 
@@ -32,7 +32,7 @@ class UserSubscriptionService:
         target_id: UserSubscriptionTargetId,
         *,
         user_id: UserId | None = None,
-    ) -> None:
+    ):
         """Unsubscribe the user from the target."""
         if user_id is None:
             user_id = auth_user(required=True)['id']

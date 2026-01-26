@@ -25,7 +25,7 @@ def open_zone_tab():
     raise FileNotFoundError('zone.tab not found in TZPATH')
 
 
-def get_timezone_country_dict() -> dict[str, list[str]]:
+def get_timezone_country_dict():
     result: dict[str, list[str]] = {}
     print('Processing country timezones')
 
@@ -49,7 +49,7 @@ def get_timezone_country_dict() -> dict[str, list[str]]:
     return result
 
 
-async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]]:
+async def get_country_bbox_dict():
     print('Downloading country data')
     r = await HTTP.get(
         'https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst'
@@ -58,7 +58,7 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
 
     content = ZstdDecompressor().decompress(r.content)
     features = orjson.loads(content)['features']
-    result = {}
+    result: dict[str, tuple[float, float, float, float]] = {}
 
     print('Processing country boundaries')
     for feature in features:
@@ -89,7 +89,7 @@ async def get_country_bbox_dict() -> dict[str, tuple[float, float, float, float]
     return result
 
 
-def generate_typescript_file(data: dict[str, tuple[float, float, float, float]]) -> str:
+def generate_typescript_file(data: dict[str, tuple[float, float, float, float]]):
     print('Generating TypeScript file')
 
     lines: list[str] = []
@@ -106,7 +106,7 @@ def generate_typescript_file(data: dict[str, tuple[float, float, float, float]])
     )
 
 
-async def main() -> None:
+async def main():
     country_bbox = await get_country_bbox_dict()
     timezone_country = get_timezone_country_dict()
     result = {}

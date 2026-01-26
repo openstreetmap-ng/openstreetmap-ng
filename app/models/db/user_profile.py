@@ -50,7 +50,7 @@ class UserProfile(TypedDict):
     description_rich: NotRequired[str]
 
 
-async def user_profiles_resolve_rich_text(objs: list[UserProfile]) -> None:
+async def user_profiles_resolve_rich_text(objs: list[UserProfile]):
     await resolve_rich_text(
         objs,
         'user_profile',

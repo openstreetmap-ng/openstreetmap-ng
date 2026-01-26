@@ -14,7 +14,7 @@ class _RecoveryCodeStatus(TypedDict):
 
 class UserRecoveryCodeQuery:
     @staticmethod
-    async def check_any_by_user_id(user_id: UserId) -> bool:
+    async def check_any_by_user_id(user_id: UserId):
         """Check if user has any unused recovery codes."""
         async with (
             db() as conn,

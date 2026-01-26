@@ -113,7 +113,7 @@ class OptimisticDiffPrepare:
         self._bbox_points = []
         self._bbox_refs = set()
 
-    async def prepare(self) -> None:
+    async def prepare(self):
         await self._preload_changeset()
 
         # Mark unassigned typed_ids
@@ -219,7 +219,7 @@ class OptimisticDiffPrepare:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
 
-    async def _preload_elements_state(self) -> None:
+    async def _preload_elements_state(self):
         """Preload elements state from the database."""
         # Only preload elements that exist in the database
         typed_ids = [
@@ -255,7 +255,7 @@ class OptimisticDiffPrepare:
             for element in elements
         }
 
-    async def _preload_elements_parents(self) -> None:
+    async def _preload_elements_parents(self):
         """Preload elements parents from the database."""
         # Only preload elements that exist in the database and will be deleted
         typed_ids = [
@@ -272,7 +272,7 @@ class OptimisticDiffPrepare:
             typed_ids, self.conn, limit=None
         )
 
-    def _check_element_can_delete(self, element: ElementInit) -> bool:
+    def _check_element_can_delete(self, element: ElementInit):
         """Check if the element can be deleted."""
         typed_id = element['typed_id']
 
@@ -307,7 +307,7 @@ class OptimisticDiffPrepare:
         prev: ElementInit | None,
         element: ElementInit,
         typed_id: TypedElementId,
-    ) -> list[TypedElementId] | None:
+    ):
         """Update the local reference overrides. Returns the newly added references if any."""
         next_members_arr = element.get('members_arr')
         prev_members_arr = prev.get('members_arr') if prev is not None else None
@@ -352,9 +352,7 @@ class OptimisticDiffPrepare:
 
         return None
 
-    def _check_members_local(
-        self, parent: ElementInit, members: list[TypedElementId]
-    ) -> None:
+    def _check_members_local(self, parent: ElementInit, members: list[TypedElementId]):
         """
         Check if the members exist and are visible using element state.
         Stores not found member refs for remote check.
@@ -385,7 +383,7 @@ class OptimisticDiffPrepare:
 
     def _push_bbox_info(
         self, prev: ElementInit | None, element: ElementInit, element_type: ElementType
-    ) -> None:
+    ):
         """Push bbox info for later processing."""
         if element_type == 'node':
             self._push_bbox_node_info(prev, element)
@@ -396,9 +394,7 @@ class OptimisticDiffPrepare:
         else:
             raise NotImplementedError(f'Unsupported element type {element_type!r}')
 
-    def _push_bbox_node_info(
-        self, prev: ElementInit | None, element: ElementInit
-    ) -> None:
+    def _push_bbox_node_info(self, prev: ElementInit | None, element: ElementInit):
         """Push bbox info for a node."""
         bbox_points = self._bbox_points
 
@@ -410,9 +406,7 @@ class OptimisticDiffPrepare:
         if prev_point is not None:
             bbox_points.append(prev_point)
 
-    def _push_bbox_way_info(
-        self, prev: ElementInit | None, element: ElementInit
-    ) -> None:
+    def _push_bbox_way_info(self, prev: ElementInit | None, element: ElementInit):
         """Push bbox info for a way. Way info contains all nodes."""
         next_members_arr = element.get('members_arr')
         prev_members_arr = prev.get('members_arr') if prev is not None else None
@@ -450,7 +444,7 @@ class OptimisticDiffPrepare:
         *,
         TYPED_ELEMENT_ID_RELATION_MIN=TYPED_ELEMENT_ID_RELATION_MIN,
         TYPED_ELEMENT_ID_RELATION_MAX=TYPED_ELEMENT_ID_RELATION_MAX,
-    ) -> None:
+    ):
         """Push bbox info for a relation. Relation info contains either all members or only changed members."""
         next_members_arr = element.get('members_arr')
         prev_members_arr = prev.get('members_arr') if prev is not None else None
@@ -520,7 +514,7 @@ class OptimisticDiffPrepare:
                     assert point is not None, f'Node {node_typed_id} point must be set'
                     bbox_points.append(point)
 
-    async def _preload_changeset(self) -> None:
+    async def _preload_changeset(self):
         """Lock and load changeset state from the database."""
         # Enforce single changeset updates
         changeset_ids = {element['changeset_id'] for element in self._elements}
@@ -546,7 +540,7 @@ class OptimisticDiffPrepare:
 
     def _update_changeset_size(
         self, *, num_create: int, num_modify: int, num_delete: int
-    ) -> None:
+    ):
         """Update and validate the changeset size."""
         logging.debug(
             'Optimistic updating changeset %d size (+%d, ~%d, -%d)',
@@ -570,7 +564,7 @@ class OptimisticDiffPrepare:
         *,
         TYPED_ELEMENT_ID_NODE_MIN: cython.size_t = TYPED_ELEMENT_ID_NODE_MIN,
         TYPED_ELEMENT_ID_NODE_MAX: cython.size_t = TYPED_ELEMENT_ID_NODE_MAX,
-    ) -> None:
+    ):
         """Update changeset bounds using the collected bbox info."""
         bbox_points = self._bbox_points
         bbox_refs = list(self._bbox_refs)
@@ -618,7 +612,7 @@ class OptimisticDiffPrepare:
                 bounds_arr[:, 3].max(),
             )
 
-    async def _check_members_remote(self) -> None:
+    async def _check_members_remote(self):
         """Check if the members exist and are visible using the database."""
         elements_check_members_remote = self._elements_check_members_remote
         if not elements_check_members_remote:

@@ -10,9 +10,7 @@ from app.lib.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
 
 
-def _strip_osmchange_attrs(
-    osmchange: list[tuple[str, Any]],
-) -> list[tuple[str, Any]]:
+def _strip_osmchange_attrs(osmchange: list[tuple[str, Any]]):
     return [(action, value) for action, value in osmchange if action[:1] != '@']
 
 
@@ -37,7 +35,7 @@ async def test_element_crud(client: AsyncClient):
     # Read changeset
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     last_updated_at = changeset['@updated_at']
 
     # Create node
@@ -63,7 +61,7 @@ async def test_element_crud(client: AsyncClient):
     # Read changeset to verify update
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert_model(
         changeset,
@@ -80,7 +78,7 @@ async def test_element_crud(client: AsyncClient):
     # Read node details
     r = await client.get(f'/api/0.6/node/{node_id}')
     assert r.is_success, r.text
-    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
+    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')
 
     assert_model(
         node,
@@ -103,7 +101,7 @@ async def test_element_crud(client: AsyncClient):
     assert r.is_success, r.text
 
     action, ((type, node),) = _strip_osmchange_attrs(
-        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+        XMLToDict.parse(r.content)['osmChange']
     )[-1]
     assert action == 'create'
     assert type == 'node'
@@ -148,7 +146,7 @@ async def test_element_crud(client: AsyncClient):
     # Read changeset to verify update
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert_model(
         changeset,
@@ -167,7 +165,7 @@ async def test_element_crud(client: AsyncClient):
     assert r.is_success, r.text
 
     action, ((type, node),) = _strip_osmchange_attrs(
-        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+        XMLToDict.parse(r.content)['osmChange']
     )[-1]
     assert action == 'modify'
     assert type == 'node'
@@ -211,7 +209,7 @@ async def test_element_crud(client: AsyncClient):
     # Read changeset to verify delete
     r = await client.get(f'/api/0.6/changeset/{changeset_id}')
     assert r.is_success, r.text
-    changeset = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
 
     assert_model(
         changeset,
@@ -230,7 +228,7 @@ async def test_element_crud(client: AsyncClient):
     assert r.is_success, r.text
 
     action, ((type, node),) = _strip_osmchange_attrs(
-        XMLToDict.parse(r.content)['osmChange']  # type: ignore
+        XMLToDict.parse(r.content)['osmChange']
     )[-1]
     assert action == 'delete'
     assert_model(
@@ -302,7 +300,7 @@ async def test_element_create_many_post(client: AsyncClient):
         assert r.is_success, r.text
         node: dict = next(
             v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node'
-        )  # type: ignore
+        )
 
         assert_model(
             node,
@@ -376,7 +374,7 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get specific version (version 1)
     r = await client.get(f'/api/0.6/node/{node_id}/1')
     assert r.is_success, r.text
-    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
+    node: dict = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')
 
     assert_model(
         node,
@@ -392,7 +390,7 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get specific version (version 2)
     r = await client.get(f'/api/0.6/node/{node_id}/2')
     assert r.is_success, r.text
-    node = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')  # type: ignore
+    node = next(v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node')
 
     assert_model(
         node,
@@ -408,7 +406,7 @@ async def test_element_version_and_history(client: AsyncClient):
     # Get history
     r = await client.get(f'/api/0.6/node/{node_id}/history')
     assert r.is_success, r.text
-    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']
 
     # History must return an array of all versions
     assert len(nodes) == 2, 'History must contain 2 versions'
@@ -470,7 +468,7 @@ async def test_get_multiple_elements(client: AsyncClient):
     # Get multiple nodes
     r = await client.get(f'/api/0.6/nodes?nodes={node2_id},{node1_id}')
     assert r.is_success, r.text
-    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']
 
     assert len(nodes) == 2, 'Response must contain 2 nodes'
     assert_model(nodes[0], {'@id': node2_id})
@@ -479,7 +477,7 @@ async def test_get_multiple_elements(client: AsyncClient):
     # Get multiple nodes with version specifier
     r = await client.get(f'/api/0.6/nodes?nodes={node2_id}v1,{node1_id}v1')
     assert r.is_success, r.text
-    nodes = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
+    nodes = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']
 
     assert len(nodes) == 2, 'Response must contain 2 nodes'
     assert_model(nodes[0], {'@id': node2_id, '@version': 1})
@@ -555,7 +553,7 @@ async def test_element_visibility(client: AsyncClient):
     # Verify history is still accessible
     r = await client.get(f'/api/0.6/node/{node_id}/history')
     assert r.is_success, r.text
-    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']  # type: ignore
+    nodes: list[dict] = [v for k, v in XMLToDict.parse(r.content)['osm'] if k == 'node']
 
     # History must return an array of all versions
     assert len(nodes) == 2, 'History must contain 2 versions'

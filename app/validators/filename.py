@@ -4,7 +4,7 @@ from pydantic import BeforeValidator
 _FILENAME_RE = re2.compile(r'[^a-zA-Z0-9.]+')
 
 
-def _validate_filename(value: str) -> str:
+def _validate_filename(value: str):
     return _FILENAME_RE.sub('_', value)
 
 

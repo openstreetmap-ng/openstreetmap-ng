@@ -58,7 +58,6 @@ from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
-from app.rpc.app import app as rpc_app
 from app.services.admin_task_service import AdminTaskService
 from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
@@ -170,6 +169,8 @@ app.add_middleware(DefaultHeadersMiddleware)
 if ENV != 'prod':
     app.add_middleware(RuntimeMiddleware)
 
+from app.rpc.app import app as rpc_app  # noqa: E402
+
 app.mount('/rpc', rpc_app, name='rpc')
 
 # TODO: /static default cache control
@@ -190,7 +191,7 @@ app.mount(
 )
 
 
-def _make_router(path: pathlib.Path, prefix: str) -> APIRouter:
+def _make_router(path: pathlib.Path, prefix: str):
     """Create a router from all modules in the given path."""
     router = APIRouter(prefix=prefix)
     router_counter: int = 0

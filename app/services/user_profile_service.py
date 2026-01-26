@@ -8,7 +8,7 @@ class UserProfileService:
     async def update_description(
         *,
         description: str,
-    ) -> None:
+    ):
         """Update user's profile description."""
         user_id = auth_user(required=True)['id']
         value = description.strip() or None
@@ -30,7 +30,7 @@ class UserProfileService:
     async def update_socials(
         *,
         socials: list[UserSocial],
-    ) -> None:
+    ):
         """Update user's social links."""
         user_id = auth_user(required=True)['id']
 

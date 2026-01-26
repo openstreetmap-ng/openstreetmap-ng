@@ -53,7 +53,7 @@ async def sp_render_response(
     template: str,
     context: dict[str, Any],
     state: StandardPaginationState,
-) -> Response:
+):
     """
     Render an HTML response and attach the updated StandardPaginationState.
 
@@ -72,7 +72,7 @@ def sp_render_response_bytes(
     state: StandardPaginationState,
     *,
     media_type: str = 'application/x-protobuf',
-) -> Response:
+):
     """Render a binary response and attach the updated StandardPaginationState."""
     state.DiscardUnknownFields()  # type: ignore
     response = Response(body, media_type=media_type)
@@ -82,18 +82,18 @@ def sp_render_response_bytes(
     return response
 
 
-def _dt_to_us(value: datetime) -> int:
+def _dt_to_us(value: datetime):
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
     delta = value.astimezone(UTC) - _EPOCH
     return (delta.days * 86_400 + delta.seconds) * 1_000_000 + delta.microseconds
 
 
-def _us_to_dt(value: int) -> datetime:
+def _us_to_dt(value: int):
     return _EPOCH + timedelta(microseconds=value)
 
 
-def sp_num_pages(*, num_items: cython.size_t, page_size: cython.size_t) -> int:
+def sp_num_pages(*, num_items: cython.size_t, page_size: cython.size_t):
     """
     Compute total pages from num_items/page_size.
     Reports at least 1 page (even for empty lists).
@@ -116,7 +116,7 @@ async def sp_paginate_table(
     order_dir: _OrderDir = 'desc',
     display_dir: _OrderDir | None = None,
     distance: int = STANDARD_PAGINATION_DISTANCE,
-) -> tuple[list[T], StandardPaginationState]:
+):
     """
     StandardPagination for a single table.
 
@@ -327,7 +327,7 @@ async def sp_paginate_query(
     return items, state  # type: ignore
 
 
-def _cursor_codec(kind: _CursorKind) -> _SpCursorCodec:
+def _cursor_codec(kind: _CursorKind):
     if kind == 'id':
         return _SpCursorCodec(
             encode=lambda value: value,
@@ -389,7 +389,7 @@ def _plan(
     cursor_codec: _SpCursorCodec,
     order_dir: _OrderDir,
     distance: int,
-) -> _StandardPaginationQueryPlan:
+):
     """
     Plan a query for a (cursor, id)-ordered collection inside a stable snapshot.
 
@@ -627,7 +627,7 @@ def _update_discovery(
     current_page_items: int,
     remaining_items_limited: int,
     distance: cython.size_t = STANDARD_PAGINATION_DISTANCE,
-) -> None:
+):
     """
     Update discovery fields (`max_known_page`, and optionally `num_pages`/`num_items`)
     based on a limited count of remaining items beyond the current page.
@@ -666,27 +666,27 @@ def _sp_count_limit(
     *,
     page_size: cython.size_t,
     STANDARD_PAGINATION_COUNT_MAX_PAGES: cython.size_t = STANDARD_PAGINATION_COUNT_MAX_PAGES,
-) -> int:
+):
     """Cap COUNT(*) to (N pages * page_size) + 1 rows."""
     return STANDARD_PAGINATION_COUNT_MAX_PAGES * page_size + 1
 
 
 @cython.cfunc
-def _sp_lookahead_limit(*, page_size: cython.size_t, distance: cython.size_t) -> int:
+def _sp_lookahead_limit(*, page_size: cython.size_t, distance: cython.size_t):
     """Probe at most (distance pages * page_size) + 1 rows beyond the current page."""
     return distance * page_size + 1
 
 
 @cython.cfunc
-def _ceil_div(a: cython.size_t, b: cython.size_t) -> cython.size_t:
+def _ceil_div(a: cython.size_t, b: cython.size_t):
     return (a + b - 1) // b
 
 
 @cython.cfunc
-def _reverse_dir(value: _OrderDir) -> _OrderDir:
+def _reverse_dir(value: _OrderDir):
     return 'desc' if value == 'asc' else 'asc'
 
 
 @cython.cfunc
-def _order_dir_sql(value: _OrderDir) -> SQL:
+def _order_dir_sql(value: _OrderDir):
     return SQL('ASC') if value == 'asc' else SQL('DESC')

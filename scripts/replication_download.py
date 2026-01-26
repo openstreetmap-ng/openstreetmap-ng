@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from itertools import pairwise
-from pathlib import Path
 from time import monotonic
 from typing import Literal, get_args
 
@@ -84,19 +83,19 @@ class ReplicaState:
     created_at: datetime
 
     @property
-    def path(self) -> Path:
+    def path(self):
         return REPLICATION_DIR.joinpath(
             f'replica_{int(self.created_at.timestamp()):020}.parquet'
         )
 
     @property
-    def bundle_path(self) -> Path:
+    def bundle_path(self):
         return REPLICATION_DIR.joinpath(
             f'bundle_{int(self.created_at.timestamp()):020}.parquet'
         )
 
     @staticmethod
-    def default() -> 'ReplicaState':
+    def default():
         return ReplicaState(
             sequence_number=0,
             created_at=datetime.fromtimestamp(0, UTC),
@@ -111,7 +110,7 @@ class AppState:
     last_sequence_id: int
 
     @property
-    def next_replica(self) -> 'ReplicaState':
+    def next_replica(self):
         return ReplicaState(
             sequence_number=self.last_replica.sequence_number + 1,
             created_at=(
@@ -168,7 +167,7 @@ def _bundle_data_if_needed(state: AppState):
 @cython.cfunc
 def _get_replication_url(
     dataset: _Dataset, frequency: _Frequency, sequence_number: int | None
-) -> str:
+):
     """Generate the base URL for an OSM replication file."""
     prefix = (
         f'{OSM_REPLICATION_URL}/{dataset}/{frequency}/'
@@ -237,7 +236,7 @@ def _save_app_state(state: AppState):
 def _parse_actions(
     writer: pq.ParquetWriter,
     actions: list[tuple[str, list[tuple[ElementType, dict]]]],
-) -> int:
+):
     """Parse OSM change actions and write them to parquet."""
     parse_order: cython.ssize_t = -1
     data: list[dict] = []
@@ -429,7 +428,7 @@ async def _iterate(state: AppState) -> AppState:
     )
 
 
-def _iterate_dataset(state: AppState) -> AppState:
+def _iterate_dataset(state: AppState):
     next_dataset = _NEXT_DATASET[state.dataset]
     logging.info('Switched dataset %r -> %r', state.dataset, next_dataset)
     return replace(
@@ -439,7 +438,7 @@ def _iterate_dataset(state: AppState) -> AppState:
     )
 
 
-async def _increase_frequency(state: AppState) -> AppState:
+async def _increase_frequency(state: AppState):
     """Find an appropriate higher frequency replication state."""
     current_timedelta = _FREQUENCY_TIMEDELTA[state.frequency]
     current_created_at = state.last_replica.created_at
@@ -502,7 +501,7 @@ async def _increase_frequency(state: AppState) -> AppState:
             new_sequence_number += step
 
 
-async def main() -> None:
+async def main():
     # Freeze all gc objects before starting for improved performance
     gc.collect()
     gc.freeze()

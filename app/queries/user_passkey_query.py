@@ -28,9 +28,7 @@ class UserPasskeyQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def find_all_by_user_id(
-        user_id: UserId, *, resolve_aaguid_db: bool = True
-    ) -> list[UserPasskey]:
+    async def find_all_by_user_id(user_id: UserId, *, resolve_aaguid_db: bool = True):
         """Find all passkeys for a user, ordered by creation date."""
         async with (
             db() as conn,

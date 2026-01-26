@@ -42,7 +42,7 @@ _ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEV
 
 class TraceFile:
     @staticmethod
-    def extract(buffer: bytes) -> list[bytes]:
+    def extract(buffer: bytes):
         """
         Extract the trace files from the buffer.
         The buffer may be compressed, in which case it will be decompressed first.
@@ -76,7 +76,7 @@ class TraceFile:
         raise_for.trace_file_archive_too_deep()
 
     @staticmethod
-    async def compress(buffer: bytes) -> _CompressResult:
+    async def compress(buffer: bytes):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         result = await to_thread(
             ZstdCompressor(
@@ -89,7 +89,7 @@ class TraceFile:
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
 
     @staticmethod
-    def decompress_if_needed(buffer: bytes, file_id: StorageKey) -> bytes:
+    def decompress_if_needed(buffer: bytes, file_id: StorageKey):
         """Decompress the trace file buffer if needed."""
         return (
             _ZstdProcessor.decompress(buffer)
@@ -113,7 +113,7 @@ class _Bzip2Processor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> bytes:
+    def decompress(cls, buffer: bytes):
         decompressor = BZ2Decompressor()
         try:
             result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
@@ -133,7 +133,7 @@ class _GzipProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> bytes:
+    def decompress(cls, buffer: bytes):
         decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
         try:
             result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
@@ -153,7 +153,7 @@ class _TarProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> list[bytes]:
+    def decompress(cls, buffer: bytes):
         try:
             # pure tar uses no compression, so it's efficient to read files from the memory buffer
             # 'r:' opens for reading exclusively without compression (safety check)
@@ -181,7 +181,7 @@ class _ZipProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(cls, buffer: bytes) -> list[bytes]:
+    def decompress(cls, buffer: bytes):
         try:
             with ZipFile(BytesIO(buffer)) as archive:
                 infos = [info for info in archive.infolist() if not info.is_dir()]
@@ -223,7 +223,7 @@ class _ZstdProcessor(_TraceProcessor):
         buffer: bytes,
         *,
         chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
-    ) -> bytes:
+    ):
         decompressor = ZstdDecompressor().decompressobj()
         chunks: list[bytes] = []
         total_size: cython.size_t = 0

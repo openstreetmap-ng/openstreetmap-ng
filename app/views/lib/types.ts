@@ -1,4 +1,4 @@
-import type { NoteStatus } from "@lib/proto/shared_pb"
+import type { NoteStatus } from "@lib/proto/note_pb"
 
 export interface OSMNode {
   type: "node"

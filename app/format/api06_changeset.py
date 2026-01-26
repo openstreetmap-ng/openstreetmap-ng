@@ -9,7 +9,7 @@ from app.models.db.changeset_comment import ChangesetComment
 
 class Changeset06Mixin:
     @staticmethod
-    def encode_changesets(changesets: list[Changeset]) -> dict:
+    def encode_changesets(changesets: list[Changeset]):
         """
         >>> encode_changesets([
         ...     Changeset(...),
@@ -27,7 +27,7 @@ class Changeset06Mixin:
 
 
 @cython.cfunc
-def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
+def _encode_changeset(changeset: Changeset, *, is_json: cython.bint):
     """
     >>> _encode_changeset(Changeset(...))
     {'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}
@@ -115,9 +115,7 @@ def _encode_changeset(changeset: Changeset, *, is_json: cython.bint) -> dict:
 
 
 @cython.cfunc
-def _encode_changeset_comment(
-    comment: ChangesetComment, *, is_json: cython.bint
-) -> dict:
+def _encode_changeset_comment(comment: ChangesetComment, *, is_json: cython.bint):
     """
     >>> _encode_changeset_comment(ChangesetComment(...))
     {'@uid': 1, '@user': ..., '@date': ..., 'text': 'lorem ipsum'}

@@ -92,7 +92,7 @@ class Image:
         image_id: UserId | NoteId | StorageKey | None = None,
         *,
         app: bool = False,
-    ) -> str:
+    ):
         """Get the url of the avatar image."""
         return (
             f'/api/web/img/avatar/{image_type}/{image_id}'
@@ -101,7 +101,7 @@ class Image:
         )
 
     @staticmethod
-    async def normalize_avatar(data: bytes) -> bytes:
+    async def normalize_avatar(data: bytes):
         """Normalize the avatar image."""
         return await _normalize_image(
             data,
@@ -112,7 +112,7 @@ class Image:
         )
 
     @staticmethod
-    def get_background_url(image_id: StorageKey | None) -> str | None:
+    def get_background_url(image_id: StorageKey | None):
         """Get the url of the background image."""
         return (
             f'/api/web/img/background/custom/{image_id}'
@@ -121,7 +121,7 @@ class Image:
         )
 
     @staticmethod
-    async def normalize_background(data: bytes) -> bytes:
+    async def normalize_background(data: bytes):
         """Normalize the background image."""
         return await _normalize_image(
             data,
@@ -132,7 +132,7 @@ class Image:
         )
 
     @staticmethod
-    async def normalize_proxy_image(data: bytes) -> tuple[bytes, PILImage]:
+    async def normalize_proxy_image(data: bytes):
         return await _normalize_image(
             data,
             quality=IMAGE_PROXY_RECOMPRESS_QUALITY,
@@ -145,7 +145,7 @@ class Image:
         img: PILImage,
         *,
         max_comp: cython.size_t = IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
-    ) -> str:
+    ):
         """Generate a BlurHash string from an image."""
         w: cython.size_t
         h: cython.size_t
@@ -234,7 +234,7 @@ async def _normalize_image(
     max_side: int | None = None,
     max_file_size: int | None = None,
     return_img: bool = False,
-) -> bytes | tuple[bytes, PILImage]:
+):
     """
     Normalize the avatar image.
 
@@ -346,7 +346,7 @@ async def _optimize_quality(
     input_size: int,
     quality: int | None,
     max_file_size: int | None,
-) -> tuple[int, bytes]:
+):
     """
     Find the best image quality given the maximum file size.
     Returns the quality and the image buffer.
@@ -416,7 +416,7 @@ def _save(
     animation: _Animation | None = None,
     *,
     method: int = 0,
-) -> bytes:
+):
     buffer = BytesIO()
 
     if quality < 0:

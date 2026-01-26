@@ -48,26 +48,26 @@ def format_style_context():
         _CTX.reset(token)
 
 
-def format_style() -> FormatStyle:
+def format_style():
     """Get the configured format style."""
     return _CTX.get()
 
 
-def format_is_json() -> bool:
+def format_is_json():
     """Check if the format style is JSON."""
     return _CTX.get() == 'json'
 
 
-def format_is_xml() -> bool:
+def format_is_xml():
     """Check if the format style is XML."""
     return _CTX.get() == 'xml'
 
 
-def format_is_rss() -> bool:
+def format_is_rss():
     """Check if the format style is RSS."""
     return _CTX.get() == 'rss'
 
 
-def format_is_gpx() -> bool:
+def format_is_gpx():
     """Check if the format style is GPX."""
     return _CTX.get() == 'gpx'

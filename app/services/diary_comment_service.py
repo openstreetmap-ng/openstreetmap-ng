@@ -24,7 +24,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 
 class DiaryCommentService:
     @staticmethod
-    async def comment(diary_id: DiaryId, body: str) -> None:
+    async def comment(diary_id: DiaryId, body: str):
         """Create a new diary comment."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -86,9 +86,7 @@ class DiaryCommentService:
 
     # TODO: hide, audit
     @staticmethod
-    async def delete(
-        comment_id: DiaryCommentId, *, current_user_id: UserId | None
-    ) -> None:
+    async def delete(comment_id: DiaryCommentId, *, current_user_id: UserId | None):
         """Delete a diary comment."""
         conditions: list[Composable] = [SQL('id = %s')]
         params: list[Any] = [comment_id]
@@ -106,7 +104,7 @@ class DiaryCommentService:
             await conn.execute(query, params)
 
 
-async def _send_activity_email(comment: DiaryComment) -> None:
+async def _send_activity_email(comment: DiaryComment):
     diary_id = comment['diary_id']
 
     async with TaskGroup() as tg:

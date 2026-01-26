@@ -78,7 +78,7 @@ class OAuth2TokenService:
         code_challenge_method: OAuth2CodeChallengeMethod | None,
         code_challenge: str | None,
         state: str | None,
-    ) -> dict[str, str] | OAuth2TokenOOB | OAuth2Application:
+    ):
         """
         Create a new authorization code.
 
@@ -176,7 +176,7 @@ class OAuth2TokenService:
         authorization_code: str,
         verifier: str | None,
         redirect_uri: OAuth2Uri,
-    ) -> dict[str, str | int]:
+    ):
         """
         Exchange an authorization code for an access token.
         The access token can be used to make requests on behalf of the user.
@@ -284,7 +284,7 @@ class OAuth2TokenService:
         }
 
     @staticmethod
-    async def create_pat(*, name: str, scopes: frozenset[PublicScope]) -> OAuth2TokenId:
+    async def create_pat(*, name: str, scopes: frozenset[PublicScope]):
         """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']
@@ -330,7 +330,7 @@ class OAuth2TokenService:
         return token_id
 
     @staticmethod
-    async def reset_pat_access_token(pat_id: OAuth2TokenId) -> SecretStr:
+    async def reset_pat_access_token(pat_id: OAuth2TokenId):
         """Reset the personal access token and return the new secret."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         access_token_ = buffered_rand_urlsafe(32)
@@ -363,7 +363,7 @@ class OAuth2TokenService:
         return access_token
 
     @staticmethod
-    async def revoke_by_id(token_id: OAuth2TokenId) -> None:
+    async def revoke_by_id(token_id: OAuth2TokenId):
         """Revoke the given token by id."""
         user_id = auth_user(required=True)['id']
 
@@ -379,7 +379,7 @@ class OAuth2TokenService:
         logging.debug('Revoked OAuth2 token %d', token_id)
 
     @staticmethod
-    async def revoke_by_access_token(access_token: SecretStr) -> None:
+    async def revoke_by_access_token(access_token: SecretStr):
         """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
 
@@ -400,7 +400,7 @@ class OAuth2TokenService:
         *,
         user_id: UserId | None = None,
         skip_ids: list[OAuth2TokenId] | None = None,
-    ) -> None:
+    ):
         """Revoke all current user tokens for the given OAuth2 application."""
         if user_id is None:
             user_id = auth_user(required=True)['id']
@@ -428,7 +428,7 @@ class OAuth2TokenService:
         *,
         user_id: UserId | None = None,
         skip_ids: list[OAuth2TokenId] | None = None,
-    ) -> None:
+    ):
         """Revoke all current user tokens for the given OAuth2 client."""
         async with (
             db() as conn,
@@ -448,7 +448,7 @@ class OAuth2TokenService:
             )
 
 
-async def _delete_stale_unauthorized(conn: AsyncConnection) -> None:
+async def _delete_stale_unauthorized(conn: AsyncConnection):
     result = await conn.execute(
         """
         DELETE FROM oauth2_token

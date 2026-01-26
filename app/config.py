@@ -26,11 +26,11 @@ if TYPE_CHECKING:
     from app.models.db.audit import AuditType
 
 
-def _ByteSize(v: str) -> ByteSize:  # noqa: N802
+def _ByteSize(v: str):  # noqa: N802
     return ByteSize._validate(v, None)  # noqa: SLF001  # type: ignore
 
 
-def _validate_dir(v) -> Path:
+def _validate_dir(v):
     """Resolve directory to an absolute path and ensure it exists."""
     v = Path(v)
     v.mkdir(parents=True, exist_ok=True)
@@ -40,7 +40,7 @@ def _validate_dir(v) -> Path:
 type _MakeDir = Annotated[Path, BeforeValidator(_validate_dir)]
 
 
-def _strip_validator(chars: str, /) -> BeforeValidator:
+def _strip_validator(chars: str, /):
     """Create a validator that strips the given characters from the input text."""
 
     def validate(v):
@@ -302,7 +302,6 @@ MAP_QUERY_LEGACY_NODES_LIMIT = 50_000
 SEARCH_LOCAL_AREA_LIMIT = 100.0  # in square degrees
 SEARCH_LOCAL_MAX_ITERATIONS = 7
 SEARCH_LOCAL_RATIO = 0.5  # [0 - 1], smaller = more locality
-SEARCH_QUERY_MAX_LENGTH = 255
 SEARCH_RESULTS_LIMIT = 100  # nominatim has hard-coded upper limit of 50
 QUERY_FEATURES_RESULTS_LIMIT = 50
 NEARBY_USERS_LIMIT = 30
@@ -355,7 +354,7 @@ class _AuditPolicies(BaseModel):
             retention: timedelta | float,
             discard_repeated: timedelta | None = None,
             **data,
-        ) -> None:
+        ):
             super().__init__(
                 retention=(
                     retention

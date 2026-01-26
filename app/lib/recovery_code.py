@@ -14,7 +14,7 @@ for i, char in enumerate(_ENC):
 
 
 @cython.cfunc
-def _encode_code(value: int) -> str:
+def _encode_code(value: int):
     """Encodes 70 bits to 'XXXX-XXXX-XXXX'"""
     buf = bytearray(12)
     for i in range(11, -1, -1):
@@ -24,7 +24,7 @@ def _encode_code(value: int) -> str:
 
 
 @cython.cfunc
-def _decode_code(code: str) -> int:
+def _decode_code(code: str):
     value = 0
     for b in code.encode('ascii', 'ignore'):
         v = _DEC[b]
@@ -33,14 +33,14 @@ def _decode_code(code: str) -> int:
     return value
 
 
-def generate_recovery_codes() -> tuple[list[str], list[bytes]]:
+def generate_recovery_codes():
     """
     Generate 8 new recovery codes.
     Returns (list of display codes, list of hashes for storage).
     """
     stream = buffered_randbytes(9 * 8)
-    display_codes = []
-    codes_hashed = []
+    display_codes: list[str] = []
+    codes_hashed: list[bytes] = []
 
     for i in range(8):
         offset = i * 9
@@ -51,7 +51,7 @@ def generate_recovery_codes() -> tuple[list[str], list[bytes]]:
     return display_codes, codes_hashed
 
 
-def verify_recovery_code(code: str, codes_hashed: list[bytes | None]) -> int | None:
+def verify_recovery_code(code: str, codes_hashed: list[bytes | None]):
     """
     Verify a recovery code.
     Returns the index if valid, or None.

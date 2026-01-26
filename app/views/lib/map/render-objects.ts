@@ -1,9 +1,7 @@
 import { polylineDecode } from "@lib/polyline"
-import type {
-  RenderChangesetsData_Changeset,
-  RenderElementsData,
-  RenderNotesData,
-} from "@lib/proto/shared_pb"
+import type { RenderChangesetsData_Changeset } from "@lib/proto/changeset_pb"
+import type { RenderElementsDataValid } from "@lib/proto/element_pb"
+import type { RenderNotesDataValid } from "@lib/proto/note_pb"
 import type {
   Bounds,
   OSMChangeset,
@@ -166,7 +164,9 @@ export const convertRenderChangesetsData = (
   return result
 }
 
-export const convertRenderElementsData = (render: RenderElementsData | undefined) => {
+export const convertRenderElementsData = (
+  render: RenderElementsDataValid | undefined,
+) => {
   const result: (OSMNode | OSMWay)[] = []
   if (!render) return result
   for (const way of render.ways) {
@@ -174,26 +174,26 @@ export const convertRenderElementsData = (render: RenderElementsData | undefined
       type: "way",
       id: way.id,
       geom: polylineDecode(way.line, 6),
-      area: way.area,
+      area: way.isArea,
     })
   }
   for (const node of render.nodes) {
     result.push({
       type: "node",
       id: node.id,
-      geom: [node.lon, node.lat],
+      geom: [node.location.lon, node.location.lat],
     })
   }
   return result
 }
 
-export const convertRenderNotesData = (render: RenderNotesData) => {
+export const convertRenderNotesData = (render: RenderNotesDataValid) => {
   const result: OSMNote[] = []
   for (const note of render.notes) {
     result.push({
       type: "note",
       id: note.id,
-      geom: [note.lon, note.lat],
+      geom: [note.location.lon, note.location.lat],
       status: note.status,
       text: note.text,
     })

@@ -8,18 +8,18 @@ from starlette.responses import RedirectResponse
 from app.middlewares.request_context_middleware import get_request
 
 
-def secure_referrer(referrer: str | None) -> str:
+def secure_referrer(referrer: str | None):
     """Return a secure referrer, preventing open redirects."""
     return '/' if (referrer is None or referrer[:1] != '/') else referrer
 
 
-def redirect_referrer() -> RedirectResponse:
+def redirect_referrer():
     """Get a redirect response, respecting the referrer header."""
     return RedirectResponse(_redirect_url(), status.HTTP_303_SEE_OTHER)
 
 
 @cython.cfunc
-def _redirect_url() -> str:
+def _redirect_url():
     """
     Get the redirect URL from the request referrer.
     If the referrer is missing or is in a different domain, return '/'.

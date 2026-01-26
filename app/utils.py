@@ -27,9 +27,7 @@ HTTP_INTERNAL = _get_http_client()
 # NOTE: breaking change
 
 
-def extend_query_params(
-    uri: str, params: dict[str, str], *, fragment: bool = False
-) -> str:
+def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = False):
     """
     Extend the query parameters of a URI.
 
@@ -52,7 +50,7 @@ def extend_query_params(
     return urlunsplit(uri_)
 
 
-def splitlines_trim(s: str) -> list[str]:
+def splitlines_trim(s: str):
     """
     Split a string by lines, trim whitespace from each line, and ignore empty lines.
 
@@ -62,9 +60,7 @@ def splitlines_trim(s: str) -> list[str]:
     return [strip for line in s.splitlines() if (strip := line.strip())]
 
 
-def calc_num_workers(
-    target: int | float = 1.0, *, min: int = 1, max: int = 1024
-) -> int:
+def calc_num_workers(target: int | float = 1.0, *, min: int = 1, max: int = 1024):
     """
     Calculate the number of workers to use based on the target value.
     If the target is an integer, it will be used as is.
@@ -83,7 +79,7 @@ def calc_num_workers(
     )
 
 
-def id_response(id: int) -> Response:
+def id_response(id: int):
     """Create a protobuf response containing a single ID."""
     return Response(
         IdResponse(id=id).SerializeToString(),

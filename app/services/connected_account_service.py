@@ -7,7 +7,7 @@ from app.services.audit_service import audit
 
 class ConnectedAccountService:
     @staticmethod
-    async def add_connection(provider: AuthProvider, uid: str) -> None:
+    async def add_connection(provider: AuthProvider, uid: str):
         """
         Add an external account connection to the current user.
         Returns the user_id.
@@ -42,7 +42,7 @@ class ConnectedAccountService:
             )
 
     @staticmethod
-    async def remove_connection(provider: AuthProvider) -> None:
+    async def remove_connection(provider: AuthProvider):
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True)['id']
 

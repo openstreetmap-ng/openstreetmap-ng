@@ -23,7 +23,7 @@ class RateLimitService:
         *,
         window: timedelta = _DEFAULT_QUOTA_WINDOW,
         raise_on_limit: str | Callable[[], str] | None = 'Rate limit exceeded',
-    ) -> dict[str, str]:
+    ):
         """
         Update the rate limit counter and check if the limit is exceeded.
         Returns the response headers or raises a HTTPException.
@@ -80,7 +80,7 @@ class RateLimitService:
         return headers
 
 
-async def _delete_expired(conn: AsyncConnection) -> None:
+async def _delete_expired(conn: AsyncConnection):
     result = await conn.execute(
         """
         DELETE FROM rate_limit

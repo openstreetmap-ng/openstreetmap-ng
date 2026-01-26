@@ -14,7 +14,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserRecoveryCodeService:
     @staticmethod
-    async def generate_recovery_codes(*, password: Password) -> list[str]:
+    async def generate_recovery_codes(*, password: Password):
         """
         Generate or rotate recovery codes for a user.
 
@@ -52,7 +52,7 @@ class UserRecoveryCodeService:
         return display_codes
 
     @staticmethod
-    async def verify_recovery_code(user_id: UserId, code: str) -> bool:
+    async def verify_recovery_code(user_id: UserId, code: str):
         """Verify a recovery code for a user."""
         await RateLimitService.update(
             key=f'recovery:{user_id}',

@@ -269,8 +269,8 @@ class ElementSpatialService:
 
 
 @retry(None)
-async def _process_task() -> None:
-    async def sleep(delay: float) -> None:
+async def _process_task():
+    async def sleep(delay: float):
         if delay > 0:
             try:
                 await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
@@ -321,7 +321,7 @@ async def _update(
     ways_batch_size: int = 20_000,
     rels_batch_size: int = 1_000,
     _MAX_RELATION_NESTING_DEPTH: cython.size_t = _MAX_RELATION_NESTING_DEPTH,
-) -> None:
+):
     """
     Update the element_spatial table with geometries and spatial indices for ways and relations.
 
@@ -407,7 +407,7 @@ async def _process_depth(
     max_sequence: int,
     parallelism: int,
     batch_size: int,
-) -> bool:
+):
     """Process a single depth of element_spatial updates. Returns True if progress was made."""
     # Determine what to process and how many items
     if depth:
@@ -518,7 +518,7 @@ async def _seed_pending_relations(
     max_sequence: int,
     parallelism: int,
     batch_size: int,
-) -> None:
+):
     """Seed pending relations using parallel batched queries to avoid array_agg overflow."""
     logging.debug('Seeding pending relations after depth %d', depth)
 
@@ -564,7 +564,7 @@ async def _seed_pending_relations(
         else nullcontext()
     ) as advance:
 
-        async def seed_from_element_batch_task(seq_start: int, seq_end: int) -> None:
+        async def seed_from_element_batch_task(seq_start: int, seq_end: int):
             await _seed_from_element_batch(seq_start, seq_end, semaphore)
             if advance is not None:
                 advance(seq_end - seq_start + 1)
@@ -586,9 +586,7 @@ async def _seed_pending_relations(
             await conn.execute('ANALYZE element_spatial_pending_rels')
 
 
-async def _seed_from_element_batch(
-    seq_start: int, seq_end: int, semaphore: Semaphore
-) -> None:
+async def _seed_from_element_batch(seq_start: int, seq_end: int, semaphore: Semaphore):
     """Find relations whose members include nodes from given sequence range."""
     async with semaphore, db(True) as conn:
         await conn.execute(
@@ -675,7 +673,7 @@ async def _materialize_pending_rels_batches(batch_size: int) -> int:
             return num_batches
 
 
-async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore) -> None:
+async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore):
     """Find relations using pre-materialized batches."""
     async with semaphore, db(True) as conn:
         await conn.execute(
@@ -695,7 +693,7 @@ async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore) -> None:
         )
 
 
-async def _finalize_staging(*, max_sequence: int, last_sequence: int) -> None:
+async def _finalize_staging(*, max_sequence: int, last_sequence: int):
     """Merge staging table into element_spatial and advance watermark."""
     logging.debug('Finalizing element_spatial staging merge')
 

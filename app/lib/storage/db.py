@@ -16,7 +16,7 @@ class DBStorage(StorageBase):
         self._context = context
 
     @override
-    async def load(self, key: StorageKey) -> bytes:
+    async def load(self, key: StorageKey):
         async with (
             db() as conn,
             await conn.execute(
@@ -35,7 +35,7 @@ class DBStorage(StorageBase):
     @override
     async def save(
         self, data: bytes, suffix: LiteralString, metadata: dict[str, str] | None = None
-    ) -> StorageKey:
+    ):
         key = buffered_rand_storage_key(suffix)
 
         async with db(True) as conn:
@@ -50,7 +50,7 @@ class DBStorage(StorageBase):
         return key
 
     @override
-    async def delete(self, key: StorageKey) -> None:
+    async def delete(self, key: StorageKey):
         async with db(True) as conn:
             await conn.execute(
                 """

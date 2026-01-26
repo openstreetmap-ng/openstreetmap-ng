@@ -32,7 +32,7 @@ _FIND_USED_KEYS_RE = re2.compile(
 )
 
 
-def find_used_keys() -> tuple[set[str], float]:
+def find_used_keys():
     """Extract translation keys used in the source files."""
     result = set()
     mtime = 0
@@ -54,9 +54,7 @@ def find_used_keys() -> tuple[set[str], float]:
     return result, mtime
 
 
-def filter_unused_keys(
-    obj: dict, used_keys: set[str], *, _parent_path: str = ''
-) -> dict:
+def filter_unused_keys(obj: dict, used_keys: set[str], *, _parent_path: str = ''):
     """Filter translation dictionary by used keys."""
     filtered = {}
 
@@ -85,7 +83,7 @@ def filter_unused_keys(
     return filtered
 
 
-def find_valid_output(locale: str, effective_mtime: float) -> Path | None:
+def find_valid_output(locale: str, effective_mtime: float):
     target_iter = iter(
         p
         for p in _I18NEXT_DIR.glob(f'{locale}-*.js')
@@ -105,7 +103,7 @@ def find_valid_output(locale: str, effective_mtime: float) -> Path | None:
     return target_path
 
 
-def main() -> None:
+def main():
     script_mtime = Path(__file__).stat().st_mtime
     file_map: dict[str, str] = {}
     transform_count = 0
@@ -125,7 +123,7 @@ def main() -> None:
             file_map[locale] = target_path.name
             continue
 
-        def count_keys(obj: dict) -> int:
+        def count_keys(obj: dict):
             count = len(obj)
             for value in obj.values():
                 if isinstance(value, dict):

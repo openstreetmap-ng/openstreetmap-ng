@@ -21,13 +21,15 @@ class OptimisticDiffApply:
     @staticmethod
     async def apply(
         prepare: OptimisticDiffPrepare,
-    ) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
+    ):
         """
         Apply the optimistic diff update.
         Returns a dict, mapping original element refs to the new versions.
         """
+        result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
+
         if not prepare.apply_elements:
-            return {}
+            return result
 
         for element in prepare.apply_elements:
             if (point := element['point']) is not None:
@@ -58,8 +60,6 @@ class OptimisticDiffApply:
         await _update_changeset(conn, prepare, created_at)
 
         # Build result mapping
-        result: dict[TypedElementId, tuple[TypedElementId, list[int]]] = {}
-
         for element in prepare.apply_elements:
             assigned_tid = element['typed_id']
             unassigned_tid = element.get('unassigned_typed_id', assigned_tid)
@@ -79,7 +79,7 @@ class OptimisticDiffApply:
 async def _check_elements_unreferenced(
     conn: AsyncConnection,
     prepare: OptimisticDiffPrepare,
-) -> None:
+):
     """Check if the elements are currently unreferenced."""
     if not prepare.reference_check_element_refs:
         return
@@ -94,7 +94,7 @@ async def _check_elements_unreferenced(
 
 async def _update_changeset(
     conn: AsyncConnection, prepare: OptimisticDiffPrepare, now: datetime
-) -> None:
+):
     """Update the changeset table."""
     changeset = prepare.changeset
     changeset_id = changeset['id']
@@ -250,7 +250,7 @@ async def _update_elements(
 
 async def _update_latest_elements(
     conn: AsyncConnection, element_state: dict[TypedElementId, ElementStateEntry]
-) -> None:
+):
     """Update the latest flag for changed elements (remote)."""
     typed_ids: list[TypedElementId] = []
     versions: list[int] = []
@@ -277,7 +277,7 @@ async def _update_latest_elements(
         raise OptimisticDiffError('Element is outdated')
 
 
-async def _copy_elements(conn: AsyncConnection, elements: list[Element]) -> None:
+async def _copy_elements(conn: AsyncConnection, elements: list[Element]):
     async with conn.cursor().copy("""
         COPY element (
             sequence_id, changeset_id,

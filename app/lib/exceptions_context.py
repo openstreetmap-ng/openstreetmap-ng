@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Any, cast, override
+from typing import cast, override
 
 from app.exceptions import Exceptions
 
@@ -19,7 +19,7 @@ def exceptions_context(implementation: Exceptions):
 
 class _RaiseFor:
     @override
-    def __getattribute__(self, name: str) -> Any:
+    def __getattribute__(self, name: str):
         return getattr(_CTX.get(), name)
 
 

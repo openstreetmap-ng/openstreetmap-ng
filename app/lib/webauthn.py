@@ -73,9 +73,7 @@ _COSE_CRV_P256 = 1
 _COSE_CRV_ED25519 = 6
 
 
-def parse_client_data(
-    client_data_json: bytes, *, expected_type: _ClientDataType
-) -> _ClientData:
+def parse_client_data(client_data_json: bytes, *, expected_type: _ClientDataType):
     """Parse and validate client data JSON."""
     data: _ClientData = orjson.loads(client_data_json)
 
@@ -100,7 +98,7 @@ def parse_client_data(
     return data
 
 
-def parse_auth_data(auth_data: bytes, *, require_uv: bool = True) -> _AuthData | None:
+def parse_auth_data(auth_data: bytes, *, require_uv: bool = True):
     """Parse and validate authenticator data."""
     if auth_data[:_AUTH_DATA_RP_ID_HASH_LEN] != _RP_ID_HASH:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, 'AuthData: Invalid RP ID')
@@ -139,7 +137,7 @@ def parse_auth_data(auth_data: bytes, *, require_uv: bool = True) -> _AuthData |
 def verify_assertion(
     passkey: UserPasskey,
     assertion: PasskeyAssertion,
-) -> int:
+):
     """Verify assertion signature. Returns updated sign count."""
     client_data_json = assertion.client_data_json
     authenticator_data = assertion.authenticator_data
@@ -166,7 +164,7 @@ def verify_assertion(
 
 
 @cython.cfunc
-def _parse_cose_public_key(cose_key: bytes) -> tuple[int, bytes]:
+def _parse_cose_public_key(cose_key: bytes):
     """Parse a COSE public key and return (algorithm, raw_key_bytes)."""
     key_map = cbor2.loads(cose_key)
     kty = key_map.get(_COSE_KTY)
@@ -197,7 +195,7 @@ def _verify_signature(
     *,
     data: bytes,
     signature: bytes,
-) -> bool:
+):
     """Verify a cryptographic signature using the specified COSE algorithm."""
     algorithm = passkey['algorithm']
     public_key = passkey['public_key']

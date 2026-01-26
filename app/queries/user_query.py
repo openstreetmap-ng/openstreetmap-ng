@@ -79,7 +79,7 @@ class UserQuery:
     @staticmethod
     async def find_by_display_name_or_email(
         display_name_or_email: DisplayName | Email,
-    ) -> User | None:
+    ):
         """Find a user by display name or email."""
         # (dot) indicates email format, display_name blacklists it
         if '.' in display_name_or_email:
@@ -160,7 +160,7 @@ class UserQuery:
     @staticmethod
     async def check_display_name_available(
         display_name: DisplayName, *, user: User | None = None
-    ) -> bool:
+    ):
         """Check if a display name is available."""
         # Check if the name is unchanged
         if user is None:
@@ -180,7 +180,7 @@ class UserQuery:
         )
 
     @staticmethod
-    async def check_email_available(email: Email, *, user: User | None = None) -> bool:
+    async def check_email_available(email: Email, *, user: User | None = None):
         """Check if an email is available."""
         # Check if the email is unchanged
         if user is None:
@@ -242,7 +242,7 @@ class UserQuery:
         user_id_key: str = 'user_id',
         user_key: str = 'user',
         kind: type[UserDisplay] | type[User] = UserDisplay,
-    ) -> None:
+    ):
         """Resolve user fields for the given items."""
         if not items:
             return
@@ -277,7 +277,7 @@ class UserQuery:
                     item[user_key] = row
 
     @staticmethod
-    async def resolve_elements_users(elements: list[Element]) -> None:
+    async def resolve_elements_users(elements: list[Element]):
         """Resolve the user_id and user fields for the given elements."""
         if not elements:
             return
@@ -319,7 +319,7 @@ class UserQuery:
         created_after: datetime | None = None,
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,
-    ) -> tuple[Composable, tuple[Any, ...]]:
+    ):
         conditions: list[Composable] = []
         params: list[Any] = []
 

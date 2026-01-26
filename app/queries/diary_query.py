@@ -112,7 +112,7 @@ class DiaryQuery:
     async def resolve_location_name(diaries: list[Diary]) -> None:
         """Resolve location name fields for diaries."""
 
-        async def task(diary: Diary) -> None:
+        async def task(diary: Diary):
             try:
                 result = await NominatimQuery.reverse(diary['point'])  # pyright: ignore [reportArgumentType]
             except HTTPError:

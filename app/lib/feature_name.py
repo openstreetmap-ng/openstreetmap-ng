@@ -6,7 +6,7 @@ from app.lib.translation import translation_locales
 from app.models.db.element import Element, ElementInit
 
 
-def features_names(elements: Iterable[Element | ElementInit]) -> list[str | None]:
+def features_names(elements: Iterable[Element | ElementInit]):
     """Returns human-readable names for features."""
     return list(map(_feature_name, elements))
 

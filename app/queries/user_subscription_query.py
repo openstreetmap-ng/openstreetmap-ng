@@ -13,7 +13,7 @@ class UserSubscriptionQuery:
     @staticmethod
     async def is_subscribed(
         target: UserSubscriptionTarget, target_id: UserSubscriptionTargetId
-    ) -> bool:
+    ):
         """Check if the current user is subscribed to the target."""
         user = auth_user()
         if user is None:
@@ -39,7 +39,7 @@ class UserSubscriptionQuery:
         *,
         id_key: str = 'id',
         is_subscribed_key: str = 'is_subscribed',
-    ) -> None:
+    ):
         if not items:
             return
 

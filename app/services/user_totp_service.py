@@ -18,7 +18,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserTOTPService:
     @staticmethod
-    async def setup_totp(secret: SecretStr, digits: int, code: str) -> None:
+    async def setup_totp(secret: SecretStr, digits: int, code: str):
         """
         Set up TOTP for the current user.
 
@@ -64,7 +64,7 @@ class UserTOTPService:
                 await audit('add_totp', conn, extra={'digits': digits})
 
     @staticmethod
-    async def verify_totp(user_id: UserId, code: str) -> bool:
+    async def verify_totp(user_id: UserId, code: str):
         """Verify a TOTP code for a user."""
         async with db(True) as conn:
             totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
@@ -131,7 +131,7 @@ class UserTOTPService:
         *,
         password: Password | None,
         user_id: UserId | None = None,
-    ) -> None:
+    ):
         if password is None:
             assert user_id is not None
         else:
@@ -168,7 +168,7 @@ class UserTOTPService:
 
 async def _record_used_code(
     conn: AsyncConnection, user_id: UserId, code: str, time_window: int
-) -> bool:
+):
     # Prevent replay: check if this code was already used in any of the valid time windows
     # Try to insert the used code for t-1, t, and t+1 windows
     # If any window already has this code, rows_inserted will be less than 3

@@ -60,7 +60,7 @@ class DiaryService:
         body: str,
         language: LocaleCode,
         point: Point | None,
-    ) -> None:
+    ):
         """Update a diary entry."""
         user_id = auth_user(required=True)['id']
 
@@ -97,9 +97,7 @@ class DiaryService:
             await audit('update_diary', conn, extra={'id': diary_id})
 
     @staticmethod
-    async def delete(
-        diary_id: DiaryId, *, current_user_id: UserId | None = None
-    ) -> None:
+    async def delete(diary_id: DiaryId, *, current_user_id: UserId | None = None):
         """Delete a diary entry."""
         conditions: list[Composable] = [SQL('id = %s')]
         params: list[Any] = [diary_id]

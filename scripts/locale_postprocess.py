@@ -13,7 +13,7 @@ _POSTPROCESS_DIR.mkdir(parents=True, exist_ok=True)
 _LOCALE_EXTRA_EN_PATH = Path('config/locale/extra_en.yaml')
 
 
-def get_source_mtime(locale: str) -> float:
+def get_source_mtime(locale: str):
     source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
     source_mtime = source_path.stat().st_mtime
     if locale == 'en':
@@ -21,7 +21,7 @@ def get_source_mtime(locale: str) -> float:
     return source_mtime
 
 
-def needs_processing(locale: str, effective_mtime: float) -> bool:
+def needs_processing(locale: str, effective_mtime: float):
     source_path = _DOWNLOAD_DIR.joinpath(f'{locale}.yaml')
     target_path = _POSTPROCESS_DIR.joinpath(f'{locale}.json')
     return (
@@ -80,7 +80,7 @@ class LocalChaptersExtractor:
             if c['type'] == 'osm-lc' and c['id'] != 'OSMF'
         ]
 
-    def extract(self, locale: str) -> dict:
+    def extract(self, locale: str):
         source_path = _OCI_DIR.joinpath(f'i18n/{locale.replace("-", "_")}.yaml')
         if not source_path.is_file():
             return {}
@@ -103,7 +103,7 @@ class LocalChaptersExtractor:
         return {'osm_community_index': {'communities': communities_data}}
 
 
-def main(verbose: bool) -> None:
+def main(verbose: bool):
     script_mtime = Path(__file__).stat().st_mtime
     lc_extractor = LocalChaptersExtractor()
     discover_counter = 0
@@ -158,7 +158,7 @@ def main(verbose: bool) -> None:
     )
 
 
-def trim_values(data: dict) -> None:
+def trim_values(data: dict):
     """Trim all string values."""
     for key, value in data.items():
         if isinstance(value, dict):
@@ -172,7 +172,7 @@ def trim_values(data: dict) -> None:
             data[key] = value.strip()
 
 
-def convert_placeholder_format(data: dict) -> None:
+def convert_placeholder_format(data: dict):
     """Convert %{placeholder} to {placeholder} in all strings."""
     for key, value in data.items():
         if isinstance(value, dict):
@@ -181,7 +181,7 @@ def convert_placeholder_format(data: dict) -> None:
             data[key] = value.replace('%{', '{{').replace('}', '}}')
 
 
-def convert_number_format(data: dict) -> None:
+def convert_number_format(data: dict):
     """Convert %e to %-d in all strings."""
     # backwards compatibility: remove leading zero from day
     for key, value in data.items():
@@ -191,7 +191,7 @@ def convert_number_format(data: dict) -> None:
             data[key] = value.replace('%e', '%-d')
 
 
-def convert_plural_structure(data: dict) -> None:
+def convert_plural_structure(data: dict):
     """
     Convert plural dicts to singular keys.
     >>> convert_plural_structure({'example': {'one': '1', 'two': '2', 'three': '3'}})
@@ -218,7 +218,7 @@ def convert_plural_structure(data: dict) -> None:
         data.pop(k)
 
 
-def rename_buggy_keys(data: dict) -> None:
+def rename_buggy_keys(data: dict):
     """
     Rename keys that bug-out during i18next -> gnu conversion.
     >>> rename_buggy_keys({'some_other': 'value'})
@@ -246,7 +246,7 @@ def rename_buggy_keys(data: dict) -> None:
         data[k_alt] = data[k]
 
 
-def deep_dict_update(d: dict, u: dict) -> None:
+def deep_dict_update(d: dict, u: dict):
     for k, uv in u.items():
         dv = d.get(k)
         if dv is None:

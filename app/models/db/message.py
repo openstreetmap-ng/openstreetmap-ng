@@ -45,13 +45,11 @@ class MessageRecipient(TypedDict):
     user: NotRequired[UserDisplay]
 
 
-async def messages_resolve_rich_text(objs: list[Message]) -> None:
+async def messages_resolve_rich_text(objs: list[Message]):
     await resolve_rich_text(objs, 'message', 'body', 'markdown')
 
 
-def message_from_email(
-    mail: EmailMessage, from_user_id: UserId, to_user_id: UserId
-) -> MessageInit:
+def message_from_email(mail: EmailMessage, from_user_id: UserId, to_user_id: UserId):
     """Create a message instance from an email message."""
     subject: str | None = mail.get('Subject')
     if subject is None:
@@ -73,7 +71,7 @@ def message_from_email(
 
 
 @cython.cfunc
-def _get_message_body(mail: EmailMessage) -> str | None:
+def _get_message_body(mail: EmailMessage):
     html_part: MIMEPart | None = None
 
     for part in mail.walk():
@@ -114,7 +112,7 @@ def _get_message_body(mail: EmailMessage) -> str | None:
 
 
 @cython.cfunc
-def _decode_payload(payload: bytes, charset: str | None) -> str:
+def _decode_payload(payload: bytes, charset: str | None):
     if charset is not None:
         try:
             return payload.decode(charset)
@@ -128,7 +126,7 @@ def _decode_payload(payload: bytes, charset: str | None) -> str:
 
 
 @cython.cfunc
-def _html_to_text(html: str) -> str:
+def _html_to_text(html: str):
     try:
         document = lxml_html.document_fromstring(html)
     except (ParserError, ValueError):

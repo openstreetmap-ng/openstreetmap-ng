@@ -11,7 +11,7 @@ _BLACKLIST = set[str]()
 _USER_PATH_RE = re2.compile(r'^/user/([^/{][^/]*)')
 
 
-def user_name_blacklist_routes(app: Starlette) -> None:
+def user_name_blacklist_routes(app: Starlette):
     """Blacklist usernames that could conflict with application routes."""
     result: list[str] = []
 
@@ -27,11 +27,11 @@ def user_name_blacklist_routes(app: Starlette) -> None:
     logging.info('Blacklisted %d user names from routes: %s', len(result), result)
 
 
-def is_user_name_blacklisted(display_name: DisplayName) -> bool:
+def is_user_name_blacklisted(display_name: DisplayName):
     """Check if the given display name is blacklisted."""
     return _normalize(display_name) in _BLACKLIST
 
 
 @cython.cfunc
-def _normalize(s: str) -> str:
+def _normalize(s: str):
     return s.strip().casefold()

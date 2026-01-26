@@ -1,6 +1,6 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { WebConfigSchema } from "@lib/proto/shared_pb"
+import { fromBinaryValid } from "@lib/rpc"
 import { memoize } from "@std/cache/memoize"
 import {
   _API_URL,
@@ -35,7 +35,7 @@ export const URLSAFE_BLACKLIST_RE = _URLSAFE_BLACKLIST_RE
 export const VERSION = _VERSION
 
 /** Global dataset options that are defined on <html> tag */
-export const config = fromBinary(
+export const config = fromBinaryValid(
   WebConfigSchema,
   base64Decode(document.documentElement.dataset.config!),
 )

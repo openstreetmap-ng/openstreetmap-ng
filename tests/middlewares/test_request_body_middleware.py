@@ -55,7 +55,7 @@ async def test_compressed_form(
     # Verify response
     assert r.is_success, r.text
 
-    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']  # type: ignore
+    changeset: dict = XMLToDict.parse(r.content)['osm']['changeset']
     assert_model(
         changeset,
         {

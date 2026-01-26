@@ -11,7 +11,7 @@ from app.lib.crypto import hmac_bytes
 _AvatarStyle = Literal['initials', 'shapes']
 
 
-def generate_avatar(style: _AvatarStyle, text: str, /) -> bytes:
+def generate_avatar(style: _AvatarStyle, text: str, /):
     """Generate a random avatar SVG."""
     if style == 'initials':
         svg = _generate_initials(text)
@@ -22,7 +22,7 @@ def generate_avatar(style: _AvatarStyle, text: str, /) -> bytes:
     return svg.encode()
 
 
-def _hsl_to_rgb(h: cython.double, s: cython.double, l: cython.double) -> str:
+def _hsl_to_rgb(h: cython.double, s: cython.double, l: cython.double):
     """
     Convert HSL to RGB hex string.
     h: hue [0, 360)
@@ -55,7 +55,7 @@ def _hsl_to_rgb(h: cython.double, s: cython.double, l: cython.double) -> str:
     return f'{r:02x}{g:02x}{b:02x}'
 
 
-def _apca_luminance(rgb_hex: str) -> cython.double:
+def _apca_luminance(rgb_hex: str):
     """
     Calculate APCA screen luminance (Ys) with soft clip for blacks.
     https://github.com/Myndex/SAPC-APCA
@@ -76,7 +76,7 @@ def _apca_luminance(rgb_hex: str) -> cython.double:
     return y
 
 
-def _apca_contrast(y_txt: cython.double, y_bg: cython.double) -> cython.double:
+def _apca_contrast(y_txt: cython.double, y_bg: cython.double):
     """
     Calculate APCA lightness contrast (Lc) between text and background.
     Returns signed value: positive = dark text on light bg, negative = light text on dark bg.
@@ -105,7 +105,7 @@ def _apca_contrast(y_txt: cython.double, y_bg: cython.double) -> cython.double:
     return (sapc + W_OFFSET) * 100.0
 
 
-def _generate_accessible_color(rng: Random) -> str:
+def _generate_accessible_color(rng: Random):
     """
     Generate a random color with guaranteed contrast against white text.
     Uses HSL color space for better control over visual properties.
@@ -131,7 +131,7 @@ def _generate_accessible_color(rng: Random) -> str:
 
 
 @cython.cfunc
-def _generate_initials(text: str) -> str:
+def _generate_initials(text: str):
     """https://www.dicebear.com/styles/initials/"""
     rng = Random(text)
     font_size = 50
@@ -159,7 +159,7 @@ _SHAPE_DEFS = {
 
 
 @cython.cfunc
-def _generate_shapes(seed: int | float | str | bytes | bytearray) -> str:
+def _generate_shapes(seed: int | float | str | bytes | bytearray):
     """https://www.dicebear.com/styles/shapes/"""
     rng = Random(seed)
 
@@ -233,7 +233,7 @@ _CAMEL_CASE_BOUNDARY_RE = re2.compile(r'([a-z])([A-Z])|([A-Z])([A-Z][a-z])')
 
 
 @cython.cfunc
-def _split_camel_case(s: str) -> list[str]:
+def _split_camel_case(s: str):
     """Split a string on camelCase / PascalCase boundaries."""
     if len(s) < 2:
         return [s]
@@ -244,7 +244,7 @@ def _split_camel_case(s: str) -> list[str]:
     return _CAMEL_CASE_BOUNDARY_RE.sub(r'\1\3 \2\4', s).split()
 
 
-def _extract_initials(text: str) -> str:
+def _extract_initials(text: str):
     """
     Extract initials from text with enhanced unicode support.
 

@@ -42,7 +42,7 @@ def has_non_discardable_tags(
     /,
     *,
     _DISCARDABLE_KEYS=_DISCARDABLE_KEYS,
-) -> bool:
+):
     """Return True if at least one non-discardable tag is present."""
     if not tags:
         return False

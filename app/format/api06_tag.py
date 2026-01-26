@@ -17,7 +17,7 @@ class Tag06Mixin:
 
 
 @cython.cfunc
-def _decode_tags_unsafe(tags: list[dict]) -> dict:
+def _decode_tags_unsafe(tags: list[dict]):
     """
     This method does not validate the input data.
 

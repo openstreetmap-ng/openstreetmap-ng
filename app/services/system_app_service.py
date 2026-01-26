@@ -85,7 +85,7 @@ class SystemAppService:
     @staticmethod
     async def create_access_token(
         client_id: ClientId, *, user_id: UserId | None = None, hidden: bool = False
-    ) -> AccessTokenResult:
+    ):
         """Create an OAuth2-based access token for the given system app."""
         if user_id is None:
             user_id = auth_user(required=True)['id']
@@ -143,7 +143,7 @@ class SystemAppService:
         )
 
 
-async def _register_app(app: SystemApp) -> None:
+async def _register_app(app: SystemApp):
     """Register a system app."""
     app_init: OAuth2ApplicationInit = {
         'id': zid(),  # type: ignore

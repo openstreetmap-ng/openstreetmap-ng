@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarHeader, useSidebarFetch } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
@@ -8,16 +8,16 @@ import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
-  type ChangesetCommentPage,
-  type ChangesetCommentPage_Comment,
+  type ChangesetCommentPage_CommentValid,
   ChangesetCommentPageSchema,
-  type ChangesetCommentResult,
+  type ChangesetCommentPageValid,
   ChangesetCommentResultSchema,
-  type ChangesetData,
-  ChangesetDataSchema,
+  type ChangesetCommentResultValid,
+  type ChangesetDataValid,
+  ChangesetService,
   type ChangesetData_Element as Element,
-  ElementType,
-} from "@lib/proto/shared_pb"
+} from "@lib/proto/changeset_pb"
+import { ElementType } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { configureStandardForm } from "@lib/standard-form"
 import {
@@ -73,7 +73,7 @@ const getChangesetElementsTitle = (type: ElementType) => {
   return (count: string) => t("browse.changeset.relation", { count })
 }
 
-const ChangesetHeader = ({ data }: { data: ChangesetData }) => {
+const ChangesetHeader = ({ data }: { data: ChangesetDataValid }) => {
   const isOpen = data.closedAt === undefined
   return (
     <div class="changesets-list social-list mb-3">
@@ -165,8 +165,8 @@ const SubscriptionForm = ({
 }
 
 type CommentResult = {
-  result: ChangesetCommentResult
-  commentsResponse: PaginationResponse<ChangesetCommentPage>
+  result: ChangesetCommentResultValid
+  commentsResponse: PaginationResponse<ChangesetCommentPageValid>
 }
 
 const CommentForm = ({
@@ -179,13 +179,13 @@ const CommentForm = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    return configureStandardForm<ChangesetCommentResult>(
+    return configureStandardForm<ChangesetCommentResultValid>(
       formRef.current,
       (result, headers) => {
         formRef.current!.reset()
         onSuccess({
           result,
-          commentsResponse: toPaginationResponse(result.comments!, headers),
+          commentsResponse: toPaginationResponse(result.comments, headers),
         })
       },
       { protobuf: ChangesetCommentResultSchema },
@@ -220,7 +220,11 @@ const CommentForm = ({
   )
 }
 
-const ChangesetComment = ({ comment }: { comment: ChangesetCommentPage_Comment }) => {
+const ChangesetComment = ({
+  comment,
+}: {
+  comment: ChangesetCommentPage_CommentValid
+}) => {
   return (
     <li class="social-entry">
       <p class="header text-muted">
@@ -247,7 +251,7 @@ const ChangesetComment = ({ comment }: { comment: ChangesetCommentPage_Comment }
   )
 }
 
-const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
+const ChangesetFooter = ({ data }: { data: ChangesetDataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
     <div class="section text-center">
@@ -259,7 +263,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
                 href={`/changeset/${data.prevChangesetId}`}
                 rel="prev"
               >
-                « {data.prevChangesetId.toString()}
+                « {data.prevChangesetId}
               </a>
               <span aria-hidden="true"> · </span>
             </>
@@ -277,7 +281,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetData }) => {
                 href={`/changeset/${data.nextChangesetId}`}
                 rel="next"
               >
-                {data.nextChangesetId.toString()} »
+                {data.nextChangesetId} »
               </a>
             </>
           )}
@@ -333,13 +337,13 @@ const ChangesetSidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments = useSignal<PaginationResponse<ChangesetCommentPage> | null>(
-    null,
-  )
+  const preloadedComments =
+    useSignal<PaginationResponse<ChangesetCommentPageValid> | null>(null)
 
-  const { resource, data } = useSidebarFetch(
-    useComputed(() => `/api/web/changeset/${id.value}`),
-    ChangesetDataSchema,
+  const { resource, data } = useSidebarRpc(
+    useComputed(() => ({ id: id.value })),
+    ChangesetService.method.getChangeset,
+    (r) => r.changeset,
   )
 
   // Effect: Sync derived state
@@ -391,7 +395,7 @@ const ChangesetSidebar = ({
           <div class="section">
             <SidebarHeader class="mb-1">
               <h2 class="sidebar-title">
-                {t("browse.in_changeset")}: {d.id.toString()}
+                {t("browse.in_changeset")}: {d.id}
               </h2>
             </SidebarHeader>
 
@@ -433,7 +437,7 @@ const ChangesetSidebar = ({
 
             {/* Comments pagination */}
             <StandardPagination
-              key={d.id.toString()}
+              key={d.id}
               action={`/api/web/changeset/${d.id}/comments`}
               label={t("alt.comments_page_navigation")}
               small={true}
@@ -458,7 +462,7 @@ const ChangesetSidebar = ({
               <CommentForm
                 changesetId={d.id}
                 onSuccess={({ result, commentsResponse }) => {
-                  resource.value = { tag: "ready", data: result.changeset! }
+                  resource.value = { tag: "ready", data: result.changeset }
                   preloadedComments.value = commentsResponse
                 }}
               />

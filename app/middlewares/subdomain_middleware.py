@@ -32,7 +32,7 @@ class SubdomainMiddleware:
         _api_prefix=API_URL + '/',
         _id_prefix=ID_URL + '/',
         _rapid_prefix=RAPID_URL + '/',
-    ) -> None:
+    ):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 

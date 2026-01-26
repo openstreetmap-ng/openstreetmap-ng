@@ -40,7 +40,7 @@ class OAuth2Token(OAuth2TokenInit):
 
 def oauth2_token_is_oob(
     token_or_uri: OAuth2Token | OAuth2TokenInit | OAuth2Uri | None, /
-) -> bool:
+):
     """Check if the token is an out-of-band token."""
     return (
         token_or_uri['redirect_uri']  #
@@ -60,7 +60,7 @@ class OAuth2TokenOOB:
         self.state = state
 
     @override
-    def __str__(self) -> str:
+    def __str__(self):
         return (
             self.authorization_code
             if self.state is None

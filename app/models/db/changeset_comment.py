@@ -22,5 +22,5 @@ class ChangesetComment(ChangesetCommentInit):
     body_rich: NotRequired[str]
 
 
-async def changeset_comments_resolve_rich_text(objs: list[ChangesetComment]) -> None:
+async def changeset_comments_resolve_rich_text(objs: list[ChangesetComment]):
     await resolve_rich_text(objs, 'changeset_comment', 'body', 'plain')

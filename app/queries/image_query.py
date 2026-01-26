@@ -7,7 +7,7 @@ from app.queries.user_query import UserQuery
 
 class ImageQuery:
     @staticmethod
-    async def get_gravatar(user_id: UserId) -> bytes:
+    async def get_gravatar(user_id: UserId):
         """Get a user's gravatar image.r"""
         user = await UserQuery.find_by_id(user_id)
         if user is None:
@@ -17,7 +17,7 @@ class ImageQuery:
         return await GravatarQuery.load(user['email'])
 
     @staticmethod
-    async def get_avatar(avatar_id: StorageKey) -> bytes:
+    async def get_avatar(avatar_id: StorageKey):
         """Get a custom avatar image."""
         try:
             return await AVATAR_STORAGE.load(avatar_id)
@@ -25,7 +25,7 @@ class ImageQuery:
             raise_for.image_not_found()
 
     @staticmethod
-    async def get_background(background_id: StorageKey) -> bytes:
+    async def get_background(background_id: StorageKey):
         """Get a custom background image."""
         try:
             return await BACKGROUND_STORAGE.load(background_id)

@@ -1,15 +1,15 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
 import {
-  type MessagePage_Summary,
+  type MessagePage_SummaryValid,
   MessagePageSchema,
-  type MessageRead,
   MessageReadSchema,
+  type MessageReadValid,
 } from "@lib/proto/shared_pb"
 import { getSearchParam, updateSearchParams } from "@lib/qs"
 import { ReportButton } from "@lib/report"
+import { fromBinaryValid } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
 import { batch, useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
@@ -22,7 +22,7 @@ import { changeUnreadMessagesBadge } from "../navbar/navbar"
 type PreviewState =
   | { status: "closed" }
   | { status: "loading" }
-  | { status: "ready"; message: MessageRead }
+  | { status: "ready"; message: MessageReadValid }
   | { status: "error"; error: string }
 
 const getMessageFromPageUrl = () => {
@@ -56,7 +56,7 @@ const SummaryUserLink = ({
   </a>
 )
 
-const SummaryRecipients = ({ message }: { message: MessagePage_Summary }) => {
+const SummaryRecipients = ({ message }: { message: MessagePage_SummaryValid }) => {
   if (message.recipientsCount <= 1) {
     return <SummaryUserLink user={message.recipients[0]} />
   }
@@ -91,7 +91,7 @@ const MessagesListItem = ({
   openMessageId,
   onOpen,
 }: {
-  message: MessagePage_Summary
+  message: MessagePage_SummaryValid
   inbox: boolean
   openMessageId: bigint | null
   onOpen: (messageId: bigint) => void
@@ -169,7 +169,7 @@ const MessageActionsToolbar = ({
 }: {
   inbox: boolean
   messageId: bigint
-  message: MessageRead
+  message: MessageReadValid
   onUnread: () => void
   onDelete: () => void
 }) => {
@@ -349,7 +349,7 @@ const MessagePreview = ({
 }
 
 const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) => {
-  const messages = useSignal<MessagePage_Summary[]>([])
+  const messages = useSignal<MessagePage_SummaryValid[]>([])
   const openMessageId = useSignal<bigint | null>(getMessageFromPageUrl())
   const previewState = useSignal<PreviewState>({ status: "closed" })
   const previewRef = useRef<HTMLDivElement>(null)
@@ -449,7 +449,7 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
         const buffer = await resp.arrayBuffer()
         scope.signal.throwIfAborted()
-        const message = fromBinary(MessageReadSchema, new Uint8Array(buffer))
+        const message = fromBinaryValid(MessageReadSchema, new Uint8Array(buffer))
 
         batch(() => {
           if (inbox && message.isRecipient && message.wasUnread) {

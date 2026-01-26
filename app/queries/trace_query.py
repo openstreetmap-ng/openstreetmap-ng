@@ -292,7 +292,7 @@ class TraceQuery:
         *,
         limit_per_trace: int | None = None,
         resolution: int | None,
-    ) -> None:
+    ):
         """Resolve coordinates for traces, with optional sampling and resolution adjustment."""
         if not traces:
             return

@@ -1,9 +1,10 @@
-import { create, fromBinary, toBinary } from "@bufbuild/protobuf"
+import { create, toBinary } from "@bufbuild/protobuf"
 import {
   PasskeyAssertionSchema,
   PasskeyChallengeSchema,
   PasskeyRegistrationSchema,
 } from "@lib/proto/shared_pb"
+import { fromBinaryValid } from "@lib/rpc"
 import { t } from "i18next"
 
 /** Fetch and parse passkey challenge from server, returns challenge or error string */
@@ -14,7 +15,10 @@ const fetchPasskeyChallenge = async (formData?: FormData) => {
     priority: "high",
   })
   if (!resp.ok) return `Error: ${resp.status} ${resp.statusText}`
-  return fromBinary(PasskeyChallengeSchema, new Uint8Array(await resp.arrayBuffer()))
+  return fromBinaryValid(
+    PasskeyChallengeSchema,
+    new Uint8Array(await resp.arrayBuffer()),
+  )
 }
 
 /** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials */

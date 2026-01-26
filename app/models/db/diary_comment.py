@@ -24,5 +24,5 @@ class DiaryComment(DiaryCommentInit):
     diary: NotRequired[Diary]
 
 
-async def diary_comments_resolve_rich_text(objs: list[DiaryComment]) -> None:
+async def diary_comments_resolve_rich_text(objs: list[DiaryComment]):
     await resolve_rich_text(objs, 'diary_comment', 'body', 'markdown')

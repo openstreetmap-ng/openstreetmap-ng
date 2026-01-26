@@ -62,7 +62,7 @@ def auth_user() -> User | None: ...
 def auth_user(*, required: Literal[True]) -> User: ...
 @overload
 def auth_user(*, required: Literal[False]) -> User | None: ...
-def auth_user(*, required: bool = False) -> User | None:
+def auth_user(*, required: bool = False):
     """Get the authenticated user."""
     user = _USER_CTX.get()
     if user is None and required:
@@ -70,12 +70,12 @@ def auth_user(*, required: bool = False) -> User | None:
     return user
 
 
-def auth_scopes() -> frozenset[Scope]:
+def auth_scopes():
     """Get the authenticated user's scopes."""
     return _SCOPES_CTX.get()
 
 
-def auth_oauth2() -> tuple[ApplicationId, OAuth2TokenId] | None:
+def auth_oauth2():
     """Get the authenticated OAuth2 app and token ids."""
     return _OAUTH2_CTX.get()
 
@@ -90,7 +90,7 @@ def web_user(*require_scopes: Scope) -> User:
     return Security(_get_user, scopes=('web_user', *require_scopes))
 
 
-def _get_user(require_security_scopes: SecurityScopes) -> User:
+def _get_user(require_security_scopes: SecurityScopes):
     """
     Get the authenticated user.
     Raises an exception if the user is not authenticated or does not have the required scopes.
@@ -119,7 +119,7 @@ def _get_user(require_security_scopes: SecurityScopes) -> User:
 
 
 @cython.cfunc
-def _get_referer() -> str:
+def _get_referer():
     """
     Get referer for the current request.
     If not explicit referer is provided, return current destination instead.

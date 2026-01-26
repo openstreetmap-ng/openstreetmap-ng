@@ -9,7 +9,7 @@ from app.models.types import NoteId
 
 
 class NoteExceptionsMixin:
-    def note_not_found(self, note_id: NoteId) -> NoReturn:
+    def note_not_found(self, note_id: NoteId):
         raise APIError(
             status.HTTP_404_NOT_FOUND,
             detail=f'note/{note_id} not found',

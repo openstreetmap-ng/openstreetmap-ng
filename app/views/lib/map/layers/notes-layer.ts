@@ -1,10 +1,10 @@
-import { fromBinary } from "@bufbuild/protobuf"
 import { NoteRoute } from "@index/note"
 import { routerNavigate } from "@index/router"
 import { notesLayerLoading } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
-import { RenderNotesDataSchema } from "@lib/proto/shared_pb"
+import { RenderNotesDataSchema } from "@lib/proto/note_pb"
 import { qsEncode } from "@lib/qs"
+import { fromBinaryValid } from "@lib/rpc"
 import { assert } from "@std/assert"
 import { delay } from "@std/async/delay"
 import { SECOND } from "@std/datetime/constants"
@@ -148,7 +148,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
       const buffer = await resp.arrayBuffer()
-      const render = fromBinary(RenderNotesDataSchema, new Uint8Array(buffer))
+      const render = fromBinaryValid(RenderNotesDataSchema, new Uint8Array(buffer))
       const notes = convertRenderNotesData(render)
       source.setData(renderObjects(notes))
       fetchedBounds = fetchBounds

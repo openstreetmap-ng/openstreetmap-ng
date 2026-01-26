@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class ElementExceptionsMixin:
     def element_not_found(
         self, element_ref: TypedElementId | tuple[TypedElementId, int]
-    ) -> NoReturn:
+    ):
         if isinstance(element_ref, int):
             type, id = split_typed_element_id(element_ref)
             raise APIError(
@@ -29,7 +29,7 @@ class ElementExceptionsMixin:
                 detail=f'{type}/{id}v{version} not found',
             )
 
-    def element_redacted(self, versioned_ref: tuple[TypedElementId, int]) -> NoReturn:
+    def element_redacted(self, versioned_ref: tuple[TypedElementId, int]):
         type, id = split_typed_element_id(versioned_ref[0])
         version = versioned_ref[1]
         raise APIError(

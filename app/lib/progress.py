@@ -1,5 +1,5 @@
 import logging
-from collections.abc import Generator, Iterable, Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from time import monotonic
 from typing import Protocol, TypedDict, TypeVar, Unpack, overload
@@ -20,7 +20,7 @@ class _Advance(Protocol):
 
 
 @cython.cfunc
-def _format_number(n: float) -> str:
+def _format_number(n: float):
     """Format number with K/M/B/T suffix, 3 significant digits."""
     if n >= 1_000_000_000_000:
         v, suffix = n / 1_000_000_000_000, 'T'
@@ -40,7 +40,7 @@ def _format_number(n: float) -> str:
 
 
 @cython.cfunc
-def _format_time(seconds: float) -> str:
+def _format_time(seconds: float):
     """Format seconds into human readable time."""
     d, r = divmod(seconds, 86400)
     h, r = divmod(r, 3600)
@@ -57,7 +57,7 @@ def _format_time(seconds: float) -> str:
 @contextmanager
 def _progress_context(
     **kwargs: Unpack[_ProgressKwargs],
-) -> Generator[_Advance]:
+):
     desc = kwargs.get('desc')
     total: cython.size_t = kwargs.get('total', 0)
     total_str = _format_number(total) if total else ''
@@ -68,7 +68,7 @@ def _progress_context(
     next_log_time: cython.double = start_time + 5
     rate_width: cython.size_t = 0
 
-    def log(*, done: str | None = None) -> None:
+    def log(*, done: str | None = None):
         nonlocal rate_width, next_log_time
         now: cython.double = monotonic()
         elapsed = now - start_time
@@ -106,7 +106,7 @@ def _progress_context(
 
         logging.log(level, ' · '.join(parts))
 
-    def advance(n: cython.size_t = 1) -> None:
+    def advance(n: cython.size_t = 1):
         nonlocal current
         current += n
         now: cython.double = monotonic()
@@ -122,7 +122,7 @@ def _progress_context(
 def _progress_iterable(
     iterable: Iterable[_T],
     **kwargs: Unpack[_ProgressKwargs],
-) -> Generator[_T]:
+):
     if 'total' not in kwargs and (__len__ := getattr(iterable, '__len__', None)):
         kwargs['total'] = __len__()
     with _progress_context(**kwargs) as advance:

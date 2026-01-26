@@ -48,7 +48,7 @@ class _FileCacheLock:
         self.key = key
         self._file: FileIO | None = None
 
-    async def __aenter__(self) -> '_FileCacheLock':
+    async def __aenter__(self):
         dir = self.path.parent
         dir.mkdir(parents=True, exist_ok=True)
         lock_path = dir.joinpath(f'.{self.path.name}.lock')
@@ -72,7 +72,7 @@ class FileCache:
         self._base_dir = cache_dir.joinpath(dirname)
         self._memory_cache = _MEMORY_CACHES.setdefault(self._base_dir, OrderedDict())
 
-    async def get(self, key: StorageKey) -> bytes | None:
+    async def get(self, key: StorageKey):
         """
         Get a value from the file cache by key string.
         Returns None if the cache is not found.
@@ -119,7 +119,7 @@ class FileCache:
         logging.debug('Cache hit for %r (disk)', key)
         return entry.data
 
-    def lock(self, key: StorageKey) -> _FileCacheLock:
+    def lock(self, key: StorageKey):
         """Get a write lock for the given key."""
         return _FileCacheLock(self._get_path(key), key)
 
@@ -130,7 +130,7 @@ class FileCache:
         *,
         ttl: timedelta | None,
         volatile: bool = False,
-    ) -> None:
+    ):
         """Set a value in the file cache."""
         expires_at = int(time() + ttl.total_seconds()) if ttl is not None else None
         entry = FileCacheMeta(data=data, expires_at=expires_at, volatile=volatile)
@@ -150,7 +150,7 @@ class FileCache:
             if len(self._memory_cache) > FILE_CACHE_MEMORY_MAX_ENTRIES:
                 self._memory_cache.popitem(False)
 
-    def delete(self, key: StorageKey) -> None:
+    def delete(self, key: StorageKey):
         """Delete a key from the file cache."""
         path = self._get_path(key)
         path.unlink(missing_ok=True)

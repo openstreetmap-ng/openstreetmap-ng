@@ -16,9 +16,7 @@ _CTX = CacheContext('Overpass')
 
 class OverpassQuery:
     @staticmethod
-    async def nearby_elements(
-        point: Point, radius_meters: float
-    ) -> list[OverpassElement]:
+    async def nearby_elements(point: Point, radius_meters: float):
         """
         Query Overpass for elements nearby a point.
 
@@ -32,7 +30,7 @@ class OverpassQuery:
             'out geom qt;'
         )
 
-        async def factory() -> bytes:
+        async def factory():
             logging.debug(
                 'Querying Overpass for nearby elements at %r with radius %r',
                 point,
@@ -53,7 +51,7 @@ class OverpassQuery:
         return elements_data
 
     @staticmethod
-    async def enclosing_elements(point: Point) -> list['OverpassElement']:
+    async def enclosing_elements(point: Point):
         """
         Query Overpass for elements enclosing by a point.
 
@@ -72,7 +70,7 @@ class OverpassQuery:
             'out geom qt;'
         )
 
-        async def factory() -> bytes:
+        async def factory():
             logging.debug('Querying Overpass for enclosing elements at %r', point)
             r = await HTTP.post(
                 OVERPASS_INTERPRETER_URL,

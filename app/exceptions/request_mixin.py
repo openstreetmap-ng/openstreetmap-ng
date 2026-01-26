@@ -7,16 +7,16 @@ from app.exceptions.api_error import APIError
 
 
 class RequestExceptionsMixin:
-    def request_timeout(self) -> NoReturn:
+    def request_timeout(self):
         raise APIError(status.HTTP_504_GATEWAY_TIMEOUT, detail='Request Timeout')
 
-    def too_many_requests(self) -> NoReturn:
+    def too_many_requests(self):
         raise APIError(status.HTTP_429_TOO_MANY_REQUESTS, detail='Too Many Requests')
 
-    def bad_cursor(self) -> NoReturn:
+    def bad_cursor(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Invalid database cursor')
 
-    def cursor_expired(self) -> NoReturn:
+    def cursor_expired(self):
         raise APIError(status.HTTP_400_BAD_REQUEST, detail='Database cursor expired')
 
     @abstractmethod

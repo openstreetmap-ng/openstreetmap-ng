@@ -39,9 +39,9 @@ class ElementSpatialQuery:
                         AND e.latest
                     WHERE h3_geometry_to_compact_cells(es.geom, 10) && %(h3_cells)s::h3index[]
                         AND ST_Intersects(es.geom, %(area)s)
-
+    
                     UNION ALL
-
+    
                     SELECT
                         e.typed_id,
                         e.sequence_id,

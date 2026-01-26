@@ -10,7 +10,9 @@ from typing import (
     Any,
     ForwardRef,
     NewType,
+    ParamSpec,
     TypedDict,
+    TypeVar,
     Union,
     get_args,
     get_origin,
@@ -51,7 +53,11 @@ _REGISTRY: dict[TaskId, TaskDefinition] = {}
 _TG: TaskGroup
 
 
-def register_admin_task(func: Callable):
+_P = ParamSpec('_P')
+_R = TypeVar('_R')
+
+
+def register_admin_task(func: Callable[_P, _R]):
     """Decorator to register a method as a manageable task."""
     task_id: TaskId = func.__name__  # type: ignore
     if task_id in _REGISTRY:
@@ -125,7 +131,7 @@ class AdminTaskService:
         return result
 
     @staticmethod
-    def start_task(task_id: TaskId, args: dict[str, str]) -> None:
+    def start_task(task_id: TaskId, args: dict[str, str]):
         definition = _REGISTRY.get(task_id)
         if definition is None:
             raise ValueError(f'Task with {task_id=!r} not found')
@@ -137,7 +143,7 @@ class AdminTaskService:
         audit('admin_task', extra={'id': task_id, 'args': validated_args}).close()
 
 
-async def _start_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
+async def _start_task(definition: TaskDefinition, args: dict[str, Any]):
     timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
     async with db(True, autocommit=True) as conn, conn.pipeline():
@@ -180,7 +186,7 @@ def _func_args_model(func: Callable) -> type[BaseModel]:
     )
 
 
-async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
+async def _run_task(definition: TaskDefinition, args: dict[str, Any]):
     task_id = definition['id']
     logging.info('Task %r started with args: %s', task_id, args)
 
@@ -208,7 +214,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]) -> None:
         logging.info('Task %r finished successfully', task_id)
 
 
-async def _heartbeat_loop(task_id: TaskId) -> None:
+async def _heartbeat_loop(task_id: TaskId):
     while True:
         # Periodically update the heartbeat field
         await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())

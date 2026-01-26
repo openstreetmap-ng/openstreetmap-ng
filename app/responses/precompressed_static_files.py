@@ -10,7 +10,7 @@ import cython
 from fastapi import HTTPException
 from starlette import status
 from starlette.datastructures import Headers
-from starlette.responses import FileResponse, Response
+from starlette.responses import FileResponse
 from starlette.staticfiles import NotModifiedResponse, StaticFiles
 from starlette.types import Scope
 from starlette_compress._utils import parse_accept_encoding
@@ -27,7 +27,7 @@ class PrecompressedStaticFiles(StaticFiles):
         self._resolve_cache = OrderedDict[_CacheKey, _CacheValue]()
 
     @override
-    async def get_response(self, path: str, scope: Scope) -> Response:
+    async def get_response(self, path: str, scope: Scope):
         request_headers = Headers(scope=scope)
         accept_encoding = request_headers.get('Accept-Encoding')
         full_path, stat_result, encoding = self._resolve(path, accept_encoding)
@@ -50,7 +50,7 @@ class PrecompressedStaticFiles(StaticFiles):
         response_headers['X-Precompressed'] = '1'
         return response
 
-    def _resolve(self, request_path: str, accept_encoding: str | None) -> _CacheValue:
+    def _resolve(self, request_path: str, accept_encoding: str | None):
         cache_key: _CacheKey = (request_path, accept_encoding)
         result = self._resolve_cache.get(cache_key)
 
@@ -85,12 +85,12 @@ class PrecompressedStaticFiles(StaticFiles):
 
 
 @lru_cache(maxsize=512)
-def _guess_media_type(path: str) -> str:
+def _guess_media_type(path: str):
     return guess_type(path)[0] or 'text/plain'
 
 
 @cython.cfunc
-def _try_paths(path: str, accept_encoding: str) -> list[tuple[str, str | None]]:
+def _try_paths(path: str, accept_encoding: str):
     """
     Returns a list of (path, encoding) tuples to try.
 

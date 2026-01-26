@@ -65,7 +65,7 @@ _ElementInitListValidator = TypeAdapter(list[ElementInit], config=PYDANTIC_CONFI
 
 
 # TODO: check use
-def validate_elements(elements: list[ElementInit]) -> list[ElementInit]:
+def validate_elements(elements: list[ElementInit]):
     elements = _ElementInitListValidator.validate_python(elements)
 
     for element in elements:

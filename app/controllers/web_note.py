@@ -32,13 +32,9 @@ from app.models.db.note_comment import (
     NoteEvent,
     note_comments_resolve_rich_text,
 )
-from app.models.db.user import User, user_avatar_url
-from app.models.proto.shared_pb2 import (
-    NoteCommentPage,
-    NoteCommentResult,
-    NoteData,
-    StandardPaginationState,
-)
+from app.models.db.user import User, user_proto
+from app.models.proto.note_pb2 import NoteCommentPage, NoteCommentResult, NoteData
+from app.models.proto.shared_pb2 import LonLat
 from app.models.types import Latitude, Longitude, NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
@@ -70,8 +66,8 @@ async def create_note_comment(
     await NoteService.comment(note_id, text, event)
 
     async with TaskGroup() as tg:
-        note_t = tg.create_task(_build_note_data(note_id))
-        comments_t = tg.create_task(_build_comments_page(note_id))
+        note_t = tg.create_task(build_note_data(note_id))
+        comments_t = tg.create_task(build_note_comments_page(note_id))
 
     comments_page, state = comments_t.result()
     result = NoteCommentResult(note=note_t.result(), comments=comments_page)
@@ -102,12 +98,6 @@ async def get_map(bbox: Annotated[str, Query()]):
     )
 
 
-@router.get('/{note_id:int}')
-async def get_note(note_id: NoteId):
-    result = await _build_note_data(note_id)
-    return Response(result.SerializeToString(), media_type='application/x-protobuf')
-
-
 @router.post('/{note_id:int}/comments')
 async def comments_page(
     note_id: NoteId,
@@ -117,7 +107,7 @@ async def comments_page(
     if not notes:
         raise_for.note_not_found(note_id)
 
-    page, state = await _build_comments_page(note_id, sp_state)
+    page, state = await build_note_comments_page(note_id, sp_state)
     return sp_render_response_bytes(page.SerializeToString(), state)
 
 
@@ -162,7 +152,7 @@ async def user_notes_page(
     )
 
 
-async def _build_note_data(note_id: NoteId) -> NoteData:
+async def build_note_data(note_id: NoteId):
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     note = next(iter(notes), None)
     if note is None:
@@ -193,19 +183,10 @@ async def _build_note_data(note_id: NoteId) -> NoteData:
 
     return NoteData(
         id=note_id,
-        lon=x,
-        lat=y,
+        location=LonLat(lon=x, lat=y),
         status=status,
         header=NoteData.Header(
-            user=(
-                NoteData.User(
-                    id=header_user['id'],
-                    display_name=header_user['display_name'],
-                    avatar_url=user_avatar_url(header_user),
-                )
-                if header_user is not None
-                else None
-            ),
+            user=user_proto(header_user),
             created_at=int(header['created_at'].timestamp()),
             body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
         ),
@@ -214,9 +195,7 @@ async def _build_note_data(note_id: NoteId) -> NoteData:
     )
 
 
-async def _build_comments_page(
-    note_id: NoteId, sp_state: bytes = b''
-) -> tuple[NoteCommentPage, StandardPaginationState]:
+async def build_note_comments_page(note_id: NoteId, sp_state: bytes = b''):
     comments, state = await sp_paginate_table(
         NoteComment,
         sp_state,
@@ -235,14 +214,7 @@ async def _build_comments_page(
     page = NoteCommentPage(
         comments=[
             NoteCommentPage.Comment(
-                user=(
-                    NoteCommentPage.Comment.User(
-                        display_name=comment_user['display_name'],
-                        avatar_url=user_avatar_url(comment_user),
-                    )
-                    if (comment_user := c.get('user')) is not None
-                    else None
-                ),
+                user=user_proto(c.get('user')),
                 event=c['event'],
                 created_at=int(c['created_at'].timestamp()),
                 body_rich=c.get('body_rich', ''),

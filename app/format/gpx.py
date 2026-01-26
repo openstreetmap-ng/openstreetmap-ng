@@ -17,7 +17,7 @@ class DecodeTracksResult(NamedTuple):
 
 class FormatGPX:
     @staticmethod
-    def encode_tracks(traces: list[Trace]) -> dict:
+    def encode_tracks(traces: list[Trace]):
         trk: list[dict] = []
 
         for trace in traces:
@@ -77,7 +77,7 @@ class FormatGPX:
         return {'trk': trk}
 
     @staticmethod
-    def decode_tracks(tracks: list[dict]) -> DecodeTracksResult:
+    def decode_tracks(tracks: list[dict]):
         size: cython.size_t = 0
         segments: list[list[tuple[float, float]]] = []
         elevations: list[float | None] = []

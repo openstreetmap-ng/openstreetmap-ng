@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, NoReturn, override
+from typing import TYPE_CHECKING, override
 
 from starlette import status
 
@@ -15,7 +15,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
     def element_not_found(
         self, element_ref: TypedElementId | tuple[TypedElementId, int]
-    ) -> NoReturn:
+    ):
         if isinstance(element_ref, int):
             type, id = split_typed_element_id(element_ref)
             # version = None
@@ -29,18 +29,18 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_redacted(self, versioned_ref: tuple[TypedElementId, int]) -> NoReturn:
+    def element_redacted(self, versioned_ref: tuple[TypedElementId, int]):
         self.element_not_found(versioned_ref)
 
     @override
-    def element_redact_latest(self) -> NoReturn:
+    def element_redact_latest(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail='Cannot redact current version of element, only historical versions may be redacted',
         )
 
     @override
-    def element_already_deleted(self, element_ref: TypedElementId) -> NoReturn:
+    def element_already_deleted(self, element_ref: TypedElementId):
         type, id = split_typed_element_id(element_ref)
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
@@ -48,7 +48,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
         )
 
     @override
-    def element_changeset_missing(self) -> NoReturn:
+    def element_changeset_missing(self):
         raise APIError(
             status.HTTP_409_CONFLICT,
             detail='You need to supply a changeset to be able to make a change',
@@ -57,7 +57,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
     def element_version_conflict(
         self, element: 'Element | ElementInit', local_version: int
-    ) -> NoReturn:
+    ):
         type, id = split_typed_element_id(element['typed_id'])
         raise APIError(
             status.HTTP_409_CONFLICT,
@@ -67,7 +67,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
     def element_member_not_found(
         self, parent_ref: TypedElementId, member_ref: TypedElementId
-    ) -> NoReturn:
+    ):
         parent_type, parent_id = split_typed_element_id(parent_ref)
         member_type, member_id = split_typed_element_id(member_ref)
 
@@ -88,7 +88,7 @@ class ElementExceptions06Mixin(ElementExceptionsMixin):
     @override
     def element_in_use(
         self, element_ref: TypedElementId, used_by: list[TypedElementId]
-    ) -> NoReturn:
+    ):
         # wtf is this condition
         type, id = split_typed_element_id(element_ref)
         used_by_type_id = split_typed_element_ids(used_by)

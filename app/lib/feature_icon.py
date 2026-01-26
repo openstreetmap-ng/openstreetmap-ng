@@ -94,9 +94,7 @@ for _config_key, _values_popularity_map in _POPULAR_STATS.items():
         raise NotImplementedError(f'Unsupported element type {_type!r}')
 
 
-def features_icons(
-    elements: Iterable[Element | ElementInit | None],
-) -> list[FeatureIcon | None]:
+def features_icons(elements: Iterable[Element | ElementInit | None]):
     """
     Get the icons filenames and titles for the given elements.
 

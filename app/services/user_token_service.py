@@ -9,7 +9,7 @@ from app.models.types import UserId
 
 class UserTokenService:
     @staticmethod
-    async def delete_all_for_user(conn: AsyncConnection, user_id: UserId) -> None:
+    async def delete_all_for_user(conn: AsyncConnection, user_id: UserId):
         """Delete all tokens for the given user."""
         await conn.execute(
             'DELETE FROM user_token WHERE user_id = %s',
@@ -17,7 +17,7 @@ class UserTokenService:
         )
 
     @staticmethod
-    async def delete_expired() -> None:
+    async def delete_expired():
         """Delete all expired tokens of all types."""
         async with db(True, autocommit=True) as conn:
             total = 0

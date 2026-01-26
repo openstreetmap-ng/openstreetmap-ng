@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 import cython
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
+from psycopg.sql import SQL
 
 from app.db import db
 from app.models.db.report import Report
@@ -47,7 +47,7 @@ class ReportQuery:
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def count_requiring_attention(visible_to: UserRole) -> _ReportCountResult:
+    async def count_requiring_attention(visible_to: UserRole):
         """Count reports requiring attention."""
         # Build query dynamically based on visibility level
         if visible_to == 'administrator':
@@ -89,7 +89,7 @@ class ReportQuery:
 
 
 @cython.cfunc
-def _where_open(open: bool | None) -> Composable:
+def _where_open(open: bool | None):
     if open is True:
         return SQL('closed_at IS NULL')
     if open is False:

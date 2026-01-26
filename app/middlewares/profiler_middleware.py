@@ -16,7 +16,7 @@ class ProfilerMiddleware:
     def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
@@ -26,7 +26,7 @@ class ProfilerMiddleware:
         profiler = Profiler()
         profiler.start()
 
-        async def wrapper(message: Message) -> None:
+        async def wrapper(message: Message):
             if message['type'] == 'http.response.start':
                 profiler.stop()
                 response = HTMLResponse(profiler.output_html())

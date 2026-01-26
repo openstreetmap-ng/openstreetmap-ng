@@ -24,7 +24,7 @@ router = APIRouter(prefix='/api/web/img')
 
 @router.get('/avatar/anonymous_note/{note_id:int}')
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
-async def anonymous_note_avatar(note_id: NoteId) -> Response:
+async def anonymous_note_avatar(note_id: NoteId):
     header = await NoteCommentQuery.find_header(note_id)
     if header is None or header['event'] != 'opened' or header['user_id'] is not None:
         return Response(None, status.HTTP_404_NOT_FOUND)
@@ -37,7 +37,7 @@ async def anonymous_note_avatar(note_id: NoteId) -> Response:
 
 @router.get('/avatar/initials/{user_id:int}')
 @cache_control(INITIALS_CACHE_MAX_AGE, STATIC_CACHE_STALE)
-async def text_avatar(user_id: UserId) -> Response:
+async def text_avatar(user_id: UserId):
     user = await UserQuery.find_by_id(user_id)
     if user is None:
         return Response(None, status.HTTP_404_NOT_FOUND)
@@ -49,7 +49,7 @@ async def text_avatar(user_id: UserId) -> Response:
 
 @router.get('/avatar/gravatar/{user_id:int}')
 @cache_control(GRAVATAR_CACHE_EXPIRE, STATIC_CACHE_STALE)
-async def gravatar(user_id: UserId) -> Response:
+async def gravatar(user_id: UserId):
     file = await ImageQuery.get_gravatar(user_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)
@@ -57,7 +57,7 @@ async def gravatar(user_id: UserId) -> Response:
 
 @router.get('/avatar/custom/{avatar_id}')
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
-async def avatar(avatar_id: Annotated[StorageKey, Path(min_length=1)]) -> Response:
+async def avatar(avatar_id: Annotated[StorageKey, Path(min_length=1)]):
     file = await ImageQuery.get_avatar(avatar_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)
@@ -67,7 +67,7 @@ async def avatar(avatar_id: Annotated[StorageKey, Path(min_length=1)]) -> Respon
 @cache_control(STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE)
 async def background(
     background_id: Annotated[StorageKey, Path(min_length=1)],
-) -> Response:
+):
     file = await ImageQuery.get_background(background_id)
     content_type = magic.from_buffer(file[:2048], mime=True)
     return Response(file, media_type=content_type)
@@ -75,6 +75,6 @@ async def background(
 
 @router.get('/proxy/{proxy_id:int}')
 @cache_control(IMAGE_PROXY_CACHE_EXPIRE, STATIC_CACHE_STALE)
-async def proxy(proxy_id: Annotated[ImageProxyId, Path()]) -> Response:
+async def proxy(proxy_id: Annotated[ImageProxyId, Path()]):
     file, media_type = await ImageProxyService.fetch(proxy_id)
     return Response(file, media_type=media_type)

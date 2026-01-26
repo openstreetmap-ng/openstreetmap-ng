@@ -46,7 +46,7 @@ class TraceService:
         try:
             tracks: list[dict] = []
             for gpx_bytes in TraceFile.extract(file_bytes):
-                new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])  # type: ignore
+                new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])
                 tracks.extend(new_tracks)
         except Exception as e:
             raise_for.bad_trace_file(str(e))
@@ -123,7 +123,7 @@ class TraceService:
         description: str,
         tags: list[str],
         visibility: TraceVisibility,
-    ) -> None:
+    ):
         """Update a trace."""
         user_id = auth_user(required=True)['id']
         trace = await TraceQuery.get_by_id(trace_id)
@@ -172,7 +172,7 @@ class TraceService:
                 await audit('update_trace', conn, extra=audit_extra)
 
     @staticmethod
-    async def delete(trace_id: TraceId) -> None:
+    async def delete(trace_id: TraceId):
         """Delete a trace."""
         user_id = auth_user(required=True)['id']
 
@@ -206,7 +206,7 @@ class TraceService:
 
 
 @cython.cfunc
-def _get_file_name(file: UploadFile) -> str:
+def _get_file_name(file: UploadFile):
     """
     Get the file name from the upload file.
 

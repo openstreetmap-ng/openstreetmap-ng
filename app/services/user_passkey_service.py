@@ -16,7 +16,6 @@ from app.lib.webauthn import (
     verify_assertion,
 )
 from app.models.proto.shared_pb2 import (
-    LoginResponse,
     PasskeyAssertion,
     PasskeyCredential,
     PasskeyRegistration,
@@ -30,7 +29,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserPasskeyService:
     @staticmethod
-    async def register_passkey(registration: PasskeyRegistration) -> None:
+    async def register_passkey(registration: PasskeyRegistration):
         """Register a new passkey for the current user."""
         user_id = auth_user(required=True)['id']
 
@@ -94,9 +93,7 @@ class UserPasskeyService:
             await audit('add_passkey', conn, extra=extra)
 
     @staticmethod
-    async def verify_passkey(
-        assertion: PasskeyAssertion, *, require_uv: bool = True
-    ) -> UserId | LoginResponse | None:
+    async def verify_passkey(assertion: PasskeyAssertion, *, require_uv: bool = True):
         """Verify a passkey assertion."""
         # Parse and validate client data
         client_data = parse_client_data(
@@ -139,7 +136,7 @@ class UserPasskeyService:
         *,
         password: Password | None,
         user_id: UserId | None = None,
-    ) -> None:
+    ):
         """Remove a passkey from a user's account."""
         if password is None:
             assert user_id is not None
@@ -182,7 +179,7 @@ class UserPasskeyService:
             )
 
     @staticmethod
-    async def rename_passkey(credential_id: bytes, *, name: str) -> str | None:
+    async def rename_passkey(credential_id: bytes, *, name: str):
         """
         Rename a passkey for the current user.
         Empty name restores the default.
@@ -216,7 +213,7 @@ class UserPasskeyService:
         return aaguid_info['name'] if aaguid_info else t('two_fa.my_passkey')
 
     @staticmethod
-    async def get_credentials(user_id: UserId) -> list[PasskeyCredential]:
+    async def get_credentials(user_id: UserId):
         """Get credentials for a user's passkeys."""
         passkeys = await UserPasskeyQuery.find_all_by_user_id(user_id)
         return [

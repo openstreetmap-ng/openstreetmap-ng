@@ -95,22 +95,22 @@ def validate_trace_tags(tags: str | list[str] | None) -> list[str]:
     return result
 
 
-def trace_is_linked_to_user_in_api(trace: Trace) -> bool:
+def trace_is_linked_to_user_in_api(trace: Trace):
     """Check if the trace is linked to the user in the API."""
     return trace['visibility'] == 'identifiable'
 
 
-def trace_is_linked_to_user_on_site(trace: Trace) -> bool:
+def trace_is_linked_to_user_on_site(trace: Trace):
     """Check if the trace is linked to the user on the site."""
     return trace['visibility'] in {'identifiable', 'public'}
 
 
-def trace_is_timestamps_via_api(trace: Trace) -> bool:
+def trace_is_timestamps_via_api(trace: Trace):
     """Check if the trace timestamps are tracked via the API."""
     return trace['visibility'] in {'identifiable', 'trackable'}
 
 
-def trace_is_visible(trace: Trace) -> bool:
+def trace_is_visible(trace: Trace):
     """Check if the trace is visible to the current user."""
     return (
         trace_is_linked_to_user_on_site(trace)

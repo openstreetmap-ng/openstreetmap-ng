@@ -22,7 +22,7 @@ class CacheService:
         *,
         ttl: timedelta = CACHE_DEFAULT_EXPIRE,
         volatile: bool = False,
-    ) -> bytes:
+    ):
         """
         Get a value from the cache.
         If the value is not in the cache, call the async factory to obtain it.
@@ -51,7 +51,7 @@ class CacheService:
             return value
 
     @staticmethod
-    def delete(context: CacheContext, key: StorageKey) -> None:
+    def delete(context: CacheContext, key: StorageKey):
         """Delete a key from the cache."""
         fc = _get_file_cache(context)
         fc.delete(key)

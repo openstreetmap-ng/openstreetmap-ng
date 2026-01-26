@@ -16,7 +16,7 @@ def pydantic_settings_integration(
     name_filter: Callable[[str], bool] = (
         lambda name: name[:1] != '_' and name.isupper()
     ),
-) -> None:
+):
     """
     Introspects the calling module's globals, creates a dynamic Pydantic
     BaseSettings model, loads settings from environment/.env files, and updates

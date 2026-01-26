@@ -1,4 +1,9 @@
-import { create, fromBinary, type Message, toBinary } from "@bufbuild/protobuf"
+import {
+  create,
+  type Message,
+  type MessageValidType,
+  toBinary,
+} from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import {
@@ -11,6 +16,7 @@ import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
+import { fromBinaryValid } from "@lib/rpc"
 import { range } from "@lib/utils"
 import {
   batch,
@@ -31,6 +37,8 @@ const SP_HEADER = "X-StandardPagination"
 
 type PageOrder = "asc" | "asc-range" | "desc" | "desc-range"
 
+type PaginationSchema = GenMessage<Message, { validType: Message }>
+
 type StandardPaginationOptions = {
   initialPage?: number
   customLoader?: (renderContainer: HTMLElement, page: number) => void
@@ -48,7 +56,7 @@ type StandardPaginationElements = {
 
 // State machine types for pagination resource
 /** Preloaded page response for external injection (e.g., after POST) */
-export type PaginationResponse<TData> = {
+export type PaginationResponse<TData extends Message> = {
   data: TData
   state: StandardPaginationState
 }
@@ -212,9 +220,7 @@ const PaginationItems = ({
             <button
               type="button"
               class="page-link"
-              onClick={() => {
-                targetPage.value = actualPageNum
-              }}
+              onClick={() => (targetPage.value = actualPageNum)}
             >
               {label}
             </button>
@@ -226,7 +232,7 @@ const PaginationItems = ({
 }
 
 // Hook: manages pagination state machine
-const useStandardPagination = <TData,>({
+const useStandardPagination = <TSchema extends PaginationSchema>({
   action,
   initialPage,
   responseSignal,
@@ -235,10 +241,14 @@ const useStandardPagination = <TData,>({
 }: {
   action: string
   initialPage: number
-  responseSignal: Signal<PaginationResponse<TData> | null> | undefined
-  protobuf: GenMessage<TData & Message> | undefined
-  onLoad: ((data: TData, page: number) => void) | undefined
+  responseSignal:
+    | Signal<PaginationResponse<MessageValidType<TSchema>> | null>
+    | undefined
+  protobuf: TSchema
+  onLoad: ((data: MessageValidType<TSchema>, page: number) => void) | undefined
 }) => {
+  type TData = MessageValidType<TSchema>
+
   const state = useSignal<StandardPaginationState | null>(null)
   const targetPage = useSignal(initialPage)
   const resource = useSignal<PaginationResource<TData>>({ tag: "boot" })
@@ -313,9 +323,7 @@ const useStandardPagination = <TData,>({
           }
         }
 
-        const data = protobuf
-          ? (fromBinary(protobuf, new Uint8Array(await resp.arrayBuffer())) as TData)
-          : ((await resp.text()) as unknown as TData)
+        const data = fromBinaryValid(protobuf, new Uint8Array(await resp.arrayBuffer()))
 
         scope.signal.throwIfAborted()
 
@@ -337,7 +345,7 @@ const useStandardPagination = <TData,>({
   return { targetPage, resource, currentPage, state }
 }
 
-export const StandardPagination = <TData,>({
+export const StandardPagination = <TSchema extends PaginationSchema>({
   action,
   label = t("alt.page_navigation"),
   initialPage = 1,
@@ -352,7 +360,6 @@ export const StandardPagination = <TData,>({
   onLoad,
   children,
 }: {
-  // If `action` changes, pass a changing `key` to remount and reset pagination state.
   action: string
   label?: string
   initialPage?: number
@@ -362,10 +369,10 @@ export const StandardPagination = <TData,>({
   navClassTop?: string
   navBottom?: boolean
   navClassBottom?: string
-  protobuf?: GenMessage<TData & Message>
-  responseSignal?: Signal<PaginationResponse<TData> | null>
-  onLoad?: (data: TData, page: number) => void
-  children: (data: TData) => ComponentChildren
+  protobuf: TSchema
+  responseSignal?: Signal<PaginationResponse<MessageValidType<TSchema>> | null>
+  onLoad?: (data: MessageValidType<TSchema>, page: number) => void
+  children: (data: MessageValidType<TSchema>) => ComponentChildren
 }) => {
   const { targetPage, resource, currentPage, state } = useStandardPagination({
     action,
@@ -727,10 +734,10 @@ const buildFetchInit = (
 const parsePaginationHeader = (headers: Headers) => {
   const header = headers.get(SP_HEADER)
   assertExists(header, `Pagination: Missing ${SP_HEADER} header`)
-  return fromBinary(StandardPaginationStateSchema, base64Decode(header))
+  return fromBinaryValid(StandardPaginationStateSchema, base64Decode(header))
 }
 
-export const toPaginationResponse = <TData,>(
+export const toPaginationResponse = <TData extends Message>(
   data: TData,
   headers: Headers,
 ): PaginationResponse<TData> => ({

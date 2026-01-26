@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from asyncio import Event, TaskGroup
-from collections.abc import Coroutine
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
@@ -72,7 +71,7 @@ def audit(
     discard_repeated: timedelta | None | Literal['UNSET'] = 'UNSET',
     # Constants
     AUDIT_USER_AGENT_MAX_LENGTH: cython.size_t = AUDIT_USER_AGENT_MAX_LENGTH,
-) -> Coroutine[None, None, None]:
+):
     """
     Log audit events for security monitoring and compliance.
     Schedules the DB write immediately and returns an awaitable.
@@ -156,7 +155,7 @@ async def _audit_task(
     conn: AsyncConnection | None,
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
-) -> None:
+):
     query = SQL("""
         INSERT INTO audit (
             id, type, ip, user_agent, user_id,
@@ -200,8 +199,8 @@ async def _audit_task(
 
 
 @retry(None)
-async def _process_task() -> None:
-    async def sleep(delay: float) -> None:
+async def _process_task():
+    async def sleep(delay: float):
         if delay > 0:
             try:
                 await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
@@ -231,7 +230,7 @@ async def _process_task() -> None:
         await sleep(uniform(23.5 * 3600, 24.5 * 3600))
 
 
-async def _cleanup_old_audit_logs() -> None:
+async def _cleanup_old_audit_logs():
     """Delete old audit logs based on configured retention periods."""
     async with db(True) as conn:
         for audit_type in AUDIT_TYPE_VALUES:

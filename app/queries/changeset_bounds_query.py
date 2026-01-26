@@ -7,7 +7,7 @@ from app.models.types import ChangesetId
 
 class ChangesetBoundsQuery:
     @staticmethod
-    async def resolve_bounds(changesets: list[Changeset]) -> None:
+    async def resolve_bounds(changesets: list[Changeset]):
         """Resolve bounds for changesets."""
         if not changesets:
             return

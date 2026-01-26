@@ -3,7 +3,7 @@ from base64 import urlsafe_b64decode, urlsafe_b64encode
 from time import time
 
 import cython
-from fastapi import HTTPException, Response
+from fastapi import HTTPException
 from starlette import status
 from starlette.responses import RedirectResponse
 
@@ -41,7 +41,7 @@ class AuthProviderService:
         referer: str | None,
         redirect_uri: str,
         redirect_params: dict[str, str],
-    ) -> RedirectResponse:
+    ):
         state, hmac = _create_signed_state(
             provider=provider,
             action=action,
@@ -67,7 +67,7 @@ class AuthProviderService:
         provider: AuthProvider,
         query_state: str,
         cookie_state: str,
-    ) -> AuthProviderState:
+    ):
         """Parse and validate an auth provider state."""
         buffer_b64 = cookie_state.encode()
         if not hash_compare(
@@ -92,7 +92,7 @@ class AuthProviderService:
         uid: str | int,
         name: str | None,
         email: str | None,
-    ) -> Response:
+    ):
         if state.provider not in AUTH_PROVIDERS:
             raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
 
@@ -179,7 +179,7 @@ class AuthProviderService:
         raise NotImplementedError(f'Unsupported auth provider action {action!r}')
 
     @staticmethod
-    def validate_verification(s: str | None) -> AuthProviderVerification | None:
+    def validate_verification(s: str | None):
         """
         Parse an auth provider verification string.
 
@@ -220,7 +220,7 @@ def _create_signed_state(
     provider: AuthProvider,
     action: AuthProviderAction,
     referer: str | None,
-) -> tuple[str, str]:
+):
     """
     Create and sign an auth provider state.
 
@@ -246,7 +246,7 @@ def _create_signed_verification(
     uid: str,
     name: str | None,
     email: str | None,
-) -> str:
+):
     """
     Create and sign an auth provider verification data.
 

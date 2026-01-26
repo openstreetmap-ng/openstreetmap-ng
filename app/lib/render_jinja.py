@@ -54,9 +54,7 @@ _J2 = Environment(
 )
 
 
-def render_jinja(
-    template_name: str, template_data: dict[str, Any] | None = None, /
-) -> str:
+def render_jinja(template_name: str, template_data: dict[str, Any] | None = None, /):
     """Render the given Jinja2 template with translation."""
     data = {
         'ENV': ENV,
@@ -72,7 +70,7 @@ def render_jinja(
     return _J2.get_template(template_name).render(data)
 
 
-def timeago(date: datetime | None, *, html: bool = False) -> str:
+def timeago(date: datetime | None, *, html: bool = False):
     """
     Get a human-readable time difference from the given date.
     Optionally, return the result as an HTML <time> element.
@@ -144,18 +142,18 @@ def timeago(date: datetime | None, *, html: bool = False) -> str:
     return ago
 
 
-def b64(value: bytes) -> str:
+def b64(value: bytes):
     """Encode bytes to base64url without padding."""
     return urlsafe_b64encode(value).rstrip(b'=').decode()
 
 
 # TODO: ideally we should fix translation
-def stripspecial(value: str) -> str:
+def stripspecial(value: str):
     """Strip special characters from the given string."""
     return value.strip('!?:;., ')
 
 
-def mask_ip(ip: IPv4Address | IPv6Address) -> str:
+def mask_ip(ip: IPv4Address | IPv6Address):
     """
     Mask an IP address for privacy in user-facing displays.
 

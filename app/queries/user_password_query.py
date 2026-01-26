@@ -6,7 +6,7 @@ from app.models.types import UserId
 
 class UserPasswordQuery:
     @staticmethod
-    async def get_updated_at(user_id: UserId) -> datetime | None:
+    async def get_updated_at(user_id: UserId):
         """Get the updated_at timestamp of the user's password."""
         async with (
             db() as conn,

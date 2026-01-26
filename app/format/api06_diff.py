@@ -17,7 +17,7 @@ class Diff06Mixin:
     @staticmethod
     def encode_diff_result(
         assigned_ref_map: dict[TypedElementId, tuple[TypedElementId, list[int]]],
-    ) -> list[tuple[ElementType, Diff06ResultDict]]:
+    ):
         """
         >>> encode_diff_result({
         ...     ElementRef(type=ElementType.node, id=-1): [

@@ -36,7 +36,7 @@ class OpenIDQuery:
     async def discovery(base_url: str) -> OpenIDDiscovery:
         """Perform OpenID Connect discovery."""
 
-        async def factory() -> bytes:
+        async def factory():
             logging.debug('OpenID discovery cache miss for %r', base_url)
             r = await HTTP.get(
                 f'{base_url}/.well-known/openid-configuration',

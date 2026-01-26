@@ -68,5 +68,5 @@ class ReportComment(ReportCommentInit):
     has_access: NotRequired[bool]
 
 
-async def report_comments_resolve_rich_text(objs: list[ReportComment]) -> None:
+async def report_comments_resolve_rich_text(objs: list[ReportComment]):
     await resolve_rich_text(objs, 'report_comment', 'body', 'plain')

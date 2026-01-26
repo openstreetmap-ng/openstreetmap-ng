@@ -34,7 +34,7 @@ def scope_from_kwargs(
     write_gpx: bool = False,
     write_notes: bool = False,
     **_: bool,
-) -> frozenset[PublicScope]:
+):
     """
     Return the scopes from the given kwargs. Unsupported keys are ignored.
 
@@ -57,7 +57,7 @@ def scope_from_kwargs(
     return frozenset(result)
 
 
-def scope_from_str(s: str) -> frozenset[PublicScope]:
+def scope_from_str(s: str):
     """
     Get scopes from a string, where each scope is separated by a space. Only public scopes are resolved.
 

@@ -22,7 +22,7 @@ class NoteQuery:
         *,
         commented_other: bool,
         open: bool | None,
-    ) -> tuple[Composable, tuple[Any, ...]]:
+    ):
         conditions: list[Composable] = []
         params: list[Any] = []
 

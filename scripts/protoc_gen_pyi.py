@@ -1,13 +1,29 @@
 from __future__ import annotations
 
+import inspect
 import keyword
 import sys
+import types
+import typing
 from collections.abc import Iterable
 from dataclasses import dataclass
 from io import StringIO
+from typing import (
+    Any,
+    ForwardRef,
+    get_args,
+    get_origin,
+    get_overloads,
+    get_protocol_members,
+)
 
 from google.protobuf import descriptor_pb2, descriptor_pool, message_factory
 from google.protobuf.compiler import plugin_pb2
+
+try:
+    import protoc_gen_pyi_wkt_augments as _wkt_augments
+except Exception:
+    _wkt_augments = None
 
 _SCALAR_TYPE: dict[int, str] = {
     descriptor_pb2.FieldDescriptorProto.TYPE_DOUBLE: 'float',
@@ -175,11 +191,23 @@ class _Protovalidate:
             self._field_ext = None
 
         try:
+            self._oneof_ext = pool.FindExtensionByName('buf.validate.oneof')
+        except KeyError:
+            self._oneof_ext = None
+
+        try:
             opts_desc = pool.FindMessageTypeByName('google.protobuf.FieldOptions')
         except KeyError:
             self._field_options_cls = None
         else:
             self._field_options_cls = message_factory.GetMessageClass(opts_desc)
+
+        try:
+            opts_desc = pool.FindMessageTypeByName('google.protobuf.OneofOptions')
+        except KeyError:
+            self._oneof_options_cls = None
+        else:
+            self._oneof_options_cls = message_factory.GetMessageClass(opts_desc)
 
     def field_required(self, field: descriptor_pb2.FieldDescriptorProto) -> bool:
         if self._field_ext is None or self._field_options_cls is None:
@@ -193,6 +221,20 @@ class _Protovalidate:
             return False
 
         rules = opts.Extensions[self._field_ext]
+        return bool(getattr(rules, 'required', False))
+
+    def oneof_required(self, oneof: descriptor_pb2.OneofDescriptorProto) -> bool:
+        if self._oneof_ext is None or self._oneof_options_cls is None:
+            return False
+
+        opts = self._oneof_options_cls()
+        opts.ParseFromString(oneof.options.SerializeToString())
+
+        # Extensions show up as unknown fields unless the pool knows them.
+        if self._oneof_ext not in opts.Extensions:
+            return False
+
+        rules = opts.Extensions[self._oneof_ext]
         return bool(getattr(rules, 'required', False))
 
 
@@ -222,8 +264,10 @@ class _PyiWriter:
 
     def build(self) -> str:
         self._collect_imports()
+        self._collect_wkt_imports()
         self._emit_header()
         self._emit_imports()
+        self._emit_wkt_file_augments()
         self._emit_enums_and_aliases()
         self._emit_messages()
         return self._buf.getvalue()
@@ -265,6 +309,63 @@ class _PyiWriter:
             self._w()
             for module, alias in sorted(self._imports.items()):
                 self._w(f'import {module} as {alias}')
+        self._w()
+
+    def _collect_wkt_imports(self) -> None:
+        if _wkt_augments is None:
+            return
+
+        file_aug = _wkt_augments.file_augments(self._file.name)
+        if file_aug is not None:
+            for t in file_aug.type_aliases.values():
+                self._type_to_str(t)
+
+        def walk_message(
+            parent_proto: str,
+            msg: descriptor_pb2.DescriptorProto,
+        ) -> None:
+            msg_proto = f'{parent_proto}.{msg.name}'
+            msg_aug = _wkt_augments.message_augment(msg_proto)
+            if msg_aug is not None:
+                proto = msg_aug.protocol
+                for name in get_protocol_members(proto):
+                    attr = getattr(proto, name, None)
+                    if isinstance(attr, property):
+                        if attr.fget is not None:
+                            for t in inspect.get_annotations(
+                                attr.fget, eval_str=False
+                            ).values():
+                                self._type_to_str(t)
+                        if attr.fset is not None:
+                            for t in inspect.get_annotations(
+                                attr.fset, eval_str=False
+                            ).values():
+                                self._type_to_str(t)
+                        continue
+
+                    if not callable(attr):
+                        continue
+                    overloads = get_overloads(attr) or [attr]
+                    for fn in overloads:
+                        for t in inspect.get_annotations(fn, eval_str=False).values():
+                            self._type_to_str(t)
+
+            for nested in msg.nested_type:
+                walk_message(msg_proto, nested)
+
+        package = f'.{self._file.package}' if self._file.package else ''
+        for msg in self._file.message_type:
+            walk_message(package, msg)
+
+    def _emit_wkt_file_augments(self) -> None:
+        if _wkt_augments is None:
+            return
+        file_aug = _wkt_augments.file_augments(self._file.name)
+        if file_aug is None or not file_aug.type_aliases:
+            return
+
+        for name, t in sorted(file_aug.type_aliases.items()):
+            self._w(f'{name}: TypeAlias = {self._type_to_str(t)}')
         self._w()
 
     def _emit_proto_support(self) -> None:
@@ -328,6 +429,133 @@ class _PyiWriter:
             return 'Any'
         alias = self._import_module(module)
         return f'{alias}.{sym.python_qualname}'
+
+    def _type_to_str(self, t: object) -> str:
+        if t is inspect.Signature.empty:
+            return 'Any'
+        if isinstance(t, str):
+            return t
+        if isinstance(t, ForwardRef):
+            return t.__forward_arg__
+        if isinstance(t, getattr(typing, 'TypeAliasType', ())):
+            return self._type_to_str(t.__value__)
+        if t is None or t is types.NoneType or t is type(None):
+            return 'None'
+        if t is Any:
+            return 'Any'
+
+        origin = get_origin(t)
+        if origin in (types.UnionType, typing.Union):
+            return ' | '.join(self._type_to_str(a) for a in get_args(t))
+        if origin is typing.Annotated:
+            args = get_args(t)
+            return self._type_to_str(args[0]) if args else 'Any'
+        if origin is typing.Literal:
+            lits = ', '.join(repr(a) for a in get_args(t))
+            return f'Literal[{lits}]'
+        if origin is typing.ClassVar:
+            args = get_args(t)
+            return self._type_to_str(args[0]) if args else 'Any'
+
+        if origin is not None:
+            args = get_args(t)
+            base = self._type_to_str(origin)
+            if not args:
+                return base
+            rendered_args = []
+            for a in args:
+                if a is Ellipsis:
+                    rendered_args.append('...')
+                else:
+                    rendered_args.append(self._type_to_str(a))
+            return f'{base}[{", ".join(rendered_args)}]'
+
+        if getattr(t, '__module__', None) == 'builtins':
+            return getattr(t, '__qualname__', repr(t))
+        if getattr(t, '__module__', None) in ('typing', 'collections.abc'):
+            return getattr(t, '__qualname__', repr(t))
+        if (
+            getattr(t, '__module__', None) == 'google.protobuf.message'
+            and getattr(t, '__qualname__', None) == 'Message'
+        ):
+            return 'Message'
+
+        module = getattr(t, '__module__', None)
+        qual = getattr(t, '__qualname__', None)
+        if module and qual:
+            alias = self._import_module(module)
+            return f'{alias}.{qual}'
+
+        return 'Any'
+
+    def _emit_wkt_message_augments(self, *, msg_proto: str, indent: str) -> None:
+        if _wkt_augments is None:
+            return
+        msg_aug = _wkt_augments.message_augment(msg_proto)
+        if msg_aug is None:
+            return
+        proto = msg_aug.protocol
+        members = get_protocol_members(proto)
+        ordered_names = [n for n in proto.__dict__ if n in members]
+
+        for name in ordered_names:
+            attr = getattr(proto, name, None)
+            if isinstance(attr, property):
+                if attr.fget is not None:
+                    ret = inspect.get_annotations(attr.fget, eval_str=False).get(
+                        'return', inspect.Signature.empty
+                    )
+                    self._w(f'{indent}    @property')
+                    self._w(
+                        f'{indent}    def {name}(self) -> {self._type_to_str(ret)}: ...'
+                    )
+                if attr.fset is not None:
+                    ann = inspect.get_annotations(attr.fset, eval_str=False)
+                    value_t = ann.get('value', inspect.Signature.empty)
+                    self._w(f'{indent}    @{name}.setter')
+                    self._w(
+                        f'{indent}    def {name}(self, value: {self._type_to_str(value_t)}) -> None: ...'
+                    )
+                continue
+
+            if not callable(attr):
+                continue
+
+            overloads = get_overloads(attr)
+            fns = list(overloads) if overloads else [attr]
+
+            for fn in fns:
+                if overloads:
+                    self._w(f'{indent}    @overload')
+
+                sig = inspect.signature(fn)
+                ann = inspect.get_annotations(fn, eval_str=False)
+
+                parts: list[str] = []
+                for param in sig.parameters.values():
+                    if param.name == 'self':
+                        continue
+
+                    if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                        p = f'*{param.name}: Any'
+                    elif param.kind == inspect.Parameter.VAR_KEYWORD:
+                        p = f'**{param.name}: Any'
+                    else:
+                        p = param.name
+                        if param.name in ann:
+                            p += f': {self._type_to_str(ann[param.name])}'
+                        if param.default is not inspect.Parameter.empty:
+                            p += ' = ...'
+
+                    parts.append(p)
+
+                ret = ann.get('return', inspect.Signature.empty)
+                args_s = ', '.join(['self', *parts])
+                self._w(
+                    f'{indent}    def {name}({args_s}) -> {self._type_to_str(ret)}: ...'
+                )
+
+        # Keep output compact; class separation is handled by callers.
 
     def _enum_alias_prefix(self, enum_sym: _Symbol) -> str:
         return enum_sym.python_qualname.replace('.', '_')
@@ -402,6 +630,7 @@ class _PyiWriter:
                 f'{indent}    def Name(number: Literal[{number}]) -> Literal[{canonical_name!r}]: ...'
             )
 
+        self._w(f'{indent}    @overload')
         self._w(f'{indent}    @staticmethod')
         self._w(f'{indent}    def Name(number: int) -> {canonical_name_ref}: ...')
 
@@ -412,6 +641,7 @@ class _PyiWriter:
                 f'{indent}    def Value(name: Literal[{v.name!r}]) -> Literal[{v.number}]: ...'
             )
 
+        self._w(f'{indent}    @overload')
         self._w(f'{indent}    @staticmethod')
         self._w(f'{indent}    def Value(name: {name_ref}) -> {value_ref}: ...')
         self._w()
@@ -743,6 +973,7 @@ class _PyiWriter:
             *(repr(n) for n in clear_names),
             *(repr(n.encode()) for n in clear_names),
         ])
+        self._w(f'{indent}    @override')
         self._w(
             f'{indent}    def ClearField(self, field_name: Literal[{clear_lits}]) -> None: ...'
         )
@@ -752,11 +983,13 @@ class _PyiWriter:
                 *(repr(n) for n in has_names),
                 *(repr(n.encode()) for n in has_names),
             ])
+            self._w(f'{indent}    @override')
             self._w(
                 f'{indent}    def HasField(self, field_name: Literal[{has_lits}]) -> bool: ...'
             )
 
         if msg.oneof_decl:
+            oneof_items: list[tuple[str, list[str], bool]] = []
             for oneof_index, oneof in enumerate(msg.oneof_decl):
                 members = [
                     f.name
@@ -766,15 +999,52 @@ class _PyiWriter:
                 if not members:
                     continue
 
+                is_required = self._protovalidate.oneof_required(oneof)
+                oneof_items.append((oneof.name, members, is_required))
+
+            if len(oneof_items) == 1:
+                name, members, is_required = oneof_items[0]
                 member_lits = ', '.join(repr(m) for m in members)
-                self._w(f'{indent}    @overload')
+                ret = f'Literal[{member_lits}]'
+                if not is_required:
+                    ret = f'{ret} | None'
+                self._w(f'{indent}    @override')
                 self._w(
-                    f'{indent}    def WhichOneof(self, oneof_group: Literal[{oneof.name!r}, {oneof.name.encode()!r}]) -> Literal[{member_lits}] | None: ...'
+                    f'{indent}    def WhichOneof(self, oneof_group: Literal[{name!r}, {name.encode()!r}]) -> {ret}: ...'
+                )
+            elif oneof_items:
+                all_members: set[str] = set()
+                any_optional_oneof = False
+                oneof_group_lits: list[str] = []
+
+                for name, members, is_required in oneof_items:
+                    any_optional_oneof |= not is_required
+                    all_members.update(members)
+                    oneof_group_lits.extend([repr(name), repr(name.encode())])
+
+                    member_lits = ', '.join(repr(m) for m in members)
+                    member_ret = f'Literal[{member_lits}]'
+                    if not is_required:
+                        member_ret = f'{member_ret} | None'
+                    self._w(f'{indent}    @overload')
+                    self._w(
+                        f'{indent}    def WhichOneof(self, oneof_group: Literal[{name!r}, {name.encode()!r}]) -> {member_ret}: ...'
+                    )
+
+                # Fallback signature for dynamic (but still typo-protected) oneof
+                # group names. Keep it less precise than the overloads, but do not
+                # accept arbitrary `str | bytes`.
+                group_lits = ', '.join(oneof_group_lits)
+                member_lits = ', '.join(repr(m) for m in sorted(all_members))
+                ret = f'Literal[{member_lits}]'
+                if any_optional_oneof:
+                    ret = f'{ret} | None'
+                self._w(f'{indent}    @override')
+                self._w(
+                    f'{indent}    def WhichOneof(self, oneof_group: Literal[{group_lits}]) -> {ret}: ...'
                 )
 
-            self._w(
-                f'{indent}    def WhichOneof(self, oneof_group: str | bytes) -> str | None: ...'
-            )
+        self._emit_wkt_message_augments(msg_proto=msg_proto, indent=indent)
 
 
 def _parse_parameters(parameter: str) -> dict[str, str]:

@@ -20,7 +20,7 @@ class TraceExceptionsMixin:
     def trace_points_query_area_too_big(self) -> NoReturn:
         raise NotImplementedError
 
-    def trace_file_unsupported_format(self, content_type: str) -> NoReturn:
+    def trace_file_unsupported_format(self, content_type: str):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'Unsupported trace file format {content_type!r}',
@@ -38,7 +38,7 @@ class TraceExceptionsMixin:
     def trace_file_archive_too_many_files(self) -> NoReturn:
         raise NotImplementedError
 
-    def bad_trace_file(self, message: str) -> NoReturn:
+    def bad_trace_file(self, message: str):
         raise APIError(
             status.HTTP_400_BAD_REQUEST, detail=f'Invalid trace file: {message}'
         )

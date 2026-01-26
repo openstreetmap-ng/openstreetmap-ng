@@ -22,17 +22,16 @@ import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { polylineDecode } from "@lib/polyline"
 import {
-  type RoutingResult,
-  type RoutingResult_Attribution,
-  type RoutingResult_Endpoint,
+  type RoutingResult_AttributionValid,
+  type RoutingResult_EndpointValid,
   RoutingResultSchema,
+  type RoutingResultValid,
 } from "@lib/proto/shared_pb"
 import { scrollElementIntoView } from "@lib/scroll"
 import { configureStandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
-import { assertExists } from "@std/assert"
 import { memoize } from "@std/cache/memoize"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
@@ -115,7 +114,7 @@ type RouteView = {
   timeText: string
   elevation: RouteElevationView | null
   instructions: RouteInstructionView[]
-  attribution: RoutingResult_Attribution
+  attribution: RoutingResult_AttributionValid
 }
 
 type LoadedEndpoint = {
@@ -147,7 +146,7 @@ const findInstructionId = (features: MapGeoJSONFeature[] | undefined) => {
   return null
 }
 
-const computeRouteRender = (route: RoutingResult) => {
+const computeRouteRender = (route: RoutingResultValid) => {
   const features: Feature<LineString>[] = []
   const allCoords = polylineDecode(route.line, route.lineQuality)
 
@@ -220,7 +219,7 @@ const computeRouteRender = (route: RoutingResult) => {
           }
         : null,
       instructions,
-      attribution: route.attribution!,
+      attribution: route.attribution,
     } satisfies RouteView,
   }
 }
@@ -228,7 +227,7 @@ const computeRouteRender = (route: RoutingResult) => {
 const RoutingAttribution = ({
   attribution,
 }: {
-  attribution: RoutingResult_Attribution
+  attribution: RoutingResult_AttributionValid
 }) => {
   return (
     <div class="attribution">
@@ -349,12 +348,16 @@ const RoutingSidebar = ({
     setUrlEndpoint(dir, urlValue)
   }
 
-  const applyResolvedEndpoint = (dir: EndpointDir, entry: RoutingResult_Endpoint) => {
+  const applyResolvedEndpoint = (
+    dir: EndpointDir,
+    entry: RoutingResult_EndpointValid,
+  ) => {
     const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
     const label = entry.name || query
-    endpoints.current[dir].loaded = { query, label, lon: entry.lon, lat: entry.lat }
+    const { lon, lat } = entry.location
+    endpoints.current[dir].loaded = { query, label, lon, lat }
     setEndpointDisplay(dir, label)
-    getMarker(dir).setLngLat([entry.lon, entry.lat]).addTo(map)
+    getMarker(dir).setLngLat([lon, lat]).addTo(map)
   }
 
   const getMarker = (dir: EndpointDir) => {
@@ -431,11 +434,11 @@ const RoutingSidebar = ({
     popup.current.setDOMContent(root).setLngLat(instruction.point).addTo(map)
   }
 
-  const updateEndpoints = (data: RoutingResult) => {
+  const updateEndpoints = (data: RoutingResultValid) => {
     let markerBounds: LngLatBounds | undefined
 
-    const updateEndpoint = (dir: EndpointDir, entry: RoutingResult_Endpoint) => {
-      const { minLon, minLat, maxLon, maxLat } = entry.bounds!
+    const updateEndpoint = (dir: EndpointDir, entry: RoutingResult_EndpointValid) => {
+      const { minLon, minLat, maxLon, maxLat } = entry.bounds
       const bounds: Bounds = [minLon, minLat, maxLon, maxLat]
 
       if (markerBounds) {
@@ -455,7 +458,7 @@ const RoutingSidebar = ({
       })
   }
 
-  const updateRoute = (route: RoutingResult) => {
+  const updateRoute = (route: RoutingResultValid) => {
     const { view, featureCollection } = computeRouteRender(route)
     routeView.value = view
     source.setData(featureCollection)
@@ -535,12 +538,12 @@ const RoutingSidebar = ({
   }
 
   const ensureMarkerFromInput = (dir: EndpointDir) => {
-    const val = dir === "start" ? from.peek() : to.peek()
-    const coords = tryParsePoint(val)
+    const value = dir === "start" ? from.peek() : to.peek()
+    if (!value) return
+    const coords = tryParsePoint(value)
     if (!coords) return
     const [lon, lat] = coords
-    assertExists(val)
-    endpoints.current[dir].loaded = { query: val, label: val, lon, lat }
+    endpoints.current[dir].loaded = { query: value, label: value, lon, lat }
     getMarker(dir).setLngLat([lon, lat]).addTo(map)
   }
 
@@ -563,7 +566,7 @@ const RoutingSidebar = ({
     scope.defer(resetState)
 
     // Form configuration
-    const disposeForm = configureStandardForm<RoutingResult>(
+    const disposeForm = configureStandardForm<RoutingResultValid>(
       formRef.current,
       (data) => {
         loading.value = false

@@ -30,7 +30,7 @@ def _hash(
     CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.size_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
     CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.size_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,
     _CACHE=OrderedDict[tuple[str | bytes, bytes | None, int], bytes](),
-) -> bytes:
+):
     use_cache: cython.bint = len(s) < CRYPTO_HASH_CACHE_SIZE_LIMIT
 
     # Check cache first
@@ -53,23 +53,23 @@ def _hash(
     return result
 
 
-def hash_bytes(s: str | bytes, size: int = 32) -> bytes:
+def hash_bytes(s: str | bytes, size: int = 32):
     """Hash the input and return the bytes digest."""
     return _hash(s, None, size)
 
 
 @cython.cfunc
-def _hash_urlsafe(s: str | bytes) -> str:
+def _hash_urlsafe(s: str | bytes):
     """Hash the input and return the URL-safe digest."""
     return urlsafe_b64encode(_hash(s, None, 32)).rstrip(b'=').decode()
 
 
-def hash_storage_key(s: str | bytes, suffix: str = '') -> StorageKey:
+def hash_storage_key(s: str | bytes, suffix: str = ''):
     """Hash the input and return the storage key."""
     return StorageKey(_hash_urlsafe(s) + suffix)
 
 
-def hmac_bytes(s: str | bytes, size: int = 32) -> bytes:
+def hmac_bytes(s: str | bytes, size: int = 32):
     """Compute a keyed hash of the input and return the bytes digest."""
     return _hash(s, SECRET_32.get_secret_value(), size)
 
@@ -79,17 +79,17 @@ def hash_compare(
     expected: bytes,
     *,
     hash_func: Callable[[_T], bytes] = hash_bytes,
-) -> bool:
+):
     """Compute and compare the hash of the input in a time-constant manner."""
     return compare_digest(hash_func(s), expected)
 
 
-def hash_s256_code_challenge(verifier: str) -> str:
+def hash_s256_code_challenge(verifier: str):
     """Compute the S256 code challenge from the verifier."""
     return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
 
 
-def encrypt(s: SecretBytes) -> bytes:
+def encrypt(s: SecretBytes):
     """Encrypt a string using AES-CTR."""
     s_len = len(s)
     assert s_len, 'Empty string must not be encrypted'
@@ -109,7 +109,7 @@ def encrypt(s: SecretBytes) -> bytes:
     ))
 
 
-def decrypt(buffer: bytes) -> SecretBytes:
+def decrypt(buffer: bytes):
     """Decrypt an encrypted buffer."""
     if not buffer:
         return SecretBytes(b'')

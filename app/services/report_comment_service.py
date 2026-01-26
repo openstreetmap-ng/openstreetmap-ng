@@ -11,7 +11,7 @@ class ReportCommentService:
     async def update_visibility(
         comment_id: ReportCommentId,
         new_visibility: UserRole,
-    ) -> None:
+    ):
         user = auth_user(required=True)
         user_id = user['id']
 
