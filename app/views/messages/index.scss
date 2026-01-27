@@ -8,11 +8,6 @@
     .message-preview {
         border: unset;
 
-        .card-body {
-            padding-top: 1.5rem;
-            padding-bottom: unset;
-        }
-
         .message-sender {
             margin-bottom: 0.5rem;
 
@@ -35,6 +30,17 @@
         .btn-group.disabled {
             pointer-events: none;
             opacity: 0.5;
+        }
+
+        .card-body {
+            padding-top: 1.5rem;
+            padding-bottom: unset;
+        }
+
+        .title {
+            @extend .mb-3;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
     }
 }

@@ -7,6 +7,10 @@ service ElementService {
   rpc GetElement(GetElementRequest) returns (GetElementResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  rpc GetElementHistory(GetElementHistoryRequest) returns (GetElementHistoryResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message GetElementRequest {
@@ -21,14 +25,18 @@ message GetElementResponse {
   ElementData element = 1 [(buf.validate.field).required = true];
 }
 
-message ElementData {
-  message Changeset {
-    uint64 id = 1;
-    optional User user = 2;
-    uint64 created_at = 3;
-    string comment_rich = 4;
-  }
+message GetElementHistoryRequest {
+  StandardPaginationState state = 1;
+  ElementRef element = 2 [(buf.validate.field).required = true];
+  bool tags_diff = 3;
+}
 
+message GetElementHistoryResponse {
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated ElementData elements = 2;
+}
+
+message ElementData {
   message Context {
     message Entry {
       ElementRef ref = 1 [(buf.validate.field).required = true];
@@ -42,6 +50,13 @@ message ElementData {
     RenderElementsData render = 3 [(buf.validate.field).required = true];
   }
 
+  message Changeset {
+    uint64 id = 1;
+    optional User user = 2;
+    uint64 created_at = 3;
+    string comment_rich = 4;
+  }
+
   ElementVersionRef ref = 1 [(buf.validate.field).required = true];
   bool visible = 2;
   optional string name = 3;
@@ -53,10 +68,6 @@ message ElementData {
   optional uint64 next_version = 9;
   optional LonLat location = 10;
   map<string, string> tags_old = 11;
-}
-
-message ElementHistoryPage {
-  repeated ElementData elements = 1;
 }
 
 message RenderElementsData {

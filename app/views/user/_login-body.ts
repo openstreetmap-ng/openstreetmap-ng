@@ -151,12 +151,12 @@ if (loginForm) {
   // Configure login form with unified passkey/password flow
   configureStandardForm(
     loginForm,
-    (response) => {
-      if (!response) {
+    (resp) => {
+      if (!resp) {
         window.location.href = referrer
         return
       }
-      loginResponse = response
+      loginResponse = resp
       if (loginResponse.passkey) {
         requestSubmitPasskey()
         return

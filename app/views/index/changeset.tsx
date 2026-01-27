@@ -2,29 +2,28 @@ import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sid
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
-import { API_URL, config, isLoggedIn } from "@lib/config"
+import {
+  API_URL,
+  CHANGESET_COMMENT_BODY_MAX_LENGTH,
+  config,
+  isLoggedIn,
+} from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
-  type ChangesetCommentPage_CommentValid,
-  ChangesetCommentPageSchema,
-  type ChangesetCommentPageValid,
-  ChangesetCommentResultSchema,
-  type ChangesetCommentResultValid,
+  type AddChangesetCommentResponseValid,
   type ChangesetDataValid,
   ChangesetService,
   type ChangesetData_Element as Element,
+  type GetChangesetCommentsResponse_CommentValid,
+  type GetChangesetCommentsResponseValid,
 } from "@lib/proto/changeset_pb"
 import { ElementType } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
-import { configureStandardForm } from "@lib/standard-form"
-import {
-  type PaginationResponse,
-  StandardPagination,
-  toPaginationResponse,
-} from "@lib/standard-pagination"
+import { StandardForm } from "@lib/standard-form"
+import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import type { OSMChangeset } from "@lib/types"
@@ -37,7 +36,6 @@ import {
 } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { useEffect, useRef } from "preact/hooks"
 
 const focusPaint: FocusLayerPaint = {
   "fill-opacity": 0,
@@ -136,20 +134,15 @@ const SubscriptionForm = ({
   changesetId: bigint
   isSubscribed: Signal<boolean>
 }) => {
-  const formRef = useRef<HTMLFormElement>(null)
-
-  useEffect(() => {
-    return configureStandardForm(formRef.current, () => {
-      isSubscribed.value = !isSubscribed.value
-    })
-  }, [])
-
   return (
-    <form
-      ref={formRef}
+    <StandardForm
       class="col-auto subscription-form"
-      method="POST"
-      action={`/api/web/user-subscription/changeset/${changesetId}/${isSubscribed.value ? "unsubscribe" : "subscribe"}`}
+      method={ChangesetService.method.setChangesetSubscription}
+      buildRequest={() => ({
+        id: changesetId,
+        isSubscribed: !isSubscribed.value,
+      })}
+      onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
     >
       <button
         class="btn btn-sm btn-soft"
@@ -160,13 +153,8 @@ const SubscriptionForm = ({
           ? t("javascripts.changesets.show.unsubscribe")
           : t("javascripts.changesets.show.subscribe")}
       </button>
-    </form>
+    </StandardForm>
   )
-}
-
-type CommentResult = {
-  result: ChangesetCommentResultValid
-  commentsResponse: PaginationResponse<ChangesetCommentPageValid>
 }
 
 const CommentForm = ({
@@ -174,37 +162,25 @@ const CommentForm = ({
   onSuccess,
 }: {
   changesetId: bigint
-  onSuccess: (result: CommentResult) => void
+  onSuccess: (result: AddChangesetCommentResponseValid) => void
 }) => {
-  const formRef = useRef<HTMLFormElement>(null)
-
-  useEffect(() => {
-    return configureStandardForm<ChangesetCommentResultValid>(
-      formRef.current,
-      (result, headers) => {
-        formRef.current!.reset()
-        onSuccess({
-          result,
-          commentsResponse: toPaginationResponse(result.comments, headers),
-        })
-      },
-      { protobuf: ChangesetCommentResultSchema },
-    )
-  }, [])
-
   return (
-    <form
-      ref={formRef}
+    <StandardForm
       class="comment-form mb-2"
-      method="POST"
-      action={`/api/web/changeset/${changesetId}/comment`}
+      method={ChangesetService.method.addChangesetComment}
+      resetOnSuccess={true}
+      buildRequest={({ formData }) => ({
+        id: changesetId,
+        comment: formData.get("comment")?.toString() ?? "",
+      })}
+      onSuccess={(result) => onSuccess(result)}
     >
       <div class="mb-3">
         <textarea
           class="form-control"
           name="comment"
           rows={4}
-          maxLength={5000}
+          maxLength={CHANGESET_COMMENT_BODY_MAX_LENGTH}
           required
         />
       </div>
@@ -216,14 +192,14 @@ const CommentForm = ({
           {t("action.comment")}
         </button>
       </div>
-    </form>
+    </StandardForm>
   )
 }
 
 const ChangesetComment = ({
   comment,
 }: {
-  comment: ChangesetCommentPage_CommentValid
+  comment: GetChangesetCommentsResponse_CommentValid
 }) => {
   return (
     <li class="social-entry">
@@ -337,8 +313,7 @@ const ChangesetSidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments =
-    useSignal<PaginationResponse<ChangesetCommentPageValid> | null>(null)
+  const preloadedComments = useSignal<GetChangesetCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebarRpc(
     useComputed(() => ({ id: id.value })),
@@ -438,19 +413,19 @@ const ChangesetSidebar = ({
             {/* Comments pagination */}
             <StandardPagination
               key={d.id}
-              action={`/api/web/changeset/${d.id}/comments`}
+              method={ChangesetService.method.getChangesetComments}
+              request={{ id: d.id }}
               label={t("alt.comments_page_navigation")}
               small={true}
               pageOrder="desc"
-              protobuf={ChangesetCommentPageSchema}
               responseSignal={preloadedComments}
             >
               {(page) => (
                 <ul class="list-unstyled mb-2">
                   {page.comments.map((comment) => (
                     <ChangesetComment
-                      comment={comment}
                       key={comment.createdAt}
+                      comment={comment}
                     />
                   ))}
                 </ul>
@@ -461,9 +436,9 @@ const ChangesetSidebar = ({
             {isLoggedIn ? (
               <CommentForm
                 changesetId={d.id}
-                onSuccess={({ result, commentsResponse }) => {
+                onSuccess={(result) => {
                   resource.value = { tag: "ready", data: result.changeset }
-                  preloadedComments.value = commentsResponse
+                  preloadedComments.value = result.comments
                 }}
               />
             ) : (
@@ -490,6 +465,7 @@ const ChangesetSidebar = ({
               ).map(([key, type]) => (
                 <ElementsSection
                   key={key}
+                  keyFn={(el) => `${key}-${el.id}-${el.version}`}
                   items={d[key]}
                   title={getChangesetElementsTitle(type)}
                   renderRow={(el) => (
@@ -498,7 +474,6 @@ const ChangesetSidebar = ({
                       type={type}
                     />
                   )}
-                  keyFn={(el) => `${key}-${el.id}-${el.version}`}
                 />
               ))}
             </div>

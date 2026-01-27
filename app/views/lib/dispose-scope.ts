@@ -95,15 +95,16 @@ export const createDisposeScope = (): DisposeScope => {
   const dispose = () => {
     if (isDisposed) return
     isDisposed = true
-    abortController.abort()
 
     for (let i = disposers.length - 1; i >= 0; i--) {
       try {
         disposers[i]()
-      } catch (err) {
-        console.error("DisposeScope: disposer threw", err)
+      } catch (error) {
+        console.error("DisposeScope: disposer threw", error)
       }
     }
+
+    abortController.abort()
   }
 
   const child = () => {
@@ -117,8 +118,8 @@ export const createDisposeScope = (): DisposeScope => {
     if (isDisposed) {
       try {
         disposer()
-      } catch (err) {
-        console.error("DisposeScope: disposer threw", err)
+      } catch (error) {
+        console.error("DisposeScope: disposer threw", error)
       }
       return scope
     }

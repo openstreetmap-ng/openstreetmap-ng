@@ -13,7 +13,8 @@ import { BTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { type ElementDataValid, ElementHistoryPageSchema } from "@lib/proto/element_pb"
+import { type ElementDataValid, ElementService } from "@lib/proto/element_pb"
+import { ElementType } from "@lib/proto/shared_pb"
 import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
@@ -74,7 +75,7 @@ const ElementHistoryEntry = ({
       <Tags
         tags={data.tags}
         tagsOld={data.tagsOld}
-        diff={tagsDiffStorage.value}
+        diff={tagsDiffStorage.value && version > 1}
       />
     </div>
   )
@@ -110,7 +111,7 @@ const ElementHistorySidebar = ({
                 autoComplete="off"
                 checked={tagsDiffStorage.value}
                 onChange={(event) => {
-                  const checked = (event.currentTarget as HTMLInputElement).checked
+                  const checked = event.currentTarget.checked
                   tagsDiffStorage.value = checked
                 }}
               />
@@ -124,19 +125,22 @@ const ElementHistorySidebar = ({
       </div>
 
       <StandardPagination
-        key={`${type}-${id}-${tagsDiffStorage.value}`}
-        action={`/api/web/element/${type}/${id}/history?tags_diff=${tagsDiffStorage.value}`}
+        key={`${type.value}-${id.value}-${tagsDiffStorage.value}`}
+        method={ElementService.method.getElementHistory}
+        request={{
+          element: { type: ElementType[type.value], id: id.value },
+          tagsDiff: tagsDiffStorage.value,
+        }}
         label={t("alt.elements_page_navigation")}
         pageOrder="desc-range"
         small={true}
         navClassBottom="mb-0"
-        protobuf={ElementHistoryPageSchema}
         onLoad={() => focusObjects(map)}
       >
-        {(page) => (
+        {(resp) => (
           <div class="section p-0">
             <div>
-              {page.elements.map((entry) => (
+              {resp.elements.map((entry) => (
                 <ElementHistoryEntry
                   key={entry.ref.version}
                   map={map}

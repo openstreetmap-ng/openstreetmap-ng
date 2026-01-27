@@ -140,10 +140,10 @@ export function useSidebarRpc<
     ) => Promise<MessageValidType<O>>
 
     fn(req, { signal: scope.signal })
-      .then((response) => {
+      .then((resp) => {
         resource.value = {
           tag: "ready",
-          data: map ? map(response) : (response as unknown as T),
+          data: map ? map(resp) : (resp as unknown as T),
         }
       })
       .catch((reason) => {

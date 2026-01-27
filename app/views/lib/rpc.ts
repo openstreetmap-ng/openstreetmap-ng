@@ -7,11 +7,7 @@ import {
 import type { ConnectError } from "@connectrpc/connect"
 import { createClient } from "@connectrpc/connect"
 import { createConnectTransport } from "@connectrpc/connect-web"
-import {
-  StandardFeedbackDetail_Severity,
-  StandardFeedbackDetailSchema,
-} from "@lib/proto/shared_pb"
-import type { APIDetail } from "@lib/standard-form"
+import { StandardFeedbackDetailSchema } from "@lib/proto/shared_pb"
 import { memoize } from "@std/cache/memoize"
 
 export const fromBinaryValid = <Desc extends DescMessage>(
@@ -19,29 +15,16 @@ export const fromBinaryValid = <Desc extends DescMessage>(
   bytes: Uint8Array,
 ) => fromBinary(schema, bytes) as MessageValidType<Desc>
 
-const connectErrorToStandardFeedback = (err: ConnectError) => {
-  const details = err.findDetails(StandardFeedbackDetailSchema)
-  if (!details.length) return null
-
-  const out: APIDetail[] = []
-  for (const d of details) {
-    for (const entry of d.entries) {
-      out.push({
-        type: StandardFeedbackDetail_Severity[
-          entry.severity
-        ] as keyof typeof StandardFeedbackDetail_Severity,
-        loc: [null, entry.field ?? null],
-        msg: entry.message,
-      })
-    }
-  }
-
-  return out.length ? out : null
+export const connectErrorToStandardFeedback = (err: ConnectError) => {
+  const entries = err
+    .findDetails(StandardFeedbackDetailSchema)
+    .flatMap((d) => d.entries)
+  return entries.length ? entries : null
 }
 
 export const connectErrorToMessage = (err: ConnectError) => {
   const feedback = connectErrorToStandardFeedback(err)
-  return !feedback?.length ? err.rawMessage : feedback[0].msg
+  return feedback ? feedback[0].message : err.rawMessage
 }
 
 const rpcTransport = createConnectTransport({

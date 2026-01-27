@@ -18,9 +18,7 @@ from speedup import split_typed_element_id
 
 class _Service(QueryFeaturesService):
     @override
-    async def nearby(
-        self, request: NearbyRequest, ctx: RequestContext
-    ) -> NearbyResponse:
+    async def nearby(self, request: NearbyRequest, ctx: RequestContext):
         radius_meters = 10 * 1.5 ** (19 - request.at.zoom)
         origin = set_srid(Point(request.at.lon, request.at.lat), 4326)
         search_area = origin.buffer(meters_to_degrees(radius_meters), 4)

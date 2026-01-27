@@ -180,37 +180,6 @@ message LoginResponse {
 }
 
 // =============================================
-// Messages
-// =============================================
-
-// Messages list pagination payload
-message MessagePage {
-  message Summary {
-    uint64 id = 1;
-    optional User sender = 2;
-    repeated User recipients = 3;
-    uint32 recipients_count = 4;
-    bool unread = 5;
-    uint64 created_at = 6; // Unix timestamp in seconds (UTC)
-    string subject = 7;
-    string body_preview = 8;
-  }
-
-  repeated Summary messages = 1;
-}
-
-// Message read response
-message MessageRead {
-  bool was_unread = 1; // Whether this fetch transitioned from unread -> read
-  User sender = 2; // Message author
-  repeated User recipients = 3; // Message recipients
-  bool is_recipient = 4; // Whether current user is a recipient
-  uint64 created_at = 5; // Unix timestamp in seconds (UTC)
-  string subject = 6; // Message subject
-  string body_rich = 7; // Rich text HTML body
-}
-
-// =============================================
 // Routing & Navigation
 // =============================================
 

@@ -30,9 +30,9 @@ export const ThemeSwitcher = () => {
       <button
         class="btn btn-light text-navbar dropdown-toggle"
         type="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
         title={BUTTON_LABEL}
+        aria-expanded="false"
+        data-bs-toggle="dropdown"
       >
         <i class={`bi ${buttonIcon.value}`} />
         <span class="d-lg-none ms-2">{BUTTON_LABEL}</span>

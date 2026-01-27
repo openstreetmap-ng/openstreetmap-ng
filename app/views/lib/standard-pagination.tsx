@@ -1,11 +1,7 @@
-import {
-  create,
-  type Message,
-  type MessageValidType,
-  toBinary,
-} from "@bufbuild/protobuf"
-import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
+import type { DescMessage, DescMethodUnary, MessageInitShape } from "@bufbuild/protobuf"
+import { type MessageValidType, toBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
+import { type CallOptions, ConnectError } from "@connectrpc/connect"
 import {
   STANDARD_PAGINATION_DISTANCE,
   STANDARD_PAGINATION_MAX_FULL_PAGES,
@@ -16,7 +12,7 @@ import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
-import { fromBinaryValid } from "@lib/rpc"
+import { connectErrorToMessage, fromBinaryValid, rpcClient } from "@lib/rpc"
 import { range } from "@lib/utils"
 import {
   batch,
@@ -37,8 +33,6 @@ const SP_HEADER = "X-StandardPagination"
 
 type PageOrder = "asc" | "asc-range" | "desc" | "desc-range"
 
-type PaginationSchema = GenMessage<Message, { validType: Message }>
-
 type StandardPaginationOptions = {
   initialPage?: number
   customLoader?: (renderContainer: HTMLElement, page: number) => void
@@ -54,12 +48,15 @@ type StandardPaginationElements = {
   numPagesTargets: Element[]
 }
 
-// State machine types for pagination resource
-/** Preloaded page response for external injection (e.g., after POST) */
-export type PaginationResponse<TData extends Message> = {
-  data: TData
+type PaginationResponse = {
   state: StandardPaginationState
 }
+
+type PaginationLoader<TData extends PaginationResponse> = (
+  baseState: StandardPaginationState | null,
+  requestedPage: number,
+  abortSignal: AbortSignal,
+) => Promise<TData>
 
 type PaginationResource<TData> =
   | { tag: "boot" }
@@ -133,19 +130,17 @@ const PaginationItems = ({
   targetPage,
   currentPage,
   state,
-  pages,
   pageOrder,
 }: {
   targetPage: Signal<number>
   currentPage: ReadonlySignal<number>
   state: ReadonlySignal<StandardPaginationState | null>
-  pages: number | null
   pageOrder: PageOrder
 }) => {
   const actualPage = currentPage.value
   const currentState = state.value
-  const numPagesValue = pages ?? currentState?.numPages
-  const maxKnownPageValue = pages ?? currentState?.maxKnownPage ?? 1
+  const numPagesValue = currentState?.numPages
+  const maxKnownPageValue = currentState?.maxKnownPage ?? 1
   const showTailEllipsis = currentState !== null && numPagesValue === undefined
 
   const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
@@ -166,7 +161,7 @@ const PaginationItems = ({
     isDesc ? toDisplay(1) : maxKnownPageValue,
     numPagesValue,
   )
-  const tokens: Array<number | "gap"> = []
+  const tokens: (number | "gap")[] = []
   let previousPage = 0
   for (const pageNumber of pagesToRender) {
     if (previousPage && pageNumber - previousPage > 1) tokens.push("gap")
@@ -184,9 +179,9 @@ const PaginationItems = ({
         if (token === "gap") {
           return (
             <li
+              key={`gap-${index}`}
               class="page-item disabled"
               aria-disabled="true"
-              key={`gap-${index}`}
             >
               <span class="page-link">...</span>
             </li>
@@ -203,9 +198,9 @@ const PaginationItems = ({
         if (displayPageNum === displayPage) {
           return (
             <li
+              key={displayPageNum}
               class="page-item active"
               aria-current="page"
-              key={displayPageNum}
             >
               <span class="page-link">{label}</span>
             </li>
@@ -214,12 +209,12 @@ const PaginationItems = ({
 
         return (
           <li
-            class="page-item"
             key={displayPageNum}
+            class="page-item"
           >
             <button
-              type="button"
               class="page-link"
+              type="button"
               onClick={() => (targetPage.value = actualPageNum)}
             >
               {label}
@@ -232,23 +227,17 @@ const PaginationItems = ({
 }
 
 // Hook: manages pagination state machine
-const useStandardPagination = <TSchema extends PaginationSchema>({
-  action,
+const useStandardPagination = <TData extends PaginationResponse>({
+  loadPage,
   initialPage,
   responseSignal,
-  protobuf,
   onLoad,
 }: {
-  action: string
+  loadPage: PaginationLoader<TData>
   initialPage: number
-  responseSignal:
-    | Signal<PaginationResponse<MessageValidType<TSchema>> | null>
-    | undefined
-  protobuf: TSchema
-  onLoad: ((data: MessageValidType<TSchema>, page: number) => void) | undefined
+  responseSignal: Signal<TData | null> | undefined
+  onLoad: ((data: TData, page: number) => void) | undefined
 }) => {
-  type TData = MessageValidType<TSchema>
-
   const state = useSignal<StandardPaginationState | null>(null)
   const targetPage = useSignal(initialPage)
   const resource = useSignal<PaginationResource<TData>>({ tag: "boot" })
@@ -256,19 +245,13 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
   // Effect: react to external response updates (e.g., after POST)
   useSignalEffect(() => {
     if (!responseSignal) return
-    const response = responseSignal.value
-    if (!response) return
+    const data = responseSignal.value
+    if (!data) return
 
-    // Discard stale responses (we are a fresh instance)
-    if (state.peek() === null) {
-      responseSignal.value = null
-      return
-    }
-
-    targetPage.value = response.state.currentPage
-    onLoad?.(response.data, response.state.currentPage)
-    state.value = response.state
-    resource.value = { tag: "ready", data: response.data }
+    targetPage.value = data.state.currentPage
+    onLoad?.(data, data.state.currentPage)
+    state.value = data.state
+    resource.value = { tag: "ready", data }
     responseSignal.value = null
   })
 
@@ -279,9 +262,10 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
   useDisposeSignalEffect((scope) => {
     const page = targetPage.value
     const current = resource.peek()
+    const currentState = state.peek()
 
     // Skip if already at target page (prevents double-fetch after initial jump)
-    if (current.tag === "ready" && state.peek()!.currentPage === page) {
+    if (current.tag === "ready" && currentState?.currentPage === page) {
       return
     }
 
@@ -297,18 +281,8 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
 
     const fetchPage = async () => {
       try {
-        const resp = await fetch(
-          action,
-          buildFetchInit(state.peek(), page, scope.signal),
-        )
-        assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
-        const responseState = parsePaginationHeader(resp.headers)
-
-        // Discard stale responses
-        const currentState = state.peek()
-        if (currentState && responseState.snapshotMaxId < currentState.snapshotMaxId) {
-          return
-        }
+        const data = await loadPage(currentState, page, scope.signal)
+        const responseState = data.state
 
         // Handle initial jump: if we're booting and target differs from what server returned
         if (current.tag === "boot" && initialPage !== 1) {
@@ -323,8 +297,6 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
           }
         }
 
-        const data = fromBinaryValid(protobuf, new Uint8Array(await resp.arrayBuffer()))
-
         scope.signal.throwIfAborted()
 
         batch(() => {
@@ -332,10 +304,10 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
           state.value = responseState
           resource.value = { tag: "ready", data }
         })
-      } catch (err) {
-        if (err.name === "AbortError") return
-        console.error("Pagination: Failed to load page", page, action, err)
-        resource.value = { tag: "error", error: err.message, prev }
+      } catch (error) {
+        if (scope.signal.aborted) return
+        console.error("Pagination: Failed to load page", page, error)
+        resource.value = { tag: "error", error: error.message, prev }
       }
     }
 
@@ -345,8 +317,15 @@ const useStandardPagination = <TSchema extends PaginationSchema>({
   return { targetPage, resource, currentPage, state }
 }
 
-export const StandardPagination = <TSchema extends PaginationSchema>({
-  action,
+type PaginatedRequestInit<I extends DescMessage> =
+  "state" extends keyof MessageInitShape<I> ? MessageInitShape<I> : never
+
+type PaginatedResponse<O extends DescMessage> =
+  MessageValidType<O> extends PaginationResponse ? MessageValidType<O> : never
+
+export const StandardPagination = <I extends DescMessage, O extends DescMessage>({
+  method,
+  request,
   label = t("alt.page_navigation"),
   initialPage = 1,
   pageOrder = "asc",
@@ -355,12 +334,12 @@ export const StandardPagination = <TSchema extends PaginationSchema>({
   navClassTop = "mb-2",
   navBottom = true,
   navClassBottom = "",
-  protobuf,
   responseSignal,
   onLoad,
   children,
 }: {
-  action: string
+  method: DescMethodUnary<I, O>
+  request: Omit<PaginatedRequestInit<I>, "state">
   label?: string
   initialPage?: number
   pageOrder?: PageOrder
@@ -369,16 +348,39 @@ export const StandardPagination = <TSchema extends PaginationSchema>({
   navClassTop?: string
   navBottom?: boolean
   navClassBottom?: string
-  protobuf: TSchema
-  responseSignal?: Signal<PaginationResponse<MessageValidType<TSchema>> | null>
-  onLoad?: (data: MessageValidType<TSchema>, page: number) => void
-  children: (data: MessageValidType<TSchema>) => ComponentChildren
+  responseSignal?: Signal<PaginatedResponse<O> | null>
+  onLoad?: (data: PaginatedResponse<O>, page: number) => void
+  children: (data: PaginatedResponse<O>) => ComponentChildren
 }) => {
+  type TRequest = PaginatedRequestInit<I>
+  type TResponse = PaginatedResponse<O>
+
+  const loadPage: PaginationLoader<TResponse> = async (
+    baseState,
+    requestedPage,
+    abortSignal,
+  ) => {
+    const fn = rpcClient(method.parent)[method.localName] as (
+      request: TRequest,
+      options?: CallOptions,
+    ) => Promise<TResponse>
+
+    const req = {
+      ...request,
+      state: { ...(baseState ?? {}), requestedPage },
+    } as unknown as TRequest
+
+    try {
+      return await fn(req, { signal: abortSignal })
+    } catch (reason) {
+      throw new Error(connectErrorToMessage(ConnectError.from(reason)))
+    }
+  }
+
   const { targetPage, resource, currentPage, state } = useStandardPagination({
-    action,
+    loadPage,
     initialPage,
     responseSignal,
-    protobuf,
     onLoad,
   })
 
@@ -394,7 +396,6 @@ export const StandardPagination = <TSchema extends PaginationSchema>({
           targetPage={targetPage}
           currentPage={currentPage}
           state={state}
-          pages={null}
           pageOrder={pageOrder}
         />
       </ul>
@@ -590,7 +591,6 @@ const configureStandardPaginationElements = (
           targetPage={targetPage}
           currentPage={currentPage}
           state={state}
-          pages={customNumPages}
           pageOrder={pageOrder}
         />,
         paginationContainer,
@@ -716,13 +716,10 @@ const buildFetchInit = (
   // For the initial request (no state yet), omit the body entirely.
   // The backend defaults `sp_state` to `b''`, so missing body and empty body are equivalent.
   if (baseState !== null) {
-    const requestBytes = toBinary(
-      StandardPaginationStateSchema,
-      create(StandardPaginationStateSchema, {
-        ...baseState,
-        requestedPage,
-      }),
-    )
+    const requestBytes = toBinary(StandardPaginationStateSchema, {
+      ...baseState,
+      requestedPage,
+    })
     fetchInit.body = new Blob([requestBytes], {
       type: "application/x-protobuf",
     })
@@ -736,11 +733,3 @@ const parsePaginationHeader = (headers: Headers) => {
   assertExists(header, `Pagination: Missing ${SP_HEADER} header`)
   return fromBinaryValid(StandardPaginationStateSchema, base64Decode(header))
 }
-
-export const toPaginationResponse = <TData extends Message>(
-  data: TData,
-  headers: Headers,
-): PaginationResponse<TData> => ({
-  data,
-  state: parsePaginationHeader(headers),
-})

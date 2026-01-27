@@ -31,26 +31,14 @@ router = APIRouter()
 async def get_inbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_response(
-        'messages/index',
-        {
-            'inbox': True,
-            'pagination_action': '/api/web/messages/inbox',
-        },
-    )
+    return await render_response('messages/index', {'inbox': True})
 
 
 @router.get('/messages/outbox')
 async def get_outbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_response(
-        'messages/index',
-        {
-            'inbox': False,
-            'pagination_action': '/api/web/messages/outbox',
-        },
-    )
+    return await render_response('messages/index', {'inbox': False})
 
 
 @router.get('/message/new')

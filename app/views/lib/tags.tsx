@@ -80,7 +80,7 @@ const PhoneLink = ({ text }: { text: string }) => {
 
       phoneLibPromise ??= import("libphonenumber-js/min")
       phoneLibPromise.then(({ parsePhoneNumberFromString }) => {
-        if (scope.signal.aborted) return
+        scope.signal.throwIfAborted()
         const phone = parsePhoneNumberFromString(text)
         if (phone?.isValid()) uri.value = phone.getURI()
       })
@@ -323,7 +323,7 @@ const TagRow = ({
 
 const computeDiffRows = (
   tags: Record<string, string>,
-  tagsOld: Record<string, string> | null,
+  tagsOld: Record<string, string> | undefined,
   diff: boolean,
 ) => {
   const rows: DiffRow[] = []
@@ -364,8 +364,7 @@ export const Tags = ({
   tagsOld?: Record<string, string>
   diff?: boolean
 }) => {
-  const oldTags = tagsOld && Object.keys(tagsOld).length > 0 ? tagsOld : null
-  const rows = computeDiffRows(tags, oldTags, diff)
+  const rows = computeDiffRows(tags, tagsOld, diff)
   if (!rows.length) return null
 
   return (

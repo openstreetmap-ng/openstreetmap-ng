@@ -2,11 +2,12 @@ import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
 import {
-  type MessagePage_SummaryValid,
-  MessagePageSchema,
+  type GetMessagesPageResponse_SummaryValid,
   MessageReadSchema,
   type MessageReadValid,
-} from "@lib/proto/shared_pb"
+  MessageService,
+} from "@lib/proto/message_pb"
+import type { UserValid } from "@lib/proto/shared_pb"
 import { getSearchParam, updateSearchParams } from "@lib/qs"
 import { ReportButton } from "@lib/report"
 import { fromBinaryValid } from "@lib/rpc"
@@ -35,28 +36,28 @@ const getMessageFromPageUrl = () => {
   }
 }
 
-const UserAvatarImg = ({ avatarUrl, title }: { avatarUrl: string; title?: string }) => (
+const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
   <img
     class="avatar"
-    src={avatarUrl}
+    src={user.avatarUrl}
     alt={t("alt.profile_picture")}
     loading="lazy"
     title={title}
   />
 )
 
-const SummaryUserLink = ({
-  user,
-}: {
-  user: { displayName: string; avatarUrl: string }
-}) => (
+const SummaryUserLink = ({ user }: { user: UserValid }) => (
   <a href={`/user/${user.displayName}`}>
-    <UserAvatarImg avatarUrl={user.avatarUrl} />
+    <UserAvatarImg user={user} />
     {user.displayName}
   </a>
 )
 
-const SummaryRecipients = ({ message }: { message: MessagePage_SummaryValid }) => {
+const SummaryRecipients = ({
+  message,
+}: {
+  message: GetMessagesPageResponse_SummaryValid
+}) => {
   if (message.recipientsCount <= 1) {
     return <SummaryUserLink user={message.recipients[0]} />
   }
@@ -65,9 +66,9 @@ const SummaryRecipients = ({ message }: { message: MessagePage_SummaryValid }) =
     <span class="recipients-group">
       {message.recipients.map((recipient) => (
         <UserAvatarImg
-          avatarUrl={recipient.avatarUrl}
-          title={recipient.displayName}
           key={recipient.displayName}
+          user={recipient}
+          title={recipient.displayName}
         />
       ))}
       {message.recipientsCount > message.recipients.length && (
@@ -91,7 +92,7 @@ const MessagesListItem = ({
   openMessageId,
   onOpen,
 }: {
-  message: MessagePage_SummaryValid
+  message: GetMessagesPageResponse_SummaryValid
   inbox: boolean
   openMessageId: bigint | null
   onOpen: (messageId: bigint) => void
@@ -252,7 +253,7 @@ const MessagePreview = ({
             {message && (
               <>
                 <div class="message-sender d-flex">
-                  <UserAvatarImg avatarUrl={sender!.avatarUrl} />
+                  <UserAvatarImg user={sender!} />
                   <div>
                     <a
                       class="d-inline-block"
@@ -320,7 +321,7 @@ const MessagePreview = ({
         )}
         {message && (
           <>
-            <h5 class="mb-3">{message.subject}</h5>
+            <h5 class="title">{message.subject}</h5>
             <div
               class="rich-text"
               dangerouslySetInnerHTML={{ __html: message.bodyRich }}
@@ -348,8 +349,8 @@ const MessagePreview = ({
   )
 }
 
-const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) => {
-  const messages = useSignal<MessagePage_SummaryValid[]>([])
+const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
+  const messages = useSignal<GetMessagesPageResponse_SummaryValid[]>([])
   const openMessageId = useSignal<bigint | null>(getMessageFromPageUrl())
   const previewState = useSignal<PreviewState>({ status: "closed" })
   const previewRef = useRef<HTMLDivElement>(null)
@@ -482,22 +483,20 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
     <div class="row flex-wrap-reverse">
       <div class="col-lg">
         <StandardPagination
-          action={action}
-          protobuf={MessagePageSchema}
-          onLoad={(data) => {
-            messages.value = data.messages
-          }}
+          method={MessageService.method.getMessagesPage}
+          request={{ inbox }}
+          onLoad={(data) => (messages.value = data.messages)}
         >
           {() => (
             <ul class="messages-list social-list list-unstyled mb-2">
               {messages.value.length ? (
                 messages.value.map((message) => (
                   <MessagesListItem
+                    key={message.id}
                     message={message}
                     inbox={inbox}
                     openMessageId={openMessageId.value}
                     onOpen={openMessage}
-                    key={message.id}
                   />
                 ))
               ) : (
@@ -526,12 +525,6 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
 mount("messages-index-body", () => {
   const root = document.getElementById("MessagesIndex")!
-  const { inbox, action } = root.dataset
-  render(
-    <MessagesIndex
-      inbox={inbox === "True"}
-      action={action!}
-    />,
-    root,
-  )
+  const { inbox } = root.dataset
+  render(<MessagesIndex inbox={inbox === "True"} />, root)
 })

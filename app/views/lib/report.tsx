@@ -82,8 +82,8 @@ const ReportModal = () => {
             <button
               class="btn-close"
               type="button"
-              data-bs-dismiss="modal"
               aria-label={t("javascripts.close")}
+              data-bs-dismiss="modal"
             />
           </div>
 

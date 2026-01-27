@@ -1,5 +1,6 @@
 import { routerNavigate } from "@index/router"
 import { SearchRoute, searchFormQuery } from "@index/search"
+import { SEARCH_QUERY_MAX_LENGTH } from "@lib/config"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { render } from "preact"
@@ -33,7 +34,7 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
               class="form-control"
               placeholder={t("site.search.search")}
               enterKeyHint="search"
-              maxLength={255}
+              maxLength={SEARCH_QUERY_MAX_LENGTH}
               required
               value={searchFormQuery.value}
               onInput={(e) => (searchFormQuery.value = e.currentTarget.value)}

@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import urlsplit
 
 from githead import githead
+from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 from pydantic import (
     AliasChoices,
     BaseModel,
@@ -21,6 +23,9 @@ from pydantic import (
 
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
+from app.models.proto.changeset_pb2 import AddChangesetCommentRequest
+from app.models.proto.search_pb2 import SearchRequest
+from buf.validate import validate_pb2
 
 if TYPE_CHECKING:
     from app.models.db.audit import AuditType
@@ -276,7 +281,6 @@ CHANGESET_BBOX_LIMIT = 10
 CHANGESET_QUERY_DEFAULT_LIMIT = 100
 CHANGESET_QUERY_MAX_LIMIT = 100
 CHANGESET_QUERY_WEB_LIMIT = 30
-CHANGESET_COMMENT_BODY_MAX_LENGTH = 5_000
 CHANGESET_COMMENTS_PAGE_SIZE = 10
 OPTIMISTIC_DIFF_RETRY_TIMEOUT = timedelta(seconds=30)
 
@@ -526,6 +530,21 @@ PYDANTIC_CONFIG = ConfigDict(
 
 if LOG_LEVEL is None:
     LOG_LEVEL = 'INFO' if ENV == 'prod' else 'DEBUG'  # pyright: ignore[reportConstantRedefinition]
+
+
+def _proto_validate(message_cls: type[Message], path: str):
+    field_name, type_name, rule_name = path.rsplit('.', 2)
+    field: FieldDescriptor = message_cls.DESCRIPTOR.fields_by_name[field_name]
+    rule: validate_pb2.FieldRules = field.GetOptions().Extensions[validate_pb2.field]  # type: ignore
+    out = getattr(getattr(rule, type_name), rule_name)
+    assert out
+    return out
+
+
+CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
+    AddChangesetCommentRequest, 'comment.string.max_len'
+)
+SEARCH_QUERY_MAX_LENGTH: int = _proto_validate(SearchRequest, 'query.string.max_len')
 
 # -------------------- Logging configuration --------------------
 

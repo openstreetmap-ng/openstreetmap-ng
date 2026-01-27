@@ -90,6 +90,16 @@ def web_user(*require_scopes: Scope) -> User:
     return Security(_get_user, scopes=('web_user', *require_scopes))
 
 
+def require_api_user(*require_scopes: Scope) -> User:
+    """Authenticate an API user outside FastAPI dependencies."""
+    return _get_user(SecurityScopes(scopes=list(require_scopes)))
+
+
+def require_web_user(*require_scopes: Scope) -> User:
+    """Authenticate a web user outside FastAPI dependencies."""
+    return _get_user(SecurityScopes(scopes=['web_user', *require_scopes]))
+
+
 def _get_user(require_security_scopes: SecurityScopes):
     """
     Get the authenticated user.
