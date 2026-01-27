@@ -761,8 +761,8 @@ const ChangesetsHistorySidebar = ({
         <ul class="changesets-list social-list list-unstyled mb-0">
           {changesets.value.map((cs) => (
             <ChangesetEntry
-              changeset={cs}
               key={cs.id}
+              changeset={cs}
               entryRef={registerEntry}
               onMouseEnter={handleEntryMouseEnter}
               onMouseLeave={handleEntryMouseLeave}

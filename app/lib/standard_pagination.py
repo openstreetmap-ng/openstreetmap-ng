@@ -59,7 +59,6 @@ async def sp_render_response(
 
     Keeping this helper in `standard_pagination` makes it hard to forget the header.
     """
-    state.DiscardUnknownFields()  # type: ignore
     response = await render_response(template, context)
     response.headers['X-StandardPagination'] = (
         urlsafe_b64encode(state.SerializeToString()).rstrip(b'=').decode()
@@ -74,7 +73,6 @@ def sp_render_response_bytes(
     media_type: str = 'application/x-protobuf',
 ):
     """Render a binary response and attach the updated StandardPaginationState."""
-    state.DiscardUnknownFields()  # type: ignore
     response = Response(body, media_type=media_type)
     response.headers['X-StandardPagination'] = (
         urlsafe_b64encode(state.SerializeToString()).rstrip(b'=').decode()
@@ -166,7 +164,12 @@ async def sp_paginate_query(
     if id_sql is None:
         id_sql = Identifier(id_key)
 
-    state = StandardPaginationState.FromString(sp_state) if sp_state else None
+    if sp_state:
+        state = StandardPaginationState.FromString(sp_state)
+        if state.WhichOneof('cursors') is None:
+            state = None
+    else:
+        state = None
 
     cursor_codec = _cursor_codec(cursor_kind)
     expected_variant = cursor_codec.storage
@@ -324,6 +327,7 @@ async def sp_paginate_query(
     if display_dir is not None and display_dir != order_dir:
         items.reverse()
 
+    state.DiscardUnknownFields()  # type: ignore
     return items, state  # type: ignore
 
 

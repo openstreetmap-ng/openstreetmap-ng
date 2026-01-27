@@ -31,9 +31,7 @@ from speedup import split_typed_element_id
 
 class _Service(SearchService):
     @override
-    async def search(
-        self, request: SearchRequest, ctx: RequestContext
-    ) -> SearchResponse:
+    async def search(self, request: SearchRequest, ctx: RequestContext):
         bbox_str = _bbox_to_string(request.bbox)
         search_bounds = Search.get_search_bounds(
             bbox_str, local_only=request.local_only
@@ -67,9 +65,7 @@ class _Service(SearchService):
         )
 
     @override
-    async def reverse(
-        self, request: ReverseRequest, ctx: RequestContext
-    ) -> ReverseResponse:
+    async def reverse(self, request: ReverseRequest, ctx: RequestContext):
         at = request.at
         result = await NominatimQuery.reverse(Point(at.lon, at.lat), at.zoom)
         results = [result] if result is not None else []

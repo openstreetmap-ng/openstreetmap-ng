@@ -56,8 +56,8 @@ const Pagination = ({
     <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0">
       {range(1, totalPages + 1).map((p) => (
         <li
-          class={`page-item ${p === page.value ? "active" : ""}`}
           key={p}
+          class={`page-item ${p === page.value ? "active" : ""}`}
         >
           <button
             class="page-link"
@@ -378,12 +378,13 @@ const ElementSidebar = ({
               {hasRelations && (
                 <div class="elements mt-3">
                   <ElementsSection
+                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                     items={parents}
                     title={(count) => `${t("browse.part_of")} (${count})`}
                     renderRow={(el) => <ElementRow element={el} />}
-                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                   />
                   <ElementsSection
+                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                     items={members}
                     title={(count) =>
                       d.ref.type === ElementType.way
@@ -392,7 +393,6 @@ const ElementSidebar = ({
                         : `${t("browse.relation.members")} (${count})`
                     }
                     renderRow={(el) => <ElementRow element={el} />}
-                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
                   />
                 </div>
               )}

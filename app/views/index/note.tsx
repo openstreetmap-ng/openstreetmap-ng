@@ -10,23 +10,17 @@ import {
   focusObjects,
 } from "@lib/map/layers/focus-layer"
 import {
-  NoteCommentPage_Comment_Event as Event,
-  type NoteCommentPage_CommentValid,
-  NoteCommentPageSchema,
-  type NoteCommentPageValid,
-  NoteCommentResultSchema,
-  type NoteCommentResultValid,
+  type AddNoteCommentResponseValid,
+  GetNoteCommentsResponse_Comment_Event as Event,
+  type GetNoteCommentsResponse_CommentValid,
+  type GetNoteCommentsResponseValid,
   type NoteDataValid,
   NoteService,
   NoteStatus,
 } from "@lib/proto/note_pb"
 import { ReportButton } from "@lib/report"
-import { configureStandardForm } from "@lib/standard-form"
-import {
-  type PaginationResponse,
-  StandardPagination,
-  toPaginationResponse,
-} from "@lib/standard-pagination"
+import { StandardForm } from "@lib/standard-form"
+import { StandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import {
   type ReadonlySignal,
@@ -38,7 +32,6 @@ import {
 import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { useEffect, useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -70,7 +63,11 @@ const getEventLabel = memoize((event: Event) => {
   }
 })
 
-const NoteComment = ({ comment }: { comment: NoteCommentPage_CommentValid }) => {
+const NoteComment = ({
+  comment,
+}: {
+  comment: GetNoteCommentsResponse_CommentValid
+}) => {
   return (
     <li class="social-entry">
       <p class="header text-muted">
@@ -162,9 +159,8 @@ const NoteHeader = ({ data }: { data: NoteDataValid }) => {
 }
 
 type CommentResult = {
-  result: NoteCommentResultValid
-  commentsResponse: PaginationResponse<NoteCommentPageValid>
-  deep: boolean
+  result: AddNoteCommentResponseValid
+  reloadnoteslayer: boolean
 }
 
 const CommentForm = ({
@@ -176,40 +172,31 @@ const CommentForm = ({
   status: NoteStatus
   onSuccess: (result: CommentResult) => void
 }) => {
-  const formRef = useRef<HTMLFormElement>(null)
-  const eventRef = useRef<"hidden" | "closed" | "reopened" | "commented">()
   const commentText = useSignal("")
-
-  useEffect(() => {
-    return configureStandardForm<NoteCommentResultValid>(
-      formRef.current,
-      (result, headers) => {
-        formRef.current!.reset()
-        commentText.value = ""
-        onSuccess({
-          result,
-          commentsResponse: toPaginationResponse(result.comments, headers),
-          deep: eventRef.current !== "commented",
-        })
-      },
-      {
-        protobuf: NoteCommentResultSchema,
-        validationCallback: (formData) => {
-          formData.set("event", eventRef.current!)
-          return null
-        },
-      },
-    )
-  }, [])
 
   const hasText = commentText.value.length > 0
 
+  const buildRequest = ({ formData }: { formData: FormData }) => {
+    const eventValue = formData.get("event")
+    const event = Event[eventValue as keyof typeof Event]
+    const textValue = formData.get("text")
+    const text = typeof textValue === "string" ? textValue : ""
+    return { id: noteId, event, text }
+  }
+
   if (status === NoteStatus.open) {
     return (
-      <form
-        ref={formRef}
-        method="POST"
-        action={`/api/web/note/${noteId}/comment`}
+      <StandardForm
+        method={NoteService.method.addNoteComment}
+        buildRequest={buildRequest}
+        resetOnSuccess={true}
+        onSuccess={(result, ctx) => {
+          commentText.value = ""
+          onSuccess({
+            result,
+            reloadnoteslayer: ctx.request.event !== Event.commented,
+          })
+        }}
       >
         <textarea
           class="form-control mb-3"
@@ -223,7 +210,8 @@ const CommentForm = ({
               <button
                 class="btn btn-soft"
                 type="submit"
-                onClick={() => (eventRef.current = "hidden")}
+                name="event"
+                value="hidden"
               >
                 {t("notes.show.hide")}
               </button>
@@ -233,30 +221,38 @@ const CommentForm = ({
             <button
               class="btn btn-primary"
               type="submit"
-              onClick={() => (eventRef.current = "closed")}
+              name="event"
+              value="closed"
             >
               {hasText ? t("notes.show.comment_and_resolve") : t("notes.show.resolve")}
             </button>
             <button
               class="btn btn-primary ms-1"
               type="submit"
-              onClick={() => (eventRef.current = "commented")}
+              name="event"
+              value="commented"
               disabled={!hasText}
             >
               {t("action.comment")}
             </button>
           </div>
         </div>
-      </form>
+      </StandardForm>
     )
   }
 
   if (status === NoteStatus.closed) {
     return (
-      <form
-        ref={formRef}
-        method="POST"
-        action={`/api/web/note/${noteId}/comment`}
+      <StandardForm
+        method={NoteService.method.addNoteComment}
+        buildRequest={buildRequest}
+        resetOnSuccess={true}
+        onSuccess={(result, ctx) => {
+          onSuccess({
+            result,
+            reloadnoteslayer: ctx.request.event !== Event.commented,
+          })
+        }}
       >
         <div class="row g-1 mt-3">
           <div class="col">
@@ -264,7 +260,8 @@ const CommentForm = ({
               <button
                 class="btn btn-soft"
                 type="submit"
-                onClick={() => (eventRef.current = "hidden")}
+                name="event"
+                value="hidden"
               >
                 {t("notes.show.hide")}
               </button>
@@ -274,33 +271,41 @@ const CommentForm = ({
             <button
               class="btn btn-primary"
               type="submit"
-              onClick={() => (eventRef.current = "reopened")}
+              name="event"
+              value="reopened"
             >
               {t("notes.show.reactivate")}
             </button>
           </div>
         </div>
-      </form>
+      </StandardForm>
     )
   }
 
   // hidden status
   return (
-    <form
-      ref={formRef}
-      method="POST"
-      action={`/api/web/note/${noteId}/comment`}
+    <StandardForm
+      method={NoteService.method.addNoteComment}
+      buildRequest={buildRequest}
+      resetOnSuccess={true}
+      onSuccess={(result, ctx) => {
+        onSuccess({
+          result,
+          reloadnoteslayer: ctx.request.event !== Event.commented,
+        })
+      }}
     >
       <div class="mt-3">
         <button
           class="btn btn-soft"
           type="submit"
-          onClick={() => (eventRef.current = "reopened")}
+          name="event"
+          value="reopened"
         >
           {t("action.unhide")}
         </button>
       </div>
-    </form>
+    </StandardForm>
   )
 }
 
@@ -311,20 +316,12 @@ const SubscriptionForm = ({
   noteId: bigint
   isSubscribed: Signal<boolean>
 }) => {
-  const formRef = useRef<HTMLFormElement>(null)
-
-  useEffect(() => {
-    return configureStandardForm(formRef.current, () => {
-      isSubscribed.value = !isSubscribed.value
-    })
-  }, [])
-
   return (
-    <form
-      ref={formRef}
+    <StandardForm
       class="col-auto subscription-form"
-      method="POST"
-      action={`/api/web/user-subscription/note/${noteId}/${isSubscribed.value ? "unsubscribe" : "subscribe"}`}
+      method={NoteService.method.setNoteSubscription}
+      buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
+      onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
     >
       <button
         class="btn btn-sm btn-soft"
@@ -335,15 +332,13 @@ const SubscriptionForm = ({
           ? t("javascripts.changesets.show.unsubscribe")
           : t("javascripts.changesets.show.subscribe")}
       </button>
-    </form>
+    </StandardForm>
   )
 }
 
 const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint> }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments = useSignal<PaginationResponse<NoteCommentPageValid> | null>(
-    null,
-  )
+  const preloadedComments = useSignal<GetNoteCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebarRpc(
     useComputed(() => ({ id: id.value })),
@@ -490,19 +485,19 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           {/* Comments pagination */}
           <StandardPagination
             key={d.id}
-            action={`/api/web/note/${d.id}/comments`}
+            method={NoteService.method.getNoteComments}
+            request={{ id: d.id }}
             label={t("alt.comments_page_navigation")}
             small={true}
             pageOrder="desc"
-            protobuf={NoteCommentPageSchema}
             responseSignal={preloadedComments}
           >
             {(page) => (
               <ul class="list-unstyled mb-2">
                 {page.comments.map((comment) => (
                   <NoteComment
-                    comment={comment}
                     key={comment.createdAt}
+                    comment={comment}
                   />
                 ))}
               </ul>
@@ -525,10 +520,10 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
             <CommentForm
               noteId={d.id}
               status={d.status}
-              onSuccess={({ result, commentsResponse, deep }) => {
+              onSuccess={({ result, reloadnoteslayer }) => {
                 resource.value = { tag: "ready", data: result.note }
-                preloadedComments.value = commentsResponse
-                if (deep) map.fire("reloadnoteslayer")
+                preloadedComments.value = result.comments
+                if (reloadnoteslayer) map.fire("reloadnoteslayer")
               }}
             />
           ) : (

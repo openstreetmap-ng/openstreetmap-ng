@@ -59,8 +59,8 @@ const NavbarNav = () => (
       >
         {navLinks.map((link, index) => (
           <li
-            class="nav-item"
             key={link.href}
+            class="nav-item"
             hidden={index >= navVisibleCount.value}
           >
             <a
@@ -83,8 +83,8 @@ const NavbarNav = () => (
         <button
           class="btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle"
           type="button"
-          data-bs-toggle="dropdown"
           aria-expanded="false"
+          data-bs-toggle="dropdown"
         >
           {t("layouts.more")}
         </button>
@@ -134,8 +134,8 @@ const NavbarUser = () => {
       <button
         class="btn btn-soft btn-bg-initial dropdown-toggle d-flex align-items-center flex-grow-1"
         type="button"
-        data-bs-toggle="dropdown"
         aria-expanded="false"
+        data-bs-toggle="dropdown"
       >
         <img
           class="avatar me-2"

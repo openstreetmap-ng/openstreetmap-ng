@@ -7,6 +7,16 @@ service ChangesetService {
   rpc GetChangeset(GetChangesetRequest) returns (GetChangesetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  rpc GetChangesetComments(GetChangesetCommentsRequest) returns (GetChangesetCommentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc AddChangesetComment(AddChangesetCommentRequest) returns (AddChangesetCommentResponse) {}
+
+  rpc SetChangesetSubscription(SetChangesetSubscriptionRequest) returns (SetChangesetSubscriptionResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 message GetChangesetRequest {
@@ -15,6 +25,44 @@ message GetChangesetRequest {
 
 message GetChangesetResponse {
   ChangesetData changeset = 1 [(buf.validate.field).required = true];
+}
+
+message GetChangesetCommentsRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  StandardPaginationState state = 2;
+}
+
+message GetChangesetCommentsResponse {
+  message Comment {
+    User user = 1;
+    uint64 created_at = 2;
+    string body_rich = 3;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Comment comments = 2;
+}
+
+message AddChangesetCommentRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string comment = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 5000
+  }];
+}
+
+message AddChangesetCommentResponse {
+  ChangesetData changeset = 1 [(buf.validate.field).required = true];
+  GetChangesetCommentsResponse comments = 2 [(buf.validate.field).required = true];
+}
+
+message SetChangesetSubscriptionRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  bool is_subscribed = 2;
+}
+
+message SetChangesetSubscriptionResponse {
+  bool is_subscribed = 1;
 }
 
 message ChangesetData {
@@ -42,21 +90,6 @@ message ChangesetData {
   optional uint64 prev_changeset_id = 14;
   optional uint64 next_changeset_id = 15;
   bool is_subscribed = 16;
-}
-
-message ChangesetCommentPage {
-  message Comment {
-    User user = 1;
-    uint64 created_at = 2;
-    string body_rich = 3;
-  }
-
-  repeated Comment comments = 1;
-}
-
-message ChangesetCommentResult {
-  ChangesetData changeset = 1 [(buf.validate.field).required = true];
-  ChangesetCommentPage comments = 2 [(buf.validate.field).required = true];
 }
 
 message RenderChangesetsData {

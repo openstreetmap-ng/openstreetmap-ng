@@ -7,7 +7,7 @@ mount("admin-tasks-body", (body) => {
   const updateStatus = async () => {
     const resp = await fetch("/api/web/admin/tasks/status")
     assert(resp.ok, `${resp.status} ${resp.statusText}`)
-    const data: Array<{ id: string; running: boolean }> = await resp.json()
+    const data: { id: string; running: boolean }[] = await resp.json()
     const infoMap = new Map(data.map((item) => [item.id, item]))
     console.debug("AdminTasks: Updating status", data)
 

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service MessageService {
+  rpc GetMessagesPage(GetMessagesPageRequest) returns (GetMessagesPageResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message GetMessagesPageRequest {
+  StandardPaginationState state = 1;
+  bool inbox = 2;
+}
+
+message GetMessagesPageResponse {
+  message Summary {
+    uint64 id = 1;
+    optional User sender = 2;
+    repeated User recipients = 3;
+    uint32 recipients_count = 4;
+    bool unread = 5;
+    uint64 created_at = 6;
+    string subject = 7;
+    string body_preview = 8;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Summary messages = 2;
+}
+
+message MessageRead {
+  bool was_unread = 1;
+  User sender = 2 [(buf.validate.field).required = true];
+  repeated User recipients = 3;
+  bool is_recipient = 4;
+  uint64 created_at = 5;
+  string subject = 6;
+  string body_rich = 7;
+}

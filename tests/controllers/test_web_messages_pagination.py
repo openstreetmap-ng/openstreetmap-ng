@@ -1,6 +1,6 @@
-from urllib.parse import parse_qs, urlsplit
-
 from httpx import AsyncClient
+
+from app.models.proto.message_pb2 import GetMessagesPageRequest, GetMessagesPageResponse
 
 
 async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
@@ -18,20 +18,19 @@ async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
     assert r.is_success, r.text
 
     # Sanity check: ensure redirect looks like /messages/outbox?show=...
-    parsed_url = urlsplit(r.json()['redirect_url'])
-    query_params = parse_qs(parsed_url.query, strict_parsing=True)
-    assert 'show' in query_params
+    assert r.json()['redirect_url'].startswith('/messages/outbox?show=')
 
     client.headers['Authorization'] = 'User user2'
 
     r = await client.post(
-        '/api/web/messages/inbox',
-        headers={'Content-Type': 'application/x-protobuf'},
-        content=b'',
+        '/rpc/MessageService/GetMessagesPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetMessagesPageRequest(inbox=True).SerializeToString(),
     )
     assert r.is_success, r.text
-    assert 'X-StandardPagination' in r.headers
-    assert subject in r.text
+    page = GetMessagesPageResponse.FromString(r.content)
+    assert page.state.current_page == 1
+    assert any(m.subject == subject for m in page.messages)
 
 
 async def test_messages_outbox_page_standard_pagination(client: AsyncClient):
@@ -49,10 +48,11 @@ async def test_messages_outbox_page_standard_pagination(client: AsyncClient):
     assert r.is_success, r.text
 
     r = await client.post(
-        '/api/web/messages/outbox',
-        headers={'Content-Type': 'application/x-protobuf'},
-        content=b'',
+        '/rpc/MessageService/GetMessagesPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetMessagesPageRequest(inbox=False).SerializeToString(),
     )
     assert r.is_success, r.text
-    assert 'X-StandardPagination' in r.headers
-    assert subject in r.text
+    page = GetMessagesPageResponse.FromString(r.content)
+    assert page.state.current_page == 1
+    assert any(m.subject == subject for m in page.messages)

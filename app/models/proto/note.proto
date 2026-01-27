@@ -13,6 +13,16 @@ service NoteService {
   rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+
+  rpc GetNoteComments(GetNoteCommentsRequest) returns (GetNoteCommentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc AddNoteComment(AddNoteCommentRequest) returns (AddNoteCommentResponse) {}
+
+  rpc SetNoteSubscription(SetNoteSubscriptionRequest) returns (SetNoteSubscriptionResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
 }
 
 message GetNoteRequest {
@@ -23,22 +33,12 @@ message GetNoteResponse {
   NoteData note = 1 [(buf.validate.field).required = true];
 }
 
-message NoteData {
-  message Header {
-    optional User user = 1;
-    uint64 created_at = 2;
-    string body_rich = 3;
-  }
-
-  uint64 id = 1;
-  LonLat location = 2 [(buf.validate.field).required = true];
-  NoteStatus status = 3;
-  Header header = 4 [(buf.validate.field).required = true];
-  bool is_subscribed = 5;
-  optional uint32 disappear_days = 6;
+message GetNoteCommentsRequest {
+  StandardPaginationState state = 1;
+  uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
 }
 
-message NoteCommentPage {
+message GetNoteCommentsResponse {
   message Comment {
     enum Event {
       opened = 0;
@@ -54,12 +54,45 @@ message NoteCommentPage {
     string body_rich = 4;
   }
 
-  repeated Comment comments = 1;
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Comment comments = 2;
 }
 
-message NoteCommentResult {
+message AddNoteCommentRequest {
+  option (buf.validate.message).cel_expression = "this.event != 0";
+
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  GetNoteCommentsResponse.Comment.Event event = 2 [(buf.validate.field).enum.defined_only = true];
+  string text = 3 [(buf.validate.field).string.max_len = 2000];
+}
+
+message AddNoteCommentResponse {
   NoteData note = 1 [(buf.validate.field).required = true];
-  NoteCommentPage comments = 2 [(buf.validate.field).required = true];
+  GetNoteCommentsResponse comments = 2 [(buf.validate.field).required = true];
+}
+
+message SetNoteSubscriptionRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  bool is_subscribed = 2;
+}
+
+message SetNoteSubscriptionResponse {
+  bool is_subscribed = 1;
+}
+
+message NoteData {
+  message Header {
+    optional User user = 1;
+    uint64 created_at = 2;
+    string body_rich = 3;
+  }
+
+  uint64 id = 1;
+  LonLat location = 2 [(buf.validate.field).required = true];
+  NoteStatus status = 3;
+  Header header = 4 [(buf.validate.field).required = true];
+  bool is_subscribed = 5;
+  optional uint32 disappear_days = 6;
 }
 
 message RenderNotesData {
