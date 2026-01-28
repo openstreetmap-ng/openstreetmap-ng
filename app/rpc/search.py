@@ -32,9 +32,8 @@ from speedup import split_typed_element_id
 class _Service(SearchService):
     @override
     async def search(self, request: SearchRequest, ctx: RequestContext):
-        bbox_str = _bbox_to_string(request.bbox)
         search_bounds = Search.get_search_bounds(
-            bbox_str, local_only=request.local_only
+            request.bbox, local_only=request.local_only
         )
         at_sequence_id = await ElementQuery.get_current_sequence_id()
 
@@ -53,13 +52,13 @@ class _Service(SearchService):
         results_by_bound = [t.result() for t in results_t]
 
         best_index = Search.best_results_index(results_by_bound)
-        bounds_str = search_bounds[best_index][0]
+        bounds = search_bounds[best_index][0]
         results = Search.deduplicate_similar_results(results_by_bound[best_index])
 
         return SearchResponse(
             data=await _build_search_data(
                 at_sequence_id=at_sequence_id,
-                bounds_str=bounds_str,
+                bounds=bounds,
                 results=results,
             )
         )
@@ -73,7 +72,7 @@ class _Service(SearchService):
         return ReverseResponse(
             data=await _build_search_data(
                 at_sequence_id=None,
-                bounds_str=None,
+                bounds=None,
                 results=results,
             )
         )
@@ -83,16 +82,10 @@ service = _Service()
 asgi_app_cls = SearchServiceASGIApplication
 
 
-def _bbox_to_string(bbox: Bounds):
-    return (
-        f'{bbox.min_lon:.7f},{bbox.min_lat:.7f},{bbox.max_lon:.7f},{bbox.max_lat:.7f}'
-    )
-
-
 async def _build_search_data(
     *,
     at_sequence_id: SequenceId | None,
-    bounds_str: str | None,
+    bounds: Bounds | None,
     results: list[SearchResult],
 ):
     members: list[TypedElementId] = [
@@ -160,13 +153,5 @@ async def _build_search_data(
                 location=LonLat(lon=x, lat=y),
             )
         )
-
-    if bounds_str is not None:
-        min_lon, min_lat, max_lon, max_lat = map(float, bounds_str.split(',', 3))
-        bounds = Bounds(
-            min_lon=min_lon, min_lat=min_lat, max_lon=max_lon, max_lat=max_lat
-        )
-    else:
-        bounds = None
 
     return SearchData(bounds=bounds, results=response_results)
