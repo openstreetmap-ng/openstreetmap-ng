@@ -294,14 +294,13 @@ const DistanceSidebar = ({
     commitMarkersChange()
   }
 
-  const markerFactory = (color: MarkerColor) => {
-    return new Marker({
+  const markerFactory = (color: MarkerColor) =>
+    new Marker({
       anchor: MARKER_ICON_ANCHOR,
       element: getMarkerIconElement(color, true),
       className: "distance-marker",
       draggable: true,
     })
-  }
 
   const updateMarkerDataNow = (id: number, lngLat: LngLat) => {
     const index = markerIdToIndex.current.get(id)!

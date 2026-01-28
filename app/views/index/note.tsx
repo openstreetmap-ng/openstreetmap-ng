@@ -1,7 +1,12 @@
 import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
-import { config, isLoggedIn, isModerator } from "@lib/config"
+import {
+  config,
+  isLoggedIn,
+  isModerator,
+  NOTE_COMMENT_BODY_MAX_LENGTH,
+} from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { loadMapImage, NOTE_STATUS_MARKERS } from "@lib/map/image"
 import {
@@ -176,13 +181,11 @@ const CommentForm = ({
 
   const hasText = commentText.value.length > 0
 
-  const buildRequest = ({ formData }: { formData: FormData }) => {
-    const eventValue = formData.get("event")
-    const event = Event[eventValue as keyof typeof Event]
-    const textValue = formData.get("text")
-    const text = typeof textValue === "string" ? textValue : ""
-    return { id: noteId, event, text }
-  }
+  const buildRequest = ({ formData }: { formData: FormData }) => ({
+    id: noteId,
+    event: Event[formData.get("event")! as keyof typeof Event],
+    body: formData.get("body")!.toString(),
+  })
 
   if (status === NoteStatus.open) {
     return (
@@ -200,8 +203,9 @@ const CommentForm = ({
       >
         <textarea
           class="form-control mb-3"
-          name="text"
+          name="body"
           rows={5}
+          maxLength={NOTE_COMMENT_BODY_MAX_LENGTH}
           onInput={(e) => (commentText.value = e.currentTarget.value.trim())}
         />
         <div class="row g-1">
@@ -372,7 +376,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           id: null,
           geom: [d.location.lon, d.location.lat],
           status: d.status,
-          text: "",
+          body: "",
         },
       ],
       focusPaint,

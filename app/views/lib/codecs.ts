@@ -33,6 +33,19 @@ export const queryParam = {
       encode: (value) => (value === undefined ? undefined : [value]),
     }),
 
+  enum: <const T extends readonly [string, ...string[]]>(values: T) => {
+    const schema = z.enum(values)
+    return z.codec(z.array(z.string()).optional(), schema.optional(), {
+      decode: (raw) => {
+        const last = raw?.at(-1)
+        if (last === undefined) return
+        const parsed = schema.safeDecode(last)
+        return parsed.success ? parsed.data : undefined
+      },
+      encode: (value) => (value === undefined ? undefined : [value]),
+    })
+  },
+
   flag: () =>
     z.codec(z.array(z.string()).optional(), z.boolean(), {
       decode: (raw) => {

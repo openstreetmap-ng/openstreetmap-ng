@@ -45,7 +45,7 @@ message GetChangesetCommentsResponse {
 
 message AddChangesetCommentRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
-  string comment = 2 [(buf.validate.field).string = {
+  string body = 2 [(buf.validate.field).string = {
     min_len: 1
     max_len: 5000
   }];

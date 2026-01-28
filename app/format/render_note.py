@@ -22,6 +22,6 @@ def _encode_note(note: Note):
     return RenderNotesData.Note(
         id=note['id'],
         location=LonLat(lon=x, lat=y),
-        text=body,
+        body=body,
         status=note_status(note),
     )

@@ -11,18 +11,13 @@ from app.config import (
     REPORT_LIST_PAGE_SIZE,
 )
 from app.lib.auth_context import auth_user, web_user
-from app.lib.standard_feedback import StandardFeedback
 from app.lib.standard_pagination import (
     StandardPaginationStateBody,
     sp_paginate_table,
     sp_render_response,
 )
-from app.lib.translation import t
-from app.models.db.report import Report, ReportType, ReportTypeId
+from app.models.db.report import Report
 from app.models.db.report_comment import (
-    ReportAction,
-    ReportActionId,
-    ReportCategory,
     ReportComment,
     report_comments_resolve_rich_text,
 )
@@ -35,29 +30,6 @@ from app.services.report_comment_service import ReportCommentService
 from app.services.report_service import ReportService
 
 router = APIRouter(prefix='/api/web/reports')
-
-
-@router.post('')
-async def create_report(
-    _: Annotated[User, web_user()],
-    type: Annotated[ReportType, Form()],
-    type_id: Annotated[ReportTypeId, Form(gt=0)],
-    body: Annotated[str, Form(min_length=1, max_length=REPORT_COMMENT_BODY_MAX_LENGTH)],
-    category: Annotated[ReportCategory, Form()],
-    action: Annotated[ReportAction, Form()],
-    action_id: Annotated[ReportActionId, Form(gt=0)] = None,
-):
-    await ReportService.create_report(
-        type=type,
-        type_id=type_id,
-        action=action,
-        action_id=action_id,
-        body=body,
-        category=category,
-    )
-    return StandardFeedback.success_result(
-        None, t('report.your_report_has_been_received_and_will_be_reviewed_by_our_team')
-    )
 
 
 @router.post('/{report_id:int}/close')

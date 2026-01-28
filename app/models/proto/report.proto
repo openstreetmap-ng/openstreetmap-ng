@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service ReportService {
+  rpc CreateReport(CreateReportRequest) returns (CreateReportResponse) {}
+}
+
+message CreateReportRequest {
+  enum Type {
+    anonymous_note = 0;
+    user = 1;
+  }
+
+  enum Action {
+    comment = 0;
+    close = 1;
+    reopen = 2;
+    generic = 3;
+    user_account = 4;
+    user_changeset = 5;
+    user_diary = 6;
+    user_message = 7;
+    user_note = 8;
+    user_oauth2_application = 9;
+    user_profile = 10;
+    user_trace = 11;
+  }
+
+  enum Category {
+    spam = 0;
+    vandalism = 1;
+    harassment = 2;
+    privacy = 3;
+    other = 4;
+  }
+
+  Type type = 1 [(buf.validate.field).enum.defined_only = true];
+  uint64 type_id = 2 [(buf.validate.field).uint64.gt = 0];
+  Action action = 3 [(buf.validate.field).enum.defined_only = true];
+  optional uint64 action_id = 4 [(buf.validate.field).uint64.gt = 0];
+  Category category = 5 [(buf.validate.field).enum.defined_only = true];
+  string body = 6 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50000
+  }];
+}
+
+message CreateReportResponse {
+  StandardFeedbackDetail feedback = 1;
+}

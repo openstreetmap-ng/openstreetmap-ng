@@ -1,5 +1,11 @@
 import { REPORT_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
-import { configureStandardForm } from "@lib/standard-form"
+import {
+  CreateReportRequest_Action,
+  CreateReportRequest_Category,
+  CreateReportRequest_Type,
+  ReportService,
+} from "@lib/proto/report_pb"
+import { StandardForm } from "@lib/standard-form"
 import { computed, signal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
@@ -8,21 +14,9 @@ import type { HTMLAttributes, TargetedMouseEvent } from "preact"
 import { render } from "preact"
 import { useId, useRef } from "preact/hooks"
 
-type ReportType = "anonymous_note" | "user"
-
-type ReportAction =
-  | "comment"
-  | "close"
-  | "reopen"
-  | "generic"
-  | "user_account"
-  | "user_changeset"
-  | "user_diary"
-  | "user_message"
-  | "user_note"
-  | "user_oauth2_application"
-  | "user_profile"
-  | "user_trace"
+type ReportType = keyof typeof CreateReportRequest_Type
+type ReportAction = keyof typeof CreateReportRequest_Action
+type ReportCategory = keyof typeof CreateReportRequest_Category
 
 interface ReportData {
   type: ReportType
@@ -37,35 +31,18 @@ const isSelfReport = computed(() => reportData.value?.action === "user_account")
 const ReportModal = () => {
   const modalRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
-  const modalBodyRef = useRef<HTMLDivElement>(null)
   const categoryId = useId()
   const bodyId = useId()
   const bodyHelpId = useId()
 
-  // Effect: Handle bootstrap modal instance
+  // Effect: show modal on open + reset stale state
   useSignalEffect(() => {
-    const { type, typeId, action, actionId } = reportData.value!
+    reportData.value
+
+    formRef.current!.dispatchEvent(new CustomEvent("invalidate"))
+    formRef.current!.reset()
 
     Modal.getOrCreateInstance(modalRef.current!).show()
-
-    return configureStandardForm(
-      formRef.current!,
-      () => {
-        console.debug("ReportModal: Submitted")
-        formRef.current!.reset()
-      },
-      {
-        removeEmptyFields: true,
-        formBody: modalBodyRef.current!,
-        validationCallback: (formData) => {
-          formData.set("type", type)
-          formData.set("type_id", typeId.toString())
-          formData.set("action", action)
-          if (actionId) formData.set("action_id", actionId.toString())
-          return null
-        },
-      },
-    )
   })
 
   return (
@@ -87,15 +64,27 @@ const ReportModal = () => {
             />
           </div>
 
-          <form
-            method="POST"
-            action="/api/web/reports"
-            ref={formRef}
+          <StandardForm
+            formRef={formRef}
+            feedbackRootSelector=".modal-body"
+            method={ReportService.method.createReport}
+            resetOnSuccess={true}
+            buildRequest={({ formData }) => {
+              const { type, typeId, action, actionId } = reportData.value!
+              return {
+                type: CreateReportRequest_Type[type],
+                typeId,
+                action: CreateReportRequest_Action[action],
+                ...(actionId === undefined ? {} : { actionId }),
+                category:
+                  CreateReportRequest_Category[
+                    formData.get("category")!.toString() as ReportCategory
+                  ],
+                body: formData.get("body")!.toString(),
+              }
+            }}
           >
-            <div
-              class="modal-body"
-              ref={modalBodyRef}
-            >
+            <div class="modal-body">
               <label
                 class="form-label required"
                 for={categoryId}
@@ -162,7 +151,7 @@ const ReportModal = () => {
                 {t("report.submit_report")}
               </button>
             </div>
-          </form>
+          </StandardForm>
         </div>
       </div>
     </div>

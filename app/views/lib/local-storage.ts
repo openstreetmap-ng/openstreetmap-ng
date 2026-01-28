@@ -3,6 +3,7 @@ import type { LayerId } from "@lib/map/layers/layers"
 import type { MapState } from "@lib/map/state"
 import { effect, type Signal, signal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
+import type { GetRouteRequest_Engine } from "./proto/routing_pb"
 import type { Theme } from "./theme"
 
 type StorageConfig<T> = {
@@ -129,9 +130,27 @@ export const bannerHidden = createScopedStorageSignal<boolean>("bannerHidden", {
   defaultValue: false,
 })
 
-export const routingEngineStorage = createStorageSignal<string>("routingEngine", {
-  defaultValue: "valhalla_auto",
-})
+export type RoutingEngineKey = keyof typeof GetRouteRequest_Engine
+
+export const ROUTING_ENGINE_KEYS = [
+  "graphhopper_car",
+  "osrm_car",
+  "valhalla_auto",
+  "graphhopper_bike",
+  "osrm_bike",
+  "valhalla_bicycle",
+  "graphhopper_foot",
+  "osrm_foot",
+  "valhalla_pedestrian",
+] as const satisfies readonly RoutingEngineKey[]
+
+export const routingEngineStorage = createStorageSignal<RoutingEngineKey>(
+  "routingEngine",
+  {
+    defaultValue: "valhalla_auto",
+    validate: (value) => ROUTING_ENGINE_KEYS.includes(value),
+  },
+)
 
 export const globeProjectionStorage = createStorageSignal<boolean>("globeProjection", {
   defaultValue: false,

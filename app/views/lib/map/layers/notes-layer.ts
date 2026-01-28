@@ -107,7 +107,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       return
     }
     console.debug("NotesLayer: Showing popup", feature.properties.id)
-    hoverPopup.setText(feature.properties.text).setLngLat(lngLat).addTo(map)
+    hoverPopup.setText(feature.properties.body).setLngLat(lngLat).addTo(map)
   })
   map.on("mouseleave", LAYER_ID, clearHoverState)
 

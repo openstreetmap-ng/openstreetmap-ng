@@ -1,5 +1,6 @@
+import { create } from "@bufbuild/protobuf"
 import { SidebarHeader } from "@index/_action-sidebar"
-import { defineRoute } from "@index/router"
+import { defineRoute, type RouteContext } from "@index/router"
 import { queryParam } from "@lib/codecs"
 import { formatPoint, tryParsePoint, zoomPrecision } from "@lib/coords"
 import { useDisposeEffect } from "@lib/dispose-scope"
@@ -10,8 +11,12 @@ import {
   formatTime,
 } from "@lib/format"
 import { tRich } from "@lib/i18n"
-import { routingEngineStorage } from "@lib/local-storage"
-import { boundsToString, fitBoundsIfNeeded } from "@lib/map/bounds"
+import {
+  ROUTING_ENGINE_KEYS,
+  type RoutingEngineKey,
+  routingEngineStorage,
+} from "@lib/local-storage"
+import { boundsToBounds, fitBoundsIfNeeded } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import {
   emptyFeatureCollection,
@@ -22,16 +27,26 @@ import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { polylineDecode } from "@lib/polyline"
 import {
-  type RoutingResult_AttributionValid,
-  type RoutingResult_EndpointValid,
-  RoutingResultSchema,
-  type RoutingResultValid,
+  GetRouteRequest_EndpointInputSchema,
+  type GetRouteRequest_EndpointInputValid,
+  GetRouteRequest_Engine,
+  RoutingService,
+} from "@lib/proto/routing_pb"
+import type {
+  RoutingResult_AttributionValid,
+  RoutingResult_EndpointValid,
+  RoutingResultValid,
 } from "@lib/proto/shared_pb"
 import { scrollElementIntoView } from "@lib/scroll"
-import { configureStandardForm } from "@lib/standard-form"
+import { StandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
-import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import {
+  type ReadonlySignal,
+  type Signal,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
@@ -82,17 +97,32 @@ const DRAG_IMAGE_HEIGHT = 41
 const DRAG_IMAGE_OFFSET_X = 12
 const DRAG_IMAGE_OFFSET_Y = 21
 
-const ROUTING_ENGINES = memoize(() => [
-  ["graphhopper_car", t("javascripts.directions.engines.graphhopper_car")],
-  ["osrm_car", t("javascripts.directions.engines.fossgis_osrm_car")],
-  ["valhalla_auto", t("javascripts.directions.engines.fossgis_valhalla_car")],
-  ["graphhopper_bike", t("javascripts.directions.engines.graphhopper_bicycle")],
-  ["osrm_bike", t("javascripts.directions.engines.fossgis_osrm_bike")],
-  ["valhalla_bicycle", t("javascripts.directions.engines.fossgis_valhalla_bicycle")],
-  ["graphhopper_foot", t("javascripts.directions.engines.graphhopper_foot")],
-  ["osrm_foot", t("javascripts.directions.engines.fossgis_osrm_foot")],
-  ["valhalla_pedestrian", t("javascripts.directions.engines.fossgis_valhalla_foot")],
-])
+const routingEngineLabel = (engine: RoutingEngineKey) => {
+  switch (engine) {
+    case "graphhopper_car":
+      return t("javascripts.directions.engines.graphhopper_car")
+    case "graphhopper_bike":
+      return t("javascripts.directions.engines.graphhopper_bicycle")
+    case "graphhopper_foot":
+      return t("javascripts.directions.engines.graphhopper_foot")
+    case "osrm_car":
+      return t("javascripts.directions.engines.fossgis_osrm_car")
+    case "osrm_bike":
+      return t("javascripts.directions.engines.fossgis_osrm_bike")
+    case "osrm_foot":
+      return t("javascripts.directions.engines.fossgis_osrm_foot")
+    case "valhalla_auto":
+      return t("javascripts.directions.engines.fossgis_valhalla_car")
+    case "valhalla_bicycle":
+      return t("javascripts.directions.engines.fossgis_valhalla_bicycle")
+    case "valhalla_pedestrian":
+      return t("javascripts.directions.engines.fossgis_valhalla_foot")
+  }
+}
+
+const ROUTING_ENGINES = memoize(() =>
+  ROUTING_ENGINE_KEYS.map((engine) => [engine, routingEngineLabel(engine)] as const),
+)
 
 export const ROUTING_QUERY_PRECISION = zoomPrecision(19)
 
@@ -117,13 +147,6 @@ type RouteView = {
   attribution: RoutingResult_AttributionValid
 }
 
-type LoadedEndpoint = {
-  query: string
-  label: string
-  lon: number
-  lat: number
-}
-
 const ENDPOINT_DIRS = ["start", "end"] as const
 
 type EndpointDir = (typeof ENDPOINT_DIRS)[number]
@@ -133,7 +156,7 @@ const isEndpointDir = (value: unknown): value is EndpointDir =>
 
 type EndpointState = {
   marker: Marker | null
-  loaded: LoadedEndpoint | null
+  loaded: GetRouteRequest_EndpointInputValid | null
 }
 
 const findInstructionId = (features: MapGeoJSONFeature[] | undefined) => {
@@ -248,12 +271,14 @@ const RoutingAttribution = ({
 
 const RoutingSidebar = ({
   map,
+  ctx,
   engine,
   from,
   to,
 }: {
   map: MaplibreMap
-  engine: Signal<string | undefined>
+  ctx: ReadonlySignal<RouteContext>
+  engine: Signal<RoutingEngineKey | undefined>
   from: Signal<string | undefined>
   to: Signal<string | undefined>
 }) => {
@@ -301,11 +326,6 @@ const RoutingSidebar = ({
     source.setData(emptyFeatureCollection)
   }
 
-  const lastAppliedUrl = useRef<{ from: string | undefined; to: string | undefined }>({
-    from: undefined,
-    to: undefined,
-  })
-
   const setEndpointDisplay = (dir: EndpointDir, value: string) => {
     if (dir === "start") startDisplay.value = value
     else endDisplay.value = value
@@ -315,10 +335,8 @@ const RoutingSidebar = ({
     value ||= undefined
     if (dir === "start") {
       from.value = value
-      lastAppliedUrl.current.from = value
     } else {
       to.value = value
-      lastAppliedUrl.current.to = value
     }
   }
 
@@ -337,12 +355,17 @@ const RoutingSidebar = ({
     const display = formatPoint(lngLat, zoomPrecision(map.getZoom()))
     const urlValue = formatPoint(lngLat, ROUTING_QUERY_PRECISION)
     const endpoint = endpoints.current[dir]
-    endpoint.loaded = {
+    endpoint.loaded = create(GetRouteRequest_EndpointInputSchema, {
       query: urlValue,
       label: display,
-      lon: lngLat.lng,
-      lat: lngLat.lat,
-    }
+      location: { lon: lngLat.lng, lat: lngLat.lat },
+      bounds: {
+        minLon: lngLat.lng,
+        minLat: lngLat.lat,
+        maxLon: lngLat.lng,
+        maxLat: lngLat.lat,
+      },
+    })
     setEndpointDisplay(dir, display)
     getMarker(dir).setLngLat(lngLat).addTo(map)
     setUrlEndpoint(dir, urlValue)
@@ -355,7 +378,12 @@ const RoutingSidebar = ({
     const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
     const label = entry.name || query
     const { lon, lat } = entry.location
-    endpoints.current[dir].loaded = { query, label, lon, lat }
+    endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
+      query,
+      label,
+      location: { lon, lat },
+      bounds: entry.bounds,
+    })
     setEndpointDisplay(dir, label)
     getMarker(dir).setLngLat([lon, lat]).addTo(map)
   }
@@ -543,7 +571,12 @@ const RoutingSidebar = ({
     const coords = tryParsePoint(value)
     if (!coords) return
     const [lon, lat] = coords
-    endpoints.current[dir].loaded = { query: value, label: value, lon, lat }
+    endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
+      query: value,
+      label: value,
+      location: { lon, lat },
+      bounds: { minLon: lon, minLat: lat, maxLon: lon, maxLat: lat },
+    })
     getMarker(dir).setLngLat([lon, lat]).addTo(map)
   }
 
@@ -564,48 +597,6 @@ const RoutingSidebar = ({
   useDisposeEffect((scope) => {
     scope.mapLayerLifecycle(map, LAYER_ID)
     scope.defer(resetState)
-
-    // Form configuration
-    const disposeForm = configureStandardForm<RoutingResultValid>(
-      formRef.current,
-      (data) => {
-        loading.value = false
-        console.debug("Routing: Route calculated", data)
-        updateEndpoints(data)
-        updateRoute(data)
-      },
-      {
-        cancelOnValidationChange: true,
-        protobuf: RoutingResultSchema,
-        validationCallback: (formData) => {
-          clearRouteResults()
-          loading.value = true
-
-          const startValue = from.value ?? ""
-          const endValue = to.value ?? ""
-          const engineValue = routingEngineStorage.value
-          formData.set("start", startValue)
-          formData.set("end", endValue)
-          formData.set("engine", engineValue)
-
-          for (const dir of ENDPOINT_DIRS) {
-            const loaded = endpoints.current[dir].loaded
-            const requestValue = dir === "start" ? startValue : endValue
-            const isLoaded = loaded && requestValue && requestValue === loaded.query
-            formData.set(`${dir}_loaded`, isLoaded ? loaded.query : "")
-            formData.set(`${dir}_loaded_lon`, isLoaded ? loaded.lon.toFixed(7) : "0")
-            formData.set(`${dir}_loaded_lat`, isLoaded ? loaded.lat.toFixed(7) : "0")
-          }
-
-          formData.set("bbox", boundsToString(map.getBounds()))
-          return null
-        },
-        errorCallback: () => {
-          loading.value = false
-        },
-      },
-    )
-    scope.defer(disposeForm)
 
     // Event listeners
     scope.mapLayer(map, "click", LAYER_ID, (e) => {
@@ -658,47 +649,70 @@ const RoutingSidebar = ({
     )
   }, [])
 
-  // Effect: Apply URL params
+  // Effect: Engine defaults + persistence
   useSignalEffect(() => {
-    const routingEngine = engine.value
-    const engineChanged =
-      routingEngine !== undefined && routingEngine !== routingEngineStorage.peek()
-    if (engineChanged) {
-      if (ROUTING_ENGINES().some(([value]) => value === routingEngine)) {
-        routingEngineStorage.value = routingEngine
-      } else {
-        console.warn("Routing: Unsupported engine", routingEngine)
-      }
+    const stored = routingEngineStorage.value
+
+    if (engine.value === undefined) {
+      engine.value = stored
+      return
     }
 
-    const nextStart = from.value ?? ""
-    const nextEnd = to.value ?? ""
-    const endpointsChanged =
-      lastAppliedUrl.current.from !== from.value ||
-      lastAppliedUrl.current.to !== to.value
-    if (endpointsChanged) {
-      resetState()
+    if (stored !== engine.value) routingEngineStorage.value = engine.value
+  })
 
-      setEndpointDisplay("start", nextStart)
-      setEndpointDisplay("end", nextEnd)
-      lastAppliedUrl.current.from = from.value
-      lastAppliedUrl.current.to = to.value
+  // Effect: Apply external URL params
+  useSignalEffect(() => {
+    const { reason } = ctx.value
+    if (reason === "sync") return
 
-      for (const dir of ENDPOINT_DIRS) ensureMarkerFromInput(dir)
-    }
+    resetState()
+    setEndpointDisplay("start", from.peek() ?? "")
+    setEndpointDisplay("end", to.peek() ?? "")
+    for (const dir of ENDPOINT_DIRS) ensureMarkerFromInput(dir)
 
-    if (engineChanged || endpointsChanged) submitFormIfFilled()
+    submitFormIfFilled()
   })
 
   const routeValue = routeView.value
 
   return (
     <div class="sidebar-content">
-      <form
+      <StandardForm
         class="section"
-        method="POST"
-        action="/api/web/routing"
-        ref={formRef}
+        formRef={formRef}
+        method={RoutingService.method.getRoute}
+        concurrency="restart"
+        buildRequest={() => {
+          clearRouteResults()
+          loading.value = true
+
+          const [minLon, minLat, maxLon, maxLat] = boundsToBounds(map.getBounds())
+
+          const engineValue = engine.value!
+
+          const startValue = from.value ?? ""
+          const startLoaded = endpoints.current.start.loaded
+          const endValue = to.value ?? ""
+          const endLoaded = endpoints.current.end.loaded
+
+          return {
+            bbox: { minLon, minLat, maxLon, maxLat },
+            engine: GetRouteRequest_Engine[engineValue],
+            start:
+              startLoaded?.query === startValue ? startLoaded : { query: startValue },
+            end: endLoaded?.query === endValue ? endLoaded : { query: endValue },
+          }
+        }}
+        onSuccess={(resp) => {
+          loading.value = false
+          console.debug("Routing: Route calculated", resp.route)
+          updateEndpoints(resp.route)
+          updateRoute(resp.route)
+        }}
+        onError={() => {
+          loading.value = false
+        }}
       >
         <SidebarHeader
           class=""
@@ -710,6 +724,7 @@ const RoutingSidebar = ({
             <label for={startInputId}>{t("site.search.from")}</label>
             <input
               id={startInputId}
+              name="start"
               type="text"
               class="form-control"
               required
@@ -737,6 +752,7 @@ const RoutingSidebar = ({
             <label for={endInputId}>{t("site.search.to")}</label>
             <input
               id={endInputId}
+              name="end"
               type="text"
               class="form-control"
               required
@@ -778,12 +794,13 @@ const RoutingSidebar = ({
             </label>
             <select
               id={engineInputId}
+              name="engine"
               class="form-select format-select"
               required
-              value={routingEngineStorage}
+              value={engine.value ?? routingEngineStorage.value}
               onInput={(e) => {
-                routingEngineStorage.value = e.currentTarget.value
-                engine.value = routingEngineStorage.value
+                const value = ROUTING_ENGINE_KEYS[e.currentTarget.selectedIndex]
+                engine.value = value
                 submitFormIfFilled()
               }}
             >
@@ -807,7 +824,7 @@ const RoutingSidebar = ({
             </button>
           </div>
         </div>
-      </form>
+      </StandardForm>
 
       <div class="section">
         {loading.value && (
@@ -907,7 +924,7 @@ export const RoutingRoute = defineRoute({
   id: "routing",
   path: "/directions",
   query: {
-    engine: queryParam.string(),
+    engine: queryParam.enum(ROUTING_ENGINE_KEYS),
     from: queryParam.string(),
     to: queryParam.string(),
   },

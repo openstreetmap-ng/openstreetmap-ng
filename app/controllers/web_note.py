@@ -1,10 +1,9 @@
 from asyncio import TaskGroup
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Form, Query, Response
+from fastapi import APIRouter, Query, Response
 
 from app.config import (
-    NOTE_COMMENT_BODY_MAX_LENGTH,
     NOTE_QUERY_AREA_MAX_SIZE,
     NOTE_QUERY_DEFAULT_CLOSED,
     NOTE_QUERY_WEB_LIMIT,
@@ -22,24 +21,12 @@ from app.models.db.note import Note
 from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
-from app.models.types import Latitude, Longitude, UserId
+from app.models.types import UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
-from app.services.note_service import NoteService
-from app.utils import id_response
 
 router = APIRouter(prefix='/api/web/note')
-
-
-@router.post('')
-async def create_note(
-    lon: Annotated[Longitude, Form()],
-    lat: Annotated[Latitude, Form()],
-    text: Annotated[str, Form(min_length=1, max_length=NOTE_COMMENT_BODY_MAX_LENGTH)],
-):
-    note_id = await NoteService.create(lon, lat, text)
-    return id_response(note_id)
 
 
 @router.get('/map')

@@ -11,7 +11,7 @@ import { z } from "@zod/zod"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren } from "preact"
 
-export type RouteLoadReason = "navigation" | "popstate"
+export type RouteLoadReason = "navigation" | "popstate" | "sync"
 
 export type RouteContext = Readonly<{
   reason: RouteLoadReason
@@ -459,7 +459,12 @@ const applyQueryAliases = (
   return out ?? queryParams
 }
 
-const setPath = (mode: "push" | "replace", newPath: string, hash = location.hash) => {
+const setPath = (
+  mode: "push" | "replace",
+  newPath: string,
+  options?: { hash?: string; reason?: RouteLoadReason },
+) => {
+  const { hash = location.hash, reason = "navigation" } = options ?? {}
   if (newPath === currentPath.value) return true
   if (!matchRoute(newPath)) {
     console.debug("IndexRouter: No route", mode, newPath)
@@ -471,7 +476,7 @@ const setPath = (mode: "push" | "replace", newPath: string, hash = location.hash
   if (mode === "push") history.pushState(null, "", newPath + hash)
   else history.replaceState(null, "", newPath + hash)
   if (oldHash !== hash) dispatchHashChange(oldURL, location.href)
-  loadReason = "navigation"
+  loadReason = reason
   currentPath.value = newPath
   return true
 }
@@ -594,7 +599,7 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
         location.hash = target.hash
       }
       e.preventDefault()
-    } else if (setPath("push", path, target.hash || location.hash)) {
+    } else if (setPath("push", path, { hash: target.hash || location.hash })) {
       e.preventDefault()
     }
   })
@@ -634,7 +639,10 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
     const pathname = route._buildPathname(params as any)
     const desired = pathname + qsEncode(encoded)
     if (desired === currentPath.peek()) return
-    assert(setPath("replace", desired), `No route found for path: ${desired}`)
+    assert(
+      setPath("replace", desired, { reason: "sync" }),
+      `No route found for path: ${desired}`,
+    )
   })
 
   effect(() => {
