@@ -2,7 +2,7 @@ from asyncio import Task, TaskGroup
 from typing import Any, Protocol, override
 
 from connectrpc.request import RequestContext
-from shapely import Point
+from shapely import Point, get_coordinates
 
 from app.lib.geo_utils import try_parse_point
 from app.lib.search import Search, SearchResult
@@ -27,15 +27,13 @@ from app.queries.valhalla_query import ValhallaQuery
 class _Service(RoutingServiceConnect):
     @override
     async def get_route(self, request: GetRouteRequest, ctx: RequestContext):
-        bbox_str = _bbox_to_string(request.bbox)
-
         at_sequence_id = await ElementQuery.get_current_sequence_id()
         async with TaskGroup() as tg:
             start_t = tg.create_task(
                 _resolve_endpoint(
                     'start',
                     endpoint=request.start,
-                    bbox=bbox_str,
+                    bbox=request.bbox,
                     at_sequence_id=at_sequence_id,
                 )
             )
@@ -43,7 +41,7 @@ class _Service(RoutingServiceConnect):
                 _resolve_endpoint(
                     'end',
                     endpoint=request.end,
-                    bbox=bbox_str,
+                    bbox=request.bbox,
                     at_sequence_id=at_sequence_id,
                 )
             )
@@ -59,22 +57,15 @@ class _Service(RoutingServiceConnect):
         return GetRouteResponse(route=result)
 
 
-def _bbox_to_string(bbox: Bounds):
-    return (
-        f'{bbox.min_lon:.7f},{bbox.min_lat:.7f},{bbox.max_lon:.7f},{bbox.max_lat:.7f}'
-    )
-
-
 async def _resolve_name(
     field: str,
     query: str,
-    bbox: str,
+    bbox: Bounds,
     at_sequence_id: SequenceId,
 ):
     point = try_parse_point(query)
     if point is not None:
-        x = float(point.x)
-        y = float(point.y)
+        x, y = get_coordinates(point)[0].tolist()
         return RoutingResult.Endpoint(
             name=query,
             bounds=Bounds(min_lon=x, min_lat=y, max_lon=x, max_lat=y),
@@ -123,7 +114,7 @@ async def _resolve_endpoint(
     field: str,
     *,
     endpoint: GetRouteRequest.EndpointInput,
-    bbox: str,
+    bbox: Bounds,
     at_sequence_id: SequenceId,
 ):
     query = endpoint.query

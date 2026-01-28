@@ -14,6 +14,7 @@ from app.lib.feature_icon import FeatureIcon
 from app.lib.geo_utils import parse_bbox
 from app.models.db.element import Element
 from app.models.element import TypedElementId
+from app.models.proto.shared_pb2 import Bounds
 from speedup import element_type
 
 if cython.compiled:
@@ -37,15 +38,15 @@ class SearchResult:
 class Search:
     @staticmethod
     def get_search_bounds(
-        bbox: str,
+        bbox: Bounds,
         *,
         local_only: bool = False,
         local_max_iterations: int | None = None,
     ):
         """
-        Get search bounds from a bbox string.
+        Get search bounds from a bbox.
 
-        Returns a list of (bounds_str, shapely) bounds.
+        Returns a list of (Bounds, shapely) bounds.
         """
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.size_t = (
@@ -54,11 +55,10 @@ class Search:
             else SEARCH_LOCAL_MAX_ITERATIONS
         )
 
-        parts = bbox.strip().split(',', 3)
-        minx: cython.double = float(parts[0])
-        miny: cython.double = float(parts[1])
-        maxx: cython.double = float(parts[2])
-        maxy: cython.double = float(parts[3])
+        minx: cython.double = bbox.min_lon
+        miny: cython.double = bbox.min_lat
+        maxx: cython.double = bbox.max_lon
+        maxy: cython.double = bbox.max_lat
 
         bbox_width = maxx - minx
         bbox_width_2 = bbox_width / 2
@@ -75,9 +75,9 @@ class Search:
         local_iterations = max(1, min(local_iterations, search_local_max_iterations))
 
         logging.debug(
-            'Searching area of %d with %d local iterations', bbox_area, local_iterations
+            'Searching area of %g with %d local iterations', bbox_area, local_iterations
         )
-        result: list[tuple[str, Polygon | MultiPolygon] | tuple[None, None]]
+        result: list[tuple[Bounds, Polygon | MultiPolygon] | tuple[None, None]]
         result = [None] * local_iterations  # type: ignore
 
         i: cython.size_t
@@ -88,9 +88,20 @@ class Search:
             bounds_miny = bbox_center_y - bounds_height_2
             bounds_maxx = bbox_center_x + bounds_width_2
             bounds_maxy = bbox_center_y + bounds_height_2
-            bounds_str = f'{bounds_minx:.7f},{bounds_miny:.7f},{bounds_maxx:.7f},{bounds_maxy:.7f}'
-            shapely_bounds = parse_bbox(bounds_str)
-            result[i] = (bounds_str, shapely_bounds)
+            result[i] = (
+                Bounds(
+                    min_lon=bounds_minx,
+                    min_lat=bounds_miny,
+                    max_lon=bounds_maxx,
+                    max_lat=bounds_maxy,
+                ),
+                parse_bbox((
+                    bounds_minx,
+                    bounds_miny,
+                    bounds_maxx,
+                    bounds_maxy,
+                )),
+            )
 
         if not local_only:
             # append global search bounds

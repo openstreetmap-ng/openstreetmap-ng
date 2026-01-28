@@ -11,6 +11,7 @@ from pyproj import Geod
 from shapely import MultiPolygon, Point, Polygon, box, get_coordinates
 
 from app.lib.exceptions_context import raise_for
+from app.models.proto.shared_pb2 import Bounds as ProtoBounds
 from app.validators.geometry import validate_geometry
 
 if cython.compiled:
@@ -70,10 +71,12 @@ def haversine_distance(p1: Point, p2: Point):
 
 
 @overload
-def parse_bbox(s: str, /) -> Polygon | MultiPolygon: ...
+def parse_bbox(
+    s: str | tuple[float, float, float, float] | ProtoBounds, /
+) -> Polygon | MultiPolygon: ...
 @overload
 def parse_bbox(s: None, /) -> None: ...
-def parse_bbox(s: str | None, /):
+def parse_bbox(s: str | tuple[float, float, float, float] | ProtoBounds | None, /):
     """
     Parse a bbox string or bounds.
 
@@ -87,18 +90,37 @@ def parse_bbox(s: str | None, /):
     if s is None:
         return None
 
-    parts: list[str] = s.strip().split(',', 3)
-    try:
-        minx: cython.double = round(float(parts[0].strip()), 7)
-        miny: cython.double = round(float(parts[1].strip()), 7)
-        maxx: cython.double = round(float(parts[2].strip()), 7)
-        maxy: cython.double = round(float(parts[3].strip()), 7)
-    except Exception:
-        raise_for.bad_bbox(s)
+    if isinstance(s, str):
+        parts = s.split(',', 3)
+
+        try:
+            raw = (
+                float(parts[0].strip()),
+                float(parts[1].strip()),
+                float(parts[2].strip()),
+                float(parts[3].strip()),
+            )
+        except Exception:
+            raise_for.bad_bbox(s)
+
+    elif isinstance(s, ProtoBounds):
+        raw = (s.min_lon, s.min_lat, s.max_lon, s.max_lat)
+    else:
+        raw = s
+
+    minx = round(raw[0], 7)
+    miny = round(raw[1], 7)
+    maxx = round(raw[2], 7)
+    maxy = round(raw[3], 7)
+
     if minx > maxx:
-        raise_for.bad_bbox(s, 'min longitude > max longitude')
+        raise_for.bad_bbox(
+            f'{minx},{miny},{maxx},{maxy}', 'min longitude > max longitude'
+        )
     if miny > maxy:
-        raise_for.bad_bbox(s, 'min latitude > max latitude')
+        raise_for.bad_bbox(
+            f'{minx},{miny},{maxx},{maxy}', 'min latitude > max latitude'
+        )
 
     # normalize latitude
     miny = max(miny, -90)
