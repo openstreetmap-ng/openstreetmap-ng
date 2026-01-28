@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+service RoutingService {
+  rpc GetRoute(GetRouteRequest) returns (GetRouteResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message GetRouteRequest {
+  enum Engine {
+    valhalla_auto = 0;
+    valhalla_bicycle = 1;
+    valhalla_pedestrian = 2;
+    graphhopper_car = 3;
+    graphhopper_bike = 4;
+    graphhopper_foot = 5;
+    osrm_car = 6;
+    osrm_bike = 7;
+    osrm_foot = 8;
+  }
+
+  message EndpointInput {
+    string query = 1 [(buf.validate.field).string.min_len = 1];
+    optional string label = 2 [(buf.validate.field).string.min_len = 1];
+    optional LonLat location = 3;
+    optional Bounds bounds = 4;
+  }
+
+  Bounds bbox = 1 [(buf.validate.field).required = true];
+  Engine engine = 2 [(buf.validate.field).enum.defined_only = true];
+  EndpointInput start = 3 [(buf.validate.field).required = true];
+  EndpointInput end = 4 [(buf.validate.field).required = true];
+}
+
+message GetRouteResponse {
+  RoutingResult route = 1 [(buf.validate.field).required = true];
+}

@@ -25,7 +25,7 @@ export interface OSMNote {
   type: "note"
   id: bigint | null
   geom: [number, number]
-  text: string
+  body: string
   status: NoteStatus
 }
 

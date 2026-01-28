@@ -171,14 +171,14 @@ const CommentForm = ({
       resetOnSuccess={true}
       buildRequest={({ formData }) => ({
         id: changesetId,
-        comment: formData.get("comment")?.toString() ?? "",
+        body: formData.get("body")!.toString(),
       })}
       onSuccess={(result) => onSuccess(result)}
     >
       <div class="mb-3">
         <textarea
           class="form-control"
-          name="comment"
+          name="body"
           rows={4}
           maxLength={CHANGESET_COMMENT_BODY_MAX_LENGTH}
           required

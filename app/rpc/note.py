@@ -31,6 +31,8 @@ from app.models.proto.note_connect import (
 from app.models.proto.note_pb2 import (
     AddNoteCommentRequest,
     AddNoteCommentResponse,
+    CreateNoteRequest,
+    CreateNoteResponse,
     GetNoteCommentsRequest,
     GetNoteCommentsResponse,
     GetNoteRequest,
@@ -67,6 +69,13 @@ class _Service(NoteServiceConnect):
         return await _build_comments(id, sp_state)
 
     @override
+    async def create_note(self, request: CreateNoteRequest, ctx: RequestContext):
+        note_id = await NoteService.create(
+            request.location.lon, request.location.lat, request.body
+        )
+        return CreateNoteResponse(id=note_id)
+
+    @override
     async def add_note_comment(
         self, request: AddNoteCommentRequest, ctx: RequestContext
     ):
@@ -74,7 +83,7 @@ class _Service(NoteServiceConnect):
 
         id = NoteId(request.id)
         event = GetNoteCommentsResponse.Comment.Event.Name(request.event)
-        await NoteService.comment(id, request.text, event)
+        await NoteService.comment(id, request.body, event)
 
         async with TaskGroup() as tg:
             note_t = tg.create_task(_build_data(id))

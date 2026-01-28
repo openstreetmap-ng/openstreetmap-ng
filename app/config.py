@@ -24,6 +24,8 @@ from pydantic import (
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
 from app.models.proto.changeset_pb2 import AddChangesetCommentRequest
+from app.models.proto.note_pb2 import AddNoteCommentRequest
+from app.models.proto.report_pb2 import CreateReportRequest
 from app.models.proto.search_pb2 import SearchRequest
 from buf.validate import validate_pb2
 
@@ -292,12 +294,10 @@ NOTE_QUERY_DEFAULT_CLOSED = 7.0  # open + max 7 days closed
 NOTE_QUERY_WEB_LIMIT = 200
 NOTE_QUERY_LEGACY_MAX_LIMIT = 10_000
 NOTE_USER_PAGE_SIZE = 10
-NOTE_COMMENT_BODY_MAX_LENGTH = 2_000
 NOTE_COMMENTS_PAGE_SIZE = 10
 
 # Reports
 REPORT_LIST_PAGE_SIZE = 15
-REPORT_COMMENT_BODY_MAX_LENGTH = 50_000
 REPORT_COMMENTS_PAGE_SIZE = 15
 
 # Search and Query
@@ -542,7 +542,13 @@ def _proto_validate(message_cls: type[Message], path: str):
 
 
 CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
-    AddChangesetCommentRequest, 'comment.string.max_len'
+    AddChangesetCommentRequest, 'body.string.max_len'
+)
+NOTE_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
+    AddNoteCommentRequest, 'body.string.max_len'
+)
+REPORT_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
+    CreateReportRequest, 'body.string.max_len'
 )
 SEARCH_QUERY_MAX_LENGTH: int = _proto_validate(SearchRequest, 'query.string.max_len')
 

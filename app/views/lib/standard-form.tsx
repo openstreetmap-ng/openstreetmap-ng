@@ -17,6 +17,7 @@ import {
   handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
 import {
+  type StandardFeedbackDetail,
   type StandardFeedbackDetail_Entry,
   StandardFeedbackDetail_Severity,
 } from "@lib/proto/shared_pb"
@@ -214,9 +215,14 @@ const createStandardFormFeedbackRenderer = (
         continue
       }
 
-      const input = form.querySelector(
-        `input[name="${field}"], textarea[name="${field}"], select[name="${field}"]`,
-      )
+      const queryInput = (
+        name: string,
+      ): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null =>
+        form.querySelector(
+          `input[name="${name}"], textarea[name="${name}"], select[name="${name}"]`,
+        ) ?? (name.includes(".") ? queryInput(name.split(".", 1)[0]) : null)
+
+      const input = queryInput(field)
       console.debug("StandardForm: Processing field feedback", field, type)
 
       if (!input) {
@@ -238,7 +244,7 @@ const createStandardFormFeedbackRenderer = (
 }
 
 /** Find the scrollable container for the form */
-const findScrollableContainer = (element: Element) => {
+const findScrollableContainer = (element: Node) => {
   let current = element.parentElement
   while (current && current !== document.body) {
     const style = window.getComputedStyle(current)
@@ -511,6 +517,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
   abortKey?: unknown
   resetOnSuccess?: boolean
   feedbackRoot?: Element
+  feedbackRootSelector?: string
   formRef?: Ref<HTMLFormElement>
   class?: string
   children: ComponentChildren
@@ -525,6 +532,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
   abortKey,
   resetOnSuccess = false,
   feedbackRoot,
+  feedbackRootSelector,
   formRef,
   class: className,
   children,
@@ -543,7 +551,10 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
     if (!form) return
 
     const feedback = createStandardFormFeedbackRenderer(form, scope, {
-      formBody: feedbackRoot ?? form,
+      formBody:
+        feedbackRoot ??
+        (feedbackRootSelector ? form.querySelector(feedbackRootSelector) : null) ??
+        form,
     })
     feedbackRef.current = feedback
 
@@ -633,9 +644,12 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
       const response = await fn(request, { signal: ctx.signal })
 
-      if (resetOnSuccess) {
-        form.reset()
-        form.dispatchEvent(new CustomEvent("invalidate"))
+      if (resetOnSuccess) form.reset()
+
+      // Allow responses to return feedback as StandardFeedbackDetail on a `feedback` field.
+      if ("feedback" in response && "entries" in (response.feedback as any)) {
+        const entries = (response.feedback as StandardFeedbackDetail).entries
+        if (entries.length) feedback.processFormFeedback(entries)
       }
 
       onSuccess?.(response, ctx)

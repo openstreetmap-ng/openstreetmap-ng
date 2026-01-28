@@ -116,7 +116,7 @@ export const renderObjects = (
         type: "note",
         id: note.id?.toString() ?? "",
         icon: NOTE_STATUS_MARKERS[note.status],
-        text: note.text,
+        body: note.body,
       },
       geometry: {
         type: "Point",
@@ -195,7 +195,7 @@ export const convertRenderNotesData = (render: RenderNotesDataValid) => {
       id: note.id,
       geom: [note.location.lon, note.location.lat],
       status: note.status,
-      text: note.text,
+      body: note.body,
     })
   }
   return result

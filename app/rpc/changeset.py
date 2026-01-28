@@ -69,7 +69,7 @@ class _Service(ChangesetService):
         require_web_user()
 
         id = ChangesetId(request.id)
-        await ChangesetCommentService.comment(id, request.comment)
+        await ChangesetCommentService.comment(id, request.body)
 
         async with TaskGroup() as tg:
             changeset_t = tg.create_task(_build_data(id))

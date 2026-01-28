@@ -18,11 +18,25 @@ service NoteService {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
+  rpc CreateNote(CreateNoteRequest) returns (CreateNoteResponse) {}
+
   rpc AddNoteComment(AddNoteCommentRequest) returns (AddNoteCommentResponse) {}
 
   rpc SetNoteSubscription(SetNoteSubscriptionRequest) returns (SetNoteSubscriptionResponse) {
     option idempotency_level = IDEMPOTENT;
   }
+}
+
+message CreateNoteRequest {
+  LonLat location = 1 [(buf.validate.field).required = true];
+  string body = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 2000
+  }];
+}
+
+message CreateNoteResponse {
+  uint64 id = 1;
 }
 
 message GetNoteRequest {
@@ -63,7 +77,7 @@ message AddNoteCommentRequest {
 
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   GetNoteCommentsResponse.Comment.Event event = 2 [(buf.validate.field).enum.defined_only = true];
-  string text = 3 [(buf.validate.field).string.max_len = 2000];
+  string body = 3 [(buf.validate.field).string.max_len = 2000];
 }
 
 message AddNoteCommentResponse {
@@ -99,7 +113,7 @@ message RenderNotesData {
   message Note {
     uint64 id = 1;
     LonLat location = 2 [(buf.validate.field).required = true];
-    string text = 3;
+    string body = 3;
     NoteStatus status = 4;
   }
 

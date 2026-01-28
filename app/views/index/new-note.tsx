@@ -2,14 +2,14 @@ import { SidebarHeader } from "@index/_action-sidebar"
 import { NoteRoute } from "@index/note"
 import { defineRoute, routerNavigate } from "@index/router"
 import { queryParam } from "@lib/codecs"
+import { NOTE_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
 import { useDisposeEffect } from "@lib/dispose-scope"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { addMapLayer, hasMapLayer, NOTES_LAYER_ID } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
-import { NoteStatus } from "@lib/proto/note_pb"
-import { type IdResponse, IdResponseSchema } from "@lib/proto/shared_pb"
-import { configureStandardForm } from "@lib/standard-form"
+import { NoteService, NoteStatus } from "@lib/proto/note_pb"
+import { StandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
 import { t } from "i18next"
@@ -58,7 +58,7 @@ const NewNoteSidebar = ({
           id: null,
           geom: [lngLat.lng, lngLat.lat],
           status: NoteStatus.open,
-          text: "",
+          body: "",
         },
       ],
       focusPaint,
@@ -72,25 +72,6 @@ const NewNoteSidebar = ({
     if (!hasMapLayer(map, NOTES_LAYER_ID)) {
       addMapLayer(map, NOTES_LAYER_ID)
     }
-
-    const disposeForm = configureStandardForm<IdResponse>(
-      formRef.current!,
-      (data) => {
-        console.debug("NewNote: Created", data.id)
-        map.fire("reloadnoteslayer")
-        routerNavigate(NoteRoute, { id: data.id })
-      },
-      {
-        protobuf: IdResponseSchema,
-        validationCallback: (formData) => {
-          const { lon, lat } = at.peek()!
-          formData.set("lon", lon.toString())
-          formData.set("lat", lat.toString())
-          return null
-        },
-      },
-    )
-    scope.defer(disposeForm)
     textRef.current!.focus()
 
     const marker = new Marker({
@@ -145,11 +126,19 @@ const NewNoteSidebar = ({
 
   return (
     <div class="sidebar-content">
-      <form
-        ref={formRef}
+      <StandardForm
+        formRef={formRef}
         class="section"
-        method="POST"
-        action="/api/web/note"
+        method={NoteService.method.createNote}
+        buildRequest={({ formData }) => ({
+          location: at.peek()!,
+          body: formData.get("body")!.toString(),
+        })}
+        onSuccess={(resp) => {
+          console.debug("NewNote: Created", resp.id)
+          map.fire("reloadnoteslayer")
+          routerNavigate(NoteRoute, { id: resp.id })
+        }}
       >
         <SidebarHeader title={t("notes.new.title")} />
 
@@ -161,8 +150,9 @@ const NewNoteSidebar = ({
             ref={textRef}
             class="form-control"
             id={textId}
-            name="text"
+            name="body"
             rows={7}
+            maxLength={NOTE_COMMENT_BODY_MAX_LENGTH}
             required
             aria-describedby={textHelpId}
             onInput={(e) => (text.value = e.currentTarget.value)}
@@ -182,7 +172,7 @@ const NewNoteSidebar = ({
         >
           {t("notes.new.add")}
         </button>
-      </form>
+      </StandardForm>
     </div>
   )
 }
