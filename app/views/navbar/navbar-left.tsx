@@ -3,6 +3,7 @@ import { routerNavigate } from "@index/router"
 import { useDisposeEffect } from "@lib/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@lib/local-storage"
 import { encodeMapState, getInitialMapState, type MapState } from "@lib/map/state"
+import { getSearchParam } from "@lib/qs"
 import { remoteEdit } from "@lib/remote-edit"
 import type { OSMObject } from "@lib/types"
 import { batch, computed, signal, useSignalEffect } from "@preact/signals"
@@ -37,10 +38,7 @@ export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
 }
 
 export const handleEditRemotePath = () => {
-  if (
-    location.pathname === "/edit" &&
-    new URLSearchParams(location.search).get("editor") === "remote"
-  ) {
+  if (location.pathname === "/edit" && getSearchParam("editor") === "remote") {
     console.debug("NavbarLeft: Handle edit remote path")
     routerNavigate(IndexRoute)
     remoteButtonRef.current!.click()
@@ -60,13 +58,12 @@ const buildEditHref = (editor: Editor) => {
 const EditorImg = ({
   editor,
   variant,
-  className,
+  className = "",
 }: {
   editor: Editor
   variant: "primary" | "dropdown"
   className?: string
 }) => {
-  className ??= ""
   let src: string
   let name: string
 

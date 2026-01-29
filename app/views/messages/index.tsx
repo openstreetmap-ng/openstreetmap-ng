@@ -1,3 +1,4 @@
+import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
@@ -8,10 +9,11 @@ import {
   MessageService,
 } from "@lib/proto/message_pb"
 import type { UserValid } from "@lib/proto/shared_pb"
-import { getSearchParam, updateSearchParams } from "@lib/qs"
 import { ReportButton } from "@lib/report"
 import { fromBinaryValid } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
+import { useQuerySignal } from "@lib/url-signals"
+import { isUnmodifiedLeftClick } from "@lib/utils"
 import { batch, useSignal, useSignalEffect } from "@preact/signals"
 import { assert } from "@std/assert"
 import { t } from "i18next"
@@ -25,16 +27,6 @@ type PreviewState =
   | { status: "loading" }
   | { status: "ready"; message: MessageReadValid }
   | { status: "error"; error: string }
-
-const getMessageFromPageUrl = () => {
-  const value = getSearchParam("show")
-  if (!value) return null
-  try {
-    return BigInt(value)
-  } catch {
-    return null
-  }
-}
 
 const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
   <img
@@ -94,7 +86,7 @@ const MessagesListItem = ({
 }: {
   message: GetMessagesPageResponse_SummaryValid
   inbox: boolean
-  openMessageId: bigint | null
+  openMessageId: bigint | undefined
   onOpen: (messageId: bigint) => void
 }) => {
   const messageId = message.id
@@ -102,14 +94,7 @@ const MessagesListItem = ({
   const isActive = openMessageId === messageId
 
   const handleOpen = (event: MouseEvent) => {
-    if (
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
-      return
+    if (!isUnmodifiedLeftClick(event)) return
     event.preventDefault()
     if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
     onOpen(messageId)
@@ -351,7 +336,7 @@ const MessagePreview = ({
 
 const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
   const messages = useSignal<GetMessagesPageResponse_SummaryValid[]>([])
-  const openMessageId = useSignal<bigint | null>(getMessageFromPageUrl())
+  const openMessageId = useQuerySignal("show", queryParam.positive())
   const previewState = useSignal<PreviewState>({ status: "closed" })
   const previewRef = useRef<HTMLDivElement>(null)
 
@@ -369,19 +354,11 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
   }
 
   const openMessage = (messageId: bigint) => {
-    if (openMessageId.value === messageId) return
-
     openMessageId.value = messageId
-    updateSearchParams((searchParams) => {
-      searchParams.set("show", messageId.toString())
-    })
   }
 
   const closeMessage = () => {
-    openMessageId.value = null
-    updateSearchParams((searchParams) => {
-      searchParams.delete("show")
-    })
+    openMessageId.value = undefined
   }
 
   const markMessageUnread = async () => {

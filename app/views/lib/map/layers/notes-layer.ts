@@ -2,10 +2,8 @@ import { NoteRoute } from "@index/note"
 import { routerNavigate } from "@index/router"
 import { notesLayerLoading } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
-import { RenderNotesDataSchema } from "@lib/proto/note_pb"
-import { qsEncode } from "@lib/qs"
-import { fromBinaryValid } from "@lib/rpc"
-import { assert } from "@std/assert"
+import { NoteService } from "@lib/proto/note_pb"
+import { rpcClient } from "@lib/rpc"
 import { delay } from "@std/async/delay"
 import { SECOND } from "@std/datetime/constants"
 import {
@@ -14,7 +12,7 @@ import {
   type Map as MaplibreMap,
   Popup,
 } from "maplibre-gl"
-import { boundsIntersection, boundsSize, boundsToString } from "../bounds"
+import { boundsIntersection, boundsSize } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { loadMapImage } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
@@ -137,24 +135,27 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
     notesLayerLoading.value = true
     abortController = new AbortController()
+
+    const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
+      .adjustAntiMeridian()
+      .toArray()
+
     try {
-      const resp = await fetch(
-        `/api/web/note/map${qsEncode({ bbox: boundsToString(fetchBounds) })}`,
+      const render = await rpcClient(NoteService).getMapNotes(
+        {
+          bbox: { minLon, minLat, maxLon, maxLat },
+        },
         {
           signal: abortController.signal,
-          priority: "high",
         },
       )
-      assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
-      const buffer = await resp.arrayBuffer()
-      const render = fromBinaryValid(RenderNotesDataSchema, new Uint8Array(buffer))
       const notes = convertRenderNotesData(render)
       source.setData(renderObjects(notes))
       fetchedBounds = fetchBounds
       console.debug("NotesLayer: Loaded", notes.length, "notes")
     } catch (error) {
-      if (error.name === "AbortError") return
+      if (abortController.signal.aborted) return
       console.error("NotesLayer: Failed to fetch", error)
       clearNotes()
     } finally {

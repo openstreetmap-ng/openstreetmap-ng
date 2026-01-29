@@ -5,7 +5,7 @@ import type {
   MessageValidType,
 } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
-import { type CallOptions, ConnectError } from "@connectrpc/connect"
+import { ConnectError } from "@connectrpc/connect"
 import {
   createDisposeScope,
   type DisposeScope,
@@ -25,7 +25,7 @@ import {
   connectErrorToMessage,
   connectErrorToStandardFeedback,
   fromBinaryValid,
-  rpcClient,
+  rpcUnary,
 } from "@lib/rpc"
 import { batch, effect, useSignal } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
@@ -637,12 +637,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
     // Stage 4: Execute RPC request and handle response
     try {
-      const fn = rpcClient(method.parent)[method.localName] as (
-        request: MessageInitShape<I>,
-        options?: CallOptions,
-      ) => Promise<MessageValidType<O>>
-
-      const response = await fn(request, { signal: ctx.signal })
+      const response = await rpcUnary(method)(request, { signal: ctx.signal })
 
       if (resetOnSuccess) form.reset()
 

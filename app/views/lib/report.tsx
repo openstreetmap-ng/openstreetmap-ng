@@ -68,7 +68,7 @@ const ReportModal = () => {
             formRef={formRef}
             feedbackRootSelector=".modal-body"
             method={ReportService.method.createReport}
-            resetOnSuccess={true}
+            resetOnSuccess
             buildRequest={({ formData }) => {
               const { type, typeId, action, actionId } = reportData.value!
               return {
