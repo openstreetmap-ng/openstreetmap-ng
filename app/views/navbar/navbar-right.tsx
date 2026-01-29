@@ -312,13 +312,12 @@ const configureResponsiveNavbarLinks = (
   const getLinksWidth = (count: number) => linkPrefixWidths![count]
 
   const updateNow = () => {
-    measureLinkWidthsOnce()
-
     if (!desktopMedia.matches) {
       navVisibleCount.value = navLinks.length
       return
     }
 
+    measureLinkWidthsOnce()
     const containerBuffer = 60
     const containerWidth = container.clientWidth - containerBuffer
     const totalWidth = getLinksWidth(navLinks.length)
