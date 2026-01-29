@@ -184,7 +184,7 @@ const CommentForm = ({
   const buildRequest = ({ formData }: { formData: FormData }) => ({
     id: noteId,
     event: Event[formData.get("event")! as keyof typeof Event],
-    body: formData.get("body")!.toString(),
+    body: formData.get("body")?.toString() ?? "",
   })
 
   if (status === NoteStatus.open) {
@@ -499,10 +499,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
             {(page) => (
               <ul class="list-unstyled mb-2">
                 {page.comments.map((comment) => (
-                  <NoteComment
-                    key={comment.createdAt}
-                    comment={comment}
-                  />
+                  <NoteComment comment={comment} />
                 ))}
               </ul>
             )}

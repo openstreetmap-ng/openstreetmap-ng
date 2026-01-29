@@ -14,6 +14,7 @@ import {
 } from "@lib/local-storage"
 import { boundsSize } from "@lib/map/bounds"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
+import { dataLayerPending } from "@lib/map/layers/data-layer"
 import {
   AERIAL_LAYER_ID,
   activeBaseLayerId,
@@ -35,9 +36,9 @@ import {
   TRACESTRACKTOPO_LAYER_ID,
   TRANSPORTMAP_LAYER_ID,
 } from "@lib/map/layers/layers"
+import { notesLayerPending } from "@lib/map/layers/notes-layer"
 import {
   type ReadonlySignal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
@@ -48,9 +49,6 @@ import { type LngLatBounds, type MapLibreEvent, Map as MaplibreMap } from "mapli
 import type { ComponentChildren, RefCallback } from "preact"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
-
-export const notesLayerLoading = signal(false)
-export const dataLayerLoading = signal(false)
 
 const BASE_LAYERS = new Set([
   CYCLOSM_LAYER_ID,
@@ -510,7 +508,7 @@ const LayersSidebar = ({
           <OverlayToggle
             label={t("javascripts.map.layers.notes")}
             disabled={notesDisabled.value}
-            loading={notesLayerLoading.value}
+            loading={notesLayerPending.value}
             disabledTooltipTitle={t("javascripts.site.map_notes_zoom_in_tooltip")}
             disabledTooltipPlacement="left"
             checked={enabledOverlays.value.has(NOTES_LAYER_ID)}
@@ -519,7 +517,7 @@ const LayersSidebar = ({
           <OverlayToggle
             label={t("javascripts.map.layers.data")}
             disabled={dataDisabled.value}
-            loading={dataLayerLoading.value}
+            loading={dataLayerPending.value}
             disabledTooltipTitle={t("javascripts.site.map_data_zoom_in_tooltip")}
             disabledTooltipPlacement="left"
             checked={enabledOverlays.value.has(DATA_LAYER_ID)}
