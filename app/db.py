@@ -112,7 +112,7 @@ async def _register_types():
 
         async def register_enum(name: str):
             info = await EnumInfo.fetch(conn, name)
-            assert info is not None, f'{name} enum not found'
+            assert info is not None, f'{name!r} enum not found'
             info.register(None)
             adapters.register_loader(info.oid, text_loader)
             logging.debug('Registered database enum %r', name)
@@ -120,7 +120,6 @@ async def _register_types():
         await register_enum('audit_type')
         await register_enum('auth_provider')
         await register_enum('avatar_type')
-        await register_enum('editor')
         await register_enum('mail_source')
         await register_enum('note_event')
         await register_enum('oauth2_code_challenge_method')

@@ -180,6 +180,15 @@ export const tagsDiffStorage = createStorageSignal<boolean>("tagsDiff", {
   defaultValue: true,
 })
 
+const EDITOR_KEYS = ["id", "rapid", "remote"] as const
+
+export type Editor = (typeof EDITOR_KEYS)[number]
+
+export const preferredEditorStorage = createStorageSignal<Editor>("preferredEditor", {
+  defaultValue: "id",
+  validate: (value) => EDITOR_KEYS.includes(value),
+})
+
 export const systemAppAccessTokenStorage = createScopedStorage<string>(
   "systemAppAccessToken",
   {

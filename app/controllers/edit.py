@@ -1,12 +1,14 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter
 
 from app.config import ID_URL, RAPID_URL
-from app.lib.auth_context import auth_user, web_user
+from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
 from app.middlewares.default_headers_middleware import CSP_HEADER
-from app.models.db.user import DEFAULT_EDITOR, Editor, User
+from app.models.db.user import User
+
+Editor = Literal['id', 'rapid', 'remote']
 
 router = APIRouter()
 
@@ -17,11 +19,7 @@ async def edit(
     editor: Editor | None = None,
 ):
     if editor is None:
-        current_user = auth_user()
-        if current_user is not None:
-            editor = current_user['editor']
-        if editor is None:
-            editor = DEFAULT_EDITOR
+        return await render_response('edit/redirect')
 
     if editor == 'id':
         return await render_response('edit/id', {'ID_URL': ID_URL})

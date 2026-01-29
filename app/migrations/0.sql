@@ -110,8 +110,6 @@ SET
 
 CREATE TYPE avatar_type AS enum('gravatar', 'custom');
 
-CREATE TYPE editor AS enum('id', 'rapid', 'remote');
-
 CREATE TYPE user_role AS enum('moderator', 'administrator');
 
 CREATE TABLE "user" (
@@ -123,7 +121,6 @@ CREATE TABLE "user" (
     language text NOT NULL,
     timezone text,
     home_point geometry (Point, 4326),
-    editor editor,
     activity_tracking boolean NOT NULL,
     crash_reporting boolean NOT NULL,
     avatar_type avatar_type,

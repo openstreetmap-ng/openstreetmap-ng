@@ -13,77 +13,10 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-            <div class="map-actions btn-group d-flex flex-wrap me-auto" role="group">
-                <div class="btn-group edit-group flex-grow-1"
-                    data-bs-title="{{ t('javascripts.site.edit_disabled_tooltip') }}">
-                    {% if user is none %}
-                    {% set _editor = DEFAULT_EDITOR %}
-                    {% else %}
-                    {% set _editor = user.editor or DEFAULT_EDITOR %}
-                    {% endif %}
-                    <a class="btn map-link edit-link default" href="/edit?editor={{ _editor }}">
-                        {{- t('layouts.edit') -}}
-                        {% if _editor == 'id' %}
-                        <img class="dark-filter-invert" src="/static/img/brand/id.webp"
-                            alt="{{ t('alt.logo', name='iD') }}">
-                        {% elif _editor == 'rapid' %}
-                        <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo', name='Rapid') }}">
-                        {% elif _editor == 'remote' %}
-                        <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo', name='JOSM') }}">
-                        {% endif %}
-                    </a>
-
-                    <button class="btn dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown"
-                        data-bs-auto-close="outside" aria-expanded="false" aria-label="Toggle editor selection">
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-green">
-                        <a class="dropdown-item map-link edit-link" data-editor="id" href="/edit?editor=id">
-                            {% set _editor %}
-                            <img class="dark-filter-invert" src="/static/img/brand/id.webp"
-                                alt="{{ t('alt.logo', name='iD') }}" loading="lazy">
-                            {{ t('editor.id.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=_editor) | safe }}
-                        </a>
-                        <a class="dropdown-item map-link edit-link" data-editor="rapid" href="/edit?editor=rapid">
-                            {% set _editor %}
-                            <img src="/static/img/brand/rapid.webp" alt="{{ t('alt.logo', name='Rapid') }}"
-                                loading="lazy">
-                            {{ t('editor.rapid.name') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=_editor) | safe }}
-                        </a>
-                        <button class="dropdown-item map-link edit-link" data-editor="remote">
-                            {% set _editor %}
-                            <img src="/static/img/brand/josm.webp" alt="{{ t('alt.logo', name='JOSM') }}"
-                                loading="lazy">
-                            {{ t('editor.remote.description') }}
-                            {% endset %}
-                            {{ t('layouts.edit_with', editor=_editor) | safe }}
-                        </button>
-                        <hr class="dropdown-divider">
-                        {% if user is none %}
-                        <div class="form-check mx-3 disabled" data-bs-toggle="tooltip"
-                            data-bs-title="{{ t('validation.you_must_be_logged_in_to_perform_this_action') }}"
-                            data-bs-placement="bottom">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" name="remember-choice" disabled>
-                                {{ t('action.remember_my_choice') }}
-                            </label>
-                        </div>
-                        {% else %}
-                        <div class="form-check mx-3">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" name="remember-choice">
-                                {{ t('action.remember_my_choice') }}
-                            </label>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <a class="btn map-link" href="/history">{{ t('layouts.history') }}</a>
-                <a class="btn map-link" href="/export">{{ t('site.export.title') }}</a>
+            <div
+                id="NavbarLeft"
+                class="map-actions btn-group d-flex flex-wrap me-auto"
+                role="group">
             </div>
 
             <div

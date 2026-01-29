@@ -22,7 +22,7 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 from app.lib.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.user import Editor, User, UserRole, user_avatar_url, user_is_test
+from app.models.db.user import User, UserRole, user_avatar_url, user_is_test
 from app.models.proto.shared_pb2 import LoginResponse, PasskeyAssertion
 from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
@@ -202,23 +202,6 @@ class UserService:
             )
             if display_name != user['display_name']:
                 await audit('change_display_name', conn, extra={'name': display_name})
-
-    @staticmethod
-    async def update_editor(
-        editor: Editor | None,
-    ):
-        """Update default editor"""
-        user_id = auth_user(required=True)['id']
-
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET editor = %s
-                WHERE id = %s
-                """,
-                (editor, user_id),
-            )
 
     @staticmethod
     async def update_email(
