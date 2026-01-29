@@ -11,6 +11,7 @@ import "@lib/tracking"
 
 import "@lib/i18n"
 
+import "./navbar/navbar-left"
 import "./navbar/navbar-right"
 
 import "./rich-text/_control"
@@ -26,6 +27,7 @@ import "./audit/index"
 import "./diary/compose"
 import "./diary/index"
 import "./edit/index"
+import "./edit/redirect"
 import "./fixthemap"
 import "./follows/index"
 import "./messages/index"

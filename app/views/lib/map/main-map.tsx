@@ -22,7 +22,7 @@ import { wrapIdleCallbackStatic } from "@lib/polyfills"
 import { effect } from "@preact/signals"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { render } from "preact"
-import { handleEditRemotePath, updateNavbarAndHash } from "../../navbar/navbar"
+import { handleEditRemotePath, updateNavbarAndHash } from "../../navbar/navbar-left"
 import { CustomGeolocateControl } from "./controls/geolocate"
 import { addControlGroup } from "./controls/group"
 import { NewNoteControl } from "./controls/new-note"
@@ -135,4 +135,5 @@ const configureMainMap = (container: HTMLElement) => {
 }
 
 const mapContainer = document.getElementById("MainMap")
-if (mapContainer?.tagName === "DIV") configureMainMap(mapContainer)
+export const hasMainMap = mapContainer?.tagName === "DIV"
+if (hasMainMap) configureMainMap(mapContainer!)

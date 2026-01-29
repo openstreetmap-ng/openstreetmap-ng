@@ -17,7 +17,6 @@ from app.models.db.audit import AUDIT_TYPE_VALUES
 from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
 from app.models.db.user import (
-    DEFAULT_EDITOR,
     user_avatar_url,
     user_is_admin,
     user_is_deleted,
@@ -191,7 +190,6 @@ def mask_ip(ip: IPv4Address | IPv6Address):
 _J2.globals.update(
     AUDIT_TYPE_SET=AUDIT_TYPE_VALUES,
     CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
-    DEFAULT_EDITOR=DEFAULT_EDITOR,
     REPORT_COMMENT_BODY_MAX_LENGTH=REPORT_COMMENT_BODY_MAX_LENGTH,
     ceil=ceil,
     format_rfc2822_date=format_rfc2822_date,

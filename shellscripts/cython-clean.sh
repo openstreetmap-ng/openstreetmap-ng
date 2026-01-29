@@ -1,2 +1,5 @@
 rm -rf build/
-rm -f -- app/!(static|views)/**/*.{c,html,so} scripts/**/*.{c,html,so}
+rm -f -- \
+  app/*.{c,html,so,pyd} \
+  app/!(static|views)/**/*.{c,html,so,pyd} \
+  scripts/**/*.{c,html,so,pyd}

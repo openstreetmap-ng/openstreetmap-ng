@@ -19,7 +19,7 @@ from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.connected_account import AuthProvider
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.user import Editor, User
+from app.models.db.user import User
 from app.models.db.user_profile import UserSocial, UserSocialType
 from app.models.proto.shared_pb2 import PasskeyRegistration
 from app.models.types import LocaleCode, Password
@@ -52,15 +52,6 @@ async def settings(
         activity_tracking=activity_tracking,
         crash_reporting=crash_reporting,
     )
-    return Response(None, status.HTTP_204_NO_CONTENT)
-
-
-@router.post('/settings/editor')
-async def settings_editor(
-    editor: Annotated[Editor | None, Form()],
-    _: Annotated[User, web_user()],
-):
-    await UserService.update_editor(editor=editor)
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 

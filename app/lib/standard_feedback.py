@@ -107,10 +107,7 @@ class StandardFeedback:
 
     @staticmethod
     def raise_connect_error(
-        field: str | None,
-        message: str,
-        *,
-        code: Code = Code.INVALID_ARGUMENT,
+        field: str | None, message: str, *, code: Code = Code.INVALID_ARGUMENT
     ) -> NoReturn:
         """Raise a ConnectError with StandardFeedbackDetail in details."""
         feedback = StandardFeedbackDetail(

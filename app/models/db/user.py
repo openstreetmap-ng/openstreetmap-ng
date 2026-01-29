@@ -10,10 +10,8 @@ from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 
 UserRole = Literal['moderator', 'administrator']
-Editor = Literal['id', 'rapid', 'remote']
 
 USER_ROLES = frozenset[UserRole](get_args(UserRole))
-DEFAULT_EDITOR: Editor = 'id'
 
 
 class UserInit(TypedDict):
@@ -29,7 +27,6 @@ class User(UserInit):
     id: UserId
     roles: list[UserRole]
     timezone: str | None
-    editor: Editor | None
     home_point: Point | None
     avatar_type: UserAvatarType
     avatar_id: StorageKey | None

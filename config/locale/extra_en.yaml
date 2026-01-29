@@ -3,6 +3,7 @@ editor:
   rapid:
     name: Rapid
   default: Default editor
+  toggle_editor_selection: Toggle editor selection
 map:
   globe_view: Globe view
   zoom_out_to_see_the_world_in_3d: Zoom out to see the world in 3D

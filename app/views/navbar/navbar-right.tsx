@@ -1,4 +1,5 @@
 import { config } from "@lib/config"
+import { hasMainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState } from "@lib/map/state"
 import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { signal } from "@preact/signals"
@@ -9,8 +10,6 @@ import { t } from "i18next"
 import { createRef, render } from "preact"
 import { LanguageSwitcher } from "./_language-switcher"
 import { ThemeSwitcher } from "./_theme-switcher"
-
-const hasMainMap = document.getElementById("MainMap")?.tagName === "DIV"
 
 const navLinks = [
   {
@@ -362,10 +361,12 @@ const configureResponsiveNavbarLinks = (
   desktopMedia.addEventListener("change", update)
 }
 
-const navbarRightRoot = document.getElementById("NavbarRight")!
-render(<NavbarRight />, navbarRightRoot)
-configureResponsiveNavbarLinks(
-  navLinksRef.current!,
-  navLinksListRef.current!,
-  navLinksMoreRef.current!,
-)
+const navbarRightRoot = document.getElementById("NavbarRight")
+if (navbarRightRoot) {
+  render(<NavbarRight />, navbarRightRoot)
+  configureResponsiveNavbarLinks(
+    navLinksRef.current!,
+    navLinksListRef.current!,
+    navLinksMoreRef.current!,
+  )
+}
