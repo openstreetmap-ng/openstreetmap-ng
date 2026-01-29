@@ -9,40 +9,40 @@ from shapely import get_coordinates
 from app.config import (
     NOTE_COMMENTS_PAGE_SIZE,
     NOTE_FRESHLY_CLOSED_TIMEOUT,
+    NOTE_QUERY_AREA_MAX_SIZE,
+    NOTE_QUERY_DEFAULT_CLOSED,
+    NOTE_QUERY_WEB_LIMIT,
+    NOTE_USER_PAGE_SIZE,
 )
+from app.format import FormatRender
 from app.lib.auth_context import require_web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
-from app.lib.standard_pagination import (
-    sp_paginate_table,
-)
-from app.models.db.note import note_status
-from app.models.db.note_comment import (
-    NoteComment,
-    note_comments_resolve_rich_text,
-)
+from app.lib.geo_utils import parse_bbox
+from app.lib.standard_pagination import sp_paginate_table
+from app.models.db.note import Note, note_status
+from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import user_proto
-from app.models.proto.note_connect import (
-    NoteService as NoteServiceConnect,
-)
-from app.models.proto.note_connect import (
-    NoteServiceASGIApplication,
-)
+from app.models.proto.note_connect import NoteService as NoteServiceConnect
+from app.models.proto.note_connect import NoteServiceASGIApplication
 from app.models.proto.note_pb2 import (
     AddNoteCommentRequest,
     AddNoteCommentResponse,
     CreateNoteRequest,
     CreateNoteResponse,
+    GetMapNotesRequest,
     GetNoteCommentsRequest,
     GetNoteCommentsResponse,
     GetNoteRequest,
     GetNoteResponse,
+    GetUserNotesPageRequest,
+    GetUserNotesPageResponse,
     NoteData,
     SetNoteSubscriptionRequest,
     SetNoteSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import LonLat
-from app.models.types import NoteId
+from app.models.types import NoteId, UserId
 from app.queries.note_comment_query import NoteCommentQuery
 from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
@@ -52,6 +52,26 @@ from app.services.user_subscription_service import UserSubscriptionService
 
 
 class _Service(NoteServiceConnect):
+    @override
+    async def get_map_notes(self, request: GetMapNotesRequest, ctx: RequestContext):
+        geometry = parse_bbox(request.bbox)
+        if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
+            raise_for.notes_query_area_too_big()
+
+        notes = await NoteQuery.find(
+            geometry=geometry,
+            max_closed_days=NOTE_QUERY_DEFAULT_CLOSED,
+            sort_by='updated_at',
+            sort_dir='desc',
+            limit=NOTE_QUERY_WEB_LIMIT,
+        )
+
+        await NoteCommentQuery.resolve_comments(
+            notes, per_note_sort='asc', per_note_limit=1
+        )
+
+        return FormatRender.encode_notes(notes)
+
     @override
     async def get_note(self, request: GetNoteRequest, ctx: RequestContext):
         id = NoteId(request.id)
@@ -67,6 +87,66 @@ class _Service(NoteServiceConnect):
 
         sp_state = request.state.SerializeToString()
         return await _build_comments(id, sp_state)
+
+    @override
+    async def get_user_notes_page(
+        self, request: GetUserNotesPageRequest, ctx: RequestContext
+    ):
+        user_id = UserId(request.user_id)
+        if await UserQuery.find_by_id(user_id) is None:
+            raise_for.user_not_found(user_id)
+
+        open: bool | None
+        if request.status == GetUserNotesPageRequest.StatusFilter.open:
+            open = True
+        elif request.status == GetUserNotesPageRequest.StatusFilter.closed:
+            open = False
+        else:
+            open = None
+
+        where_clause, params = NoteQuery.user_page_where(
+            user_id,
+            commented_other=request.commented,
+            open=open,
+        )
+
+        sp_state = request.state.SerializeToString()
+        notes, state = await sp_paginate_table(
+            Note,
+            sp_state,
+            table='note',
+            where=where_clause,
+            params=params,
+            page_size=NOTE_USER_PAGE_SIZE,
+            cursor_column='updated_at',
+            cursor_kind='datetime',
+            order_dir='desc',
+        )
+
+        comments = await NoteCommentQuery.resolve_comments(
+            notes, per_note_sort='asc', per_note_limit=1
+        )
+
+        async with TaskGroup() as tg:
+            tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
+            tg.create_task(UserQuery.resolve_users(comments))
+
+        summaries: list[GetUserNotesPageResponse.Summary] = []
+        for note in notes:
+            header = note['comments'][0]  # type: ignore[reportTypedDictNotRequiredAccess]
+            summaries.append(
+                GetUserNotesPageResponse.Summary(
+                    id=note['id'],
+                    status=note_status(note),
+                    created_at=int(header['created_at'].timestamp()),
+                    created_by=user_proto(header.get('user')),
+                    body=header.get('body') or '',
+                    updated_at=int(note['updated_at'].timestamp()),
+                    num_comments=note.get('num_comments') or 0,
+                )
+            )
+
+        return GetUserNotesPageResponse(state=state, notes=summaries)
 
     @override
     async def create_note(self, request: CreateNoteRequest, ctx: RequestContext):

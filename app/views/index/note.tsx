@@ -192,7 +192,7 @@ const CommentForm = ({
       <StandardForm
         method={NoteService.method.addNoteComment}
         buildRequest={buildRequest}
-        resetOnSuccess={true}
+        resetOnSuccess
         onSuccess={(result, ctx) => {
           commentText.value = ""
           onSuccess({
@@ -250,7 +250,7 @@ const CommentForm = ({
       <StandardForm
         method={NoteService.method.addNoteComment}
         buildRequest={buildRequest}
-        resetOnSuccess={true}
+        resetOnSuccess
         onSuccess={(result, ctx) => {
           onSuccess({
             result,
@@ -291,7 +291,7 @@ const CommentForm = ({
     <StandardForm
       method={NoteService.method.addNoteComment}
       buildRequest={buildRequest}
-      resetOnSuccess={true}
+      resetOnSuccess
       onSuccess={(result, ctx) => {
         onSuccess({
           result,
@@ -492,7 +492,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
             method={NoteService.method.getNoteComments}
             request={{ id: d.id }}
             label={t("alt.comments_page_navigation")}
-            small={true}
+            small
             pageOrder="desc"
             responseSignal={preloadedComments}
           >

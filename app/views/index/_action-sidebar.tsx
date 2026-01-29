@@ -4,11 +4,11 @@ import type {
   MessageInitShape,
   MessageValidType,
 } from "@bufbuild/protobuf"
-import { type CallOptions, Code, ConnectError } from "@connectrpc/connect"
+import { Code, ConnectError } from "@connectrpc/connect"
 import { IndexRoute } from "@index/index"
 import { routerNavigate } from "@index/router"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { connectErrorToMessage, rpcClient } from "@lib/rpc"
+import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import {
   type ReadonlySignal,
   type Signal,
@@ -134,12 +134,7 @@ export function useSidebarRpc<
 
     resource.value = { tag: "loading", prev }
 
-    const fn = rpcClient(method.parent)[method.localName] as (
-      request: MessageInitShape<I>,
-      options?: CallOptions,
-    ) => Promise<MessageValidType<O>>
-
-    fn(req, { signal: scope.signal })
+    rpcUnary(method)(req, { signal: scope.signal })
       .then((resp) => {
         resource.value = {
           tag: "ready",

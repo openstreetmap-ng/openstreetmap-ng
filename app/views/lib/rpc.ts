@@ -1,10 +1,12 @@
 import {
   type DescMessage,
+  type DescMethodUnary,
   type DescService,
   fromBinary,
+  type MessageInitShape,
   type MessageValidType,
 } from "@bufbuild/protobuf"
-import type { ConnectError } from "@connectrpc/connect"
+import type { CallOptions, ConnectError } from "@connectrpc/connect"
 import { createClient } from "@connectrpc/connect"
 import { createConnectTransport } from "@connectrpc/connect-web"
 import { StandardFeedbackDetailSchema } from "@lib/proto/shared_pb"
@@ -33,6 +35,24 @@ const rpcTransport = createConnectTransport({
   useHttpGet: true,
 })
 
-export const rpcClient = memoize(<T extends DescService>(service: T) =>
-  createClient(service, rpcTransport),
+type RpcValidClient<T extends DescService> = {
+  [K in keyof T["method"]]: T["method"][K] extends DescMethodUnary<infer I, infer O>
+    ? (
+        request: MessageInitShape<I>,
+        options?: CallOptions,
+      ) => Promise<MessageValidType<O>>
+    : never
+}
+
+export const rpcClient = memoize(
+  <T extends DescService>(service: T) =>
+    createClient(service, rpcTransport) as RpcValidClient<T>,
 )
+
+export const rpcUnary = <I extends DescMessage, O extends DescMessage>(
+  method: DescMethodUnary<I, O>,
+) =>
+  rpcClient(method.parent)[method.localName] as (
+    request: MessageInitShape<I>,
+    options?: CallOptions,
+  ) => Promise<MessageValidType<O>>

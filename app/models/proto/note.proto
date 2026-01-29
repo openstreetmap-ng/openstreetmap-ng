@@ -10,11 +10,19 @@ enum NoteStatus {
 }
 
 service NoteService {
+  rpc GetMapNotes(GetMapNotesRequest) returns (GetMapNotesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
   rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
   rpc GetNoteComments(GetNoteCommentsRequest) returns (GetNoteCommentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc GetUserNotesPage(GetUserNotesPageRequest) returns (GetUserNotesPageResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
@@ -25,6 +33,21 @@ service NoteService {
   rpc SetNoteSubscription(SetNoteSubscriptionRequest) returns (SetNoteSubscriptionResponse) {
     option idempotency_level = IDEMPOTENT;
   }
+}
+
+message GetMapNotesRequest {
+  Bounds bbox = 1 [(buf.validate.field).required = true];
+}
+
+message GetMapNotesResponse {
+  message Note {
+    uint64 id = 1;
+    LonLat location = 2 [(buf.validate.field).required = true];
+    string body = 3;
+    NoteStatus status = 4;
+  }
+
+  repeated Note notes = 1;
 }
 
 message CreateNoteRequest {
@@ -50,6 +73,34 @@ message GetNoteResponse {
 message GetNoteCommentsRequest {
   StandardPaginationState state = 1;
   uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message GetUserNotesPageRequest {
+  enum StatusFilter {
+    any = 0;
+    open = 1;
+    closed = 2;
+  }
+
+  StandardPaginationState state = 1;
+  uint64 user_id = 2 [(buf.validate.field).uint64.gt = 0];
+  bool commented = 3;
+  StatusFilter status = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+message GetUserNotesPageResponse {
+  message Summary {
+    uint64 id = 1;
+    NoteStatus status = 2;
+    uint64 created_at = 3;
+    optional User created_by = 4;
+    string body = 5;
+    uint64 updated_at = 6;
+    uint32 num_comments = 7;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Summary notes = 2;
 }
 
 message GetNoteCommentsResponse {
@@ -107,15 +158,4 @@ message NoteData {
   Header header = 4 [(buf.validate.field).required = true];
   bool is_subscribed = 5;
   optional uint32 disappear_days = 6;
-}
-
-message RenderNotesData {
-  message Note {
-    uint64 id = 1;
-    LonLat location = 2 [(buf.validate.field).required = true];
-    string body = 3;
-    NoteStatus status = 4;
-  }
-
-  repeated Note notes = 1;
 }

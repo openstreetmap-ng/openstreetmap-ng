@@ -1,7 +1,7 @@
 import type { DescMessage, DescMethodUnary, MessageInitShape } from "@bufbuild/protobuf"
 import { type MessageValidType, toBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
-import { type CallOptions, ConnectError } from "@connectrpc/connect"
+import { ConnectError } from "@connectrpc/connect"
 import {
   STANDARD_PAGINATION_DISTANCE,
   STANDARD_PAGINATION_MAX_FULL_PAGES,
@@ -12,7 +12,7 @@ import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
-import { connectErrorToMessage, fromBinaryValid, rpcClient } from "@lib/rpc"
+import { connectErrorToMessage, fromBinaryValid, rpcUnary } from "@lib/rpc"
 import { range } from "@lib/utils"
 import {
   batch,
@@ -360,18 +360,14 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
     requestedPage,
     abortSignal,
   ) => {
-    const fn = rpcClient(method.parent)[method.localName] as (
-      request: TRequest,
-      options?: CallOptions,
-    ) => Promise<TResponse>
-
-    const req = {
-      ...request,
-      state: { ...(baseState ?? {}), requestedPage },
-    } as unknown as TRequest
-
     try {
-      return await fn(req, { signal: abortSignal })
+      return (await rpcUnary(method)(
+        {
+          ...request,
+          state: { ...(baseState ?? {}), requestedPage },
+        } as unknown as TRequest,
+        { signal: abortSignal },
+      )) as TResponse
     } catch (reason) {
       throw new Error(connectErrorToMessage(ConnectError.from(reason)))
     }

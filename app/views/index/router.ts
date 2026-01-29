@@ -1,6 +1,6 @@
 import { getRouteParamSpecificity, type QuerySchema } from "@lib/codecs"
 import { qsEncode, qsParseAll } from "@lib/qs"
-import { unquotePlus } from "@lib/utils"
+import { isUnmodifiedLeftClick, unquotePlus } from "@lib/utils"
 import type { ReadonlySignal, Signal } from "@preact/signals"
 import { batch, effect, signal } from "@preact/signals"
 import { assert } from "@std/assert"
@@ -402,9 +402,7 @@ const reconcileSignalBag = (
 
   batch(() => {
     for (const key of keys) {
-      const sig = bag[key]
-      const next = getNextValue(key)
-      if (!Object.is(sig.peek(), next)) sig.value = next
+      bag[key].value = getNextValue(key)
     }
   })
 }
@@ -580,15 +578,7 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
 
   // Anchor click interception
   window.addEventListener("click", (e) => {
-    if (
-      e.defaultPrevented ||
-      e.button !== 0 ||
-      e.metaKey ||
-      e.ctrlKey ||
-      e.shiftKey ||
-      e.altKey
-    )
-      return
+    if (!isUnmodifiedLeftClick(e)) return
 
     const target = (e.target as Element | null)?.closest("a[href]")
     if (!target?.href || target.origin !== location.origin) return

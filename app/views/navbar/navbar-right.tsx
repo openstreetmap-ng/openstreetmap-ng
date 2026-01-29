@@ -315,8 +315,7 @@ const configureResponsiveNavbarLinks = (
     measureLinkWidthsOnce()
 
     if (!desktopMedia.matches) {
-      if (navVisibleCount.peek() !== navLinks.length)
-        navVisibleCount.value = navLinks.length
+      navVisibleCount.value = navLinks.length
       return
     }
 
@@ -324,8 +323,7 @@ const configureResponsiveNavbarLinks = (
     const containerWidth = container.clientWidth - containerBuffer
     const totalWidth = getLinksWidth(navLinks.length)
     if (totalWidth <= containerWidth) {
-      if (navVisibleCount.peek() !== navLinks.length)
-        navVisibleCount.value = navLinks.length
+      navVisibleCount.value = navLinks.length
       return
     }
 
@@ -340,9 +338,7 @@ const configureResponsiveNavbarLinks = (
       }
     }
 
-    if (nextCount !== navVisibleCount.peek()) {
-      navVisibleCount.value = nextCount
-    }
+    navVisibleCount.value = nextCount
   }
 
   let raf = 0

@@ -4,6 +4,14 @@ export const isHrefCurrentPage = (href: string) => {
   return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
 
+export const isUnmodifiedLeftClick = (event: MouseEvent) =>
+  !event.defaultPrevented &&
+  event.button === 0 &&
+  !event.metaKey &&
+  !event.ctrlKey &&
+  !event.shiftKey &&
+  !event.altKey
+
 /** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
 export const unquotePlus = (str: string) => decodeURIComponent(str.replaceAll("+", " "))
 

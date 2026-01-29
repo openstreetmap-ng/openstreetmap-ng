@@ -2,7 +2,7 @@ import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
 import { polylineDecode, polylineEncode } from "@lib/polyline"
 import { z } from "@zod/zod"
 
-const ROUTE_POSITIVE_INT_RE = /^[0-9]+$/
+const ROUTE_POSITIVE_INT_RE = /^(?:0*[1-9][0-9]*)$/
 
 export const getRouteParamSpecificity = (schema: z.ZodType) => {
   const meta = schema.meta() as { routeParamSpecificity?: number } | undefined
@@ -33,8 +33,21 @@ export const queryParam = {
       encode: (value) => (value === undefined ? undefined : [value]),
     }),
 
+  positive: () => {
+    const schema = routeParam.positive()
+    return z.codec(z.array(z.string()).optional(), z.bigint().positive().optional(), {
+      decode: (raw) => {
+        const last = raw?.at(-1)
+        if (last === undefined) return
+        const parsed = schema.safeDecode(last)
+        return parsed.success ? parsed.data : undefined
+      },
+      encode: (value) => (value === undefined ? undefined : [schema.encode(value)]),
+    })
+  },
+
   enum: <const T extends readonly [string, ...string[]]>(values: T) => {
-    const schema = z.enum(values)
+    const schema = routeParam.enum(values)
     return z.codec(z.array(z.string()).optional(), schema.optional(), {
       decode: (raw) => {
         const last = raw?.at(-1)

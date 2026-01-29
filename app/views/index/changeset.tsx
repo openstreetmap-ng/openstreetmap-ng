@@ -168,7 +168,7 @@ const CommentForm = ({
     <StandardForm
       class="comment-form mb-2"
       method={ChangesetService.method.addChangesetComment}
-      resetOnSuccess={true}
+      resetOnSuccess
       buildRequest={({ formData }) => ({
         id: changesetId,
         body: formData.get("body")!.toString(),
@@ -416,7 +416,7 @@ const ChangesetSidebar = ({
               method={ChangesetService.method.getChangesetComments}
               request={{ id: d.id }}
               label={t("alt.comments_page_navigation")}
-              small={true}
+              small
               pageOrder="desc"
               responseSignal={preloadedComments}
             >

@@ -1,7 +1,7 @@
 import { polylineDecode } from "@lib/polyline"
 import type { RenderChangesetsData_Changeset } from "@lib/proto/changeset_pb"
 import type { RenderElementsDataValid } from "@lib/proto/element_pb"
-import type { RenderNotesDataValid } from "@lib/proto/note_pb"
+import type { GetMapNotesResponseValid } from "@lib/proto/note_pb"
 import type {
   Bounds,
   OSMChangeset,
@@ -187,7 +187,7 @@ export const convertRenderElementsData = (
   return result
 }
 
-export const convertRenderNotesData = (render: RenderNotesDataValid) => {
+export const convertRenderNotesData = (render: GetMapNotesResponseValid) => {
   const result: OSMNote[] = []
   for (const note of render.notes) {
     result.push({

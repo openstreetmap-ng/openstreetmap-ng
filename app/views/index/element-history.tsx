@@ -133,7 +133,7 @@ const ElementHistorySidebar = ({
         }}
         label={t("alt.elements_page_navigation")}
         pageOrder="desc-range"
-        small={true}
+        small
         navClassBottom="mb-0"
         onLoad={() => focusObjects(map)}
       >

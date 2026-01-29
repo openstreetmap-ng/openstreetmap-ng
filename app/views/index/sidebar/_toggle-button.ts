@@ -31,8 +31,6 @@ export class SidebarToggleControl implements IControl {
   }
 
   private setActive = (nextActive: boolean, resize = true) => {
-    if (this._active.peek() === nextActive) return
-
     this._active.value = nextActive
     this.button.classList.toggle("active", nextActive)
     this.sidebar.hidden = !nextActive
