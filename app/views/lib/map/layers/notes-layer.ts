@@ -1,7 +1,7 @@
 import { NoteRoute } from "@index/note"
 import { routerNavigate } from "@index/router"
-import { notesLayerLoading } from "@index/sidebar/layers"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
+import { createKeyedAbort } from "@lib/keyed-abort"
 import { NoteService } from "@lib/proto/note_pb"
 import { rpcClient } from "@lib/rpc"
 import { delay } from "@std/async/delay"
@@ -12,7 +12,7 @@ import {
   type Map as MaplibreMap,
   Popup,
 } from "maplibre-gl"
-import { boundsIntersection, boundsSize } from "../bounds"
+import { boundsIntersection, boundsSize, boundsToString } from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { loadMapImage } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
@@ -50,12 +50,14 @@ layersConfig.set(LAYER_ID, {
 
 const RELOAD_PROPORTION_THRESHOLD = 0.9
 
+const abort = createKeyedAbort()
+export const notesLayerPending = abort.pending
+
 /** Configure the notes layer for the given map */
 export const configureNotesLayer = (map: MaplibreMap) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
   let enabled = false
   let fetchedBounds: LngLatBounds | null = null
-  let abortController: AbortController | undefined
 
   // On feature click, navigate to the note
   map.on("click", LAYER_ID, (e) => {
@@ -114,13 +116,11 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     // Skip if the notes layer is not visible
     if (!enabled) return
 
-    // Abort any pending request
-    abortController?.abort()
-
     // Skip updates if the area is too big
     const fetchBounds = map.getBounds()
     const fetchArea = boundsSize(fetchBounds)
     if (fetchArea > NOTE_QUERY_AREA_MAX_SIZE) {
+      abort.abort()
       clearNotes()
       return
     }
@@ -133,8 +133,8 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       if (proportion > RELOAD_PROPORTION_THRESHOLD) return
     }
 
-    notesLayerLoading.value = true
-    abortController = new AbortController()
+    const token = abort.start(boundsToString(fetchBounds))
+    if (!token) return
 
     const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
       .adjustAntiMeridian()
@@ -146,7 +146,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
           bbox: { minLon, minLat, maxLon, maxLat },
         },
         {
-          signal: abortController.signal,
+          signal: token.signal,
         },
       )
 
@@ -155,17 +155,18 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       fetchedBounds = fetchBounds
       console.debug("NotesLayer: Loaded", notes.length, "notes")
     } catch (error) {
-      if (abortController.signal.aborted) return
+      if (token.signal.aborted) return
       console.error("NotesLayer: Failed to fetch", error)
       clearNotes()
     } finally {
-      notesLayerLoading.value = false
+      token.done()
     }
   }
   map.on("moveend", updateLayer)
   map.on("reloadnoteslayer", () => {
     console.debug("NotesLayer: Reloading")
     fetchedBounds = null
+    abort.abort()
     updateLayer()
   })
 
@@ -179,7 +180,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       loadMapImage(map, "marker-hidden")
       updateLayer()
     } else {
-      abortController?.abort()
+      abort.abort()
       clearNotes()
     }
   })

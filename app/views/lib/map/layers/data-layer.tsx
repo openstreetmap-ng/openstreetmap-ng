@@ -1,8 +1,8 @@
 import type { ElementTypeSlug } from "@index/element"
 import { ElementRoute } from "@index/element"
 import { routerNavigate } from "@index/router"
-import { dataLayerLoading } from "@index/sidebar/layers"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
+import { createKeyedAbort } from "@lib/keyed-abort"
 import { RenderElementsDataSchema } from "@lib/proto/element_pb"
 import { qsEncode } from "@lib/qs"
 import { fromBinaryValid } from "@lib/rpc"
@@ -81,6 +81,9 @@ layersConfig.set(LAYER_ID, {
 
 const LOAD_DATA_ALERT_THRESHOLD = 10_000
 
+const abort = createKeyedAbort()
+export const dataLayerPending = abort.pending
+
 /** Configure the data layer for the given map */
 export const configureDataLayer = (map: MaplibreMap) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
@@ -89,7 +92,6 @@ export const configureDataLayer = (map: MaplibreMap) => {
   const errorDataAlertVisible = signal(false)
 
   let enabled = false
-  let abortController: AbortController | undefined
   let fetchedBounds: LngLatBounds | null = null
   let loadDataOverride = false
 
@@ -203,10 +205,6 @@ export const configureDataLayer = (map: MaplibreMap) => {
     // Skip if the data layer is not visible
     if (!enabled) return
 
-    // Abort any pending request
-    abortController?.abort()
-    abortController = new AbortController()
-
     const viewBounds = map.getBounds()
 
     // Skip updates if the view is satisfied
@@ -221,23 +219,28 @@ export const configureDataLayer = (map: MaplibreMap) => {
     const fetchBounds = boundsPadding(viewBounds, 0.3)
 
     // Skip updates if the area is too big
-    const area = boundsSize(fetchBounds)
-    if (area > MAP_QUERY_AREA_MAX_SIZE) {
+    const fetchArea = boundsSize(fetchBounds)
+    if (fetchArea > MAP_QUERY_AREA_MAX_SIZE) {
+      abort.abort()
       errorDataAlertVisible.value = true
       loadDataAlertVisible.value = false
       clearData()
       return
     }
 
+    const bbox = boundsToString(fetchBounds)
+    const limit = loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString()
+    const token = abort.start(`${bbox}|${limit}`)
+    if (!token) return
+
     errorDataAlertVisible.value = false
-    dataLayerLoading.value = true
     try {
       const resp = await fetch(
         `/api/web/map${qsEncode({
-          bbox: boundsToString(fetchBounds),
-          limit: loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString(),
+          bbox,
+          limit,
         })}`,
-        { signal: abortController.signal, priority: "high" },
+        { signal: token.signal, priority: "high" },
       )
       if (!resp.ok) {
         if (resp.status === 400) {
@@ -262,7 +265,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       console.error("DataLayer: Failed to fetch", error)
       clearData()
     } finally {
-      dataLayerLoading.value = false
+      token.done()
     }
   }
   map.on("moveend", updateLayer)
@@ -276,7 +279,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       onFeatureLeave()
       errorDataAlertVisible.value = false
       loadDataAlertVisible.value = false
-      abortController?.abort()
+      abort.abort()
       clearData()
     }
   })

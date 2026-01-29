@@ -423,10 +423,7 @@ const ChangesetSidebar = ({
               {(page) => (
                 <ul class="list-unstyled mb-2">
                   {page.comments.map((comment) => (
-                    <ChangesetComment
-                      key={comment.createdAt}
-                      comment={comment}
-                    />
+                    <ChangesetComment comment={comment} />
                   ))}
                 </ul>
               )}

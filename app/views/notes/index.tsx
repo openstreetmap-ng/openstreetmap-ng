@@ -232,7 +232,7 @@ const NotesIndex = ({
                   {data.notes.length ? (
                     data.notes.map((note) => (
                       <NoteListItem
-                        key={note.id.toString()}
+                        key={note.id}
                         note={note}
                       />
                     ))
