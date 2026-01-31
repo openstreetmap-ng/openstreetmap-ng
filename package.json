@@ -35,6 +35,7 @@
     "bootstrap": "latest",
     "bootstrap-icons": "latest",
     "bowser": "latest",
+    "eslint-plugin-compat": "latest",
     "i18next": "latest",
     "i18next-conv": "latest",
     "iD": "github:openstreetmap/iD#release",

@@ -12,7 +12,7 @@ const loadSystemApp = async (
 
   const accessToken = systemAppAccessTokenStorage(clientId).get()
   if (!accessToken) {
-    createAccessToken(clientId, successCallback)
+    void createAccessToken(clientId, successCallback)
     return
   }
 
@@ -27,7 +27,7 @@ const loadSystemApp = async (
     successCallback(accessToken)
   } catch {
     console.debug("SystemApp: Cached token invalid")
-    createAccessToken(clientId, successCallback)
+    void createAccessToken(clientId, successCallback)
   }
 }
 
@@ -73,7 +73,7 @@ export const configureIFrameSystemApp = (
       // Respond only once
       window.removeEventListener("message", onWindowMessage)
       console.debug("SystemApp: Request received from", origin)
-      loadSystemApp(clientId, (accessToken) => {
+      void loadSystemApp(clientId, (accessToken) => {
         console.debug("SystemApp: Responding to", iframeOrigin)
         iframe.contentWindow!.postMessage(
           { type: "loadedSystemApp", accessToken },

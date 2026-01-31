@@ -54,14 +54,13 @@ const ElementHistoryEntry = ({
   return (
     <div class="version-section section position-relative">
       <a
-        class="stretched-link"
+        class={`stretched-link link-underline link-underline-opacity-0-hover version-badge badge mb-3 ${isLatest ? "is-latest" : ""}`}
         href={`/${getElementTypeSlug(type)}/${id}/history/${version}`}
         onMouseEnter={() => focusObjects(map, getElements(), elementFocusPaint)}
         onMouseLeave={() => focusObjects(map)}
-      />
-      <h3 class={`version-badge badge mb-3 ${isLatest ? "is-latest" : ""}`}>
+      >
         {t("browse.version")} {version}
-      </h3>
+      </a>
 
       <ElementMeta data={data} />
 
@@ -94,9 +93,8 @@ const ElementHistorySidebar = ({
 
   setPageTitle(title)
 
-  useEffect(() => {
-    return () => focusObjects(map)
-  }, [])
+  // Effect: unfocus on unmount
+  useEffect(() => () => focusObjects(map), [])
 
   return (
     <div class="sidebar-content">
@@ -131,11 +129,12 @@ const ElementHistorySidebar = ({
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
         }}
-        label={t("alt.elements_page_navigation")}
+        ariaLabel={t("alt.elements_page_navigation")}
         pageOrder="desc-range"
+        onLoad={() => focusObjects(map)}
         small
         navClassBottom="mb-0"
-        onLoad={() => focusObjects(map)}
+        spinnerClass="pt-4"
       >
         {(resp) => (
           <div class="section p-0">

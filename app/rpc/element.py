@@ -5,12 +5,17 @@ from connectrpc.request import RequestContext
 from psycopg.sql import SQL, Identifier
 from shapely import get_coordinates
 
-from app.config import ELEMENT_HISTORY_PAGE_SIZE
+from app.config import (
+    ELEMENT_HISTORY_PAGE_SIZE,
+    MAP_QUERY_AREA_MAX_SIZE,
+    MAP_QUERY_LEGACY_NODES_LIMIT,
+)
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
 from app.lib.exceptions_context import raise_for
 from app.lib.feature_icon import features_icons
 from app.lib.feature_name import features_names
+from app.lib.geo_utils import parse_bbox
 from app.lib.rich_text import process_rich_text_plain
 from app.lib.standard_pagination import sp_num_pages, sp_paginate_query
 from app.lib.translation import t
@@ -28,6 +33,8 @@ from app.models.proto.element_pb2 import (
     GetElementHistoryResponse,
     GetElementRequest,
     GetElementResponse,
+    GetMapElementsRequest,
+    GetMapElementsResponse,
     RenderElementsData,
 )
 from app.models.proto.shared_pb2 import ElementIcon, ElementVersionRef, LonLat
@@ -40,6 +47,40 @@ from speedup import split_typed_element_id, typed_element_id
 
 
 class _Service(ElementService):
+    @override
+    async def get_map_elements(
+        self, request: GetMapElementsRequest, ctx: RequestContext
+    ):
+        geometry = parse_bbox(request.bbox)
+        if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
+            raise_for.map_query_area_too_big()
+
+        if request.limit:
+            limit = min(request.limit, MAP_QUERY_LEGACY_NODES_LIMIT)
+            nodes_limit = limit + 1
+            legacy_nodes_limit = False
+        else:
+            limit = 0
+            nodes_limit = MAP_QUERY_LEGACY_NODES_LIMIT
+            legacy_nodes_limit = True
+
+        elements = await ElementQuery.find_by_geom(
+            geometry,
+            partial_ways=True,
+            include_relations=False,
+            nodes_limit=nodes_limit,
+            legacy_nodes_limit=legacy_nodes_limit,
+        )
+
+        if limit and len(elements) > limit:
+            return GetMapElementsResponse(
+                render=RenderElementsData(), too_much_data=True
+            )
+
+        return GetMapElementsResponse(
+            render=FormatRender.encode_elements(elements, detailed=True, areas=False)
+        )
+
     @override
     async def get_element(self, request: GetElementRequest, ctx: RequestContext):
         ref_kind = request.WhichOneof('ref')
@@ -106,7 +147,7 @@ class _Service(ElementService):
         state.max_known_page = state.num_pages
 
         if not elements:
-            return GetElementHistoryResponse(state=state, elements=())
+            return GetElementHistoryResponse(state=state)
 
         changeset_ids = list({e['changeset_id'] for e in elements})
 
@@ -244,7 +285,7 @@ async def _build_context(
     include_parents_entries: bool,
 ):
     if not element['visible']:
-        return ElementData.Context(members=(), parents=(), render=RenderElementsData())
+        return ElementData.Context(render=RenderElementsData())
 
     async def members_task():
         members = element['members']

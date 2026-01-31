@@ -1,5 +1,5 @@
 import { polylineDecode } from "@lib/polyline"
-import type { RenderChangesetsData_Changeset } from "@lib/proto/changeset_pb"
+import type { GetMapChangesetsResponse_ChangesetValid } from "@lib/proto/changeset_pb"
 import type { RenderElementsDataValid } from "@lib/proto/element_pb"
 import type { GetMapNotesResponseValid } from "@lib/proto/note_pb"
 import type {
@@ -147,7 +147,7 @@ export const renderObjects = (
 }
 
 export const convertRenderChangesetsData = (
-  changesets: RenderChangesetsData_Changeset[],
+  changesets: GetMapChangesetsResponse_ChangesetValid[],
 ) => {
   const result: OSMChangeset[] = []
   for (const changeset of changesets) {

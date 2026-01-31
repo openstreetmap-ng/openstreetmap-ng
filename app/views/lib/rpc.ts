@@ -35,10 +35,32 @@ const rpcTransport = createConnectTransport({
   useHttpGet: true,
 })
 
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
+
+type LooseInit<T> = T extends Uint8Array | Date
+  ? T
+  : T extends bigint | boolean | number | string | null | undefined
+    ? T
+    : T extends (infer U)[]
+      ? LooseInit<U>[]
+      : T extends readonly (infer U)[]
+        ? readonly LooseInit<U>[]
+        : T extends object
+          ? Expand<{ [K in keyof T]?: LooseInit<T[K]> | undefined }>
+          : T
+
+// TODO: remove workaround after https://github.com/bufbuild/protobuf-es/pull/1347
+export type LooseMessageInitShape<Desc extends DescMessage> =
+  | MessageInitShape<Desc>
+  | LooseInit<MessageInitShape<Desc>>
+
 type RpcValidClient<T extends DescService> = {
   [K in keyof T["method"]]: T["method"][K] extends DescMethodUnary<infer I, infer O>
     ? (
-        request: MessageInitShape<I>,
+        // Allow explicitly passing `undefined` for optional fields under
+        // `exactOptionalPropertyTypes`. Runtime normalization uses `create()`,
+        // which ignores `undefined`/`null` initializer values.
+        request: LooseMessageInitShape<I>,
         options?: CallOptions,
       ) => Promise<MessageValidType<O>>
     : never
@@ -53,6 +75,6 @@ export const rpcUnary = <I extends DescMessage, O extends DescMessage>(
   method: DescMethodUnary<I, O>,
 ) =>
   rpcClient(method.parent)[method.localName] as (
-    request: MessageInitShape<I>,
+    request: LooseMessageInitShape<I>,
     options?: CallOptions,
   ) => Promise<MessageValidType<O>>

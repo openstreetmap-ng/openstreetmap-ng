@@ -22,8 +22,8 @@ export class NewNoteControl implements IControl {
     const icon = document.createElement("img")
     icon.className = "icon new-note"
     icon.src = "/static/img/controls/_generated/new-note.webp"
-    button.appendChild(icon)
-    container.appendChild(button)
+    button.append(icon)
+    container.append(button)
 
     const tooltip = new Tooltip(button, {
       title: buttonText,

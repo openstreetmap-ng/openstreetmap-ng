@@ -229,8 +229,9 @@ for (const input of inputs) {
     }
     status.textContent = levelLabel
 
+    hintText.hidden = false
+
     if (suggestions.length) {
-      hintText.hidden = false
       hintText.textContent = `${t("password_strength.to_strengthen_it_you_can")}:`
       hintList.hidden = false
       hintList.replaceChildren(
@@ -280,7 +281,6 @@ for (const input of inputs) {
         }),
       )
     } else {
-      hintText.hidden = false
       hintText.textContent = t("password_strength.great_password_nice_work")
       hintList.hidden = true
       hintList.replaceChildren()
@@ -312,7 +312,7 @@ for (const input of inputs) {
   input.addEventListener("input", () => {
     passwordToCheck.value = ""
     update()
-    requestPwnedCheck(false)
+    void requestPwnedCheck(false)
   })
   input.addEventListener("blur", () => requestPwnedCheck(true))
   input.form?.addEventListener("reset", async () => {
@@ -337,7 +337,7 @@ for (const input of inputs) {
         console.error("PasswordStrength: Failed to check pwned", error)
       }
     }
-    lookupAndUpdate()
+    void lookupAndUpdate()
 
     return () => abortController.abort()
   })

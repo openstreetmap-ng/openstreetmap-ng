@@ -136,8 +136,8 @@ export const formatHeight = (meters: number) =>
   })
 
 export const formatTime = (seconds: number) => {
-  const hours = (seconds / 3600) | 0
-  const minutes = ((seconds % 3600) / 60) | 0
+  const hours = Math.trunc(seconds / 3600)
+  const minutes = Math.trunc((seconds % 3600) / 60)
   return `${hours}:${minutes.toString().padStart(2, "0")}`
 }
 
@@ -145,10 +145,10 @@ const padDegreesComponent = (value: number) => value.toString().padStart(2, "0")
 
 const formatDegrees = (decimalDegree: number) => {
   decimalDegree = Math.abs(decimalDegree)
-  const deg = decimalDegree | 0
+  const deg = Math.trunc(decimalDegree)
   const minSec = (decimalDegree - deg) * 60
-  const min = minSec | 0
-  const sec = ((minSec - min) * 60) | 0
+  const min = Math.trunc(minSec)
+  const sec = Math.trunc((minSec - min) * 60)
   return `${padDegreesComponent(deg)}°${padDegreesComponent(min)}′${padDegreesComponent(sec)}″`
 }
 

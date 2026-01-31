@@ -26,7 +26,7 @@ process_file() {
     fi
   }
 
-  process_file_inner .zst zstd --force --ultra -22 --single-thread --quiet
+  process_file_inner .zst zstd --force -19 --single-thread --quiet
   process_file_inner .br brotli --force --best
 }
 export -f process_file

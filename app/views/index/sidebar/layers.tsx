@@ -212,7 +212,7 @@ const LayersSidebar = ({
     for (const id of BASE_LAYERS) {
       ordered.add(id)
     }
-    return Array.from(ordered)
+    return [...ordered]
   })
 
   const getInitialEnabledOverlays = () => {
@@ -457,11 +457,11 @@ const LayersSidebar = ({
           >
             <span class="show-more">
               {t("action.show_more")}
-              <i class="bi bi-caret-down-fill small ms-1"></i>
+              <i class="bi bi-caret-down-fill small ms-1" />
             </span>
             <span class="show-less">
               {t("action.show_less")}
-              <i class="bi bi-caret-up-fill small ms-1"></i>
+              <i class="bi bi-caret-up-fill small ms-1" />
             </span>
           </button>
         </div>

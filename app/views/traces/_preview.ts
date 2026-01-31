@@ -11,7 +11,6 @@ import {
   type LayerId,
   layersConfig,
 } from "@lib/map/layers/layers"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { polylineDecode } from "@lib/polyline"
 import { roundTo } from "@std/math/round-to"
 import type { LineString } from "geojson"
@@ -117,7 +116,7 @@ if (tracePreviewContainer) {
           : [0, offset - ANT_DASH_B, ANT_DASH_B, ANT_DASH_LENGTH - offset]
       map.setPaintProperty(LAYER_ID_ANT, "line-dasharray", dashPattern)
     }
-    requestAnimationFramePolyfill(antPath)
+    requestAnimationFrame(antPath)
   }
-  requestAnimationFramePolyfill(antPath)
+  requestAnimationFrame(antPath)
 }

@@ -72,43 +72,41 @@ const NoteComment = ({
   comment,
 }: {
   comment: GetNoteCommentsResponse_CommentValid
-}) => {
-  return (
-    <li class="social-entry">
-      <p class="header text-muted">
-        {comment.user ? (
-          <a href={`/user/${comment.user.displayName}`}>
-            <img
-              class="avatar"
-              src={comment.user.avatarUrl}
-              alt={t("alt.profile_picture")}
-              loading="lazy"
-            />
-            {comment.user.displayName}
-          </a>
-        ) : (
-          t("browse.anonymous")
-        )}{" "}
-        {getEventLabel(comment.event)}{" "}
-        <Time
-          unix={comment.createdAt}
-          relativeStyle="long"
-        />
-      </p>
-      {comment.bodyRich ? (
-        <div
-          class="body pre"
-          dangerouslySetInnerHTML={{ __html: comment.bodyRich }}
-        />
+}) => (
+  <li class="social-entry">
+    <p class="header text-muted">
+      {comment.user ? (
+        <a href={`/user/${comment.user.displayName}`}>
+          <img
+            class="avatar"
+            src={comment.user.avatarUrl}
+            alt={t("alt.profile_picture")}
+            loading="lazy"
+          />
+          {comment.user.displayName}
+        </a>
       ) : (
-        <div class="mb-2" />
-      )}
-    </li>
-  )
-}
+        t("browse.anonymous")
+      )}{" "}
+      {getEventLabel(comment.event)}{" "}
+      <Time
+        unix={comment.createdAt}
+        relativeStyle="long"
+      />
+    </p>
+    {comment.bodyRich ? (
+      <div
+        class="body pre"
+        dangerouslySetInnerHTML={{ __html: comment.bodyRich }}
+      />
+    ) : (
+      <div class="mb-2" />
+    )}
+  </li>
+)
 
 const NoteHeader = ({ data }: { data: NoteDataValid }) => {
-  const header = data.header!
+  const header = data.header
   const avatarUrl =
     header.user?.avatarUrl ?? `/api/web/img/avatar/anonymous_note/${data.id}`
 
@@ -183,8 +181,8 @@ const CommentForm = ({
 
   const buildRequest = ({ formData }: { formData: FormData }) => ({
     id: noteId,
-    event: Event[formData.get("event")! as keyof typeof Event],
-    body: formData.get("body")?.toString() ?? "",
+    event: Event[formData.get("event") as keyof typeof Event],
+    body: (formData.get("body") ?? "") as string,
   })
 
   if (status === NoteStatus.open) {
@@ -319,26 +317,24 @@ const SubscriptionForm = ({
 }: {
   noteId: bigint
   isSubscribed: Signal<boolean>
-}) => {
-  return (
-    <StandardForm
-      class="col-auto subscription-form"
-      method={NoteService.method.setNoteSubscription}
-      buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
-      onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+}) => (
+  <StandardForm
+    class="col-auto subscription-form"
+    method={NoteService.method.setNoteSubscription}
+    buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
+    onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+  >
+    <button
+      class="btn btn-sm btn-soft"
+      type="submit"
     >
-      <button
-        class="btn btn-sm btn-soft"
-        type="submit"
-      >
-        {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
-        {isSubscribed.value
-          ? t("javascripts.changesets.show.unsubscribe")
-          : t("javascripts.changesets.show.subscribe")}
-      </button>
-    </StandardForm>
-  )
-}
+      {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
+      {isSubscribed.value
+        ? t("javascripts.changesets.show.unsubscribe")
+        : t("javascripts.changesets.show.subscribe")}
+    </button>
+  </StandardForm>
+)
 
 const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint> }) => {
   const isSubscribed = useSignal(false)
@@ -440,13 +436,13 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           </p>
 
           {/* Report button */}
-          {isLoggedIn && config.userConfig!.id !== d.header!.user?.id && (
+          {isLoggedIn && config.userConfig!.id !== d.header.user?.id && (
             <div class="text-end mt-1 me-1">
-              {d.header!.user ? (
+              {d.header.user ? (
                 <ReportButton
                   class="btn btn-link btn-sm text-muted p-0"
                   reportType="user"
-                  reportTypeId={d.header!.user.id}
+                  reportTypeId={d.header.user.id}
                   reportAction="user_note"
                   reportActionId={d.id}
                 >
@@ -491,10 +487,10 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
             key={d.id}
             method={NoteService.method.getNoteComments}
             request={{ id: d.id }}
-            label={t("alt.comments_page_navigation")}
-            small
+            ariaLabel={t("alt.comments_page_navigation")}
             pageOrder="desc"
             responseSignal={preloadedComments}
+            small
           >
             {(page) => (
               <ul class="list-unstyled mb-2">

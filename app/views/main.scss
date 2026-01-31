@@ -134,7 +134,7 @@ $bootstrap-icons-font-hash: "";
 
 time[title] {
     cursor: help;
-    text-wrap: nowrap;
+    white-space: nowrap;
 
     &:hover {
         text-decoration: underline dotted $gray-600;

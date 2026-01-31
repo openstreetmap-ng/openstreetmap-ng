@@ -4,6 +4,10 @@ import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
 service ChangesetService {
+  rpc GetMapChangesets(GetMapChangesetsRequest) returns (GetMapChangesetsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
   rpc GetChangeset(GetChangesetRequest) returns (GetChangesetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
@@ -17,6 +21,41 @@ service ChangesetService {
   rpc SetChangesetSubscription(SetChangesetSubscriptionRequest) returns (SetChangesetSubscriptionResponse) {
     option idempotency_level = IDEMPOTENT;
   }
+}
+
+message GetMapChangesetsRequest {
+  option (buf.validate.message).cel_expression = "has(this.bbox) || has(this.scope) || has(this.display_name) || has(this.date)";
+
+  enum Scope {
+    nearby = 0;
+    friends = 1;
+  }
+
+  optional Bounds bbox = 1;
+  optional Scope scope = 2;
+  optional string display_name = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  optional string date = 4 [(buf.validate.field).string = {pattern: "^\\\\d{4}-\\\\d{2}-\\\\d{2}$"}];
+  optional uint64 before = 5 [(buf.validate.field).uint64.gt = 0];
+}
+
+message GetMapChangesetsResponse {
+  message Changeset {
+    uint64 id = 1;
+    optional User user = 2;
+    repeated Bounds bounds = 3;
+    bool closed = 4;
+    uint64 status_changed_at = 5;
+    optional string comment = 6;
+    uint32 num_create = 7;
+    uint32 num_modify = 8;
+    uint32 num_delete = 9;
+    uint64 num_comments = 10;
+  }
+
+  repeated Changeset changesets = 1;
 }
 
 message GetChangesetRequest {
@@ -90,21 +129,4 @@ message ChangesetData {
   optional uint64 prev_changeset_id = 14;
   optional uint64 next_changeset_id = 15;
   bool is_subscribed = 16;
-}
-
-message RenderChangesetsData {
-  message Changeset {
-    uint64 id = 1;
-    optional User user = 2;
-    repeated Bounds bounds = 3;
-    bool closed = 4;
-    uint64 status_changed_at = 5;
-    optional string comment = 6;
-    uint32 num_create = 7;
-    uint32 num_modify = 8;
-    uint32 num_delete = 9;
-    uint64 num_comments = 10;
-  }
-
-  repeated Changeset changesets = 1;
 }

@@ -12,12 +12,11 @@ import {
   ElementService,
 } from "@lib/proto/element_pb"
 import { type ElementIcon, ElementType } from "@lib/proto/shared_pb"
+import { StandardPaginationNav } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
-import { range } from "@lib/utils"
 import {
   type ReadonlySignal,
-  type Signal,
   useComputed,
   useSignal,
   useSignalEffect,
@@ -43,34 +42,6 @@ export const elementFocusPaint: FocusLayerPaint = {
 }
 
 export const ELEMENTS_PER_PAGE = 15
-
-// Pagination controls
-const Pagination = ({
-  page,
-  totalPages,
-}: {
-  page: Signal<number>
-  totalPages: number
-}) => (
-  <nav aria-label={t("alt.elements_page_navigation")}>
-    <ul class="pagination pagination-sm pagination-2ch justify-content-end mb-0">
-      {range(1, totalPages + 1).map((p) => (
-        <li
-          key={p}
-          class={`page-item ${p === page.value ? "active" : ""}`}
-        >
-          <button
-            class="page-link"
-            type="button"
-            onClick={() => (page.value = p)}
-          >
-            {p}
-          </button>
-        </li>
-      ))}
-    </ul>
-  </nav>
-)
 
 // Paginated element list section
 export const ElementsSection = <T,>({
@@ -107,9 +78,15 @@ export const ElementsSection = <T,>({
         </table>
       </div>
       {totalPages > 1 && (
-        <Pagination
-          page={page}
-          totalPages={totalPages}
+        <StandardPaginationNav
+          ariaLabel={t("alt.elements_page_navigation")}
+          currentPage={page}
+          targetPage={page}
+          pageOrder="asc"
+          maxKnownPage={totalPages}
+          numPages={totalPages}
+          small
+          class="pagination-2ch mb-0"
         />
       )}
     </div>

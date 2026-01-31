@@ -1,17 +1,23 @@
 from asyncio import TaskGroup
+from datetime import date, datetime, time, timedelta
 from typing import override
 
 from connectrpc.request import RequestContext
 from psycopg.sql import SQL
-from shapely import measurement
+from shapely import Point, measurement, set_srid
 
 from app.config import (
     CHANGESET_COMMENTS_PAGE_SIZE,
+    CHANGESET_QUERY_WEB_LIMIT,
+    NEARBY_USERS_RADIUS_METERS,
 )
+from app.format import FormatRender
 from app.format.element_list import FormatElementList
 from app.lib.auth_context import require_web_user
 from app.lib.exceptions_context import raise_for
+from app.lib.geo_utils import meters_to_degrees, parse_bbox
 from app.lib.rich_text import process_rich_text_plain
+from app.lib.standard_feedback import StandardFeedback
 from app.lib.standard_pagination import sp_paginate_table
 from app.lib.translation import t
 from app.models.db.changeset_comment import (
@@ -31,21 +37,110 @@ from app.models.proto.changeset_pb2 import (
     GetChangesetCommentsResponse,
     GetChangesetRequest,
     GetChangesetResponse,
+    GetMapChangesetsRequest,
+    GetMapChangesetsResponse,
     SetChangesetSubscriptionRequest,
     SetChangesetSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import Bounds
-from app.models.types import ChangesetId
+from app.models.types import ChangesetId, DisplayName
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
+from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
+from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 from app.services.user_subscription_service import UserSubscriptionService
+from app.validators.unicode import unicode_unquote_normalize
 
 
 class _Service(ChangesetService):
+    @override
+    async def get_map_changesets(
+        self, request: GetMapChangesetsRequest, ctx: RequestContext
+    ):
+        geometry = parse_bbox(request.bbox) if request.HasField('bbox') else None
+        scope = request.scope if request.HasField('scope') else None
+
+        if request.HasField('display_name'):
+            display_name = unicode_unquote_normalize(request.display_name)
+            target_user = await UserQuery.find_by_display_name(
+                DisplayName(display_name)
+            )
+            user_ids = [target_user['id']] if target_user is not None else []
+        else:
+            user_ids = None
+
+        if scope is None:
+            pass
+
+        elif scope == GetMapChangesetsRequest.Scope.nearby:
+            current_user = require_web_user()
+            home_point = current_user['home_point']
+            if home_point is None:
+                return GetMapChangesetsResponse()
+
+            home = set_srid(Point(home_point.x, home_point.y), 4326)
+            nearby_area = home.buffer(meters_to_degrees(NEARBY_USERS_RADIUS_METERS), 4)
+            geometry = (
+                nearby_area if geometry is None else geometry.intersection(nearby_area)
+            )
+            if geometry.is_empty:
+                return GetMapChangesetsResponse()
+
+        elif scope == GetMapChangesetsRequest.Scope.friends:
+            current_user = require_web_user()
+            followee_ids = await UserFollowQuery.get_followee_ids(current_user['id'])
+            if not followee_ids:
+                return GetMapChangesetsResponse()
+
+            if user_ids is None:
+                user_ids = followee_ids
+            else:
+                if len(user_ids) <= len(followee_ids):
+                    set_ = set(followee_ids)
+                    user_ids = [uid for uid in user_ids if uid in set_]
+                else:
+                    set_ = set(user_ids)
+                    user_ids = [uid for uid in followee_ids if uid in set_]
+
+                if not user_ids:
+                    return GetMapChangesetsResponse()
+
+        if request.HasField('date'):
+            try:
+                date_ = date.fromisoformat(request.date)
+            except ValueError as exc:
+                StandardFeedback.raise_error('date', 'Invalid date format', exc=exc)
+
+            dt = datetime.combine(date_, time(0, 0, 0))
+            created_before = dt + timedelta(days=1)
+            created_after = dt - timedelta(microseconds=1)
+        else:
+            created_before = None
+            created_after = None
+
+        changesets = await ChangesetQuery.find(
+            changeset_id_before=(
+                ChangesetId(request.before) if request.HasField('before') else None
+            ),
+            user_ids=user_ids,
+            created_before=created_before,
+            created_after=created_after,
+            geometry=geometry,
+            sort='desc',
+            limit=CHANGESET_QUERY_WEB_LIMIT,
+        )
+
+        async with TaskGroup() as tg:
+            tg.create_task(UserQuery.resolve_users(changesets))
+            tg.create_task(ChangesetBoundsQuery.resolve_bounds(changesets))
+            tg.create_task(ChangesetCommentQuery.resolve_num_comments(changesets))
+
+        return FormatRender.encode_changesets(changesets)
+
     @override
     async def get_changeset(self, request: GetChangesetRequest, ctx: RequestContext):
         id = ChangesetId(request.id)

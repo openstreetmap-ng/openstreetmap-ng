@@ -79,7 +79,7 @@ const PhoneLink = ({ text }: { text: string }) => {
       uri.value = null
 
       phoneLibPromise ??= import("libphonenumber-js/min")
-      phoneLibPromise.then(({ parsePhoneNumberFromString }) => {
+      void phoneLibPromise.then(({ parsePhoneNumberFromString }) => {
         scope.signal.throwIfAborted()
         const phone = parsePhoneNumberFromString(text)
         if (phone?.isValid()) uri.value = phone.getURI()
@@ -263,11 +263,10 @@ const TagValues = ({
     {value
       .split(";")
       .slice(0, MAX_VALUE_PARTS)
-      .map((part, i) => {
+      .map((part) => {
         const trimmed = part.trim()
         return trimmed ? (
           <TagValue
-            key={i}
             tagKey={tagKey}
             text={trimmed}
           />
@@ -352,7 +351,7 @@ const computeDiffRows = (
       deleted.push({ key, value: oldValue, oldValue: undefined, status: "deleted" })
     }
   }
-  return rows.concat(deleted)
+  return [...rows, ...deleted]
 }
 
 export const Tags = ({

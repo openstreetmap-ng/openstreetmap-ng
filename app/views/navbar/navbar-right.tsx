@@ -1,7 +1,6 @@
 import { config } from "@lib/config"
 import { hasMainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState } from "@lib/map/state"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { signal } from "@preact/signals"
 import { assertEquals, assertExists } from "@std/assert"
 import { runningReduce } from "@std/collections/running-reduce"
@@ -271,15 +270,13 @@ const NavbarGuest = () => (
   </>
 )
 
-const NavbarRight = () => {
-  return (
-    <>
-      <NavbarNav />
-      <ThemeSwitcher />
-      {user ? <NavbarUser /> : <NavbarGuest />}
-    </>
-  )
-}
+const NavbarRight = () => (
+  <>
+    <NavbarNav />
+    <ThemeSwitcher />
+    {user ? <NavbarUser /> : <NavbarGuest />}
+  </>
+)
 
 const configureResponsiveNavbarLinks = (
   container: HTMLDivElement,
@@ -343,7 +340,7 @@ const configureResponsiveNavbarLinks = (
   let raf = 0
   const update = () => {
     if (raf) return
-    raf = requestAnimationFramePolyfill(() => {
+    raf = requestAnimationFrame(() => {
       raf = 0
       updateNow()
     })

@@ -12,7 +12,12 @@ import {
   type Map as MaplibreMap,
   Popup,
 } from "maplibre-gl"
-import { boundsIntersection, boundsSize, boundsToString } from "../bounds"
+import {
+  boundsIntersection,
+  boundsSize,
+  boundsToProto,
+  boundsToString,
+} from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { loadMapImage } from "../image"
 import { convertRenderNotesData, renderObjects } from "../render-objects"
@@ -136,14 +141,10 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     const token = abort.start(boundsToString(fetchBounds))
     if (!token) return
 
-    const [[minLon, minLat], [maxLon, maxLat]] = fetchBounds
-      .adjustAntiMeridian()
-      .toArray()
-
     try {
       const render = await rpcClient(NoteService).getMapNotes(
         {
-          bbox: { minLon, minLat, maxLon, maxLat },
+          bbox: boundsToProto(fetchBounds),
         },
         {
           signal: token.signal,
@@ -155,7 +156,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       fetchedBounds = fetchBounds
       console.debug("NotesLayer: Loaded", notes.length, "notes")
     } catch (error) {
-      if (token.signal.aborted) return
+      if (error.name === "AbortError") return
       console.error("NotesLayer: Failed to fetch", error)
       clearNotes()
     } finally {
@@ -163,14 +164,14 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     }
   }
   map.on("moveend", updateLayer)
-  map.on("reloadnoteslayer", () => {
+  map.on("reloadnoteslayer", async () => {
     console.debug("NotesLayer: Reloading")
     fetchedBounds = null
     abort.abort()
-    updateLayer()
+    await updateLayer()
   })
 
-  addLayerEventHandler((isAdded, eventLayerId) => {
+  addLayerEventHandler(async (isAdded, eventLayerId) => {
     if (eventLayerId !== LAYER_ID) return
     enabled = isAdded
     if (isAdded) {
@@ -178,7 +179,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
       loadMapImage(map, "marker-open")
       loadMapImage(map, "marker-closed")
       loadMapImage(map, "marker-hidden")
-      updateLayer()
+      await updateLayer()
     } else {
       abort.abort()
       clearNotes()

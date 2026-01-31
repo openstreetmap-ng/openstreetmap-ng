@@ -8,7 +8,7 @@ import {
   NoteStatus,
 } from "@lib/proto/note_pb"
 import { StandardPagination } from "@lib/standard-pagination"
-import { usePathSuffixSignal, useQuerySignal } from "@lib/url-signals"
+import { usePathSuffixSwitch, useQuerySignal } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
 import { t } from "i18next"
 import { render } from "preact"
@@ -125,19 +125,21 @@ const NotesIndex = ({
   displayName: string
   avatarUrl: string
 }) => {
-  const commented = usePathSuffixSignal("/commented")
+  const tab = usePathSuffixSwitch({ created: "", commented: "/commented" })
   const status = useQuerySignal("status", queryParam.enum(["open", "closed"]), {
-    defaultValue: "any" as const,
+    defaultValue: "any",
   })
 
   const statusFilterId = useId()
   const search = status.value === "any" ? "" : `?status=${status.value}`
 
-  const onNavClick = (e: MouseEvent, nextCommented: boolean) => {
+  const onTabClick = (nextTab: typeof tab.value) => (e: MouseEvent) => {
     if (!isUnmodifiedLeftClick(e)) return
     e.preventDefault()
-    commented.value = nextCommented
+    tab.value = nextTab
   }
+
+  const commented = tab.value === "commented"
 
   return (
     <>
@@ -165,20 +167,20 @@ const NotesIndex = ({
             <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
               <li class="nav-item">
                 <a
-                  href={`/user/${displayName}/notes${search}`}
-                  class={`nav-link ${commented.value ? "" : "active"}`}
-                  aria-current={commented.value ? undefined : "page"}
-                  onClick={(e) => onNavClick(e, false)}
+                  href={tab.href("created", { search })}
+                  class={`nav-link ${commented ? "" : "active"}`}
+                  aria-current={commented ? undefined : "page"}
+                  onClick={onTabClick("created")}
                 >
                   {t("note.user.created_notes")}
                 </a>
               </li>
               <li class="nav-item">
                 <a
-                  href={`/user/${displayName}/notes/commented${search}`}
-                  class={`nav-link ${commented.value ? "active" : ""}`}
-                  aria-current={commented.value ? "page" : undefined}
-                  onClick={(e) => onNavClick(e, true)}
+                  href={tab.href("commented", { search })}
+                  class={`nav-link ${commented ? "active" : ""}`}
+                  aria-current={commented ? "page" : undefined}
+                  onClick={onTabClick("commented")}
                 >
                   {t("note.user.commented_on_notes")}
                 </a>
@@ -215,16 +217,15 @@ const NotesIndex = ({
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
           <div class="notes-pagination">
             <StandardPagination
-              key={`${commented.value}:${status.value}`}
+              key={`${tab.value}:${status.value}`}
               method={NoteService.method.getUserNotesPage}
               request={{
                 userId,
-                commented: commented.value,
+                commented,
                 status: GetUserNotesPageRequest_StatusFilter[status.value],
               }}
               small
               navTop
-              navClassTop="mb-2"
               navClassBottom="mb-0"
             >
               {(data) => (

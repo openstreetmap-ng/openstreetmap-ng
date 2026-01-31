@@ -21,7 +21,7 @@ interface FlagsToml {
 }
 
 /** Build regional indicator flag from 2-letter country code */
-function toRegionalIndicator(code: string) {
+const toRegionalIndicator = (code: string) => {
   if (code.length !== 2) return null
 
   const upper = code.toUpperCase()
@@ -47,7 +47,7 @@ function toRegionalIndicator(code: string) {
 }
 
 /** Build Unicode subdivision flag (e.g., GB-WLS -> Welsh flag) */
-function toSubdivisionFlag(code: string) {
+const toSubdivisionFlag = (code: string) => {
   // Format: XX-YYY (e.g., GB-WLS, GB-SCT)
   // Result: black flag + tag sequence + cancel tag
   const BLACK_FLAG = 0x1f3f4
@@ -68,11 +68,11 @@ function toSubdivisionFlag(code: string) {
 }
 
 /** Compute flag emoji for a locale code */
-function computeFlag(
+const computeFlag = (
   localeCode: string,
   flagLookup: Map<string, string>,
   passthroughSet: Set<string>,
-) {
+) => {
   const parts = localeCode.toUpperCase().split("-")
 
   // Try longest prefix first, then shorter (e.g., pt-PT tries PT-PT, then PT)
@@ -104,14 +104,14 @@ function computeFlag(
 }
 
 /** Build-time macro: generate locale options for language selector */
-export function getLocaleOptions() {
+export const getLocaleOptions = () => {
   // Read data files
   const names: LocaleName[] = JSON.parse(
-    readFileSync("config/locale/names.json", "utf-8"),
+    readFileSync("config/locale/names.json", "utf8"),
   )
-  const flags = parse(readFileSync("config/locale/flags.toml", "utf-8")) as FlagsToml
+  const flags = parse(readFileSync("config/locale/flags.toml", "utf8")) as FlagsToml
   const installedLocales: Record<string, string> = JSON.parse(
-    readFileSync("config/locale/i18next/map.json", "utf-8"),
+    readFileSync("config/locale/i18next/map.json", "utf8"),
   )
 
   // Build case-insensitive flag lookup (keys are uppercase in TOML)
@@ -126,7 +126,7 @@ export function getLocaleOptions() {
 
   // Filter to installed locales and build options
   const options = mapNotNullish(names, (name) => {
-    if (!(name.code in installedLocales)) return null
+    if (!Object.hasOwn(installedLocales, name.code)) return null
 
     const native = name.native && name.native !== name.english ? name.native : null
     const flag = computeFlag(name.code, flagLookup, passthroughSet)

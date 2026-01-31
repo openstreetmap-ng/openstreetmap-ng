@@ -191,6 +191,7 @@ let
       mailpit
       nixfmt
       nodejs-slim_24
+      oxlint
       patchelf
       pigz
       process-compose
@@ -204,6 +205,7 @@ let
       shfmt
       timescaledb-parallel-copy
       tombi
+      tsgolint
       uv
       zstd
 

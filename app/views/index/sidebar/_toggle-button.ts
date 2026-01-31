@@ -4,7 +4,7 @@ import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"
 
-let activeControl: SidebarToggleControl | null = null
+let activeControlClose: typeof SidebarToggleControl.prototype.close | null = null
 
 export class SidebarToggleControl implements IControl {
   protected sidebar!: HTMLElement
@@ -36,9 +36,9 @@ export class SidebarToggleControl implements IControl {
     this.sidebar.hidden = !nextActive
 
     if (nextActive) {
-      activeControl = this
-    } else if (activeControl === this) {
-      activeControl = null
+      activeControlClose = this.close
+    } else if (activeControlClose === this.close) {
+      activeControlClose = null
     }
 
     if (resize) this.map.resize()
@@ -63,8 +63,8 @@ export class SidebarToggleControl implements IControl {
     const icon = document.createElement("img")
     icon.className = `icon ${this._className}`
     icon.src = `/static/img/controls/_generated/${this._className}.webp`
-    this.button.appendChild(icon)
-    container.appendChild(this.button)
+    this.button.append(icon)
+    container.append(this.button)
 
     this.tooltip = new Tooltip(this.button, {
       title: buttonText,
@@ -76,11 +76,9 @@ export class SidebarToggleControl implements IControl {
       console.debug("SidebarToggle: Button clicked", this._className)
 
       const nextActive = !this._active.peek()
-      const prevActiveControl = activeControl
-      const isSwitch =
-        nextActive && prevActiveControl !== null && prevActiveControl !== this
-
-      if (isSwitch) prevActiveControl.setActive(false, false)
+      const prevClose = activeControlClose
+      const isSwitch = nextActive && prevClose !== null && prevClose !== this.close
+      if (isSwitch) prevClose(false)
 
       this.button.blur()
 
@@ -91,8 +89,8 @@ export class SidebarToggleControl implements IControl {
     return container
   }
 
-  public close = () => {
-    this.setActive(false)
+  public close = (resize = true) => {
+    this.setActive(false, resize)
   }
 
   public onRemove(_: MaplibreMap) {

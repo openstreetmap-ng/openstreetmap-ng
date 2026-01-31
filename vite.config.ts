@@ -25,7 +25,7 @@ const CONTENT_PATHS = [
 
 // Dynamic icons from config/socials.toml
 const SOCIALS_ICONS = Object.entries(
-  parseToml(readFileSync("config/socials.toml", "utf-8")),
+  parseToml(readFileSync("config/socials.toml", "utf8")),
 ).map(([service, config]) => `bi-${(config as { icon?: string }).icon ?? service}`)
 
 const PURGECSS_SAFELIST = {
@@ -76,15 +76,13 @@ const rewriteCssModule = (code: string, mutate: (css: string) => string) => {
   const END = '"\n__vite__updateStyle'
 
   const valueStart = code.indexOf(START)
-  assert(valueStart >= 0)
+  assert(valueStart !== -1)
   const contentStart = valueStart + START.length
 
   const contentEnd = code.indexOf(END, contentStart)
-  assert(contentEnd >= 0)
+  assert(contentEnd !== -1)
 
-  const original = Function(
-    `"use strict";return "${code.slice(contentStart, contentEnd)}";`,
-  )()
+  const original = JSON.parse(`"${code.slice(contentStart, contentEnd)}"`) as string
   const mutated = JSON.stringify(mutate(original)).slice(1, -1)
   return code.slice(0, contentStart) + mutated + code.slice(contentEnd)
 }
@@ -263,7 +261,7 @@ export default defineConfig({
               : Buffer.from(chunk.source).toString()
 
           const rtlSource = rtlcss.process(source)
-          const rtlFileName = `${fileName.slice(0, fileName.length - 4)}.rtl.css`
+          const rtlFileName = `${fileName.slice(0, -4)}.rtl.css`
 
           this.emitFile({
             type: "asset",
@@ -284,7 +282,7 @@ export default defineConfig({
 
         for (const pattern of CONTENT_PATHS) {
           for (const file of globSync(pattern)) {
-            const content = readFileSync(file, "utf-8")
+            const content = readFileSync(file, "utf8")
             for (const match of content.matchAll(biPattern)) {
               usedIcons.add(match[1])
             }
@@ -299,11 +297,12 @@ export default defineConfig({
         const iconsMap: Record<string, number> = JSON.parse(
           readFileSync(
             "node_modules/bootstrap-icons/font/bootstrap-icons.json",
-            "utf-8",
+            "utf8",
           ),
         )
 
         // Warn about unknown icons
+        // oxlint-disable-next-line unicorn/no-useless-spread
         for (const icon of [...usedIcons]) {
           if (!(icon in iconsMap)) {
             this.warn(`Unknown Bootstrap icon: bi-${icon}`)

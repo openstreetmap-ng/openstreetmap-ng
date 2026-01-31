@@ -91,5 +91,5 @@ mount("welcome-body", (body) => {
       )
     }
   }
-  checkGeolocationPermission()
+  void checkGeolocationPermission()
 })

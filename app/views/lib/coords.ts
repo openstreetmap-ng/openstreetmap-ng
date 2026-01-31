@@ -22,7 +22,7 @@ export const beautifyZoom = (zoom: number) =>
 
 /** Coordinate precision (decimal places) for a given zoom level */
 export const zoomPrecision = (zoom: number) =>
-  Math.max(0, Math.ceil(Math.log(Math.round(zoom)) / Math.LN2))
+  Math.max(0, Math.ceil(Math.log2(Math.round(zoom))))
 
 /** Parse "lat, lon" string into [lon, lat], or null if invalid */
 export const tryParsePoint = (text: string | undefined | null) => {
@@ -40,11 +40,8 @@ export const formatPoint = (point: LngLatLike, precision: number) => {
 
   if (Array.isArray(point)) {
     ;[lon, lat] = point
-  } else if ("lon" in point) {
-    lon = point.lon
-    lat = point.lat
   } else {
-    lon = point.lng
+    lon = "lon" in point ? point.lon : point.lng
     lat = point.lat
   }
 

@@ -75,12 +75,12 @@ const ReportModal = () => {
                 type: CreateReportRequest_Type[type],
                 typeId,
                 action: CreateReportRequest_Action[action],
-                ...(actionId === undefined ? {} : { actionId }),
+                actionId,
                 category:
                   CreateReportRequest_Category[
-                    formData.get("category")!.toString() as ReportCategory
+                    formData.get("category") as ReportCategory
                   ],
-                body: formData.get("body")!.toString(),
+                body: formData.get("body") as string,
               }
             }}
           >
@@ -219,7 +219,7 @@ export const configureReportButtons = (searchElement: Element) => {
         actionId: reportActionId ? BigInt(reportActionId) : undefined,
       })
     })
-    button.removeAttribute("data-report-type")
+    delete button.dataset.reportType
   }
 }
 

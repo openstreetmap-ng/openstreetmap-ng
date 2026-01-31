@@ -14,7 +14,7 @@ const ASCII_OFFSET = 63
  * round_py2(0.5) // 1
  * round_py2(-0.5) // -1
  */
-const roundPy2 = (value: number) => (value + (value < 0 ? -0.5 : 0.5)) | 0
+const roundPy2 = (value: number) => Math.trunc(value + (value < 0 ? -0.5 : 0.5))
 
 export const polylineEquals = (
   a: Polyline | undefined,

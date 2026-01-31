@@ -10,7 +10,7 @@ const OS_SEMANTIC_ALIASES: Record<string, string> = {
 }
 
 /** Build-time macro: generate browser display name to icon suffix mapping */
-export function getBrowserIconMap() {
+export const getBrowserIconMap = () => {
   const fsDir = "app/static/img/browser"
   const prefix = "/static/img/browser/"
 
@@ -49,7 +49,7 @@ export function getBrowserIconMap() {
 }
 
 /** Build-time macro: generate OS display name to icon suffix mapping */
-export function getOsIconMap() {
+export const getOsIconMap = () => {
   const prefix = "/static-node_modules/"
   const bsIcons = new Set(
     mapNotNullish(readdirSync("node_modules/bootstrap-icons/icons"), (file) =>
@@ -64,7 +64,7 @@ export function getOsIconMap() {
 
   const map = Object.fromEntries(
     mapNotNullish(Object.values(OS_MAP), (displayName) => {
-      const normalized = displayName.toLowerCase().replace(/\s+/g, "")
+      const normalized = displayName.toLowerCase().replaceAll(" ", "")
       const slug = OS_SEMANTIC_ALIASES[normalized] ?? normalized
 
       if (bsIcons.has(slug)) {

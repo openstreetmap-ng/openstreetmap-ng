@@ -5,6 +5,7 @@ from connectrpc.code import Code
 from connectrpc.errors import ConnectError
 from fastapi import HTTPException, status
 
+from app.middlewares.request_context_middleware import is_rpc_request
 from app.models.proto.shared_pb2 import StandardFeedbackDetail
 
 MessageSeverity = Literal['success', 'info', 'error']
@@ -92,31 +93,34 @@ class StandardFeedback:
         )
 
     @staticmethod
-    def raise_error(field: str | None, message: str) -> NoReturn:
-        """Collect an error message for a field and raise a HTTPException."""
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail=(
-                {
-                    'type': 'error',
-                    'loc': (None, field),
-                    'msg': message,
-                },
-            ),
-        )
-
-    @staticmethod
-    def raise_connect_error(
-        field: str | None, message: str, *, code: Code = Code.INVALID_ARGUMENT
+    def raise_error(
+        field: str | None,
+        message: str,
+        *,
+        exc: BaseException | None = None,
     ) -> NoReturn:
-        """Raise a ConnectError with StandardFeedbackDetail in details."""
-        feedback = StandardFeedbackDetail(
-            entries=[
-                StandardFeedbackDetail.Entry(
-                    severity='error',
-                    field=field,
-                    message=message,
-                )
-            ]
-        )
-        raise ConnectError(code, message, details=(feedback,))
+        """Collect an error message for a field and raise an appropriate exception."""
+        if is_rpc_request():
+            feedback = StandardFeedbackDetail(
+                entries=[
+                    StandardFeedbackDetail.Entry(
+                        severity='error',
+                        field=field,
+                        message=message,
+                    )
+                ]
+            )
+            raise ConnectError(
+                Code.INVALID_ARGUMENT, message, details=(feedback,)
+            ) from exc
+        else:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    {
+                        'type': 'error',
+                        'loc': (None, field),
+                        'msg': message,
+                    },
+                ),
+            ) from exc

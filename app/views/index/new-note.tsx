@@ -132,7 +132,7 @@ const NewNoteSidebar = ({
         method={NoteService.method.createNote}
         buildRequest={({ formData }) => ({
           location: at.peek()!,
-          body: formData.get("body")!.toString(),
+          body: formData.get("body") as string,
         })}
         onSuccess={(resp) => {
           console.debug("NewNote: Created", resp.id)

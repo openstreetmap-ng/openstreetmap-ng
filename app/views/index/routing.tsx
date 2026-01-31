@@ -24,7 +24,6 @@ import {
   layersConfig,
 } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { polylineDecode } from "@lib/polyline"
 import {
   GetRouteRequest_EndpointInputSchema,
@@ -251,23 +250,21 @@ const RoutingAttribution = ({
   attribution,
 }: {
   attribution: RoutingResult_AttributionValid
-}) => {
-  return (
-    <div class="attribution">
-      {tRich("javascripts.directions.instructions.courtesy", {
-        link: () => (
-          <a
-            href={attribution.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {attribution.label}
-          </a>
-        ),
-      })}
-    </div>
-  )
-}
+}) => (
+  <div class="attribution">
+    {tRich("javascripts.directions.instructions.courtesy", {
+      link: () => (
+        <a
+          href={attribution.href}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {attribution.label}
+        </a>
+      ),
+    })}
+  </div>
+)
 
 const RoutingSidebar = ({
   map,
@@ -343,7 +340,7 @@ const RoutingSidebar = ({
   const submitFormIfFilled = () => {
     popup.current?.remove()
     if (!(from.peek() && to.peek())) return
-    requestAnimationFramePolyfill(() => {
+    requestAnimationFrame(() => {
       formRef.current?.requestSubmit()
     })
   }
@@ -883,7 +880,6 @@ const RoutingSidebar = ({
             >
               {routeValue.instructions.map((inst, instId) => (
                 <li
-                  key={instId}
                   data-instruction-id={instId.toString()}
                   class={`list-group-item p-0 ${
                     activeInstructionId.value === instId ? "hover" : ""

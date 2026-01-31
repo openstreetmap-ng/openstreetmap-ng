@@ -61,7 +61,7 @@ export const configureCopyGroups = (root: ParentNode) => {
       input = element.querySelector("input.form-control")
     }
 
-    input?.addEventListener("focus", input.select)
+    input?.addEventListener("focus", () => input.select())
 
     button.addEventListener("click", async () => {
       input?.select()
@@ -132,7 +132,7 @@ export const CopyField = ({
           title={t("action.copy")}
           onClick={onCopy}
         >
-          <i class={`bi ${copied.value ? "bi-check2" : "bi-copy"}`}></i>
+          <i class={`bi ${copied.value ? "bi-check2" : "bi-copy"}`} />
         </button>
       </div>
     </div>

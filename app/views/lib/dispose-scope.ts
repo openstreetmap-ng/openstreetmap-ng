@@ -1,8 +1,4 @@
 import { addMapLayer, type LayerId, removeMapLayer } from "@lib/map/layers/layers"
-import {
-  cancelAnimationFramePolyfill,
-  requestAnimationFramePolyfill,
-} from "@lib/polyfills"
 import { effect as createSignalEffect, useSignalEffect } from "@preact/signals"
 import type { MapEventType, MapLayerEventType, Map as MaplibreMap } from "maplibre-gl"
 import { useEffect } from "preact/hooks"
@@ -64,6 +60,7 @@ export type DisposeScope = Readonly<{
     fn: (ctx: FrameContext, ...args: Args) => void,
   ) => Scheduled<(...args: Args) => void>
   throttle: <F extends (...args: any[]) => void>(ms: number, fn: F) => Scheduled<F>
+  debounce: <F extends (...args: any[]) => void>(ms: number, fn: F) => Scheduled<F>
 
   dom: DomBinder
 
@@ -156,12 +153,12 @@ export const createDisposeScope = (): DisposeScope => {
 
     scheduled = ((...args: Args) => {
       pendingArgs = args
-      rafId ??= requestAnimationFramePolyfill(run)
+      rafId ??= requestAnimationFrame(run)
     }) as Scheduled<(...args: Args) => void>
 
     scheduled.cancel = () => {
       if (rafId === null) return
-      cancelAnimationFramePolyfill(rafId)
+      cancelAnimationFrame(rafId)
       rafId = null
       pendingArgs = null
       startTime = null
@@ -169,7 +166,7 @@ export const createDisposeScope = (): DisposeScope => {
 
     scheduled.flush = () => {
       if (rafId === null) return
-      cancelAnimationFramePolyfill(rafId)
+      cancelAnimationFrame(rafId)
       run(performance.now())
     }
 
@@ -217,6 +214,48 @@ export const createDisposeScope = (): DisposeScope => {
         timeoutId = null
         run()
       }, delta)
+    }) as Scheduled<F>
+
+    scheduled.cancel = () => {
+      if (clearTimeoutId()) pendingArgs = null
+    }
+    scheduled.flush = () => {
+      if (clearTimeoutId()) run()
+    }
+    scheduled.pending = () => timeoutId !== null
+
+    defer(scheduled.cancel)
+    return scheduled
+  }
+
+  const debounce = <F extends (...args: any[]) => void>(
+    ms: number,
+    fn: F,
+  ): Scheduled<F> => {
+    let timeoutId: number | null = null
+    let pendingArgs: Parameters<F> | null = null
+
+    const clearTimeoutId = () => {
+      if (timeoutId === null) return false
+      window.clearTimeout(timeoutId)
+      timeoutId = null
+      return true
+    }
+
+    const run = () => {
+      if (isDisposed) return
+      const args = pendingArgs!
+      pendingArgs = null
+      fn(...args)
+    }
+
+    const scheduled = ((...args: Parameters<F>) => {
+      pendingArgs = args
+      clearTimeoutId()
+      timeoutId = window.setTimeout(() => {
+        timeoutId = null
+        run()
+      }, ms)
     }) as Scheduled<F>
 
     scheduled.cancel = () => {
@@ -285,6 +324,7 @@ export const createDisposeScope = (): DisposeScope => {
     every,
     frame,
     throttle,
+    debounce,
     dom,
     map,
     mapLayerLifecycle,

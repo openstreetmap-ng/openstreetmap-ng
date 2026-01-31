@@ -38,9 +38,9 @@ mount("admin-users-body", (body) => {
     const a = document.createElement("a")
     a.href = `/api/web/admin/users/export${window.location.search}`
     a.download = ""
-    document.body.appendChild(a)
+    document.body.append(a)
     a.click()
-    document.body.removeChild(a)
+    a.remove()
   })
 
   configureStandardPagination(body, {

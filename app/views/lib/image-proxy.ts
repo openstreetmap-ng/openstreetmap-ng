@@ -30,7 +30,7 @@ if (imageProxies.length) {
     // Set as background
     img.classList.add("image-proxy-loading")
     img.style.backgroundImage = `url('${canvas.toDataURL()}')`
-    img.removeAttribute("data-thumbnail")
+    delete img.dataset.thumbnail
 
     const markLoaded = () => {
       img.classList.remove("image-proxy-loading")

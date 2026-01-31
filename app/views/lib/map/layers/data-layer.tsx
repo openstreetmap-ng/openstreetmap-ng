@@ -1,14 +1,13 @@
+import { Code, ConnectError } from "@connectrpc/connect"
 import type { ElementTypeSlug } from "@index/element"
 import { ElementRoute } from "@index/element"
 import { routerNavigate } from "@index/router"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { createKeyedAbort } from "@lib/keyed-abort"
-import { RenderElementsDataSchema } from "@lib/proto/element_pb"
-import { qsEncode } from "@lib/qs"
-import { fromBinaryValid } from "@lib/rpc"
+import { ElementService } from "@lib/proto/element_pb"
+import { rpcClient } from "@lib/rpc"
 import type { OSMNode, OSMWay } from "@lib/types"
 import { signal } from "@preact/signals"
-import { fail } from "@std/assert"
 import { t } from "i18next"
 import type {
   GeoJSONSource,
@@ -17,7 +16,13 @@ import type {
   Map as MaplibreMap,
 } from "maplibre-gl"
 import { MapAlertPanel, mountMapAlert } from "../alerts"
-import { boundsContain, boundsPadding, boundsSize, boundsToString } from "../bounds"
+import {
+  boundsContain,
+  boundsPadding,
+  boundsSize,
+  boundsToProto,
+  boundsToString,
+} from "../bounds"
 import { clearMapHover, setMapHover } from "../hover"
 import { convertRenderElementsData, renderObjects } from "../render-objects"
 import {
@@ -145,13 +150,13 @@ export const configureDataLayer = (map: MaplibreMap) => {
   }
 
   /** On show data click, mark override and load data */
-  const onShowDataButtonClick = () => {
+  const onShowDataButtonClick = async () => {
     if (loadDataOverride) return
     console.debug("DataLayer: Show data clicked")
     loadDataOverride = true
     loadDataAlertVisible.value = false
     fetchedBounds = null
-    updateLayer()
+    await updateLayer()
   }
 
   /** On hide data click, uncheck the data layer checkbox */
@@ -167,7 +172,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
       {errorDataAlertVisible.value && (
         <MapAlertPanel variant="warning">
           {t("map.data.too_much_data_error")}
-          <i class="bi bi-zoom-in ms-1"></i>
+          <i class="bi bi-zoom-in ms-1" />
         </MapAlertPanel>
       )}
 
@@ -180,7 +185,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
               type="button"
               onClick={onHideDataButtonClick}
             >
-              <i class="bi bi-eye-slash-fill me-1"></i>
+              <i class="bi bi-eye-slash-fill me-1" />
               {t("map.data.hide_map_data")}
             </button>
             {t("map.data.or")}
@@ -190,7 +195,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
               onClick={onShowDataButtonClick}
             >
               {t("map.data.show_map_data")}
-              <i class="bi bi-eye-fill ms-1"></i>
+              <i class="bi bi-eye-fill ms-1" />
             </button>
           </div>
         </MapAlertPanel>
@@ -229,40 +234,36 @@ export const configureDataLayer = (map: MaplibreMap) => {
     }
 
     const bbox = boundsToString(fetchBounds)
-    const limit = loadDataOverride ? "" : LOAD_DATA_ALERT_THRESHOLD.toString()
-    const token = abort.start(`${bbox}|${limit}`)
+    const limit = loadDataOverride ? 0 : LOAD_DATA_ALERT_THRESHOLD
+    const token = abort.start(`${bbox}:${limit}`)
     if (!token) return
 
     errorDataAlertVisible.value = false
     try {
-      const resp = await fetch(
-        `/api/web/map${qsEncode({
-          bbox,
+      const resp = await rpcClient(ElementService).getMapElements(
+        {
+          bbox: boundsToProto(fetchBounds),
           limit,
-        })}`,
-        { signal: token.signal, priority: "high" },
+        },
+        { signal: token.signal },
       )
-      if (!resp.ok) {
-        if (resp.status === 400) {
-          errorDataAlertVisible.value = true
-          loadDataAlertVisible.value = false
-          clearData()
-          return
-        }
-        fail(`${resp.status} ${resp.statusText}`)
-      }
-
-      const buffer = await resp.arrayBuffer()
-      const render = fromBinaryValid(RenderElementsDataSchema, new Uint8Array(buffer))
       fetchedBounds = fetchBounds
-      if (render.tooMuchData) {
+      if (resp.tooMuchData) {
         loadDataAlertVisible.value = true
       } else {
-        loadData(convertRenderElementsData(render))
+        loadData(convertRenderElementsData(resp.render))
       }
     } catch (error) {
       if (error.name === "AbortError") return
-      console.error("DataLayer: Failed to fetch", error)
+      const err = ConnectError.from(error)
+      if (err.code === Code.InvalidArgument) {
+        errorDataAlertVisible.value = true
+        loadDataAlertVisible.value = false
+        clearData()
+        return
+      }
+
+      console.error("DataLayer: Failed to fetch", err)
       clearData()
     } finally {
       token.done()
@@ -270,11 +271,11 @@ export const configureDataLayer = (map: MaplibreMap) => {
   }
   map.on("moveend", updateLayer)
 
-  addLayerEventHandler((isAdded, eventLayerId) => {
+  addLayerEventHandler(async (isAdded, eventLayerId) => {
     if (eventLayerId !== LAYER_ID) return
     enabled = isAdded
     if (isAdded) {
-      updateLayer()
+      await updateLayer()
     } else {
       onFeatureLeave()
       errorDataAlertVisible.value = false

@@ -133,29 +133,27 @@ const SubscriptionForm = ({
 }: {
   changesetId: bigint
   isSubscribed: Signal<boolean>
-}) => {
-  return (
-    <StandardForm
-      class="col-auto subscription-form"
-      method={ChangesetService.method.setChangesetSubscription}
-      buildRequest={() => ({
-        id: changesetId,
-        isSubscribed: !isSubscribed.value,
-      })}
-      onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+}) => (
+  <StandardForm
+    class="col-auto subscription-form"
+    method={ChangesetService.method.setChangesetSubscription}
+    buildRequest={() => ({
+      id: changesetId,
+      isSubscribed: !isSubscribed.value,
+    })}
+    onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+  >
+    <button
+      class="btn btn-sm btn-soft"
+      type="submit"
     >
-      <button
-        class="btn btn-sm btn-soft"
-        type="submit"
-      >
-        {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
-        {isSubscribed.value
-          ? t("javascripts.changesets.show.unsubscribe")
-          : t("javascripts.changesets.show.subscribe")}
-      </button>
-    </StandardForm>
-  )
-}
+      {isSubscribed.value && <i class="bi bi-bookmark-check me-1" />}
+      {isSubscribed.value
+        ? t("javascripts.changesets.show.unsubscribe")
+        : t("javascripts.changesets.show.subscribe")}
+    </button>
+  </StandardForm>
+)
 
 const CommentForm = ({
   changesetId,
@@ -163,69 +161,65 @@ const CommentForm = ({
 }: {
   changesetId: bigint
   onSuccess: (result: AddChangesetCommentResponseValid) => void
-}) => {
-  return (
-    <StandardForm
-      class="comment-form mb-2"
-      method={ChangesetService.method.addChangesetComment}
-      resetOnSuccess
-      buildRequest={({ formData }) => ({
-        id: changesetId,
-        body: formData.get("body")!.toString(),
-      })}
-      onSuccess={(result) => onSuccess(result)}
-    >
-      <div class="mb-3">
-        <textarea
-          class="form-control"
-          name="body"
-          rows={4}
-          maxLength={CHANGESET_COMMENT_BODY_MAX_LENGTH}
-          required
-        />
-      </div>
-      <div class="text-end">
-        <button
-          class="btn btn-primary"
-          type="submit"
-        >
-          {t("action.comment")}
-        </button>
-      </div>
-    </StandardForm>
-  )
-}
+}) => (
+  <StandardForm
+    class="comment-form mb-2"
+    method={ChangesetService.method.addChangesetComment}
+    resetOnSuccess
+    buildRequest={({ formData }) => ({
+      id: changesetId,
+      body: formData.get("body") as string,
+    })}
+    onSuccess={(result) => onSuccess(result)}
+  >
+    <div class="mb-3">
+      <textarea
+        class="form-control"
+        name="body"
+        rows={4}
+        maxLength={CHANGESET_COMMENT_BODY_MAX_LENGTH}
+        required
+      />
+    </div>
+    <div class="text-end">
+      <button
+        class="btn btn-primary"
+        type="submit"
+      >
+        {t("action.comment")}
+      </button>
+    </div>
+  </StandardForm>
+)
 
 const ChangesetComment = ({
   comment,
 }: {
   comment: GetChangesetCommentsResponse_CommentValid
-}) => {
-  return (
-    <li class="social-entry">
-      <p class="header text-muted">
-        <a href={`/user/${comment.user!.displayName}`}>
-          <img
-            class="avatar"
-            src={comment.user!.avatarUrl}
-            alt={t("alt.profile_picture")}
-            loading="lazy"
-          />
-          {comment.user!.displayName}
-        </a>{" "}
-        {t("action.commented")}{" "}
-        <Time
-          unix={comment.createdAt}
-          relativeStyle="long"
+}) => (
+  <li class="social-entry">
+    <p class="header text-muted">
+      <a href={`/user/${comment.user!.displayName}`}>
+        <img
+          class="avatar"
+          src={comment.user!.avatarUrl}
+          alt={t("alt.profile_picture")}
+          loading="lazy"
         />
-      </p>
-      <div
-        class="body"
-        dangerouslySetInnerHTML={{ __html: comment.bodyRich }}
+        {comment.user!.displayName}
+      </a>{" "}
+      {t("action.commented")}{" "}
+      <Time
+        unix={comment.createdAt}
+        relativeStyle="long"
       />
-    </li>
-  )
-}
+    </p>
+    <div
+      class="body"
+      dangerouslySetInnerHTML={{ __html: comment.bodyRich }}
+    />
+  </li>
+)
 
 const ChangesetFooter = ({ data }: { data: ChangesetDataValid }) => {
   const changesetIdStr = data.id.toString()
@@ -415,10 +409,10 @@ const ChangesetSidebar = ({
               key={d.id}
               method={ChangesetService.method.getChangesetComments}
               request={{ id: d.id }}
-              label={t("alt.comments_page_navigation")}
-              small
+              ariaLabel={t("alt.comments_page_navigation")}
               pageOrder="desc"
               responseSignal={preloadedComments}
+              small
             >
               {(page) => (
                 <ul class="list-unstyled mb-2">

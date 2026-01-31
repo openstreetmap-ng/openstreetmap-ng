@@ -11,9 +11,10 @@ export const mount = (
   target: string | readonly string[],
   callback: (body: HTMLElement) => void | Promise<void>,
 ) => {
-  const matches =
+  if (
     typeof target === "string"
       ? bodyClasses.has(target)
-      : target.some(bodyClasses.has, bodyClasses)
-  if (matches) callback(document.body)
+      : target.some((className) => bodyClasses.has(className))
+  )
+    void callback(document.body)
 }

@@ -18,7 +18,7 @@ import { LayerSidebarToggleControl } from "@index/sidebar/layers"
 import { LegendSidebarToggleControl } from "@index/sidebar/legend"
 import { ShareSidebarToggleControl } from "@index/sidebar/share"
 import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
-import { wrapIdleCallbackStatic } from "@lib/polyfills"
+import { wrapIdleCallbackStatic } from "@lib/utils"
 import { effect } from "@preact/signals"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
 import { render } from "preact"
@@ -46,7 +46,7 @@ const createMainMap = (container: HTMLElement) => {
     canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
     fadeDuration: 0,
   })
-  map.once("style.load", () => {
+  void map.once("style.load", () => {
     // Disable transitions after loading the style
     map.style.stylesheet.transition = { duration: 0 }
   })
@@ -64,7 +64,7 @@ const createMainMap = (container: HTMLElement) => {
 
     // Workaround a bug where after switching back to mercator,
     // the map is not fit to the screen (there is grey padding).
-    if (prevEnabled === true && enabled === false) map.resize()
+    if (prevEnabled === true && !enabled) map.resize()
   })
 
   addMapLayerSources(map, "all")

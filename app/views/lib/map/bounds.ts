@@ -23,8 +23,14 @@ export function boundsToBounds(bounds: LngLatBounds | Bounds) {
   return new LngLatBounds(bounds)
 }
 
+export const boundsToProto = (bounds: LngLatBounds) => {
+  const [[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
+  return { minLon, minLat, maxLon, maxLat }
+}
+
 export const boundsToString = (bounds: LngLatBounds | Bounds, precision?: number) => {
   let minLon: number, minLat: number, maxLon: number, maxLat: number
+  // oxlint-disable-next-line oxc/branches-sharing-code
   if (bounds instanceof LngLatBounds) {
     ;[[minLon, minLat], [maxLon, maxLat]] = bounds.adjustAntiMeridian().toArray()
   } else {

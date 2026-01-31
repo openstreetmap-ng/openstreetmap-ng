@@ -41,10 +41,10 @@ async def upload(
         trace_id = await TraceService.upload(
             file, description=description, tags=tags, visibility=visibility
         )
-    except* APIError as e:
+    except* APIError as exc:
         # convert api errors to standard feedback errors
-        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        StandardFeedback.raise_error(None, detail)
+        detail = next(e.detail for e in exc.exceptions if isinstance(e, APIError))
+        StandardFeedback.raise_error(None, detail, exc=exc)
 
     return id_response(trace_id)
 
@@ -66,10 +66,10 @@ async def update(
             tags=validate_trace_tags(tags),
             visibility=visibility,
         )
-    except* APIError as e:
+    except* APIError as exc:
         # convert api errors to standard feedback errors
-        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        StandardFeedback.raise_error(None, detail)
+        detail = next(e.detail for e in exc.exceptions if isinstance(e, APIError))
+        StandardFeedback.raise_error(None, detail, exc=exc)
 
     return id_response(trace_id)
 
@@ -81,10 +81,10 @@ async def delete(
 ):
     try:
         await TraceService.delete(trace_id)
-    except* APIError as e:
+    except* APIError as exc:
         # convert api errors to standard feedback errors
-        detail = next(exc.detail for exc in e.exceptions if isinstance(exc, APIError))
-        StandardFeedback.raise_error(None, detail)
+        detail = next(e.detail for e in exc.exceptions if isinstance(e, APIError))
+        StandardFeedback.raise_error(None, detail, exc=exc)
 
     return {'redirect_url': f'/user/{user["display_name"]}/traces'}
 

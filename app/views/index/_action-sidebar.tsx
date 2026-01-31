@@ -1,14 +1,9 @@
-import type {
-  DescMessage,
-  DescMethodUnary,
-  MessageInitShape,
-  MessageValidType,
-} from "@bufbuild/protobuf"
+import type { DescMessage, DescMethodUnary, MessageValidType } from "@bufbuild/protobuf"
 import { Code, ConnectError } from "@connectrpc/connect"
 import { IndexRoute } from "@index/index"
 import { routerNavigate } from "@index/router"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
+import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@lib/rpc"
 import {
   type ReadonlySignal,
   type Signal,
@@ -31,7 +26,7 @@ type SidebarFetchResult<T> = {
   data: ReadonlySignal<T | null>
 }
 
-const SidebarOverlaySpinner = () => (
+export const SpinnerBorder = () => (
   <output
     class="spinner-border text-body-secondary"
     aria-live="polite"
@@ -59,7 +54,7 @@ export const SidebarResourceBody = <T extends object>({
         <div aria-busy="true">
           <div class="sidebar-loading-overlay">
             <div class="sidebar-loading-overlay-inner">
-              <SidebarOverlaySpinner />
+              <SpinnerBorder />
             </div>
           </div>
           <div
@@ -75,7 +70,7 @@ export const SidebarResourceBody = <T extends object>({
     case "ready":
       return (
         <div>
-          <div></div>
+          <div />
           <div>{children(r.data)}</div>
         </div>
       )
@@ -94,7 +89,7 @@ export const SidebarResourceBody = <T extends object>({
 }
 
 export function useSidebarRpc<I extends DescMessage, O extends DescMessage>(
-  request: ReadonlySignal<MessageInitShape<I> | null>,
+  request: ReadonlySignal<LooseMessageInitShape<I> | null>,
   method: DescMethodUnary<I, O>,
 ): SidebarFetchResult<MessageValidType<O>>
 export function useSidebarRpc<
@@ -102,7 +97,7 @@ export function useSidebarRpc<
   O extends DescMessage,
   T extends object,
 >(
-  request: ReadonlySignal<MessageInitShape<I> | null>,
+  request: ReadonlySignal<LooseMessageInitShape<I> | null>,
   method: DescMethodUnary<I, O>,
   map: (response: MessageValidType<O>) => T,
 ): SidebarFetchResult<T>
@@ -111,7 +106,7 @@ export function useSidebarRpc<
   O extends DescMessage,
   T extends object,
 >(
-  request: ReadonlySignal<MessageInitShape<I> | null>,
+  request: ReadonlySignal<LooseMessageInitShape<I> | null>,
   method: DescMethodUnary<I, O>,
   map?: (response: MessageValidType<O>) => T,
 ): SidebarFetchResult<T> {
@@ -141,9 +136,9 @@ export function useSidebarRpc<
           data: map ? map(resp) : (resp as unknown as T),
         }
       })
-      .catch((reason) => {
-        if (scope.signal.aborted) return
-        const err = ConnectError.from(reason)
+      .catch((error) => {
+        if (error.name === "AbortError") return
+        const err = ConnectError.from(error)
         resource.value =
           err.code === Code.NotFound
             ? { tag: "not-found" }
@@ -193,23 +188,21 @@ export const SidebarContent = <T extends object>({
   resource: ReadonlySignal<SidebarResource<T>>
   notFound: () => string
   children: (data: T) => ComponentChildren
-}) => {
-  return (
-    <div class="sidebar-content">
-      <SidebarResourceBody
-        resource={resource}
-        notFound={() => (
-          <div class="section">
-            <SidebarHeader title={t("browse.not_found.title")} />
-            <p>{notFound()}</p>
-          </div>
-        )}
-      >
-        {children}
-      </SidebarResourceBody>
-    </div>
-  )
-}
+}) => (
+  <div class="sidebar-content">
+    <SidebarResourceBody
+      resource={resource}
+      notFound={() => (
+        <div class="section">
+          <SidebarHeader title={t("browse.not_found.title")} />
+          <p>{notFound()}</p>
+        </div>
+      )}
+    >
+      {children}
+    </SidebarResourceBody>
+  </div>
+)
 
 export const LoadingSpinner = () => (
   <div
@@ -217,9 +210,7 @@ export const LoadingSpinner = () => (
     aria-live="polite"
     aria-busy="true"
   >
-    <output class="spinner-border text-body-secondary">
-      <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
-    </output>
+    <SpinnerBorder />
   </div>
 )
 

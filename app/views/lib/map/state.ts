@@ -54,7 +54,7 @@ export const getMapLayersCode = (map: MaplibreMap) => {
     const layerConfig = layersConfig.get(layerId)
     if (layerConfig?.layerCode) layerCodes.add(layerConfig.layerCode)
   }
-  return Array.from(layerCodes).sort().join("")
+  return [...layerCodes].sort().join("")
 }
 
 const setMapLayersCode = (map: MaplibreMap, layersCode?: string) => {
@@ -150,7 +150,7 @@ export const encodeMapState = (state: MapState | LonLatZoom, prefix = "#map=") =
 export const parseMapState = (hash: string): MapState | null => {
   // Skip if there's no hash
   const i = hash.indexOf("#")
-  if (i < 0) return null
+  if (i === -1) return null
 
   // Parse the hash as a query string
   const params = qsParse(hash.slice(i + 1))
@@ -213,7 +213,7 @@ const convertBoundsToLonLatZoom = (
 
   const latRad = (lat: number) => Math.sin((lat * Math.PI) / 180)
   const getZoom = (mapPx: number, worldPx: number, fraction: number) =>
-    (Math.log(mapPx / worldPx / fraction) / Math.LN2) | 0
+    Math.trunc(Math.log2(mapPx / worldPx / fraction))
 
   // Calculate the fraction of the world that the longitude and latitude take up
   const latFraction = (latRad(maxLat) - latRad(minLat)) / Math.PI
@@ -368,10 +368,7 @@ const SHORT_DOMAINS: Record<string, string> = {
   "openstreetmap.ng": "osm.ng",
 }
 
-export const getMapShortlink = (
-  state: MapState,
-  markerLngLat?: LngLat | null | undefined,
-) => {
+export const getMapShortlink = (state: MapState, markerLngLat?: LngLat | null) => {
   const code = shortLinkEncode(state)
   const params: Record<string, string> = {}
   if (state.layersCode) {
@@ -429,19 +426,19 @@ export const getMapEmbedHtml = (
     "sandbox",
     "allow-popups allow-popups-to-escape-sandbox allow-scripts",
   )
-  container.appendChild(iframe)
+  container.append(iframe)
 
   // Create new line
   const br = document.createElement("br")
-  container.appendChild(br)
+  container.append(br)
 
   // Create the link to view the larger map
   const small = document.createElement("small")
   const link = document.createElement("a")
   link.href = getMapUrl(state, Boolean(markerLngLat))
   link.textContent = t("javascripts.share.view_larger_map")
-  small.appendChild(link)
-  container.appendChild(small)
+  small.append(link)
+  container.append(small)
 
   return container.innerHTML
 }

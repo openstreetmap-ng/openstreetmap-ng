@@ -588,7 +588,7 @@ const DistanceSidebar = ({
       <div class="section">
         <SidebarHeader class="mb-2">
           <div>
-            <i class="bi bi-signpost-2 me-1-5"></i>
+            <i class="bi bi-signpost-2 me-1-5" />
             <span>{t("javascripts.directions.distance")}</span>:
             <span class="fw-semibold ms-1">
               {formatDistance(totalDistance.value, unit.value)}

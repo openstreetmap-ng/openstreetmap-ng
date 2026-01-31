@@ -12,7 +12,12 @@ import {
   type StandardPaginationState,
   StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
-import { connectErrorToMessage, fromBinaryValid, rpcUnary } from "@lib/rpc"
+import {
+  connectErrorToMessage,
+  fromBinaryValid,
+  type LooseMessageInitShape,
+  rpcUnary,
+} from "@lib/rpc"
 import { range } from "@lib/utils"
 import {
   batch,
@@ -64,8 +69,8 @@ type PaginationResource<TData> =
   | { tag: "ready"; data: TData }
   | { tag: "error"; error: string; prev: TData | null }
 
-const PaginationSpinner = memo(() => (
-  <div class="sp-spinner">
+const PaginationSpinner = memo(({ class: className = "" }: { class?: string }) => (
+  <div class={`sp-spinner ${className}`}>
     <output
       class="spinner-border text-body-secondary"
       aria-live="polite"
@@ -86,16 +91,18 @@ const PaginationError = ({ error }: { error: string }) => (
 
 const PaginationContent = <TData,>({
   resource,
+  spinnerClass,
   children,
 }: {
   resource: ReadonlySignal<PaginationResource<TData>>
+  spinnerClass: string
   children: (data: TData) => ComponentChildren
 }) => {
   const r = resource.value
 
   switch (r.tag) {
     case "boot":
-      return <PaginationSpinner />
+      return <PaginationSpinner class={spinnerClass} />
 
     case "loading":
       return r.prev ? (
@@ -111,7 +118,7 @@ const PaginationContent = <TData,>({
           </div>
         </div>
       ) : (
-        <PaginationSpinner />
+        <PaginationSpinner class={spinnerClass} />
       )
 
     case "ready":
@@ -127,39 +134,43 @@ const PaginationContent = <TData,>({
 }
 
 const PaginationItems = ({
-  targetPage,
   currentPage,
-  state,
+  targetPage,
   pageOrder,
+  maxKnownPage,
+  numPages,
+  numItems,
+  pageSize,
+  showTailEllipsis,
 }: {
-  targetPage: Signal<number>
   currentPage: ReadonlySignal<number>
-  state: ReadonlySignal<StandardPaginationState | null>
+  targetPage: Signal<number>
   pageOrder: PageOrder
+  maxKnownPage: number
+  numPages: number | undefined
+  numItems: number | undefined
+  pageSize: number | undefined
+  showTailEllipsis: boolean
 }) => {
   const actualPage = currentPage.value
-  const currentState = state.value
-  const numPagesValue = currentState?.numPages
-  const maxKnownPageValue = currentState?.maxKnownPage ?? 1
-  const showTailEllipsis = currentState !== null && numPagesValue === undefined
 
-  const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
+  const resolvedMaxPage = numPages ?? maxKnownPage
   if (resolvedMaxPage <= 1) return null
 
   // For desc mode, invert page numbers: display = numPages - actual + 1
   const isDesc = pageOrder.startsWith("desc")
   const showRange = pageOrder.endsWith("-range")
   const toDisplay = (actual: number) =>
-    isDesc && numPagesValue ? numPagesValue - actual + 1 : actual
+    isDesc && numPages ? numPages - actual + 1 : actual
   const toActual = (display: number) =>
-    isDesc && numPagesValue ? numPagesValue - display + 1 : display
+    isDesc && numPages ? numPages - display + 1 : display
 
   const displayPage = toDisplay(actualPage)
 
   const pagesToRender = computePagesToRender(
     displayPage,
-    isDesc ? toDisplay(1) : maxKnownPageValue,
-    numPagesValue,
+    isDesc ? toDisplay(1) : maxKnownPage,
+    numPages,
   )
   const tokens: (number | "gap")[] = []
   let previousPage = 0
@@ -170,9 +181,6 @@ const PaginationItems = ({
   }
   if (showTailEllipsis && !isDesc) tokens.push("gap")
 
-  const numItemsValue = currentState?.numItems
-  const pageSizeValue = currentState?.pageSize
-
   return (
     <>
       {tokens.map((token, index) => {
@@ -181,7 +189,6 @@ const PaginationItems = ({
             <li
               key={`gap-${index}`}
               class="page-item disabled"
-              aria-disabled="true"
             >
               <span class="page-link">...</span>
             </li>
@@ -191,8 +198,8 @@ const PaginationItems = ({
         const displayPageNum = token
         const actualPageNum = toActual(displayPageNum)
         const label =
-          showRange && pageSizeValue && numItemsValue !== undefined
-            ? formatPageLabel(actualPageNum, pageSizeValue, numItemsValue, isDesc)
+          showRange && pageSize && numItems !== undefined
+            ? formatPageLabel(actualPageNum, pageSize, numItems, isDesc)
             : displayPageNum.toString()
 
         if (displayPageNum === displayPage) {
@@ -223,6 +230,54 @@ const PaginationItems = ({
         )
       })}
     </>
+  )
+}
+
+export const StandardPaginationNav = ({
+  ariaLabel,
+  currentPage,
+  targetPage,
+  pageOrder,
+  maxKnownPage,
+  numPages,
+  numItems,
+  pageSize,
+  showTailEllipsis = false,
+  small = false,
+  class: className = "",
+}: {
+  ariaLabel: string
+  currentPage: ReadonlySignal<number>
+  targetPage: Signal<number>
+  pageOrder: PageOrder
+  maxKnownPage: number
+  numPages: number | undefined
+  numItems?: number | undefined
+  pageSize?: number | undefined
+  showTailEllipsis?: boolean
+  small?: boolean
+  class?: string
+}) => {
+  const resolvedMaxPage = numPages ?? maxKnownPage
+  if (resolvedMaxPage <= 1) return null
+
+  const paginationClass =
+    `pagination justify-content-end ${small ? "pagination-sm" : ""} ${className}`.trim()
+  return (
+    <nav aria-label={ariaLabel}>
+      <ul class={paginationClass}>
+        <PaginationItems
+          currentPage={currentPage}
+          targetPage={targetPage}
+          pageOrder={pageOrder}
+          maxKnownPage={maxKnownPage}
+          numPages={numPages}
+          numItems={numItems}
+          pageSize={pageSize}
+          showTailEllipsis={showTailEllipsis}
+        />
+      </ul>
+    </nav>
   )
 }
 
@@ -305,20 +360,19 @@ const useStandardPagination = <TData extends PaginationResponse>({
           resource.value = { tag: "ready", data }
         })
       } catch (error) {
-        if (scope.signal.aborted) return
+        if (error.name === "AbortError") return
         console.error("Pagination: Failed to load page", page, error)
         resource.value = { tag: "error", error: error.message, prev }
       }
     }
-
-    fetchPage()
+    void fetchPage()
   })
 
   return { targetPage, resource, currentPage, state }
 }
 
 type PaginatedRequestInit<I extends DescMessage> =
-  "state" extends keyof MessageInitShape<I> ? MessageInitShape<I> : never
+  "state" extends keyof MessageInitShape<I> ? LooseMessageInitShape<I> : never
 
 type PaginatedResponse<O extends DescMessage> =
   MessageValidType<O> extends PaginationResponse ? MessageValidType<O> : never
@@ -326,30 +380,32 @@ type PaginatedResponse<O extends DescMessage> =
 export const StandardPagination = <I extends DescMessage, O extends DescMessage>({
   method,
   request,
-  label = t("alt.page_navigation"),
-  initialPage = 1,
+  ariaLabel = t("alt.page_navigation"),
   pageOrder = "asc",
+  initialPage = 1,
+  responseSignal,
+  onLoad,
   small = false,
   navTop = false,
   navClassTop = "mb-2",
   navBottom = true,
   navClassBottom = "",
-  responseSignal,
-  onLoad,
+  spinnerClass = "",
   children,
 }: {
   method: DescMethodUnary<I, O>
   request: Omit<PaginatedRequestInit<I>, "state">
-  label?: string
-  initialPage?: number
+  ariaLabel?: string
   pageOrder?: PageOrder
+  initialPage?: number
+  responseSignal?: Signal<PaginatedResponse<O> | null>
+  onLoad?: (data: PaginatedResponse<O>, page: number) => void
   small?: boolean
   navTop?: boolean
   navClassTop?: string
   navBottom?: boolean
   navClassBottom?: string
-  responseSignal?: Signal<PaginatedResponse<O> | null>
-  onLoad?: (data: PaginatedResponse<O>, page: number) => void
+  spinnerClass?: string
   children: (data: PaginatedResponse<O>) => ComponentChildren
 }) => {
   type TRequest = PaginatedRequestInit<I>
@@ -364,12 +420,14 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
       return (await rpcUnary(method)(
         {
           ...request,
-          state: { ...(baseState ?? {}), requestedPage },
+          state: { ...baseState, requestedPage },
         } as unknown as TRequest,
         { signal: abortSignal },
       )) as TResponse
-    } catch (reason) {
-      throw new Error(connectErrorToMessage(ConnectError.from(reason)))
+    } catch (error) {
+      throw new Error(connectErrorToMessage(ConnectError.from(error)), {
+        cause: error,
+      })
     }
   }
 
@@ -381,31 +439,50 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
   })
 
   const currentState = state.value
-  const resolvedMaxPage = currentState?.numPages ?? currentState?.maxKnownPage
-  const showNav = resolvedMaxPage && resolvedMaxPage > 1
-
-  const paginationListClass = `pagination justify-content-end ${small ? "pagination-sm" : ""}`
-  const nav = (extraClass: string) => (
-    <nav aria-label={label}>
-      <ul class={`${paginationListClass} ${extraClass}`}>
-        <PaginationItems
-          targetPage={targetPage}
-          currentPage={currentPage}
-          state={state}
-          pageOrder={pageOrder}
-        />
-      </ul>
-    </nav>
-  )
+  const maxKnownPage = currentState?.maxKnownPage ?? 1
+  const numPages = currentState?.numPages
+  const resolvedMaxPage = numPages ?? maxKnownPage
+  const showNav = resolvedMaxPage > 1
+  const showTailEllipsis = currentState !== null && numPages === undefined
 
   return (
     <>
-      {showNav && navTop && nav(navClassTop)}
+      {showNav && navTop && (
+        <StandardPaginationNav
+          ariaLabel={ariaLabel}
+          currentPage={currentPage}
+          targetPage={targetPage}
+          pageOrder={pageOrder}
+          maxKnownPage={maxKnownPage}
+          numPages={numPages}
+          numItems={currentState?.numItems}
+          pageSize={currentState?.pageSize}
+          showTailEllipsis={showTailEllipsis}
+          small={small}
+          class={navClassTop}
+        />
+      )}
       <PaginationContent
         resource={resource}
-        children={children}
-      />
-      {showNav && navBottom && nav(navClassBottom)}
+        spinnerClass={spinnerClass}
+      >
+        {children}
+      </PaginationContent>
+      {showNav && navBottom && (
+        <StandardPaginationNav
+          ariaLabel={ariaLabel}
+          currentPage={currentPage}
+          targetPage={targetPage}
+          pageOrder={pageOrder}
+          maxKnownPage={maxKnownPage}
+          numPages={numPages}
+          numItems={currentState?.numItems}
+          pageSize={currentState?.pageSize}
+          showTailEllipsis={showTailEllipsis}
+          small={small}
+          class={navClassBottom}
+        />
+      )}
     </>
   )
 }
@@ -561,7 +638,7 @@ const configureStandardPaginationElements = (
         setPendingState(false)
       }
     }
-    fetchPage()
+    void fetchPage()
 
     return () => abortController.abort()
   })
@@ -571,6 +648,7 @@ const configureStandardPaginationElements = (
     const currentState = state.value
     const numPagesValue = customNumPages ?? currentState?.numPages
     const maxKnownPageValue = customNumPages ?? currentState?.maxKnownPage ?? 1
+    const showTailEllipsis = currentState !== null && numPagesValue === undefined
     const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
     if (resolvedMaxPage <= 1) {
       for (const paginationContainer of paginationContainers) {
@@ -586,8 +664,12 @@ const configureStandardPaginationElements = (
         <PaginationItems
           targetPage={targetPage}
           currentPage={currentPage}
-          state={state}
+          maxKnownPage={maxKnownPageValue}
+          numPages={numPagesValue}
+          numItems={currentState?.numItems}
+          pageSize={currentState?.pageSize}
           pageOrder={pageOrder}
+          showTailEllipsis={showTailEllipsis}
         />,
         paginationContainer,
       )
@@ -624,9 +706,9 @@ const resolvePaginationElements = (container: Element): StandardPaginationElemen
   assertExists(actionNav, "Pagination: Missing action nav")
   const paginationRoot = actionNav.parentElement
   assertExists(paginationRoot, "Pagination: Missing pagination root")
-  const paginationContainers = Array.from(
-    paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
-  )
+  const paginationContainers = [
+    ...paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
+  ]
 
   const renderSibling = (actionNav.previousElementSibling ??
     paginationRoot.previousElementSibling) as HTMLElement | null
@@ -636,8 +718,8 @@ const resolvePaginationElements = (container: Element): StandardPaginationElemen
     ? renderSibling
     : (renderSibling.querySelector("tbody, ul.list-unstyled") ?? renderSibling)
 
-  const numItemsTargets = Array.from(container.querySelectorAll("[data-sp-num-items]"))
-  const numPagesTargets = Array.from(container.querySelectorAll("[data-sp-num-pages]"))
+  const numItemsTargets = [...container.querySelectorAll("[data-sp-num-items]")]
+  const numPagesTargets = [...container.querySelectorAll("[data-sp-num-pages]")]
 
   return {
     actionPagination,

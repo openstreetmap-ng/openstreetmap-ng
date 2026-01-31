@@ -118,7 +118,7 @@ mount("user-profile-body", (body) => {
     })
 
     /** Update add button state and all row states */
-    function updateState() {
+    const updateState = () => {
       const rows = container.querySelectorAll(".social-row")
       const count = rows.length
 
@@ -131,7 +131,7 @@ mount("user-profile-body", (body) => {
     }
 
     /** Update input type, placeholder, and label based on selected service */
-    function updateRowState(row: Element) {
+    const updateRowState = (row: Element) => {
       const select = row.querySelector("select")!
       const input = row.querySelector("input[name=value]")!
       const label = row.querySelector(".custom-input-group label")!
@@ -143,20 +143,20 @@ mount("user-profile-body", (body) => {
     }
 
     /** Disable move buttons at boundaries */
-    function updateMoveButtons(row: Element, index: number, total: number) {
+    const updateMoveButtons = (row: Element, index: number, total: number) => {
       row.querySelector("button.move-up-btn")!.disabled = index === 0
       row.querySelector("button.move-down-btn")!.disabled = index === total - 1
     }
 
     /** Move a row up (swap with previous sibling) */
-    function moveUp(row: Element) {
-      container.insertBefore(row, row.previousElementSibling)
+    const moveUp = (row: Element) => {
+      row.previousElementSibling!.before(row)
       updateState()
     }
 
     /** Move a row down (swap with next sibling) */
-    function moveDown(row: Element) {
-      container.insertBefore(row.nextElementSibling!, row)
+    const moveDown = (row: Element) => {
+      row.before(row.nextElementSibling!)
       updateState()
     }
 
@@ -180,7 +180,7 @@ mount("user-profile-body", (body) => {
       }
 
       if (target.closest(".add-btn")) {
-        container.appendChild(template.content.cloneNode(true))
+        container.append(template.content.cloneNode(true))
         updateState()
       }
     })
@@ -207,7 +207,7 @@ mount("user-profile-body", (body) => {
   const startMs = Date.parse(`${chart.startDate}T00:00:00Z`)
   const totalWeeks = Math.ceil(chart.values.length / 7)
 
-  const monthLabels = new Array(totalWeeks)
+  const monthLabels: string[] = Array.from({ length: totalWeeks })
 
   const days = chart.values.map((value, index) => {
     const date = new Date(startMs + index * dayMs)

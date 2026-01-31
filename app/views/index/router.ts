@@ -97,6 +97,18 @@ const getPathSearch = (path: string) => {
   return i === -1 ? "" : path.slice(i)
 }
 
+const parseContext = (path: string, reason: RouteLoadReason): RouteContext => {
+  const pathname = getPathname(path)
+  const search = getPathSearch(path)
+  return {
+    reason,
+    path,
+    pathname,
+    search,
+    queryParams: qsParseAll(search),
+  }
+}
+
 const getCurrentPath = () =>
   removeTrailingSlash(window.location.pathname) + window.location.search
 
@@ -189,8 +201,9 @@ const matchTokens = <P extends object>(
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     const raw = segments[i]
+
+    let segment: string
     if (token.kind === "lit") {
-      let segment: string
       try {
         segment = decodeURIComponent(raw)
       } catch {
@@ -198,7 +211,6 @@ const matchTokens = <P extends object>(
       }
       if (segment !== token.value) return null
     } else {
-      let segment: string
       try {
         segment = unquotePlus(raw)
       } catch {
@@ -236,7 +248,7 @@ type DecodeQuery<S extends QuerySpec | undefined> = S extends QuerySpec
   ? DecodeSpec<S>
   : EmptyQuery
 
-export function defineRoute<
+export const defineRoute = <
   Params extends PathParamSpec | undefined = undefined,
   Q extends QuerySpec | undefined = undefined,
 >(def: {
@@ -247,8 +259,8 @@ export function defineRoute<
   aliases?: RouteAliases
   Component: RouteComponent<DecodeParams<Params>, DecodeQuery<Q>>
   sidebarOverlay?: boolean
-}): CompiledRouteDef<DecodeParams<Params>, DecodeQuery<Q>> {
-  const matchSpec = (def.params ?? {}) as PathParamSpec
+}): CompiledRouteDef<DecodeParams<Params>, DecodeQuery<Q>> => {
+  const matchSpec = def.params ?? {}
   const paths = Array.isArray(def.path) ? def.path : [def.path]
   if (!paths.length)
     throw new Error(`Route must define at least one path for id '${def.id}'`)
@@ -259,7 +271,7 @@ export function defineRoute<
   }))
 
   const paramKeys = Object.keys(matchSpec)
-  const querySpec = (def.query ?? {}) as QuerySpec
+  const querySpec = def.query ?? {}
   const queryKeys = Object.keys(querySpec)
   const queryAliases = normalizeQueryAliases(def.aliases?.query, queryKeys)
   const querySchema = z.object(querySpec).strip()
@@ -320,10 +332,7 @@ type OptionalizeUndefined<T extends object> = {
 
 const buildSearch = (route: AnyRouteDef, query: object) => {
   if (!route._queryKeys.length) return ""
-  const encoded = route._queryEncodeSchema.encode(query) as Record<
-    string,
-    string[] | undefined
-  >
+  const encoded = route._queryEncodeSchema.encode(query)
   return qsEncode(encoded)
 }
 
@@ -332,10 +341,10 @@ type RouteHrefInput<R extends CompiledRouteDef<any, any>> = OptionalizeUndefined
 > &
   QueryInput<RouteQuery<R>>
 
-export function routerHref<R extends CompiledRouteDef<any, any>>(
+export const routerHref = <R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-) {
+) => {
   const obj = input ?? {}
   const pathname = route._buildPathname(obj)
   const search = buildSearch(route, obj)
@@ -407,18 +416,6 @@ const reconcileSignalBag = (
   })
 }
 
-function parseContext(path: string, reason: RouteLoadReason): RouteContext {
-  const pathname = getPathname(path)
-  const search = getPathSearch(path)
-  return {
-    reason,
-    path,
-    pathname,
-    search,
-    queryParams: qsParseAll(search),
-  }
-}
-
 const normalizeQueryAliases = (aliases: AliasMap | undefined, queryKeys: string[]) => {
   if (!aliases) return
   const keySet = new Set(queryKeys)
@@ -479,19 +476,19 @@ const setPath = (
   return true
 }
 
-export function routerNavigate<R extends CompiledRouteDef<any, any>>(
+export const routerNavigate = <R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-) {
+) => {
   const path = routerHref(route, input)
   console.debug("IndexRouter: Navigate", route.id, "->", path)
   assert(setPath("push", path), `No route found for path: ${path}`)
 }
 
-export function routerReplace<R extends CompiledRouteDef<any, any>>(
+export const routerReplace = <R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-) {
+) => {
   const path = routerHref(route, input)
   console.debug("IndexRouter: Replace", route.id, "->", path)
   assert(setPath("replace", path), `No route found for path: ${path}`)
@@ -615,10 +612,7 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
       queryObj[key] = querySignals[key].value
     }
 
-    const encoded = route._queryEncodeSchema.encode(queryObj) as Record<
-      string,
-      string[] | undefined
-    >
+    const encoded = route._queryEncodeSchema.encode(queryObj)
 
     const paramSignals = activeParamSignals.peek()
     const params: Record<string, unknown> = {}

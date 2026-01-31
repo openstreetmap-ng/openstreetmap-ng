@@ -71,6 +71,10 @@
             }
         }
 
+        &.no-transition {
+            transition: none !important;
+        }
+
         .indicator-text {
             position: absolute;
             right: 0;

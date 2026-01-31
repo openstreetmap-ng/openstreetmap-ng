@@ -4,7 +4,7 @@ import { useDisposeEffect } from "@lib/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@lib/local-storage"
 import { encodeMapState, getInitialMapState, type MapState } from "@lib/map/state"
 import { getSearchParam } from "@lib/qs"
-import { remoteEdit } from "@lib/remote-edit"
+import { RemoteEditButton } from "@lib/remote-edit"
 import type { OSMObject } from "@lib/types"
 import { batch, computed, signal, useSignalEffect } from "@preact/signals"
 import { Dropdown, Tooltip } from "bootstrap"
@@ -25,7 +25,7 @@ const currentHash = computed(() =>
 )
 
 const editDisabled = computed(() =>
-  hasMainMap ? currentMapState.value!.zoom < MIN_EDIT_ZOOM : false,
+  hasMainMap ? currentMapState.value.zoom < MIN_EDIT_ZOOM : false,
 )
 
 export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
@@ -84,7 +84,7 @@ const EditorImg = ({
       class={className}
       src={src}
       alt={t("alt.logo", { name })}
-      loading={variant === "dropdown" ? "lazy" : "eager"}
+      loading={variant === "dropdown" ? "lazy" : undefined}
     />
   )
 }
@@ -152,18 +152,6 @@ const NavbarLeft = () => {
     dropdownRef.current!.hide()
   }
 
-  const onRemoteEditClick = async () => {
-    if (editDisabled.value) return
-    const button = remoteButtonRef.current!
-
-    const state = currentMapState.value
-    const object = currentObject.value
-    button.dataset.remoteEdit = JSON.stringify({ state, object })
-
-    onSelectEditor("remote")
-    await remoteEdit(button)
-  }
-
   const disabled = editDisabled.value
   return (
     <>
@@ -223,18 +211,19 @@ const NavbarLeft = () => {
                 {t("layouts.edit_with", { editor: t("editor.rapid.name") })}
               </a>
 
-              <button
+              <RemoteEditButton
+                buttonRef={remoteButtonRef}
                 class="dropdown-item edit-link"
-                type="button"
-                onClick={onRemoteEditClick}
-                ref={remoteButtonRef}
+                onBeforeOpen={() => onSelectEditor("remote")}
+                state={currentMapState}
+                object={currentObject}
               >
                 <EditorImg
                   editor="remote"
                   variant="dropdown"
                 />
                 {t("layouts.edit_with", { editor: t("editor.remote.description") })}
-              </button>
+              </RemoteEditButton>
 
               <hr class="dropdown-divider" />
 

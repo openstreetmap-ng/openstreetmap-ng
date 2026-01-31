@@ -9,7 +9,7 @@ export const renderTrace = (svg: SVGElement, line: Polyline) => {
   path.setAttribute("stroke", "var(--bs-body-color)")
   path.setAttribute("stroke-width", "1.8")
   path.setAttribute("stroke-linecap", "round")
-  svg.appendChild(path)
+  svg.append(path)
 }
 
 export const renderAnimatedTrace = (svg: SVGElement, line: Polyline) => {
@@ -22,7 +22,7 @@ export const renderAnimatedTrace = (svg: SVGElement, line: Polyline) => {
   path.setAttribute("stroke-width", "0.45")
   path.setAttribute("stroke-linecap", "round")
 
-  svg.appendChild(path)
+  svg.append(path)
 
   {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
@@ -45,8 +45,8 @@ export const renderAnimatedTrace = (svg: SVGElement, line: Polyline) => {
     animate.setAttribute("repeatCount", "indefinite")
     animate.setAttribute("fill", "freeze")
 
-    path.appendChild(animate)
-    svg.appendChild(path)
+    path.append(animate)
+    svg.append(path)
   }
 }
 

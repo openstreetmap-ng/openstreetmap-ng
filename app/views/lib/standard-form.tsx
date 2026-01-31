@@ -1,9 +1,4 @@
-import type {
-  DescMessage,
-  DescMethodUnary,
-  MessageInitShape,
-  MessageValidType,
-} from "@bufbuild/protobuf"
+import type { DescMessage, DescMethodUnary, MessageValidType } from "@bufbuild/protobuf"
 import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { ConnectError } from "@connectrpc/connect"
 import {
@@ -25,6 +20,7 @@ import {
   connectErrorToMessage,
   connectErrorToStandardFeedback,
   fromBinaryValid,
+  type LooseMessageInitShape,
   rpcUnary,
 } from "@lib/rpc"
 import { batch, effect, useSignal } from "@preact/signals"
@@ -32,7 +28,7 @@ import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { parseMediaType } from "@std/media-types/parse-media-type"
 import { Alert } from "bootstrap"
 import { t } from "i18next"
-import type { ComponentChildren, Ref } from "preact"
+import { type ComponentChildren, type Ref, render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 
 export interface APIDetail {
@@ -128,14 +124,18 @@ const createStandardFormFeedbackRenderer = (
         "show",
       )
       feedback.role = "alert"
-      const span = document.createElement("span")
-      feedback.append(span)
-      const closeButton = document.createElement("button")
-      closeButton.type = "button"
-      closeButton.classList.add("btn-close")
-      closeButton.ariaLabel = t("javascripts.close")
-      closeButton.dataset.bsDismiss = "alert"
-      feedback.append(closeButton)
+      render(
+        <>
+          <span />
+          <button
+            type="button"
+            class="btn-close"
+            aria-label={t("javascripts.close")}
+            data-bs-dismiss="alert"
+          />
+        </>,
+        feedback,
+      )
       feedbackAlert = new Alert(feedback)
 
       if (after) {
@@ -494,14 +494,14 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
       submitter: HTMLButtonElement | HTMLInputElement | null
       signal: AbortSignal
     }>,
-  ) => MessageInitShape<I> | Promise<MessageInitShape<I>>
+  ) => LooseMessageInitShape<I> | Promise<LooseMessageInitShape<I>>
   onSuccess?: (
     resp: MessageValidType<O>,
     ctx: Readonly<{
       form: HTMLFormElement
       submitter: HTMLButtonElement | HTMLInputElement | null
       signal: AbortSignal
-      request: MessageInitShape<I>
+      request: LooseMessageInitShape<I>
     }>,
   ) => void
   onError?: (
@@ -510,7 +510,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
       form: HTMLFormElement
       submitter: HTMLButtonElement | HTMLInputElement | null
       signal: AbortSignal
-      request: MessageInitShape<I>
+      request: LooseMessageInitShape<I>
     }>,
   ) => void
   concurrency?: "ignore" | "restart"
@@ -612,7 +612,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
     const formData = new FormData(form, submitter)
 
-    let request: MessageInitShape<I>
+    let request: LooseMessageInitShape<I>
     try {
       request = await buildRequest({
         form,
@@ -621,7 +621,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
         signal: abortController.signal,
       })
     } catch (error) {
-      if (abortController.signal.aborted) return
+      if (error.name === "AbortError") return
       console.error("StandardForm: buildRequest failed", error)
       feedback.handleFormFeedback("error", error.message)
       isPending.value = false
@@ -649,7 +649,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
       onSuccess?.(response, ctx)
     } catch (error) {
-      if (ctx.signal.aborted) return
+      if (error.name === "AbortError") return
 
       const err = ConnectError.from(error)
       const detail = connectErrorToStandardFeedback(err)

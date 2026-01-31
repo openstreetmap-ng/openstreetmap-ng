@@ -83,7 +83,7 @@ if (loginForm) {
     while (totpInputGroup.children.length < loginResponse.totp!) {
       const clone = totpInputTemplate.cloneNode(true) as HTMLInputElement
       clone.autocomplete = "off"
-      totpInputGroup.appendChild(clone)
+      totpInputGroup.append(clone)
     }
 
     // Setup event handlers
@@ -120,7 +120,7 @@ if (loginForm) {
         }
       })
 
-      input.addEventListener("focus", input.select)
+      input.addEventListener("focus", () => input.select())
 
       input.addEventListener("paste", (e: ClipboardEvent) => {
         e.preventDefault()
@@ -279,8 +279,8 @@ mount("login-body", () => {
   const navbarLoginButton = document.querySelector(
     "button[data-bs-target='#loginModal']",
   )!
-  navbarLoginButton.removeAttribute("data-bs-target")
-  navbarLoginButton.removeAttribute("data-bs-toggle")
+  delete navbarLoginButton.dataset.bsTarget
+  delete navbarLoginButton.dataset.bsToggle
   navbarLoginButton.addEventListener("click", () => {
     window.location.reload()
   })

@@ -179,21 +179,19 @@ const getModal = memoize(() => {
   return instance
 })
 
-export const LanguageSwitcher = () => {
-  return (
-    <div
-      id="LanguageSwitcher"
-      class="d-flex d-lg-inline-flex mt-2 mt-lg-0 ms-lg-1"
+export const LanguageSwitcher = () => (
+  <div
+    id="LanguageSwitcher"
+    class="d-flex d-lg-inline-flex mt-2 mt-lg-0 ms-lg-1"
+  >
+    <button
+      class="btn btn-light btn-bg-initial text-navbar w-100"
+      type="button"
+      title={t("settings.choose_language")}
+      onClick={() => getModal().show()}
     >
-      <button
-        class="btn btn-light btn-bg-initial text-navbar w-100"
-        type="button"
-        title={t("settings.choose_language")}
-        onClick={() => getModal().show()}
-      >
-        <i class="bi bi-translate" />
-        <span class="d-lg-none ms-2">{t("settings.choose_language")}</span>
-      </button>
-    </div>
-  )
-}
+      <i class="bi bi-translate" />
+      <span class="d-lg-none ms-2">{t("settings.choose_language")}</span>
+    </button>
+  </div>
+)

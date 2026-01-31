@@ -3,7 +3,6 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "*.js",
       "**/*.ts",
       "**/*.tsx",
       "**/*.json",
@@ -25,68 +24,7 @@
     }
   },
   "linter": {
-    "rules": {
-      "a11y": {
-        "useAltText": "off",
-        "useAnchorContent": "off"
-      },
-      "complexity": {
-        "noForEach": "on",
-        "noUselessStringConcat": "on",
-        "noVoid": "on",
-        "useSimplifiedLogicExpression": "on",
-        "useWhile": "on"
-      },
-      "nursery": {
-        "noDuplicatedSpreadProps": "on",
-        "noEqualsToNull": "on",
-        "noForIn": "on",
-        "noProto": "on",
-        "noUselessUndefined": "on",
-        "useArraySortCompare": "on",
-        "useFind": "on",
-        "useSpread": "on"
-      },
-      "performance": {
-        "noAwaitInLoops": "on",
-        "noDelete": "on",
-        "useTopLevelRegex": "on"
-      },
-      "recommended": true,
-      "style": {
-        "noCommonJs": "on",
-        "noInferrableTypes": "on",
-        "noNamespace": "on",
-        "noNonNullAssertion": "off",
-        "noSubstr": "on",
-        "noUnusedTemplateLiteral": "on",
-        "noUselessElse": "on",
-        "useCollapsedElseIf": "on",
-        "useConsistentArrayType": "on",
-        "useConsistentBuiltinInstantiation": "on",
-        "useConsistentCurlyBraces": "on",
-        "useDefaultParameterLast": "on",
-        "useExportType": "on",
-        "useForOf": "on",
-        "useImportType": "on",
-        "useNumberNamespace": "on",
-        "useObjectSpread": "on",
-        "useShorthandAssign": "on",
-        "useThrowNewError": "on",
-        "useThrowOnlyError": "on",
-        "useTrimStartEnd": "on"
-      },
-      "suspicious": {
-        "noAssignInExpressions": "off",
-        "noConfusingVoidType": "off",
-        "noConstantBinaryExpressions": "on",
-        "noDocumentCookie": "off",
-        "noEvolvingTypes": "on",
-        "noExplicitAny": "off",
-        "noReactSpecificProps": "on",
-        "useAwait": "on"
-      }
-    }
+    "enabled": false
   },
   "vcs": {
     "clientKind": "git",

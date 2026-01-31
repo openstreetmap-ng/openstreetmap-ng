@@ -3,16 +3,13 @@ import {
   type TransmitUserPassword,
   TransmitUserPasswordSchema,
 } from "@lib/proto/shared_pb"
-import { unreachable } from "@std/assert"
 import { roundTo } from "@std/math/round-to"
 
-type PasswordSchema = "v1" | "legacy"
+type PasswordSchema = keyof TransmitUserPassword
 
-const DEFAULT_PASSWORD_SCHEMA: PasswordSchema = "v1"
-const formUsePasswordSchemasMap = new WeakMap<
-  HTMLFormElement,
-  (PasswordSchema | string)[]
->()
+const DEFAULT_SCHEMA: PasswordSchema = "v1"
+
+const formSchemasMap = new WeakMap<HTMLFormElement, PasswordSchema[]>()
 
 export const configurePasswordsForm = (
   form: HTMLFormElement,
@@ -24,7 +21,7 @@ export const configurePasswordsForm = (
     "inputs",
     form.action,
   )
-  formUsePasswordSchemasMap.set(form, [DEFAULT_PASSWORD_SCHEMA])
+  formSchemasMap.set(form, [DEFAULT_SCHEMA])
 
   for (const input of passwordInputs) {
     const inputName = input.dataset.name!
@@ -41,8 +38,8 @@ export const appendPasswordsToFormData = async (
   formData: FormData,
   passwordInputs: NodeListOf<HTMLInputElement>,
 ) => {
-  const passwordSchemas = formUsePasswordSchemasMap.get(form)!
-  console.debug("PasswordHash: Updating with schemas", passwordSchemas, form.action)
+  const schemas = formSchemasMap.get(form)!
+  console.debug("PasswordHash: Updating with schemas", schemas, form.action)
 
   const tasks: Promise<void>[] = []
   for (const input of passwordInputs) {
@@ -51,7 +48,7 @@ export const appendPasswordsToFormData = async (
       const buildAndSet = async () => {
         formData.set(
           inputName,
-          new Blob([await buildTransmitPassword(passwordSchemas, input.value)], {
+          new Blob([await buildTransmitPassword(schemas, input.value)], {
             type: "application/octet-stream",
           }),
         )
@@ -63,27 +60,23 @@ export const appendPasswordsToFormData = async (
 }
 
 // TODO: harden against downgrade attacks
-export const handlePasswordSchemaFeedback = (
-  form: HTMLFormElement,
-  response: PasswordSchema | string,
-) => {
-  const currentPasswordSchemas = formUsePasswordSchemasMap.get(form)!
-  if (currentPasswordSchemas.length === 2 && currentPasswordSchemas[1] === response)
-    return false
-  const newPasswordSchemas = [currentPasswordSchemas[0], response]
-  console.debug("PasswordHash: Setting schemas", newPasswordSchemas, form.action)
-  formUsePasswordSchemasMap.set(form, newPasswordSchemas)
+export const handlePasswordSchemaFeedback = (form: HTMLFormElement, schema: string) => {
+  if (!(schema === "v1" || schema === "legacy")) return false
+
+  const currentSchemas = formSchemasMap.get(form)!
+  if (currentSchemas.length === 2 && currentSchemas[1] === schema) return false
+
+  const newSchemas = [currentSchemas[0], schema] satisfies PasswordSchema[]
+  console.debug("PasswordHash: Setting schemas", newSchemas, form.action)
+  formSchemasMap.set(form, newSchemas)
   return true
 }
 
-const buildTransmitPassword = async (
-  passwordSchemas: (PasswordSchema | string)[],
-  password: string,
-) => {
+const buildTransmitPassword = async (schemas: PasswordSchema[], password: string) => {
   const transmitUserPassword = create(TransmitUserPasswordSchema)
   const tasks: Promise<void>[] = []
-  for (const passwordSchema of passwordSchemas) {
-    tasks.push(clientHashPassword(transmitUserPassword, passwordSchema, password))
+  for (const schema of schemas) {
+    tasks.push(clientHashPassword(transmitUserPassword, schema, password))
   }
   await Promise.all(tasks)
   return toBinary(TransmitUserPasswordSchema, transmitUserPassword)
@@ -91,10 +84,10 @@ const buildTransmitPassword = async (
 
 const clientHashPassword = async (
   transmitUserPassword: TransmitUserPassword,
-  passwordSchema: PasswordSchema | string,
+  schema: PasswordSchema,
   password: string,
 ) => {
-  if (passwordSchema === "v1") {
+  if (schema === "v1") {
     // TODO: check performance on mobile
     // client-side pbkdf2 sha512, 100_000 iters, base64 encoded
     const salt = `${window.location.origin}/zaczero@osm.ng`
@@ -103,11 +96,8 @@ const clientHashPassword = async (
     timer = performance.now() - timer
     console.debug("PasswordHash: PBKDF2 completed", roundTo(timer, 1), "ms")
     transmitUserPassword.v1 = hashBytes
-  } else if (passwordSchema === "legacy") {
-    // no client-side hashing
-    transmitUserPassword.legacy = password
   } else {
-    unreachable(`Unsupported clientHash password schema: ${passwordSchema}`)
+    transmitUserPassword.legacy = password
   }
 }
 
