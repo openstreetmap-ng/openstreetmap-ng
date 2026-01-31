@@ -68,8 +68,7 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
         previewHtml.value = error.message
       }
     }
-
-    fetchPreview()
+    void fetchPreview()
   })
 
   const isEditing = mode.value === "idle" || mode.value === "edit"

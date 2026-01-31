@@ -1,4 +1,3 @@
-import { requestAnimationFramePolyfill } from "@lib/polyfills"
 import { t } from "i18next"
 import type {
   GeoJSONSource,
@@ -65,14 +64,14 @@ export const exportMapImage = async (
           },
         })
         addMapLayer(map, LAYER_ID)
-        map.once("render", () => {
+        void map.once("render", () => {
           let framesDelay = 3
           const tryResolve = () => {
             if (!framesDelay) return resolve()
             framesDelay--
-            requestAnimationFramePolyfill(tryResolve)
+            requestAnimationFrame(tryResolve)
           }
-          requestAnimationFramePolyfill(tryResolve)
+          requestAnimationFrame(tryResolve)
         })
       })
     })
@@ -146,7 +145,7 @@ export const exportMapImage = async (
     exportCanvas.toBlob(
       (blob) => {
         if (blob) resolve(blob)
-        else reject("Failed to export the map image")
+        else reject(new Error("Failed to export the map image"))
       },
       mimeType,
       IMAGE_QUALITY,

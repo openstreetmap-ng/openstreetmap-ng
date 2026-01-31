@@ -187,7 +187,7 @@ const createGrabberElement = () => {
   container.classList.add("location-filter-grabber")
   for (let i = 0; i < 9; i++) {
     const inner = document.createElement("div")
-    container.appendChild(inner)
+    container.append(inner)
   }
   return container
 }

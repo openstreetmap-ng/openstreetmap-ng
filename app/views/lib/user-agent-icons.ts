@@ -30,7 +30,7 @@ export const resolveUserAgentIconsLazy = (container: HTMLElement) => {
         img.src = BROWSER_PREFIX + browserSuffix
         img.alt = browser
         img.className = "me-1 align-middle"
-        el.appendChild(img)
+        el.append(img)
       }
 
       const os = parser.getOSName()
@@ -40,14 +40,14 @@ export const resolveUserAgentIconsLazy = (container: HTMLElement) => {
         img.src = OS_PREFIX + osSuffix
         img.alt = os
         img.className = "ua-os-icon me-1 align-middle"
-        el.appendChild(img)
+        el.append(img)
       }
 
       const platformType = parser.getPlatformType()
       const deviceClass = DEVICE_ICON_CLASS[platformType] ?? "bi-display"
       const deviceIcon = document.createElement("i")
       deviceIcon.className = `bi ${deviceClass} align-middle`
-      el.appendChild(deviceIcon)
+      el.append(deviceIcon)
     }
   })
 }

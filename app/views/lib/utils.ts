@@ -1,3 +1,5 @@
+import { SECOND } from "@std/datetime/constants"
+
 export const isHrefCurrentPage = (href: string) => {
   const hrefPathname = new URL(href).pathname
   const locationPathname = window.location.pathname
@@ -46,3 +48,14 @@ export const wrapMessageEventValidator = <T extends (e: MessageEvent) => any>(
     if (isParent ? eventHost.endsWith(CURRENT_HOST) : CURRENT_HOST.endsWith(eventHost))
       return fn(e)
   }) as T
+
+export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(
+  fn: T,
+  timeout = 5 * SECOND,
+) => {
+  let idleCallbackId: number | undefined
+  return ((...args) => {
+    if (idleCallbackId !== undefined) cancelIdleCallback(idleCallbackId)
+    idleCallbackId = requestIdleCallback(() => fn(...args), { timeout })
+  }) as T
+}

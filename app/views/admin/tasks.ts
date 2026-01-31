@@ -32,7 +32,7 @@ mount("admin-tasks-body", (body) => {
       configureStandardForm(form, updateStatus, { removeEmptyFields: true })
     }
 
-    updateStatus()
+    void updateStatus()
     setInterval(updateStatus, 20 * SECOND)
   }
 })

@@ -14,7 +14,7 @@ export const getMarkerIconElement = (color: MarkerColor, showShadow: boolean) =>
     shadow.width = 41
     shadow.height = 41
     shadow.draggable = false
-    container.appendChild(shadow)
+    container.append(shadow)
   }
   const icon = document.createElement("img")
   icon.classList.add("marker-icon-inner")
@@ -22,7 +22,7 @@ export const getMarkerIconElement = (color: MarkerColor, showShadow: boolean) =>
   icon.width = 25
   icon.height = 41
   icon.draggable = false
-  container.appendChild(icon)
+  container.append(icon)
   // TODO: leaflet leftover
   // iconAnchor: [12, 41]
   return container

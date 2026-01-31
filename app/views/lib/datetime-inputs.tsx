@@ -51,7 +51,7 @@ const getRelativeFormatValueUnit = (date: Date) => {
     SECOND,
     "second",
   ]
-  return [(diff / ms) | 0, unit] as const
+  return [Math.trunc(diff / ms), unit] as const
 }
 
 const formatTime = (date: Date, options: TimeFormatOptions) => {
@@ -171,7 +171,7 @@ export const configureDatetimeInputs = (
     // Convert existing UTC value to local time for display
     const dataValue = input.dataset.value
     if (dataValue) input.valueAsNumber = utcStringToLocalInputValue(dataValue)
-    input.removeAttribute("data-value")
+    delete input.dataset.value
     sync()
   }
 }

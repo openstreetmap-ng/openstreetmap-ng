@@ -17,8 +17,8 @@ export const shortLinkEncode = ({ lon, lat, zoom }: LonLatZoom) => {
   const r = n % 3
   const d = Math.ceil(n / 3)
 
-  const x = BigInt(((wrapLongitude(lon) + 180) * LON_TO_UINT32) | 0)
-  const y = BigInt(((lat + 90) * LAT_TO_UINT32) | 0)
+  const x = BigInt(Math.trunc((wrapLongitude(lon) + 180) * LON_TO_UINT32))
+  const y = BigInt(Math.trunc((lat + 90) * LAT_TO_UINT32))
 
   // Interleave x/y bits (Morton code)
   let c = 0n

@@ -58,8 +58,9 @@ run_linters() {
   local status=0
   echo "Linting files..."
   ruff check --fix || status=$?
-  biome check --fix --formatter-enabled=false || status=$?
-  bunx typescript --noEmit || status=$?
+  BROWSERSLIST_IGNORE_OLD_DATA=true BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true \
+    oxlint --fix --type-aware --type-check \
+    app/views vite.config.ts || status=$?
   buf lint --path app/models/proto || status=$?
   (cd speedup && cargo clippy --locked -- -D warnings) || status=$?
   return $status

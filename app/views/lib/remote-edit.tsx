@@ -2,14 +2,17 @@ import { API_URL } from "@lib/config"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
 import type { OSMObject } from "@lib/types"
+import type { ReadonlySignal } from "@preact/signals"
+import { useSignal } from "@preact/signals"
 import { t } from "i18next"
+import type { ComponentChildren, Ref } from "preact"
 
 const REMOTE_EDIT_HOST = "http://localhost:8111"
 
 /**
  * Get object request URL
  * @example
- * getObjectRequestUrl({ type: "node", id: 123456 })
+ * getObjectRequestUrl({ type: "node", id: 123456n })
  * // => "https://api.openstreetmap.org/api/0.6/node/123456"
  */
 const getObjectRequestUrl = (object: OSMObject) => {
@@ -44,16 +47,14 @@ const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) =
   return [lon - deltaLon, lat - deltaLat, lon + deltaLon, lat + deltaLat]
 }
 
-export const remoteEdit = async (button: HTMLButtonElement) => {
-  console.debug("RemoteEdit: Opening", button)
-  const remoteEditJson = button.dataset.remoteEdit
-  if (!remoteEditJson) {
-    console.error("RemoteEdit: Missing data-remote-edit")
-    return
-  }
-
-  const { state, object }: { state: LonLatZoom; object?: OSMObject } =
-    JSON.parse(remoteEditJson)
+const remoteEditOpen = async ({
+  state,
+  object,
+}: {
+  state: LonLatZoom
+  object: OSMObject | undefined
+}) => {
+  console.debug("RemoteEdit: Opening", { state, object })
   const [minLon, minLat, maxLon, maxLat] = getBoundsFromCoords(state, 0.05)
   const loadQuery: Record<string, string> = {
     left: minLon.toString(),
@@ -67,9 +68,6 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
     loadQuery.select = `${object.type}${object.id}`
   }
 
-  // Disable button while loading
-  button.disabled = true
-
   try {
     await fetch(`${REMOTE_EDIT_HOST}/load_and_zoom${qsEncode(loadQuery)}`, {
       method: "GET",
@@ -80,7 +78,7 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
     })
 
     // Optionally import note
-    if (object && object.type === "note") {
+    if (object && object.type === "note" && object.id !== null) {
       await fetch(
         `${REMOTE_EDIT_HOST}/import${qsEncode({ url: getObjectRequestUrl(object) })}`,
         {
@@ -95,7 +93,49 @@ export const remoteEdit = async (button: HTMLButtonElement) => {
   } catch (error) {
     console.error("RemoteEdit: Failed", error)
     alert(t("site.index.remote_failed"))
-  } finally {
-    button.disabled = false
   }
+}
+
+export const RemoteEditButton = ({
+  state,
+  object,
+  onBeforeOpen,
+  buttonRef,
+  class: className,
+  children,
+}: {
+  state: ReadonlySignal<LonLatZoom>
+  object: ReadonlySignal<OSMObject | undefined>
+  onBeforeOpen?: () => void
+  buttonRef: Ref<HTMLButtonElement>
+  class?: string
+  children: ComponentChildren
+}) => {
+  const pending = useSignal(false)
+
+  const onClick = async () => {
+    if (pending.value) return
+    pending.value = true
+    try {
+      onBeforeOpen?.()
+      await remoteEditOpen({
+        state: state.value,
+        object: object.value,
+      })
+    } finally {
+      pending.value = false
+    }
+  }
+
+  return (
+    <button
+      ref={buttonRef}
+      class={className}
+      type="button"
+      disabled={pending.value}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  )
 }

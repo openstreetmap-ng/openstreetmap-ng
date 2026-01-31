@@ -143,6 +143,7 @@ layersConfig.set(CYCLOSM_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 20,
+    // oxlint-disable-next-line unicorn/prefer-spread
     tiles: "abc"
       .split("")
       .map((c) => `https://${c}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png`),
@@ -203,6 +204,7 @@ layersConfig.set(HOT_LAYER_ID, {
   specification: {
     type: "raster",
     maxzoom: 20,
+    // oxlint-disable-next-line unicorn/prefer-spread
     tiles: "abc"
       .split("")
       .map((c) => `https://tile-${c}.openstreetmap.fr/hot/{z}/{x}/{y}.png`),
@@ -500,7 +502,7 @@ export const addMapLayer = (
   }
 
   if (triggerEvent) {
-    for (const handler of [...layerEventHandlers.values()]) {
+    for (const handler of layerEventHandlers.values()) {
       handler(true, layerId, config)
     }
   }
@@ -539,7 +541,7 @@ export const removeMapLayer = (
     }
 
     if (triggerEvent) {
-      for (const handler of [...layerEventHandlers.values()]) {
+      for (const handler of layerEventHandlers.values()) {
         handler(false, layerId, config)
       }
     }

@@ -15,6 +15,12 @@ def is_request():
     return _CTX.get(None) is not None
 
 
+def is_rpc_request():
+    """Check if current request is an RPC (Connect) request."""
+    req = _CTX.get(None)
+    return req is not None and req.url.path.startswith('/rpc')
+
+
 def get_request():
     """Get the HTTP request."""
     return _CTX.get()

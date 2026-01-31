@@ -76,8 +76,18 @@ export const focusObjects = (
   const [lastPaint, lastLayout] = lastPropertyMap.get(map) ?? [undefined, undefined]
 
   for (const [last, current, setter] of [
-    [lastPaint, paint, map.setPaintProperty],
-    [lastLayout, layout, map.setLayoutProperty],
+    [
+      lastPaint,
+      paint,
+      (layerId: string, key: string, value: unknown) =>
+        map.setPaintProperty(layerId, key, value),
+    ],
+    [
+      lastLayout,
+      layout,
+      (layerId: string, key: string, value: unknown) =>
+        map.setLayoutProperty(layerId, key, value),
+    ],
   ] as const) {
     if (last === current) continue
 
@@ -94,7 +104,9 @@ export const focusObjects = (
       if (last) {
         const filteredLast = filterKeys(last as Record<string, unknown>, hasValidPrefix)
         for (const k of Object.keys(filteredLast)) {
-          if (!(current && k in current)) setter.call(map, extendedLayerId, k, null)
+          if (!(current && Object.hasOwn(current, k))) {
+            setter(extendedLayerId, k, null)
+          }
         }
       }
       if (current) {
@@ -102,8 +114,9 @@ export const focusObjects = (
           current as Record<string, unknown>,
           hasValidPrefix,
         )
-        for (const [k, v] of Object.entries(filteredCurrent))
-          setter.call(map, extendedLayerId, k, v)
+        for (const [k, v] of Object.entries(filteredCurrent)) {
+          setter(extendedLayerId, k, v)
+        }
       }
     }
   }

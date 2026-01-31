@@ -3,7 +3,7 @@
 .test-site {
     .brand-title {
         color: color.adjust($vibrant-green, $saturation: 3%);
-        text-wrap: nowrap;
+        white-space: nowrap;
         font-weight: bold;
 
         img {

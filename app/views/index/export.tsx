@@ -111,7 +111,7 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
               disabled
               value={minLonText}
             />
-            <i class="bi bi-compass-fill"></i>
+            <i class="bi bi-compass-fill" />
             <input
               type="text"
               class="form-control"
@@ -255,7 +255,7 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
             rel="license"
           >
             {t("layouts.learn_more")}
-            <i class="bi bi-arrow-right-short ms-1"></i>
+            <i class="bi bi-arrow-right-short ms-1" />
           </a>
         </p>
       </div>

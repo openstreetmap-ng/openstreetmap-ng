@@ -59,8 +59,7 @@ for (const container of multiInputContainers) {
       { once: true },
     )
 
-    tokenElement.appendChild(textSpan)
-    tokenElement.appendChild(removeButton)
+    tokenElement.append(textSpan, removeButton)
 
     tokens.get(value)?.remove()
     tokens.set(value, tokenElement)
@@ -72,7 +71,7 @@ for (const container of multiInputContainers) {
     if (!value) return
 
     const tokenElement = createTokenElement(value)
-    tokensContainer.appendChild(tokenElement)
+    tokensContainer.append(tokenElement)
     updateInputState()
   }
 
@@ -135,9 +134,9 @@ for (const container of multiInputContainers) {
         hiddenInput.type = "hidden"
         hiddenInput.name = name
         hiddenInput.value = tokenElement.querySelector("span")!.textContent
-        fragment.appendChild(hiddenInput)
+        fragment.append(hiddenInput)
       }
-      input.parentElement!.appendChild(fragment)
+      input.parentElement!.append(fragment)
     },
     { capture: true },
   )
@@ -147,8 +146,8 @@ for (const container of multiInputContainers) {
     const values = mapNotNullish(input.value.split(delimiter), (v) => v.trim() || null)
     if (values.length) {
       const frag = document.createDocumentFragment()
-      for (const v of values) frag.appendChild(createTokenElement(v))
-      tokensContainer.appendChild(frag)
+      for (const v of values) frag.append(createTokenElement(v))
+      tokensContainer.append(frag)
     }
     input.value = ""
     updateInputState()

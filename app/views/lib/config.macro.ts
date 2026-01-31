@@ -55,7 +55,7 @@ export const _SEARCH_QUERY_MAX_LENGTH: number = pythonConfig.SEARCH_QUERY_MAX_LE
 
 const getPackageDist = (pkgName: string) => {
   const pkgPath = `node_modules/${pkgName}/package.json`
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"))
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8"))
   const distDir = dirname(pkg.main)
   return `/static-node_modules/${pkgName}/${distDir}/`
 }

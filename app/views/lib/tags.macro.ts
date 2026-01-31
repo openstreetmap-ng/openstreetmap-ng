@@ -21,9 +21,7 @@ installedLocales.add("")
 const normalizeLocales = (locales: string[]) =>
   sortBy(
     distinct(
-      locales
-        .map((l) => l.toLowerCase())
-        .filter(installedLocales.has, installedLocales),
+      locales.map((l) => l.toLowerCase()).filter((l) => installedLocales.has(l)),
     ),
     (l) => l,
   )

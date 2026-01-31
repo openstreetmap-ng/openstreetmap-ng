@@ -55,7 +55,7 @@
         font-size: 4em;
         color: color.adjust($vibrant-green, $saturation: 3%);
         text-shadow: 0 0 16px rgba($black, 0.25);
-        text-wrap: nowrap;
+        white-space: nowrap;
 
         img {
             position: relative;

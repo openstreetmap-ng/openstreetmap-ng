@@ -94,7 +94,6 @@ def _build_message_summary(
         return GetMessagesPageResponse.Summary(
             id=message['id'],
             sender=user_proto(message['from_user']),  # type: ignore
-            recipients=[],
             recipients_count=0,
             unread=not message['user_recipient']['read'],  # type: ignore
             created_at=int(message['created_at'].timestamp()),

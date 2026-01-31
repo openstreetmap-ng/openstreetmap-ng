@@ -98,10 +98,10 @@ class OAuth2ApplicationService:
             try:
                 parsed_uri = URIReference.from_string(uri)
                 UriValidator.validate(parsed_uri)
-            except Exception:
+            except Exception as exc:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error(
-                    'redirect_uris', t('validation.invalid_redirect_uri')
+                    'redirect_uris', t('validation.invalid_redirect_uri'), exc=exc
                 )
 
             normalized = parsed_uri.normalize()

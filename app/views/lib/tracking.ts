@@ -81,7 +81,7 @@ if (activityTracking) {
   const newScript = document.createElement("script")
   newScript.src = `${url}matomo.js`
   newScript.defer = true
-  document.head.appendChild(newScript)
+  document.head.append(newScript)
 
   // TODO: matomogoal meta[name=matomo-goal] trackGoal layeradd, layerid
 }

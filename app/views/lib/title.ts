@@ -2,7 +2,7 @@ let lastPrefix = ""
 
 const originalTitle = document.title
 
-export const setPageTitle = (prefix?: string | null | undefined) => {
+export const setPageTitle = (prefix?: string | null) => {
   prefix ??= ""
   if (lastPrefix === prefix) return
   lastPrefix = prefix

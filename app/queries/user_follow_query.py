@@ -59,3 +59,18 @@ class UserFollowQuery:
             ) as r,
         ):
             return (await r.fetchone())[0]  # type: ignore
+
+    @staticmethod
+    async def get_followee_ids(user_id: UserId) -> list[UserId]:
+        """List user ids that the user follows."""
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT followee_id FROM user_follow
+                WHERE follower_id = %s
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return [c for (c,) in await r.fetchall()]

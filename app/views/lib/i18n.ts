@@ -6,7 +6,7 @@ import type { ComponentChild } from "preact"
 const resources: Resource = (window as any).locales
 console.debug("I18n: Discovered locales", Object.keys(resources))
 
-init({
+void init({
   lng: primaryLanguage,
   fallbackLng: primaryLanguage === "en" ? false : "en",
   contextSeparator: "__",
@@ -28,7 +28,7 @@ const interleaveTokens = (
   content: string,
   replacements: Map<string, RichReplacement>,
 ) => {
-  const tokens = Array.from(replacements.keys())
+  const tokens = [...replacements.keys()]
   if (!tokens.length) return content
 
   const result: ComponentChild[] = []
@@ -40,7 +40,7 @@ const interleaveTokens = (
 
     for (const token of tokens) {
       const index = remaining.indexOf(token)
-      if (index < 0) continue
+      if (index === -1) continue
       if (nextIndex < 0 || index < nextIndex) {
         nextIndex = index
         nextToken = token
@@ -83,6 +83,7 @@ export const tRich = (key: string, options?: Record<string, unknown>) => {
   })
 
   const translated = t(key, tokenized as any)
+  // oxlint-disable-next-line typescript/no-base-to-string
   const content = typeof translated === "string" ? translated : String(translated)
   return interleaveTokens(content, replacements)
 }

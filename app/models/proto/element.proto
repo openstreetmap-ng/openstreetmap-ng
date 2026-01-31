@@ -4,6 +4,10 @@ import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
 service ElementService {
+  rpc GetMapElements(GetMapElementsRequest) returns (GetMapElementsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
   rpc GetElement(GetElementRequest) returns (GetElementResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
@@ -11,6 +15,16 @@ service ElementService {
   rpc GetElementHistory(GetElementHistoryRequest) returns (GetElementHistoryResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+}
+
+message GetMapElementsRequest {
+  Bounds bbox = 1 [(buf.validate.field).required = true];
+  uint32 limit = 2;
+}
+
+message GetMapElementsResponse {
+  RenderElementsData render = 1 [(buf.validate.field).required = true];
+  bool too_much_data = 2;
 }
 
 message GetElementRequest {
@@ -84,5 +98,4 @@ message RenderElementsData {
 
   repeated Node nodes = 1;
   repeated Way ways = 2;
-  bool too_much_data = 3;
 }

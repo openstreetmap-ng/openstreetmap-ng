@@ -25,9 +25,7 @@ const checkQuizCompletion = () => {
   const questionCount = new Set(Array.from(allRadios, (input) => input.name)).size
 
   const allAnswered = questionCount === checkedRadios.length
-  const allCorrect = Array.from(checkedRadios).every(
-    (radio) => radio.value === "correct",
-  )
+  const allCorrect = [...checkedRadios].every((radio) => radio.value === "correct")
 
   submitButton.disabled = !(allAnswered && allCorrect)
 }

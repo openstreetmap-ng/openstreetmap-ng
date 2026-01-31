@@ -446,8 +446,7 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
         }
       }
     }
-
-    fetchMessage()
+    void fetchMessage()
   })
 
   // Effect: Scroll preview into view when opened

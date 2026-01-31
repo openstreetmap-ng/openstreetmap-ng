@@ -50,10 +50,10 @@ mount("diary-index-body", (body) => {
 
     for (const diary of diaries) {
       const diaryId = diary.id
-      const title = diary.querySelector("a.diary-title-link")!.textContent!.trim()
+      const title = diary.querySelector("a.diary-title-link")!.textContent.trim()
       const badgeText = diary
         .querySelector(".diary-comments-btn .badge")!
-        .textContent!.trim()
+        .textContent.trim()
       const numComments = Number.parseInt(badgeText, 10)
 
       const li = document.createElement("li")
@@ -74,10 +74,9 @@ mount("diary-index-body", (body) => {
       badge.title = t("diary.number_of_comments")
       badge.textContent = badgeText
 
-      a.appendChild(spanTitle)
-      a.appendChild(badge)
-      li.appendChild(a)
-      fragment.appendChild(li)
+      a.append(spanTitle, badge)
+      li.append(a)
+      fragment.append(li)
     }
 
     navList.replaceChildren(fragment)
@@ -170,7 +169,7 @@ mount("diary-index-body", (body) => {
 })
 
 mount("diary-user-comments-body", (body) => {
-  configureStandardPagination(body.querySelector("div.diary-user-comments-pagination")!)
+  configureStandardPagination(body.querySelector("div.diary-user-comments-pagination"))
 })
 
 mount(["diary-details-body", "diary-index-body"], (body) => {

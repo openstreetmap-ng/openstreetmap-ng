@@ -23,8 +23,8 @@ export class QueryFeaturesControl implements IControl {
     const icon = document.createElement("img")
     icon.className = "icon query-features"
     icon.src = "/static/img/controls/_generated/query-features.webp"
-    button.appendChild(icon)
-    container.appendChild(button)
+    button.append(icon)
+    container.append(button)
 
     const tooltip = new Tooltip(button, {
       title: buttonText,

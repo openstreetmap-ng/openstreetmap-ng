@@ -94,7 +94,7 @@ async def _resolve_name(
     results = task_results[task_index]
     result = next(iter(results), None)
     if result is None:
-        StandardFeedback.raise_connect_error(
+        StandardFeedback.raise_error(
             field, t('javascripts.directions.errors.no_place', place=query)
         )
 
