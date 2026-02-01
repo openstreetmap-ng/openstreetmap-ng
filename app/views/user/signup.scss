@@ -1,146 +1,146 @@
 @use "sass:color";
 
 .signup-body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+
+  .content-body {
+    flex-grow: 1;
+    padding-right: unset;
+    padding-left: unset;
+    margin: unset;
+
+    // On desktop, keep overall page static and
+    // let only the right pane scroll.
+    @include media-breakpoint-up(xl) {
+      overflow: hidden;
+    }
+
+    > .row {
+      height: 100%;
+    }
+  }
+
+  .brand-content {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    height: 100vh;
+    align-items: center;
+    height: 100%;
+    padding: 0 2.5rem 0 4.5rem;
+    box-shadow: inset -6rem 0 4rem -4rem rgba($black, 0.3);
+  }
 
-    .content-body {
-        margin: unset;
-        padding-left: unset;
-        padding-right: unset;
-        flex-grow: 1;
+  img.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-        // On desktop, keep overall page static and
-        // let only the right pane scroll.
-        @include media-breakpoint-up(xl) {
-            overflow: hidden;
-        }
+  .background-image-credits {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    font-size: 0.875em;
+    color: rgba($white, 0.6);
+    text-shadow: 0 0 8px rgba($white, 0.2);
+  }
 
-        > .row {
-            height: 100%;
-        }
+  .brand-title {
+    font-size: 4em;
+    color: color.adjust($vibrant-green, $saturation: 3%);
+    white-space: nowrap;
+    text-shadow: 0 0 16px rgba($black, 0.25);
+
+    img {
+      position: relative;
+      top: -2px;
+      width: 1.125em;
+      height: 1.125em;
+      margin-right: 1.125rem;
+    }
+  }
+
+  .brand-title-sm {
+    @extend .display-4;
+
+    color: color.adjust($vibrant-green, $saturation: 3%);
+
+    img {
+      position: relative;
+      top: -2px;
+      width: 1.125em;
+      height: 1.125em;
+      margin-right: 1rem;
+    }
+  }
+
+  .brand-subtitle {
+    @include media-breakpoint-down(sm) {
+      font-size: calc(1.25rem + 0.9vw);
+    }
+  }
+
+  .brand-description {
+    font-size: 2em;
+    color: #eee;
+    text-wrap: pretty;
+    text-shadow: 0 0 8px rgba($black, 0.3);
+  }
+
+  .signup-content {
+    display: flex;
+    align-items: center;
+    padding: 2rem;
+    border-top: 2.5rem solid var(--bs-tertiary-bg);
+
+    @include media-breakpoint-up(xl) {
+      flex-direction: column;
+      align-items: start;
+      height: 100%;
+      padding: 0 4rem 2rem;
+      overflow: hidden auto;
+      border-top: 0;
+
+      &::before {
+        flex: 0 0 auto;
+        width: calc(100% + 8rem);
+        height: 3rem;
+        margin: 0 -4rem 1.5rem;
+        content: "";
+        background: var(--bs-tertiary-bg);
+      }
+    }
+  }
+
+  .divider {
+    position: relative;
+    text-align: center;
+
+    &::before {
+      @extend .bg-body-secondary;
+
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      height: 1px;
+      content: "";
     }
 
-    .brand-content {
-        position: relative;
-        display: flex;
-        align-items: center;
-        height: 100%;
-        box-shadow: inset -6rem 0 4rem -4rem rgba($black, 0.3);
-        padding: 0 2.5rem 0 4.5rem;
+    .divider-text {
+      @extend .text-muted;
+
+      position: relative;
+      top: -1px;
+      padding: 0 1rem;
+      font-size: 0.875rem;
+      background: $modal-content-bg;
     }
-
-    img.background-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        z-index: -1;
-    }
-
-    .background-image-credits {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        font-size: 0.875em;
-        color: rgba($white, 0.6);
-        text-shadow: 0 0 8px rgba($white, 0.2);
-    }
-
-    .brand-title {
-        font-size: 4em;
-        color: color.adjust($vibrant-green, $saturation: 3%);
-        text-shadow: 0 0 16px rgba($black, 0.25);
-        white-space: nowrap;
-
-        img {
-            position: relative;
-            top: -2px;
-            height: 1.125em;
-            width: 1.125em;
-            margin-right: 1.125rem;
-        }
-    }
-
-    .brand-title-sm {
-        @extend .display-4;
-        color: color.adjust($vibrant-green, $saturation: 3%);
-
-        img {
-            position: relative;
-            top: -2px;
-            height: 1.125em;
-            width: 1.125em;
-            margin-right: 1rem;
-        }
-    }
-
-    .brand-subtitle {
-        @include media-breakpoint-down(sm) {
-            font-size: calc(1.25rem + 0.9vw);
-        }
-    }
-
-    .brand-description {
-        color: #eee;
-        font-size: 2em;
-        text-wrap: pretty;
-        text-shadow: 0 0 8px rgba($black, 0.3);
-    }
-
-    .signup-content {
-        display: flex;
-        align-items: center;
-        border-top: 2.5rem solid var(--bs-tertiary-bg);
-        padding: 2rem;
-
-        @include media-breakpoint-up(xl) {
-            border-top: 0;
-            padding: 0 4rem 2rem;
-
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-
-            flex-direction: column;
-            align-items: start;
-
-            &::before {
-                content: "";
-                flex: 0 0 auto;
-                width: calc(100% + 8rem);
-                height: 3rem;
-                margin: 0 -4rem 1.5rem;
-                background: var(--bs-tertiary-bg);
-            }
-        }
-    }
-
-    .divider {
-        position: relative;
-        text-align: center;
-
-        &::before {
-            @extend .bg-body-secondary;
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-        }
-
-        .divider-text {
-            @extend .text-muted;
-            position: relative;
-            top: -1px;
-            background: $modal-content-bg;
-            padding: 0 1rem;
-            font-size: 0.875rem;
-        }
-    }
+  }
 }

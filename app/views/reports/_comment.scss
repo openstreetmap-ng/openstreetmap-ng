@@ -2,86 +2,86 @@
 
 .reports-body,
 .report-show-body {
-    .social-list {
-        .body {
-            .report-action {
-                font-weight: 550;
-            }
+  .social-list {
+    .body {
+      .report-action {
+        font-weight: 550;
+      }
 
-            .report-action-with-body::after {
-                content: "";
-                display: block;
-                height: 1px;
-                background: var(--bs-border-color);
-                margin: 0.25rem 0;
-            }
+      .report-action-with-body::after {
+        display: block;
+        height: 1px;
+        margin: 0.25rem 0;
+        content: "";
+        background: var(--bs-border-color);
+      }
 
-            .report-body > p:last-child {
-                margin-bottom: 0.375rem;
-            }
+      .report-body > p:last-child {
+        margin-bottom: 0.375rem;
+      }
 
-            .report-category {
-                font-weight: 600;
-                font-size: 0.875em;
-                padding: 0 0.375rem;
-                border-radius: $border-radius-sm;
+      .report-category {
+        padding: 0 0.375rem;
+        font-size: 0.875em;
+        font-weight: 600;
+        border-radius: $border-radius-sm;
 
-                &[data-category="spam"] {
-                    background: color.mix($secondary, $body-bg, 30%);
-                    color: var(--bs-body-color);
-                }
-
-                &[data-category="vandalism"] {
-                    background: color.mix($warning, $body-bg, 35%);
-                    color: var(--bs-body-color);
-                }
-
-                &[data-category="harassment"] {
-                    background: color.mix($danger, $body-bg, 35%);
-                    color: var(--bs-body-color);
-                }
-
-                &[data-category="privacy"] {
-                    background: color.mix($info, $body-bg, 35%);
-                    color: var(--bs-body-color);
-                }
-
-                &[data-category="other"] {
-                    background: color.mix($secondary, $body-bg, 25%);
-                    color: var(--bs-body-color);
-                }
-            }
+        &[data-category="spam"] {
+          color: var(--bs-body-color);
+          background: color.mix($secondary, $body-bg, 30%);
         }
+
+        &[data-category="vandalism"] {
+          color: var(--bs-body-color);
+          background: color.mix($warning, $body-bg, 35%);
+        }
+
+        &[data-category="harassment"] {
+          color: var(--bs-body-color);
+          background: color.mix($danger, $body-bg, 35%);
+        }
+
+        &[data-category="privacy"] {
+          color: var(--bs-body-color);
+          background: color.mix($info, $body-bg, 35%);
+        }
+
+        &[data-category="other"] {
+          color: var(--bs-body-color);
+          background: color.mix($secondary, $body-bg, 25%);
+        }
+      }
     }
+  }
 }
 
 @include color-mode(dark) {
-    .reports-body,
-    .report-show-body {
-        .social-list {
-            .body {
-                .report-category {
-                    &[data-category="spam"] {
-                        background: color.mix($secondary, $body-bg-dark, 25%);
-                    }
+  .reports-body,
+  .report-show-body {
+    .social-list {
+      .body {
+        .report-category {
+          &[data-category="spam"] {
+            background: color.mix($secondary, $body-bg-dark, 25%);
+          }
 
-                    &[data-category="vandalism"] {
-                        background: color.mix($warning, $body-bg-dark, 30%);
-                    }
+          &[data-category="vandalism"] {
+            background: color.mix($warning, $body-bg-dark, 30%);
+          }
 
-                    &[data-category="harassment"] {
-                        background: color.mix($danger, $body-bg-dark, 30%);
-                    }
+          &[data-category="harassment"] {
+            background: color.mix($danger, $body-bg-dark, 30%);
+          }
 
-                    &[data-category="privacy"] {
-                        background: color.mix($info, $body-bg-dark, 30%);
-                    }
+          &[data-category="privacy"] {
+            background: color.mix($info, $body-bg-dark, 30%);
+          }
 
-                    &[data-category="other"] {
-                        background: color.mix($secondary, $body-bg-dark, 20%);
-                    }
-                }
-            }
+          &[data-category="other"] {
+            background: color.mix($secondary, $body-bg-dark, 20%);
+          }
         }
+      }
     }
+  }
 }

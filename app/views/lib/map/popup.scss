@@ -1,33 +1,34 @@
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-    border-top-color: var(--bs-body-bg) !important;
+  border-top-color: var(--bs-body-bg) !important;
 }
 
 .maplibregl-popup-anchor-left .maplibregl-popup-tip {
-    border-right-color: var(--bs-body-bg) !important;
+  border-right-color: var(--bs-body-bg) !important;
 }
 
 .maplibregl-popup-anchor-top .maplibregl-popup-tip {
-    border-bottom-color: var(--bs-body-bg) !important;
+  border-bottom-color: var(--bs-body-bg) !important;
 }
 
 .maplibregl-popup-anchor-right .maplibregl-popup-tip {
-    border-left-color: var(--bs-body-bg) !important;
+  border-left-color: var(--bs-body-bg) !important;
 }
 
 .maplibregl-popup-content {
-    @extend .bg-body;
-    @extend .rounded-1;
-    font-size: 1rem;
-    padding: 8px 12px;
+  @extend .bg-body;
+  @extend .rounded-1;
+
+  padding: 8px 12px;
+  font-size: 1rem;
 }
 
 .maplibregl-popup-close-button {
-    line-height: 1.2;
-    border-radius: 0 0 0 $border-radius-sm;
+  line-height: 1.2;
+  border-radius: 0 0 0 $border-radius-sm;
 }
 
 .tooltip {
-    .maplibregl-popup-content {
-        font-size: 0.875rem;
-    }
+  .maplibregl-popup-content {
+    font-size: 0.875rem;
+  }
 }

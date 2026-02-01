@@ -1,82 +1,82 @@
 // Style the sidebars and make their contents scrollable
 .sidebar {
-    max-height: 100%;
-    overflow-y: auto;
+  max-height: 100%;
+  overflow-y: auto;
 
-    // Add padding to the sidebar sections
-    .section {
-        background: var(--bs-body-bg);
-        padding: 1.2em 1em;
+  // Add padding to the sidebar sections
+  .section {
+    padding: 1.2em 1em;
+    background: var(--bs-body-bg);
 
-        &:not(:last-child):not(.border-bottom-0) {
-            @extend .border-bottom;
-        }
+    &:not(:last-child, .border-bottom-0) {
+      @extend .border-bottom;
     }
+  }
 
-    // Adjust position of the close button
-    .btn-close {
-        position: relative;
-        top: -0.1em;
-    }
+  // Adjust position of the close button
+  .btn-close {
+    position: relative;
+    top: -0.1em;
+  }
 
-    // Fixup the close button position for the alerts
-    .alert .btn-close {
-        position: absolute;
-        top: 0;
-    }
+  // Fixup the close button position for the alerts
+  .alert .btn-close {
+    position: absolute;
+    top: 0;
+  }
 }
 
 // Support action sidebar overlaying the map
 .sidebar-overlay {
-    position: absolute;
-    z-index: 1001; // leaflet controls are 1000
+  position: absolute;
+  z-index: 1001; // leaflet controls are 1000
 
-    .sidebar-content {
-        position: static;
-    }
+  .sidebar-content {
+    position: static;
+  }
 }
 
 // Style the action sidebar (left)
 .action-sidebar {
-    position: relative;
-    width: $action-sidebar-width;
+  position: relative;
+  width: $action-sidebar-width;
 
-    @include media-breakpoint-down(md) {
-        &:not(.index) {
-            width: 100%;
-            height: 40vh;
-        }
+  @include media-breakpoint-down(md) {
+    &:not(.index) {
+      width: 100%;
+      height: 40vh;
     }
+  }
 }
 
 // Fill sidebar with content
 .sidebar-content {
-    position: absolute;
-    inset: 0;
+  position: absolute;
+  inset: 0;
 }
 
 .sidebar-loading-overlay {
-    position: sticky;
-    top: 50%;
-    height: 0;
-    pointer-events: none;
-    z-index: 1;
-    text-align: center;
+  position: sticky;
+  top: 50%;
+  z-index: 1;
+  height: 0;
+  text-align: center;
+  pointer-events: none;
 }
 
 .sidebar-loading-overlay-inner {
-    display: inline-block;
-    transform: translateY(-50%);
+  display: inline-block;
+  transform: translateY(-50%);
 }
 
 // Style the map sidebar (right)
 .map-sidebar {
-    position: relative;
-    width: $map-sidebar-width;
-    z-index: 1003; // higher than .sidebar-overlay
+  position: relative;
+  z-index: 1003; // higher than .sidebar-overlay
+  width: $map-sidebar-width;
 
-    @include media-breakpoint-down(md) {
-        width: 100%;
-        height: 50vh;
-    }
+  @include media-breakpoint-down(md) {
+    width: 100%;
+    height: 50vh;
+  }
 }

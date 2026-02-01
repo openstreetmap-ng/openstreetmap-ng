@@ -1,13 +1,13 @@
 .dropdown-menu-green {
-    --bs-dropdown-link-hover-color: #{$body-bg};
-    --bs-dropdown-link-hover-bg: #{$green};
-    --bs-dropdown-link-active-color: #{$body-bg};
-    --bs-dropdown-link-active-bg: #{$green};
+  --bs-dropdown-link-hover-color: #{$body-bg};
+  --bs-dropdown-link-hover-bg: #{$green};
+  --bs-dropdown-link-active-color: #{$body-bg};
+  --bs-dropdown-link-active-bg: #{$green};
 }
 
 @include color-mode(dark) {
-    .dropdown-menu-green {
-        --bs-dropdown-link-hover-color: #{$body-bg-dark};
-        --bs-dropdown-link-active-color: #{$body-bg-dark};
-    }
+  .dropdown-menu-green {
+    --bs-dropdown-link-hover-color: #{$body-bg-dark};
+    --bs-dropdown-link-active-color: #{$body-bg-dark};
+  }
 }

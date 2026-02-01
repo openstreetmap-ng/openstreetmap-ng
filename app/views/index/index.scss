@@ -1,33 +1,34 @@
 .action-sidebar.index {
-    // Style the welcome banner
-    .welcome-banner {
-        @extend .bg-body;
+  // Style the welcome banner
+  .welcome-banner {
+    @extend .bg-body;
 
-        p {
-            font-size: 1.1em;
-        }
+    p {
+      font-size: 1.1em;
+    }
+  }
+
+  // Style generic image banner
+  .image-banner {
+    position: relative;
+    padding: unset;
+
+    img {
+      width: 100%;
     }
 
-    // Style generic image banner
-    .image-banner {
-        padding: unset;
-        position: relative;
+    .btn-close-container {
+      @extend .bg-body;
+      @extend .rounded-1;
 
-        img {
-            width: 100%;
-        }
+      position: absolute;
+      top: calc(1.1em - 0.5em / 2);
+      right: calc(1em - 0.5em / 2);
 
-        .btn-close-container {
-            @extend .bg-body;
-            @extend .rounded-1;
-            position: absolute;
-            top: calc(1.1em - 0.5em / 2);
-            right: calc(1em - 0.5em / 2);
-
-            .btn-close {
-                position: initial;
-                padding: 0.5em;
-            }
-        }
+      .btn-close {
+        position: initial;
+        padding: 0.5em;
+      }
     }
+  }
 }

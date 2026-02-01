@@ -1,31 +1,31 @@
 .auth-switcher {
-    overflow: hidden;
-    display: flex;
-    gap: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
+  overflow: hidden;
 
-    > div {
-        flex: 0 0 100%;
-    }
+  > div {
+    flex: 0 0 100%;
+  }
 }
 
 .auth-switcher-cta {
-    text-align: center;
+  text-align: center;
 
-    .btn {
-        @extend .border;
+  .btn {
+    @extend .border;
 
-        width: 100%;
-    }
+    width: 100%;
+  }
 }
 
 @include color-mode(light) {
-    .auth-switcher-cta .btn {
-        @extend .link-primary;
-    }
+  .auth-switcher-cta .btn {
+    @extend .link-primary;
+  }
 }
 
 .signup-body .content-body {
-    .auth-switcher-cta .btn {
-        --bs-btn-font-weight: 500;
-    }
+  .auth-switcher-cta .btn {
+    --bs-btn-font-weight: 500;
+  }
 }

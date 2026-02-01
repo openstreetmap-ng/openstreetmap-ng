@@ -1,28 +1,29 @@
 .action-sidebar.export {
-    // Style the export box
-    .export-container {
-        @extend .border;
-        @extend .rounded-2;
-        @extend .bg-body-secondary;
+  // Style the export box
+  .export-container {
+    @extend .border;
+    @extend .rounded-2;
+    @extend .bg-body-secondary;
 
-        input {
-            @extend .bg-body-tertiary;
-            width: 7em;
-            text-align: center;
-        }
+    input {
+      @extend .bg-body-tertiary;
 
-        .bi {
-            font-size: 1.5em;
-            color: $gray-500;
-        }
+      width: 7em;
+      text-align: center;
     }
 
-    // Style the avatars
-    .source-icon {
-        margin-right: 0.375rem;
-        position: relative;
-        top: -0.1em;
-        width: 1.5em;
-        height: 1.5em;
+    .bi {
+      font-size: 1.5em;
+      color: $gray-500;
     }
+  }
+
+  // Style the avatars
+  .source-icon {
+    position: relative;
+    top: -0.1em;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: 0.375rem;
+  }
 }

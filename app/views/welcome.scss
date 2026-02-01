@@ -1,83 +1,84 @@
 .welcome-body {
-    .tutorial-card {
-        position: relative;
+  .tutorial-card {
+    position: relative;
 
-        .bi {
-            position: absolute;
-            top: 0.3em;
-            right: 0.3em;
-            line-height: 1;
-            opacity: 0.9;
-        }
-
-        &.should {
-            border: 1px solid $green;
-            box-shadow: 0 0 0 5px rgba($green, 0.1);
-        }
-
-        &.should-not {
-            border: 1px solid $danger;
-            box-shadow: 0 0 0 5px rgba($danger, 0.1);
-        }
-
-        .card-body {
-            margin-right: 1.25em;
-        }
+    .bi {
+      position: absolute;
+      top: 0.3em;
+      right: 0.3em;
+      line-height: 1;
+      opacity: 0.9;
     }
 
-    // The sprite usage is deprecated.
-    // New icons should be kept separate for ease of maintenance.
-    // TODO: Split the sprite into separate files.
-    @mixin legacy-welcome-icon($x, $y) {
-        display: inline-block;
-        width: 50px;
-        height: 50px;
-        background: url("/app/static/img/welcome/sprite.webp") $x $y;
+    &.should {
+      border: 1px solid $green;
+      box-shadow: 0 0 0 5px rgba($green, 0.1);
     }
 
-    .icon.check {
-        @include legacy-welcome-icon(0, 0);
+    &.should-not {
+      border: 1px solid $danger;
+      box-shadow: 0 0 0 5px rgba($danger, 0.1);
     }
 
-    .icon.x {
-        @include legacy-welcome-icon(-50px, 0);
+    .card-body {
+      margin-right: 1.25em;
     }
+  }
 
-    .icon.node {
-        @include legacy-welcome-icon(-100px, 0);
+  // The sprite usage is deprecated.
+  // New icons should be kept separate for ease of maintenance.
+  // TODO: Split the sprite into separate files.
+  @mixin legacy-welcome-icon($x, $y) {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    background: url("/app/static/img/welcome/sprite.webp") $x $y;
+  }
+
+  .icon.check {
+    @include legacy-welcome-icon(0, 0);
+  }
+
+  .icon.x {
+    @include legacy-welcome-icon(-50px, 0);
+  }
+
+  .icon.node {
+    @include legacy-welcome-icon(-100px, 0);
+  }
+
+  .icon.way {
+    @include legacy-welcome-icon(-150px, 0);
+  }
+
+  .icon.tag {
+    @include legacy-welcome-icon(-200px, 0);
+  }
+
+  .icon.editor {
+    @include legacy-welcome-icon(-250px, 0);
+  }
+
+  .icon.question {
+    @include legacy-welcome-icon(-300px, 0);
+  }
+
+  .icon.rules {
+    @include legacy-welcome-icon(-350px, 0);
+  }
+
+  // Add background to the note icon
+  // (it's used as an example at the welcome page)
+  .note-link {
+    @extend .rounded-1;
+
+    display: inline-block;
+    padding: 1px;
+    line-height: 1;
+    background: rgba($black, 0.6);
+
+    .icon.new-note {
+      margin: unset;
     }
-
-    .icon.way {
-        @include legacy-welcome-icon(-150px, 0);
-    }
-
-    .icon.tag {
-        @include legacy-welcome-icon(-200px, 0);
-    }
-
-    .icon.editor {
-        @include legacy-welcome-icon(-250px, 0);
-    }
-
-    .icon.question {
-        @include legacy-welcome-icon(-300px, 0);
-    }
-
-    .icon.rules {
-        @include legacy-welcome-icon(-350px, 0);
-    }
-
-    // Add background to the note icon
-    // (it's used as an example at the welcome page)
-    .note-link {
-        @extend .rounded-1;
-        display: inline-block;
-        background: rgba($black, 0.6);
-        line-height: 1;
-        padding: 1px;
-
-        .icon.new-note {
-            margin: unset;
-        }
-    }
+  }
 }

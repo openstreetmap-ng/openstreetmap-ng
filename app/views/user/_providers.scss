@@ -1,28 +1,28 @@
 @use "sass:map";
 
 .auth-providers {
-    display: grid;
-    gap: 0.5rem;
+  display: grid;
+  gap: 0.5rem;
 }
 
 .auth-providers .btn {
-    --bs-btn-padding-y: 0.5rem;
+  --bs-btn-padding-y: 0.5rem;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    font-weight: 500;
-    padding: var(--bs-btn-padding-y) var(--bs-btn-padding-x);
-    width: 100%;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--bs-btn-padding-y) var(--bs-btn-padding-x);
+  font-weight: 500;
 
-    > i,
-    > img {
-        width: 1.25rem;
-        height: 1.25rem;
-        font-size: 1.25rem;
-        line-height: 1;
-    }
+  > i,
+  > img {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
 }
 
 // Provider style configuration
@@ -32,188 +32,168 @@
 //   or `border` + `text` to set them independently. Hover/active
 //   defaults to the provider's dark filled variant.
 $auth-providers: (
-    google: (
-        light: (
-            variant: outline,
-            border: #747775,
-            text: #1f1f1f,
-        ),
-        dark: (
-            variant: filled,
-            bg: #131314,
-            color: #e3e3e3,
-        ),
+  google: (
+    light: (
+      variant: outline,
+      border: #747775,
+      text: #1f1f1f,
     ),
-    microsoft: (
-        light: (
-            variant: outline,
-            border: #8c8c8c,
-            text: #5e5e5e,
-        ),
-        dark: (
-            variant: filled,
-            bg: #2f2f2f,
-            color: #ffffff,
-        ),
+    dark: (
+      variant: filled,
+      bg: #131314,
+      color: #e3e3e3,
     ),
-    facebook: (
-        light: (
-            variant: outline,
-            brand: #1877f2,
-        ),
-        dark: (
-            variant: filled,
-            color: #ffffff,
-            hover: shade,
-        ),
+  ),
+  microsoft: (
+    light: (
+      variant: outline,
+      border: #8c8c8c,
+      text: #5e5e5e,
     ),
-    github: (
-        light: (
-            variant: outline,
-            brand: #24292e,
-        ),
-        dark: (
-            variant: filled,
-            color: #ffffff,
-        ),
+    dark: (
+      variant: filled,
+      bg: #2f2f2f,
+      color: $white,
     ),
-    wikimedia: (
-        light: (
-            variant: outline,
-            border: #747775,
-            text: #1f1f1f,
-        ),
-        dark: (
-            variant: filled,
-            bg: #131314,
-            color: #ffffff,
-        ),
+  ),
+  facebook: (
+    light: (
+      variant: outline,
+      brand: #1877f2,
     ),
+    dark: (
+      variant: filled,
+      color: $white,
+      hover: shade,
+    ),
+  ),
+  github: (
+    light: (
+      variant: outline,
+      brand: #24292e,
+    ),
+    dark: (
+      variant: filled,
+      color: $white,
+    ),
+  ),
+  wikimedia: (
+    light: (
+      variant: outline,
+      border: #747775,
+      text: #1f1f1f,
+    ),
+    dark: (
+      variant: filled,
+      bg: #131314,
+      color: $white,
+    ),
+  ),
 );
 
 @each $name, $modes in $auth-providers {
-    .auth-providers .btn-#{$name} {
-        $light: map.get($modes, light);
-        $dark: map.get($modes, dark);
-        @if (map.get($light, variant) == outline) {
-            $base-border: if(
-                map.has-key($light, brand),
-                map.get($light, brand),
-                map.get($light, border)
-            );
-            $base-text: if(
-                map.has-key($light, text),
-                map.get($light, text),
-                $base-border
-            );
+  .auth-providers .btn-#{$name} {
+    $light: map.get($modes, light);
+    $dark: map.get($modes, dark);
 
-            $dark-bg: if(
-                map.has-key($dark, bg),
-                map.get($dark, bg),
-                map.get($light, brand)
-            );
-            $hover-bg: if(
-                map.has-key($light, hover-bg),
-                map.get($light, hover-bg),
-                if($dark-bg != null, $dark-bg, $base-border)
-            );
-            $hover-border: if(
-                map.has-key($light, hover-border),
-                map.get($light, hover-border),
-                if(map.has-key($dark, border), map.get($dark, border), $hover-bg)
-            );
-            $hover-color: if(
-                map.has-key($light, hover-color),
-                map.get($light, hover-color),
-                if(
-                    map.has-key($dark, color),
-                    map.get($dark, color),
-                    color-contrast($hover-bg)
-                )
-            );
+    @if map.get($light, variant) == outline {
+      $base-border: if(
+        map.has-key($light, brand),
+        map.get($light, brand),
+        map.get($light, border)
+      );
+      $base-text: if(map.has-key($light, text), map.get($light, text), $base-border);
+      $dark-bg: if(map.has-key($dark, bg), map.get($dark, bg), map.get($light, brand));
+      $hover-bg: if(
+        map.has-key($light, hover-bg),
+        map.get($light, hover-bg),
+        if($dark-bg != null, $dark-bg, $base-border)
+      );
+      $hover-border: if(
+        map.has-key($light, hover-border),
+        map.get($light, hover-border),
+        if(map.has-key($dark, border), map.get($dark, border), $hover-bg)
+      );
+      $hover-color: if(
+        map.has-key($light, hover-color),
+        map.get($light, hover-color),
+        if(map.has-key($dark, color), map.get($dark, color), color-contrast($hover-bg))
+      );
 
-            @include button-outline-variant(
-                $base-border,
-                $hover-color,
-                $hover-bg,
-                $hover-border,
-                $hover-color
-            );
+      @include button-outline-variant(
+        $base-border,
+        $hover-color,
+        $hover-bg,
+        $hover-border,
+        $hover-color
+      );
 
-            @if ($base-text != $base-border) {
-                --bs-btn-color: #{$base-text};
-                --bs-btn-disabled-color: #{$base-text};
-            }
-        } @else {
-            @include button-variant(
-                map.get($light, bg),
-                map.get($light, border),
-                map.get($light, color)
-            );
-        }
+      @if $base-text != $base-border {
+        --bs-btn-color: #{$base-text};
+        --bs-btn-disabled-color: #{$base-text};
+      }
+    } @else {
+      @include button-variant(
+        map.get($light, bg),
+        map.get($light, border),
+        map.get($light, color)
+      );
     }
+  }
 }
 
 @include color-mode(dark) {
-    @each $name, $modes in $auth-providers {
-        .auth-providers .btn-#{$name} {
-            $light: map.get($modes, light);
-            $dark: map.get($modes, dark);
-            @if (map.get($dark, variant) == outline) {
-                @include button-outline-variant(map.get($light, brand));
-            } @else {
-                $bg: if(
-                    map.has-key($dark, bg),
-                    map.get($dark, bg),
-                    map.get($light, brand)
-                );
-                $border: if(map.has-key($dark, border), map.get($dark, border), $bg);
-                $color: if(
-                    map.has-key($dark, color),
-                    map.get($dark, color),
-                    color-contrast($bg)
-                );
+  @each $name, $modes in $auth-providers {
+    .auth-providers .btn-#{$name} {
+      $light: map.get($modes, light);
+      $dark: map.get($modes, dark);
 
-                $hover-strategy: if(
-                    map.has-key($dark, hover),
-                    map.get($dark, hover),
-                    tint
-                );
-                $default-hover-bg: if(
-                    $hover-strategy == shade,
-                    shade-color($bg, $btn-hover-bg-shade-amount),
-                    tint-color($bg, $btn-hover-bg-tint-amount)
-                );
-                $default-hover-border: if(
-                    $hover-strategy == shade,
-                    shade-color($border, $btn-hover-border-shade-amount),
-                    $default-hover-bg
-                );
-                $hover-bg: if(
-                    map.has-key($dark, hover-bg),
-                    map.get($dark, hover-bg),
-                    $default-hover-bg
-                );
-                $hover-border: if(
-                    map.has-key($dark, hover-border),
-                    map.get($dark, hover-border),
-                    $default-hover-border
-                );
-                $hover-color: if(
-                    map.has-key($dark, hover-color),
-                    map.get($dark, hover-color),
-                    color-contrast($hover-bg)
-                );
+      @if map.get($dark, variant) == outline {
+        @include button-outline-variant(map.get($light, brand));
+      } @else {
+        $bg: if(map.has-key($dark, bg), map.get($dark, bg), map.get($light, brand));
+        $border: if(map.has-key($dark, border), map.get($dark, border), $bg);
+        $color: if(
+          map.has-key($dark, color),
+          map.get($dark, color),
+          color-contrast($bg)
+        );
+        $hover-strategy: if(map.has-key($dark, hover), map.get($dark, hover), tint);
+        $default-hover-bg: if(
+          $hover-strategy == shade,
+          shade-color($bg, $btn-hover-bg-shade-amount),
+          tint-color($bg, $btn-hover-bg-tint-amount)
+        );
+        $default-hover-border: if(
+          $hover-strategy == shade,
+          shade-color($border, $btn-hover-border-shade-amount),
+          $default-hover-bg
+        );
+        $hover-bg: if(
+          map.has-key($dark, hover-bg),
+          map.get($dark, hover-bg),
+          $default-hover-bg
+        );
+        $hover-border: if(
+          map.has-key($dark, hover-border),
+          map.get($dark, hover-border),
+          $default-hover-border
+        );
+        $hover-color: if(
+          map.has-key($dark, hover-color),
+          map.get($dark, hover-color),
+          color-contrast($hover-bg)
+        );
 
-                @include button-variant(
-                    $bg,
-                    $border,
-                    $color,
-                    $hover-background: $hover-bg,
-                    $hover-border: $hover-border,
-                    $hover-color: $hover-color
-                );
-            }
-        }
+        @include button-variant(
+          $bg,
+          $border,
+          $color,
+          $hover-background: $hover-bg,
+          $hover-border: $hover-border,
+          $hover-color: $hover-color
+        );
+      }
     }
+  }
 }

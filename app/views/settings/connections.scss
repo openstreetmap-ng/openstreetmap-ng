@@ -1,63 +1,63 @@
 .settings-connections-body,
 .admin-user-edit-body {
-    img.auth-provider-icon {
-        object-fit: contain;
+  img.auth-provider-icon {
+    object-fit: contain;
+  }
+
+  .auth-provider-icon {
+    @extend .rounded-2;
+    @extend .p-2;
+
+    background: var(--bs-secondary-bg);
+
+    &:not(.bi) {
+      width: 2.75rem;
+      height: 2.75rem;
     }
 
-    .auth-provider-icon {
-        @extend .rounded-2;
-        @extend .p-2;
-
-        background: var(--bs-secondary-bg);
-
-        &:not(.bi) {
-            height: 2.75rem;
-            width: 2.75rem;
-        }
-
-        &.bi {
-            display: flex;
-            font-size: 1.75rem;
-            line-height: 1;
-        }
-
-        &.bi-facebook {
-            color: #1877f2;
-
-            &::before {
-                background: #fff;
-                clip-path: circle(calc(50% - 1px));
-            }
-        }
-
-        &.bi-github {
-            color: #24292e;
-        }
+    &.bi {
+      display: flex;
+      font-size: 1.75rem;
+      line-height: 1;
     }
+
+    &.bi-facebook {
+      color: #1877f2;
+
+      &::before {
+        background: $white;
+        clip-path: circle(calc(50% - 1px));
+      }
+    }
+
+    &.bi-github {
+      color: #24292e;
+    }
+  }
 }
 
 .settings-connections-body {
-    .table {
-        tr:last-child {
-            td {
-                border-bottom: unset;
-            }
-        }
+  .table {
+    tr:last-child {
+      td {
+        border-bottom: unset;
+      }
     }
+  }
 
-    .bi-link-45deg {
-        font-size: 1.25em;
-        line-height: 1;
-    }
+  .bi-link-45deg {
+    font-size: 1.25em;
+    line-height: 1;
+  }
 }
 
 @include color-mode(dark) {
-    .settings-connections-body,
-    .admin-user-edit-body {
-        .auth-provider-icon {
-            &.bi-github {
-                color: #f6f8fa;
-            }
-        }
+  .settings-connections-body,
+  .admin-user-edit-body {
+    .auth-provider-icon {
+      &.bi-github {
+        color: #f6f8fa;
+      }
     }
+  }
 }

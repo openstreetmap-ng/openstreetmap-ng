@@ -14,7 +14,7 @@ import Macros from "unplugin-macros/vite"
 import { defineConfig, type PluginOption } from "vite"
 import { browserslist } from "./package.json"
 
-const CSS_FILE_RE = /\.(?:c|s[ac])ss$/i
+const CSS_FILE_RE = /\.(?:c|sc)ss$/i
 
 // Content paths scanned for class usage
 const CONTENT_PATHS = [

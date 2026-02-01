@@ -1,17 +1,17 @@
 @use "bootstrap/scss/functions";
 
 .admin-user-edit-body {
-    .content-header {
-        img.avatar {
-            font-size: 3.3rem;
-        }
+  .content-header {
+    img.avatar {
+      font-size: 3.3rem;
     }
+  }
 
-    .table {
-        tr:last-child {
-            td {
-                border-bottom: unset;
-            }
-        }
+  .table {
+    tr:last-child {
+      td {
+        border-bottom: unset;
+      }
     }
+  }
 }

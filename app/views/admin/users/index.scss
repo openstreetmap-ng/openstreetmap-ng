@@ -1,27 +1,27 @@
 .admin-users-body {
-    .filters-form {
-        select[multiple] {
-            height: 2.5rem;
-            overflow-y: auto;
-        }
+  .filters-form {
+    select[multiple] {
+      height: 2.5rem;
+      overflow-y: auto;
+    }
+  }
+
+  .users-table {
+    .roles {
+      display: inline-flex;
+      gap: 0.25rem;
+      align-items: center;
+      margin-left: 0.25rem;
+
+      .bi {
+        font-size: 0.75em;
+      }
     }
 
-    .users-table {
-        .roles {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            margin-left: 0.25rem;
-
-            .bi {
-                font-size: 0.75em;
-            }
-        }
-
-        .status {
-            .badge {
-                line-height: inherit;
-            }
-        }
+    .status {
+      .badge {
+        line-height: inherit;
+      }
     }
+  }
 }

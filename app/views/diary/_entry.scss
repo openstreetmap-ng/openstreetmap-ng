@@ -1,138 +1,140 @@
 article.diary {
+  .diary-body {
+    overflow: hidden;
+    transition: max-height 240ms ease-in-out;
+    will-change: max-height;
+  }
+
+  &.show {
     .diary-body {
-        overflow: hidden;
-        transition: max-height 240ms ease-in-out;
-        will-change: max-height;
+      max-height: 9999px;
+      mask-image: none;
+    }
+  }
+
+  &:not(.show) {
+    .diary-body {
+      max-height: 28rem;
+      mask-image: none;
     }
 
-    &.show {
-        .diary-body {
-            max-height: 9999px;
-            mask-image: none;
+    &.diary-clamped {
+      .diary-body {
+        mask-image: linear-gradient(
+          to bottom,
+          rgb(0 0 0 / 100%) 58%,
+          rgb(0 0 0 / 98%) 72%,
+          rgb(0 0 0 / 85%) 82%,
+          rgb(0 0 0 / 60%) 90%,
+          rgb(0 0 0 / 30%) 96%,
+          rgb(0 0 0 / 0%) 100%
+        );
+      }
+    }
+  }
+
+  .diary-read-more {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    transition: opacity 120ms ease;
+  }
+
+  &.diary-clamped:not(.show) .diary-read-more {
+    display: inline-block !important;
+  }
+
+  .diary-comments {
+    margin-top: 1rem;
+  }
+
+  .diary-comments-btn {
+    .badge {
+      position: relative;
+      top: -0.1rem;
+    }
+
+    &.dropdown-toggle {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+
+      // Rotate Bootstrap caret when collapse is expanded
+      &::after {
+        transition: transform 160ms ease;
+      }
+
+      &:not(.collapsed)::after {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .share {
+    .dropdown-menu {
+      // .sticky-top has z-index 1020
+      z-index: 1025;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      line-height: 1.3;
+
+      i {
+        margin-right: 0.625rem;
+        font-size: 1.2rem;
+      }
+
+      img {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-right: 0.625rem;
+        object-fit: contain;
+        border-radius: 2px;
+      }
+
+      .bi-link-45deg {
+        position: relative;
+        top: 0.1rem;
+      }
+
+      .bi-envelope-at-fill {
+        color: var(--bs-secondary-color);
+      }
+
+      .bi-linkedin {
+        color: #0077b5;
+
+        &::before {
+          background: $white;
+          border-radius: 2px;
         }
-    }
+      }
 
-    &:not(.show) {
-        .diary-body {
-            max-height: 28rem;
-            mask-image: none;
+      .bi-mastodon {
+        color: #6364ff;
+      }
+
+      .bi-bluesky {
+        color: #1684ff;
+      }
+
+      .bi-facebook {
+        color: #1877f2;
+
+        &::before {
+          background: $white;
+          clip-path: circle(calc(50% - 1px));
         }
-        &.diary-clamped {
-            .diary-body {
-                mask-image: linear-gradient(
-                    to bottom,
-                    rgba(0, 0, 0, 1) 58%,
-                    rgba(0, 0, 0, 0.98) 72%,
-                    rgba(0, 0, 0, 0.85) 82%,
-                    rgba(0, 0, 0, 0.6) 90%,
-                    rgba(0, 0, 0, 0.3) 96%,
-                    rgba(0, 0, 0, 0) 100%
-                );
-            }
+      }
+
+      .bi-telegram {
+        color: #08c;
+
+        &::before {
+          background: $white;
+          clip-path: circle(calc(50% - 1px));
         }
+      }
     }
-
-    .diary-read-more {
-        width: 100%;
-        margin-bottom: 0.5rem;
-        transition: opacity 120ms ease;
-    }
-
-    &.diary-clamped:not(.show) .diary-read-more {
-        display: inline-block !important;
-    }
-
-    .diary-comments {
-        margin-top: 1rem;
-    }
-
-    .diary-comments-btn {
-        .badge {
-            position: relative;
-            top: -0.1rem;
-        }
-
-        &.dropdown-toggle {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-
-            // Rotate Bootstrap caret when collapse is expanded
-            &::after {
-                transition: transform 160ms ease;
-            }
-            &:not(.collapsed)::after {
-                transform: rotate(180deg);
-            }
-        }
-    }
-
-    .share {
-        .dropdown-menu {
-            // .sticky-top has z-index 1020
-            z-index: 1025;
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            line-height: 1.3;
-
-            i {
-                font-size: 1.2rem;
-                margin-right: 0.625rem;
-            }
-
-            img {
-                width: 1.2rem;
-                height: 1.2rem;
-                margin-right: 0.625rem;
-                border-radius: 2px;
-                object-fit: contain;
-            }
-
-            .bi-link-45deg {
-                position: relative;
-                top: 0.1rem;
-            }
-
-            .bi-envelope-at-fill {
-                color: var(--bs-secondary-color);
-            }
-
-            .bi-linkedin {
-                color: #0077b5;
-
-                &::before {
-                    background: #fff;
-                    border-radius: 2px;
-                }
-            }
-
-            .bi-mastodon {
-                color: #6364ff;
-            }
-
-            .bi-bluesky {
-                color: #1684ff;
-            }
-
-            .bi-facebook {
-                color: #1877f2;
-
-                &::before {
-                    background: #fff;
-                    clip-path: circle(calc(50% - 1px));
-                }
-            }
-
-            .bi-telegram {
-                color: #0088cc;
-
-                &::before {
-                    background: #fff;
-                    clip-path: circle(calc(50% - 1px));
-                }
-            }
-        }
-    }
+  }
 }

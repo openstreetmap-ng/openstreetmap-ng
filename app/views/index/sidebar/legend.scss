@@ -1,16 +1,16 @@
 // Style the "Map Key" sidebar panel
 .map-sidebar.legend {
-    table {
-        vertical-align: middle;
+  table {
+    vertical-align: middle;
 
-        img {
-            height: 1.2em;
-            width: 3.5em;
-            object-fit: scale-down;
-        }
-
-        td:last-child {
-            font-size: 0.875em;
-        }
+    img {
+      width: 3.5em;
+      height: 1.2em;
+      object-fit: scale-down;
     }
+
+    td:last-child {
+      font-size: 0.875em;
+    }
+  }
 }

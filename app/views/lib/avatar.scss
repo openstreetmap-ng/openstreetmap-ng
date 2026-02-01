@@ -1,7 +1,8 @@
 .avatar {
-    @extend .bg-body;
-    @extend .rounded-circle;
-    width: 1.5em;
-    height: 1.5em;
-    object-fit: cover;
+  @extend .bg-body;
+  @extend .rounded-circle;
+
+  width: 1.5em;
+  height: 1.5em;
+  object-fit: cover;
 }

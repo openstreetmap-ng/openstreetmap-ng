@@ -2,51 +2,52 @@
 
 .settings-applications-body,
 .admin-user-edit-body {
-    .applications-list {
-        .accordion-button {
-            @include media-breakpoint-down(lg) {
-                padding-left: unset;
-                padding-right: unset;
-            }
-        }
-
-        .accordion-body {
-            @include media-breakpoint-down(lg) {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-            }
-        }
-
-        > li:not(:last-child) {
-            @extend .border-bottom;
-        }
-
-        .token-icon::before {
-            position: relative;
-            top: 1px;
-            font-size: 2em;
-            color: functions.shade-color($primary, 30%);
-            transform: rotate(45deg);
-        }
-
-        img.avatar.app-avatar {
-            font-size: 3em;
-            border: 1px solid var(--bs-secondary-bg);
-        }
-
-        .form-text {
-            line-height: 1.75;
-        }
+  .applications-list {
+    .accordion-button {
+      @include media-breakpoint-down(lg) {
+        padding-right: unset;
+        padding-left: unset;
+      }
     }
+
+    .accordion-body {
+      @include media-breakpoint-down(lg) {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+      }
+    }
+
+    > li:not(:last-child) {
+      @extend .border-bottom;
+    }
+
+    .token-icon::before {
+      position: relative;
+      top: 1px;
+      font-size: 2em;
+      color: functions.shade-color($primary, 30%);
+      transform: rotate(45deg);
+    }
+
+    img.avatar.app-avatar {
+      font-size: 3em;
+      border: 1px solid var(--bs-secondary-bg);
+    }
+
+    .form-text {
+      line-height: 1.75;
+    }
+  }
 }
 
 .settings-applications-body,
 .settings-application-edit-body,
 .admin-user-edit-body,
 .oauth-authorize-body {
-    .scope {
-        @extend .text-body-tertiary;
-        font-size: 0.875em;
-        font-family: monospace;
-    }
+  .scope {
+    @extend .text-body-tertiary;
+
+    font-family: monospace;
+    font-size: 0.875em;
+  }
 }

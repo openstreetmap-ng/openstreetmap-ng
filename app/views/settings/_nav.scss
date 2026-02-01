@@ -1,18 +1,18 @@
 .settings-nav {
-    min-width: 280px;
+  min-width: 280px;
 
-    .active {
-        font-weight: bold;
-    }
+  .active {
+    font-weight: bold;
+  }
 
-    .bi {
-        margin-right: 0.3em;
-    }
+  .bi {
+    margin-right: 0.3em;
+  }
 
-    .nav-link {
-        @include media-breakpoint-down(lg) {
-            padding-left: unset;
-            padding-right: unset;
-        }
+  .nav-link {
+    @include media-breakpoint-down(lg) {
+      padding-right: unset;
+      padding-left: unset;
     }
+  }
 }

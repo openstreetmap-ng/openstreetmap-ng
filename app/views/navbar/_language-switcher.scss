@@ -1,62 +1,62 @@
 #LanguageSwitcher {
-    .btn {
-        @include media-breakpoint-down(lg) {
-            border: 1px solid $border-color-dark;
-        }
-
-        .bi {
-            opacity: 0.85;
-        }
+  .btn {
+    @include media-breakpoint-down(lg) {
+      border: 1px solid $border-color-dark;
     }
+
+    .bi {
+      opacity: 0.85;
+    }
+  }
 }
 
 #LanguageSwitcherModal {
-    .language-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 0.25rem;
+  .language-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.25rem;
 
-        button {
-            @extend .btn;
+    button {
+      @extend .btn;
 
-            &[aria-current="true"] {
-                @extend .btn-primary;
-                @extend .fw-bold;
-            }
+      &[aria-current="true"] {
+        @extend .btn-primary;
+        @extend .fw-bold;
+      }
 
-            &:not([aria-current="true"]) {
-                @extend .btn-soft;
-                @extend .border;
-            }
+      &:not([aria-current="true"]) {
+        @extend .btn-soft;
+        @extend .border;
+      }
 
-            display: flex;
-            align-items: center;
-            text-align: left;
-            overflow: hidden;
-            width: 100%;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+      text-align: left;
 
-            .flag {
-                margin-right: 0.375rem;
-                font-size: 1.2em;
-                line-height: 1;
-                flex-shrink: 0;
-            }
+      .flag {
+        flex-shrink: 0;
+        margin-right: 0.375rem;
+        font-size: 1.2em;
+        line-height: 1;
+      }
 
-            .name-native {
-                font-weight: 500;
-                flex-shrink: 0;
-            }
+      .name-native {
+        flex-shrink: 0;
+        font-weight: 500;
+      }
 
-            .name-english {
-                margin-left: 0.375rem;
-                font-size: 0.875em;
-                padding-top: 0.0625rem;
-                color: var(--bs-secondary-color);
-                font-weight: 400;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        }
+      .name-english {
+        padding-top: 0.0625rem;
+        margin-left: 0.375rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.875em;
+        font-weight: normal;
+        color: var(--bs-secondary-color);
+        white-space: nowrap;
+      }
     }
+  }
 }
