@@ -106,9 +106,8 @@
                         <button class="btn btn-soft" type="submit">{{ t('action.revoke_access') }}</button>
                         {% if not _is_system %}
                         <button class="btn btn-soft dropdown-toggle dropdown-toggle-split" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="{{ _expanded | lower }}">
-                            <span class="visually-hidden">{{ t('action.show_more') }}</span>
-                        </button>
+                            data-bs-toggle="dropdown" aria-expanded="{{ _expanded | lower }}"
+                            aria-label="{{ t('action.show_more') }}"></button>
                         <ul class="dropdown-menu">
                             <li>
                                 <button class="dropdown-item" data-report-type="user"
