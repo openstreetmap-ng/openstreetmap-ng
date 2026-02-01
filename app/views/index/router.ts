@@ -341,7 +341,13 @@ type RouteHrefInput<R extends CompiledRouteDef<any, any>> = OptionalizeUndefined
 > &
   QueryInput<RouteQuery<R>>
 
-export const routerHref = <R extends CompiledRouteDef<any, any>>(
+type EmptyObject = Partial<Record<PropertyKey, never>>
+
+type RequiredKeys<T extends Record<PropertyKey, unknown>> = {
+  [K in keyof T]-?: EmptyObject extends Pick<T, K> ? never : K
+}[keyof T]
+
+const routerHrefImpl = <R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
 ) => {
@@ -349,6 +355,23 @@ export const routerHref = <R extends CompiledRouteDef<any, any>>(
   const pathname = route._buildPathname(obj)
   const search = buildSearch(route, obj)
   return pathname + search
+}
+
+export function routerHref<R extends CompiledRouteDef<any, any>>(
+  route: RequiredKeys<RouteHrefInput<R>> extends never ? R : never,
+  input?: RouteHrefInput<R> | null,
+): string
+
+export function routerHref<R extends CompiledRouteDef<any, any>>(
+  route: R,
+  input: RouteHrefInput<R>,
+): string
+
+export function routerHref<R extends CompiledRouteDef<any, any>>(
+  route: R,
+  input?: RouteHrefInput<R> | null,
+) {
+  return routerHrefImpl(route, input)
 }
 
 type CompiledRouteVariant = Readonly<{
@@ -476,20 +499,40 @@ const setPath = (
   return true
 }
 
-export const routerNavigate = <R extends CompiledRouteDef<any, any>>(
+export function routerNavigate<R extends CompiledRouteDef<any, any>>(
+  route: RequiredKeys<RouteHrefInput<R>> extends never ? R : never,
+  input?: RouteHrefInput<R> | null,
+): void
+
+export function routerNavigate<R extends CompiledRouteDef<any, any>>(
+  route: R,
+  input: RouteHrefInput<R>,
+): void
+
+export function routerNavigate<R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-) => {
-  const path = routerHref(route, input)
+) {
+  const path = routerHrefImpl(route, input)
   console.debug("IndexRouter: Navigate", route.id, "->", path)
   assert(setPath("push", path), `No route found for path: ${path}`)
 }
 
-export const routerReplace = <R extends CompiledRouteDef<any, any>>(
+export function routerReplace<R extends CompiledRouteDef<any, any>>(
+  route: RequiredKeys<RouteHrefInput<R>> extends never ? R : never,
+  input?: RouteHrefInput<R> | null,
+): void
+
+export function routerReplace<R extends CompiledRouteDef<any, any>>(
+  route: R,
+  input: RouteHrefInput<R>,
+): void
+
+export function routerReplace<R extends CompiledRouteDef<any, any>>(
   route: R,
   input?: RouteHrefInput<R> | null,
-) => {
-  const path = routerHref(route, input)
+) {
+  const path = routerHrefImpl(route, input)
   console.debug("IndexRouter: Replace", route.id, "->", path)
   assert(setPath("replace", path), `No route found for path: ${path}`)
 }
