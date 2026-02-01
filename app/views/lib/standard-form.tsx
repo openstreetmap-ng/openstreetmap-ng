@@ -1,5 +1,4 @@
 import type { DescMessage, DescMethodUnary, MessageValidType } from "@bufbuild/protobuf"
-import type { GenMessage } from "@bufbuild/protobuf/codegenv2"
 import { ConnectError } from "@connectrpc/connect"
 import {
   createDisposeScope,
@@ -12,7 +11,6 @@ import {
   handlePasswordSchemaFeedback,
 } from "@lib/password-hash"
 import {
-  type StandardFeedbackDetail,
   type StandardFeedbackDetail_Entry,
   StandardFeedbackDetail_Severity,
 } from "@lib/proto/shared_pb"
@@ -258,25 +256,41 @@ const findScrollableContainer = (element: Node) => {
   return document.documentElement
 }
 
+type ConfigureStandardFormOptions = {
+  formBody?: Element
+  formAppend?: boolean
+  cancelOnValidationChange?: boolean
+  removeEmptyFields?: boolean
+  protobuf?: DescMessage
+  validationCallback?: (
+    formData: FormData,
+  ) => Promise<ValidationResult> | ValidationResult
+  errorCallback?: (error: Error) => void
+}
+
 /**
  * Initialize a standard bootstrap form
  * @see https://getbootstrap.com/docs/5.3/forms/validation/
  */
-export const configureStandardForm = <T = any>(
+export function configureStandardForm<Schema extends DescMessage>(
+  form: HTMLFormElement | null,
+  successCallback:
+    | ((data: MessageValidType<Schema>, headers: Headers) => void)
+    | undefined,
+  options: Omit<ConfigureStandardFormOptions, "protobuf"> & { protobuf: Schema },
+): (() => void) | void
+
+export function configureStandardForm<T = any>(
   form: HTMLFormElement | null,
   successCallback?: (data: T, headers: Headers) => void,
-  options?: {
-    formBody?: Element
-    formAppend?: boolean
-    cancelOnValidationChange?: boolean
-    removeEmptyFields?: boolean
-    protobuf?: GenMessage<any, { validType: T }>
-    validationCallback?: (
-      formData: FormData,
-    ) => Promise<ValidationResult> | ValidationResult
-    errorCallback?: (error: Error) => void
-  },
-): (() => void) | void => {
+  options?: ConfigureStandardFormOptions,
+): (() => void) | void
+
+export function configureStandardForm<T = any>(
+  form: HTMLFormElement | null,
+  successCallback?: (data: T, headers: Headers) => void,
+  options?: ConfigureStandardFormOptions,
+): (() => void) | void {
   if (!form || form.classList.contains("needs-validation")) return
   let formAction = form.getAttribute("action") ?? ""
   console.debug("StandardForm: Initializing", formAction)
@@ -642,10 +656,9 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
       if (resetOnSuccess) form.reset()
 
       // Allow responses to return feedback as StandardFeedbackDetail on a `feedback` field.
-      if ("feedback" in response && "entries" in (response.feedback as any)) {
-        const entries = (response.feedback as StandardFeedbackDetail).entries
-        if (entries.length) feedback.processFormFeedback(entries)
-      }
+      const entries = (response as any).feedback?.entries
+      if (Array.isArray(entries) && entries.length)
+        feedback.processFormFeedback(entries)
 
       onSuccess?.(response, ctx)
     } catch (error) {
