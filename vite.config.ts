@@ -323,7 +323,12 @@ export default defineConfig({
           `pyftsubset "${inputPath}" --unicodes="${unicodes}" --flavor=woff2 --layout-features=* --no-hinting --desubroutinize --output-file="${tempFile}"`,
           { stdio: "pipe" },
         )
-        const source = readFileSync(tempFile)
+        const sourceBuf = readFileSync(tempFile)
+        const source = new Uint8Array(
+          sourceBuf.buffer,
+          sourceBuf.byteOffset,
+          sourceBuf.byteLength,
+        )
         rmSync(tempFile)
 
         const originalSize = statSync(inputPath).size
