@@ -1,56 +1,57 @@
 .btn .badge {
-    position: initial;
-    top: unset;
+  position: initial;
+  top: unset;
 }
 
 @include color-mode(dark) {
-    .btn-light {
-        @extend .btn-dark;
-    }
+  .btn-light {
+    @extend .btn-dark;
+  }
 
-    // .btn-green {
-    //     --bs-btn-color: #{$body-bg-dark};
-    //     --bs-btn-hover-color: #{$body-bg-dark};
-    //     --bs-btn-active-color: #{$body-bg-dark};
-    //     --bs-btn-disabled-color: #{$body-bg-dark};
-    // }
+  // .btn-green {
+  //     --bs-btn-color: #{$body-bg-dark};
+  //     --bs-btn-hover-color: #{$body-bg-dark};
+  //     --bs-btn-active-color: #{$body-bg-dark};
+  //     --bs-btn-disabled-color: #{$body-bg-dark};
+  // }
 
-    // .btn-outline-green {
-    //     --bs-btn-hover-color: #{$body-bg-dark};
-    //     --bs-btn-active-color: #{$body-bg-dark};
-    // }
+  // .btn-outline-green {
+  //     --bs-btn-hover-color: #{$body-bg-dark};
+  //     --bs-btn-active-color: #{$body-bg-dark};
+  // }
 }
 
 .btn-bg-initial {
-    --bs-btn-bg: initial;
+  --bs-btn-bg: initial;
 }
 
 .btn-soft {
-    @extend .btn-light;
-    @extend .border;
+  @extend .btn-light;
+  @extend .border;
 }
 
 .location-container {
-    @extend .bg-body-tertiary;
-    @extend .rounded-2;
-    border: 1px solid transparent;
-    padding: 0.15rem 0.55rem;
-    display: flex;
-    align-items: center;
-    position: relative;
+  @extend .bg-body-tertiary;
+  @extend .rounded-2;
 
-    &:hover {
-        border-color: var(--bs-border-color);
-    }
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid transparent;
 
-    button {
-        padding: unset;
-        margin-left: 0.2em;
-    }
+  &:hover {
+    border-color: var(--bs-border-color);
+  }
+
+  button {
+    padding: unset;
+    margin-left: 0.2em;
+  }
 }
 
 .btn-floating-bottom-left {
-    position: fixed;
-    bottom: 0.75rem;
-    left: 0.75rem;
+  position: fixed;
+  bottom: 0.75rem;
+  left: 0.75rem;
 }

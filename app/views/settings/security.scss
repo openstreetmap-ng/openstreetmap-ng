@@ -1,161 +1,166 @@
 @use "bootstrap/scss/functions";
 
 .settings-security-body {
-    .two-factor-methods > li {
-        padding: 1rem 0;
+  .two-factor-methods > li {
+    padding: 1rem 0;
 
-        &:not(:last-child) {
-            @extend .border-bottom;
+    &:not(:last-child) {
+      @extend .border-bottom;
+    }
+
+    .two-factor-icon {
+      @extend .text-body-secondary;
+
+      font-size: 1.875rem;
+    }
+  }
+
+  .enabled-badge {
+    @extend .badge;
+    @extend .text-body;
+    @extend .border;
+    @extend .border-green;
+
+    margin-left: 0.625rem;
+  }
+
+  .metadata {
+    @extend .d-inline-block;
+    @extend .fw-medium;
+    @extend .text-body;
+    @extend .mt-1;
+
+    font-size: 0.875em;
+
+    i {
+      font-size: 0.875em;
+    }
+  }
+
+  .qr-code-container > svg {
+    @extend .rounded;
+  }
+
+  .active-sessions li {
+    padding: 0.875rem 0;
+
+    &:not(:last-child) {
+      @extend .border-bottom;
+    }
+  }
+
+  .ua-icons {
+    font-size: 1.125rem;
+  }
+
+  .session-id {
+    font-family: monospace;
+
+    .bi {
+      margin: 0 0.2rem;
+    }
+  }
+
+  .current-session {
+    @extend .rounded-circle;
+
+    position: relative;
+    top: -1px;
+    display: inline-block;
+    width: 0.625em;
+    height: 0.625em;
+    cursor: help;
+    background: radial-gradient(
+      circle,
+      functions.tint-color($vibrant-green, 35%) 0%,
+      $vibrant-green 70%
+    );
+    animation: pulse-shadow 3s infinite;
+
+    @keyframes pulse-shadow {
+      0% {
+        box-shadow: 0 0 0 0 rgba($vibrant-green, 0.45);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0.35em transparent;
+      }
+    }
+  }
+
+  .recovery-codes-container {
+    @extend .font-monospace;
+    @extend .fs-5;
+    @extend .fw-semibold;
+    @extend .text-center;
+    @extend .border;
+    @extend .rounded-2;
+
+    letter-spacing: 0.05em;
+
+    .col {
+      @extend .py-3;
+
+      border-bottom: 1px solid $table-border-color;
+
+      // Single column: no right borders, only last removes bottom
+      @include media-breakpoint-down(sm) {
+        &:last-child {
+          border-bottom: 0;
+        }
+      }
+
+      // Two columns: last row and right column remove borders
+      @include media-breakpoint-up(sm) {
+        &:nth-child(odd) {
+          border-right: 1px solid $table-border-color;
         }
 
-        .two-factor-icon {
-            @extend .text-body-secondary;
-
-            font-size: 1.875rem;
+        &:nth-last-child(-n + 2) {
+          border-bottom: 0;
         }
+      }
     }
-
-    .enabled-badge {
-        @extend .badge;
-        @extend .text-body;
-        @extend .border;
-        @extend .border-green;
-
-        margin-left: 0.625rem;
-    }
-
-    .metadata {
-        @extend .d-inline-block;
-        @extend .fw-medium;
-        @extend .text-body;
-        @extend .mt-1;
-
-        font-size: 0.875em;
-
-        i {
-            font-size: 0.875em;
-        }
-    }
-
-    .qr-code-container > svg {
-        @extend .rounded;
-    }
-
-    .active-sessions li {
-        padding: 0.875rem 0;
-
-        &:not(:last-child) {
-            @extend .border-bottom;
-        }
-    }
-
-    .ua-icons {
-        font-size: 1.125rem;
-    }
-
-    .session-id {
-        font-family: monospace;
-
-        .bi {
-            margin: 0 0.2rem;
-        }
-    }
-
-    .current-session {
-        @extend .rounded-circle;
-        position: relative;
-        top: -1px;
-        display: inline-block;
-        width: 0.625em;
-        height: 0.625em;
-        background: radial-gradient(
-            circle,
-            functions.tint-color($vibrant-green, 35%) 0%,
-            $vibrant-green 70%
-        );
-        animation: pulse-shadow 3s infinite;
-        cursor: help;
-
-        @keyframes pulse-shadow {
-            0% {
-                box-shadow: 0 0 0 0 rgba($vibrant-green, 0.45);
-            }
-            100% {
-                box-shadow: 0 0 0 0.35em transparent;
-            }
-        }
-    }
-
-    .recovery-codes-container {
-        @extend .font-monospace;
-        @extend .fs-5;
-        @extend .fw-semibold;
-        @extend .text-center;
-        @extend .border;
-        @extend .rounded-2;
-
-        letter-spacing: 0.05em;
-
-        .col {
-            @extend .py-3;
-            border-bottom: 1px solid $table-border-color;
-
-            // Single column: no right borders, only last removes bottom
-            @include media-breakpoint-down(sm) {
-                &:last-child {
-                    border-bottom: 0;
-                }
-            }
-
-            // Two columns: last row and right column remove borders
-            @include media-breakpoint-up(sm) {
-                &:nth-child(odd) {
-                    border-right: 1px solid $table-border-color;
-                }
-                &:nth-last-child(-n + 2) {
-                    border-bottom: 0;
-                }
-            }
-        }
-    }
+  }
 }
 
 .settings-security-body,
 .admin-user-edit-body {
-    .passkey-entry {
-        margin: 0.5rem 0;
+  .passkey-entry {
+    margin: 0.5rem 0;
 
-        &:first-child {
-            margin-top: 0;
-        }
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        .bi-key-fill {
-            font-size: 1rem;
-        }
+    &:first-child {
+      margin-top: 0;
     }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .bi-key-fill {
+      font-size: 1rem;
+    }
+  }
 }
 
 @include color-mode(light) {
-    .settings-security-body,
-    .admin-user-edit-body {
-        .qr-code-container > svg {
-            @extend .border;
-        }
-
-        .passkey-icon-dark {
-            display: none;
-        }
+  .settings-security-body,
+  .admin-user-edit-body {
+    .qr-code-container > svg {
+      @extend .border;
     }
+
+    .passkey-icon-dark {
+      display: none;
+    }
+  }
 }
 
 @include color-mode(dark) {
-    .settings-security-body,
-    .admin-user-edit-body {
-        .passkey-icon-light {
-            display: none;
-        }
+  .settings-security-body,
+  .admin-user-edit-body {
+    .passkey-icon-light {
+      display: none;
     }
+  }
 }

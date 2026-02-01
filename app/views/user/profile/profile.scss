@@ -1,167 +1,169 @@
 .user-profile-body {
-    .content-header {
-        position: relative;
-        padding-top: min(calc(6.5rem + 5vw), 12.5rem);
-        padding-bottom: unset;
-        transition: padding-top 0.5s;
-        background: unset;
+  .content-header {
+    position: relative;
+    padding-top: min(calc(6.5rem + 5vw), 12.5rem);
+    padding-bottom: unset;
+    background: unset;
+    transition: padding-top 0.5s;
 
-        > .header-footer {
-            background: rgba(var(--bs-body-bg-rgb), 0.2);
-            box-shadow: inset 0 -13.5rem 5rem -5rem var(--bs-body-bg);
-            backdrop-filter: blur(2px);
-        }
-
-        // Older clients don't support :has() - ensure styling looks "OK" without it
-        &:not(:has(img.background[src])) {
-            padding-top: 0;
-
-            > .header-footer {
-                @extend .bg-body-tertiary;
-                box-shadow: unset;
-            }
-        }
-
-        .info {
-            margin-top: 6.5rem;
-            margin-left: calc(min(5rem + 2.5vw, 8rem) * 1.5 + 1rem + 0.5vw);
-            transition: margin-top 0.3s;
-
-            .role,
-            .badge {
-                font-size: 0.5em;
-                cursor: help;
-            }
-        }
-
-        &:has(img.background[src]) {
-            .info {
-                top: -2rem;
-                margin-top: 2.75rem;
-            }
-
-            .avatar-form {
-                top: -2rem;
-                bottom: unset;
-            }
-        }
-
-        .mapper-since {
-            @extend .text-muted;
-        }
-
-        .user-actions {
-            min-height: 2em;
-        }
+    > .header-footer {
+      background: rgb(var(--bs-body-bg-rgb), 0.2);
+      box-shadow: inset 0 -13.5rem 5rem -5rem var(--bs-body-bg);
+      backdrop-filter: blur(2px);
     }
 
-    .background-form {
-        overflow: hidden;
+    // Older clients don't support :has() - ensure styling looks "OK" without it
+    &:not(:has(img.background[src])) {
+      padding-top: 0;
 
-        img.background {
-            @extend .bg-body;
-            position: absolute;
-            top: 0;
-            width: 100%;
-            height: calc(100% - 4px); // 4px to avoid bleeding
-            object-fit: cover;
-            font-size: 0; // hide alt text
-            pointer-events: none;
-            opacity: 0.9; // slightly reduce background "pop"
-            transition: opacity 0.3s;
+      > .header-footer {
+        @extend .bg-body-tertiary;
 
-            &:not([src]) {
-                opacity: 0; // enable animation
-            }
-        }
-
-        .dropdown {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            z-index: 1;
-        }
-
-        &.pending img.background {
-            opacity: 0.5;
-        }
+        box-shadow: unset;
+      }
     }
 
-    .avatar-form {
-        position: absolute;
-        top: unset;
-        bottom: -0.75rem;
+    .info {
+      margin-top: 6.5rem;
+      margin-left: calc(min(5rem + 2.5vw, 8rem) * 1.5 + 1rem + 0.5vw);
+      transition: margin-top 0.3s;
 
-        img.avatar {
-            font-size: min(5rem + 2.5vw, 8rem);
-            box-shadow: 0 4px 8px -2px rgba($black, 0.05);
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        &.pending img.avatar {
-            opacity: 0.5;
-        }
-
-        .dropdown {
-            position: absolute;
-            bottom: 1.125rem;
-            left: -0.75rem;
-
-            @include media-breakpoint-down(sm) {
-                left: unset;
-            }
-        }
+      .role,
+      .badge {
+        font-size: 0.5em;
+        cursor: help;
+      }
     }
 
-    .content-body {
-        .card {
-            // Fix dropdown rendered behind card
-            position: initial;
-        }
+    &:has(img.background[src]) {
+      .info {
+        top: -2rem;
+        margin-top: 2.75rem;
+      }
+
+      .avatar-form {
+        top: -2rem;
+        bottom: unset;
+      }
     }
 
-    .content-list {
-        height: 250px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        margin-bottom: 0;
-        padding-bottom: 1rem;
-
-        @include media-breakpoint-down(sm) {
-            height: 200px;
-            margin-right: 3rem;
-        }
+    .mapper-since {
+      @extend .text-muted;
     }
 
-    .content-list-sm {
-        height: 200px;
+    .user-actions {
+      min-height: 2em;
+    }
+  }
+
+  .background-form {
+    overflow: hidden;
+
+    img.background {
+      @extend .bg-body;
+
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: calc(100% - 4px); // 4px to avoid bleeding
+      font-size: 0; // hide alt text
+      pointer-events: none;
+      object-fit: cover;
+      opacity: 0.9; // slightly reduce background "pop"
+      transition: opacity 0.3s;
+
+      &:not([src]) {
+        opacity: 0; // enable animation
+      }
     }
 
-    .view-more {
-        a {
-            display: block;
-            margin-top: 0.625rem;
-        }
+    .dropdown {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 1;
     }
 
-    .no-activity {
-        @extend .text-muted;
-        margin-left: 0.25rem;
+    &.pending img.background {
+      opacity: 0.5;
     }
+  }
+
+  .avatar-form {
+    position: absolute;
+    top: unset;
+    bottom: -0.75rem;
+
+    img.avatar {
+      font-size: min(5rem + 2.5vw, 8rem);
+      pointer-events: none;
+      box-shadow: 0 4px 8px -2px rgba($black, 0.05);
+      transition: opacity 0.3s;
+    }
+
+    &.pending img.avatar {
+      opacity: 0.5;
+    }
+
+    .dropdown {
+      position: absolute;
+      bottom: 1.125rem;
+      left: -0.75rem;
+
+      @include media-breakpoint-down(sm) {
+        left: unset;
+      }
+    }
+  }
+
+  .content-body {
+    .card {
+      // Fix dropdown rendered behind card
+      position: initial;
+    }
+  }
+
+  .content-list {
+    height: 250px;
+    padding-bottom: 1rem;
+    margin-bottom: 0;
+    overflow: hidden auto;
+
+    @include media-breakpoint-down(sm) {
+      height: 200px;
+      margin-right: 3rem;
+    }
+  }
+
+  .content-list-sm {
+    height: 200px;
+  }
+
+  .view-more {
+    a {
+      display: block;
+      margin-top: 0.625rem;
+    }
+  }
+
+  .no-activity {
+    @extend .text-muted;
+
+    margin-left: 0.25rem;
+  }
 }
 
 #profileSocialsModal {
-    .social-row {
-        @extend .mb-3;
+  .social-row {
+    @extend .mb-3;
 
-        &:not(:last-child) {
-            @extend .pb-3;
-            @extend .border-bottom;
-        }
-
-        .btn-group .btn:disabled {
-            @extend .btn-outline-secondary;
-        }
+    &:not(:last-child) {
+      @extend .pb-3;
+      @extend .border-bottom;
     }
+
+    .btn-group .btn:disabled {
+      @extend .btn-outline-secondary;
+    }
+  }
 }

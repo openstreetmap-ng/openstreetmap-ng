@@ -26,6 +26,7 @@
 @import "bootstrap/scss/navbar";
 @import "bootstrap/scss/card";
 @import "bootstrap/scss/accordion";
+
 // @import "bootstrap/scss/breadcrumb";
 @import "bootstrap/scss/pagination";
 @import "bootstrap/scss/badge";
@@ -33,10 +34,12 @@
 @import "bootstrap/scss/progress";
 @import "bootstrap/scss/list-group";
 @import "bootstrap/scss/close";
+
 // @import "bootstrap/scss/toasts";
 @import "bootstrap/scss/modal";
 @import "bootstrap/scss/tooltip";
 @import "bootstrap/scss/popover";
+
 // @import "bootstrap/scss/carousel";
 @import "bootstrap/scss/spinners";
 @import "bootstrap/scss/offcanvas";
@@ -47,11 +50,13 @@
 // (Bootstrap Icons)
 $bootstrap-icons-font-dir: "bootstrap-icons/font/fonts";
 $bootstrap-icons-font-hash: "";
+
 @import "bootstrap-icons/font/bootstrap-icons";
 
 // (MapLibre GL)
 @import "maplibre-gl/dist/maplibre-gl";
 
+// Application styles
 @import "about/about";
 @import "admin/applications/index";
 @import "admin/users/edit";
@@ -133,65 +138,65 @@ $bootstrap-icons-font-hash: "";
 // TODO: print style
 
 time[title] {
-    cursor: help;
-    white-space: nowrap;
+  white-space: nowrap;
+  cursor: help;
 
-    &:hover {
-        text-decoration: underline dotted $gray-600;
-        text-underline-offset: 0.1em;
-    }
+  &:hover {
+    text-decoration: underline dotted $gray-600;
+    text-underline-offset: 0.1em;
+  }
 }
 
 time[datetime][data-style],
 time[datetime][data-date],
 time[datetime][data-time] {
-    &:empty::after {
-        content: "…";
-    }
+  &:empty::after {
+    content: "…";
+  }
 }
 
 summary {
-    user-select: none;
+  user-select: none;
 }
 
 .test-site-watermark {
-    position: fixed;
-    bottom: 4.5rem;
-    right: 3.5rem;
-    rotate: -10deg;
-    pointer-events: none;
-    z-index: 10000;
-    color: rgba($dark-green, 0.2);
-    text-shadow: 0 0 10px rgba($dark-green, 0.2);
-    text-align: center;
-    line-height: 1;
+  position: fixed;
+  right: 3.5rem;
+  bottom: 4.5rem;
+  z-index: 10000;
+  line-height: 1;
+  color: rgba($dark-green, 0.2);
+  text-align: center;
+  text-shadow: 0 0 10px rgba($dark-green, 0.2);
+  pointer-events: none;
+  rotate: -10deg;
 
-    :first-child {
-        margin-bottom: 0.375rem;
-        font-size: 3rem;
-        font-weight: 900;
-    }
+  :first-child {
+    margin-bottom: 0.375rem;
+    font-size: 3rem;
+    font-weight: 900;
+  }
 
-    :last-child {
-        margin-bottom: 0;
-        font-size: 1.125rem;
-        font-weight: 600;
-    }
+  :last-child {
+    margin-bottom: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
 }
 
 @include color-mode(dark) {
-    .test-site-watermark {
-        color: rgba($light-green, 0.2);
-        text-shadow: 0 0 10px rgba($light-green, 0.2);
-    }
+  .test-site-watermark {
+    color: rgba($light-green, 0.2);
+    text-shadow: 0 0 10px rgba($light-green, 0.2);
+  }
 }
 
 * {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    * {
-        scroll-behavior: auto;
-    }
+  * {
+    scroll-behavior: auto;
+  }
 }

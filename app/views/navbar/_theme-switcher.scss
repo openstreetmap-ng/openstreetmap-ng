@@ -1,29 +1,29 @@
 @use "bootstrap/scss/functions";
 
 #ThemeSwitcher {
-    .dropdown-toggle {
-        @include media-breakpoint-down(lg) {
-            border: 1px solid $border-color-dark;
-        }
-
-        .bi {
-            opacity: 0.85;
-
-            &::before {
-                width: 1em;
-            }
-        }
+  .dropdown-toggle {
+    @include media-breakpoint-down(lg) {
+      border: 1px solid $border-color-dark;
     }
 
-    .dropdown-item {
-        .bi {
-            opacity: 0.8;
-        }
-    }
+    .bi {
+      opacity: 0.85;
 
-    .dropdown-item:not(.active):not(:active) {
-        .bi {
-            color: $primary;
-        }
+      &::before {
+        width: 1em;
+      }
     }
+  }
+
+  .dropdown-item {
+    .bi {
+      opacity: 0.8;
+    }
+  }
+
+  .dropdown-item:not(.active, :active) {
+    .bi {
+      color: $primary;
+    }
+  }
 }

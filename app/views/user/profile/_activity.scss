@@ -3,81 +3,82 @@
 @use "bootstrap/scss/functions";
 
 .activity-chart {
-    @extend .text-body-secondary;
-    width: 100%;
-    border-spacing: 1px;
-    border-collapse: separate;
+  @extend .text-body-secondary;
 
-    .months-row {
-        position: relative;
-        font-size: 0.875em;
-        height: 1.45em;
+  width: 100%;
+  border-spacing: 1px;
+  border-collapse: separate;
+
+  .months-row {
+    position: relative;
+    height: 1.45em;
+    font-size: 0.875em;
+  }
+
+  .month-cell:not(:empty) {
+    position: absolute;
+    top: 0;
+  }
+
+  .week-cell {
+    width: 2.5em;
+    padding-right: 0.125rem;
+    font-size: 0.875em;
+    line-height: 1;
+    text-align: end;
+  }
+
+  .activity {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 25%;
+
+    &:hover {
+      box-shadow: 0 0 0 2px var(--bs-emphasis-color);
     }
-
-    .month-cell:not(:empty) {
-        position: absolute;
-        top: 0;
-    }
-
-    .week-cell {
-        width: 2.5em;
-        font-size: 0.875em;
-        line-height: 1;
-        text-align: end;
-        padding-right: 0.125rem;
-    }
-
-    .activity {
-        border-radius: 25%;
-        aspect-ratio: 1;
-        display: block;
-
-        &:hover {
-            box-shadow: 0 0 0 2px var(--bs-emphasis-color);
-        }
-    }
+  }
 }
 
 .activity-tooltip {
-    --bs-tooltip-max-width: $tooltip-max-width * 1.5;
+  --bs-tooltip-max-width: $tooltip-max-width * 1.5;
 }
 
 .inline-activity {
-    display: inline-block;
-    position: relative;
-    top: 1px;
-    width: 0.75em;
-    height: 0.75em;
-    margin: 0 0.125rem;
-    line-height: 1;
-    cursor: text;
-    border-radius: 25%;
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin: 0 0.125rem;
+  line-height: 1;
+  cursor: text;
+  border-radius: 25%;
 }
 
 .activity-0 {
-    @extend .bg-body-secondary;
+  @extend .bg-body-secondary;
 }
 
 @include color-mode(light) {
-    @for $i from 1 through 19 {
-        .activity-#{$i} {
-            background: color.mix(
-                color.adjust(functions.shade-color($green, 15%), $saturation: 15%),
-                $body-secondary-bg,
-                math.pow(math.div($i, 19) * 0.9 + 0.1, 0.7) * 100%
-            );
-        }
+  @for $i from 1 through 19 {
+    .activity-#{$i} {
+      background: color.mix(
+        color.adjust(functions.shade-color($green, 15%), $saturation: 15%),
+        $body-secondary-bg,
+        math.pow(math.div($i, 19) * 0.9 + 0.1, 0.7) * 100%
+      );
     }
+  }
 }
 
 @include color-mode(dark) {
-    @for $i from 1 through 19 {
-        .activity-#{$i} {
-            background: color.mix(
-                color.adjust($green, $saturation: 5%),
-                $body-secondary-bg-dark,
-                math.pow(math.div($i, 19) * 0.9 + 0.1, 0.7) * 100%
-            );
-        }
+  @for $i from 1 through 19 {
+    .activity-#{$i} {
+      background: color.mix(
+        color.adjust($green, $saturation: 5%),
+        $body-secondary-bg-dark,
+        math.pow(math.div($i, 19) * 0.9 + 0.1, 0.7) * 100%
+      );
     }
+  }
 }

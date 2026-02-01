@@ -1,27 +1,28 @@
 .action-sidebar.distance {
-    .section {
-        border-bottom-right-radius: $border-radius;
-    }
+  .section {
+    border-bottom-right-radius: $border-radius;
+  }
 }
 
 .maplibregl-marker.distance-label {
-    @extend .bg-body;
-    @extend .rounded-1;
-    padding: 0 0.25rem;
-    pointer-events: none;
+  @extend .bg-body;
+  @extend .rounded-1;
+
+  padding: 0 0.25rem;
+  pointer-events: none;
 }
 
 .maplibregl-marker.distance-marker:not(.ghost-marker) {
-    z-index: 1;
+  z-index: 1;
 }
 
 .maplibregl-marker.distance-marker.ghost-marker {
-    padding-bottom: 8px;
-    opacity: 0.5 !important;
-    transition: unset;
+  padding-bottom: 8px;
+  opacity: 0.5 !important;
+  transition: unset;
 
-    &.dragging {
-        opacity: 0 !important;
-        z-index: 2;
-    }
+  &.dragging {
+    z-index: 2;
+    opacity: 0 !important;
+  }
 }

@@ -1,61 +1,58 @@
 @use "sass:color";
 
 .test-site {
-    .brand-title {
-        color: color.adjust($vibrant-green, $saturation: 3%);
-        white-space: nowrap;
-        font-weight: bold;
+  .brand-title {
+    font-weight: bold;
+    color: color.adjust($vibrant-green, $saturation: 3%);
+    white-space: nowrap;
 
-        img {
-            position: relative;
-            top: -2px;
-            height: 1.5em;
-            width: 1.5em;
-            margin-right: 0.25rem;
-        }
+    img {
+      position: relative;
+      top: -2px;
+      width: 1.5em;
+      height: 1.5em;
+      margin-right: 0.25rem;
+    }
+  }
+
+  .modal-body {
+    .form-check-label {
+      cursor: pointer;
     }
 
-    .modal-body {
-        .form-check-label {
-            cursor: pointer;
-        }
-
-        .form-check-input:checked + .form-check-label {
-            font-weight: 500;
-        }
+    .form-check-input:checked + .form-check-label {
+      font-weight: 500;
     }
+  }
 }
 
 .construction-sign {
-    background: linear-gradient(135deg, #ffdd00 0%, #ffed4e 100%);
-    color: #000;
-    font-family: "Inter", "Arial Black", sans-serif;
-    font-weight: 900;
-    text-align: center;
-    border: 4px solid #000;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow:
-        0 0 0 2px #ffdd00,
-        0 8px 16px rgba(0, 0, 0, 0.1),
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
+  font-family: Inter, "Arial Black", sans-serif;
+  font-weight: 900;
+  color: $black;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fd0 0%, #ffed4e 100%);
+  border: 4px solid $black;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 2px #fd0,
+    0 8px 16px rgb(0 0 0 / 10%),
+    inset 0 2px 4px rgb(255 255 255 / 30%);
 }
 
 .construction-sign.striped::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 20px,
-        rgba(0, 0, 0, 0.1) 20px,
-        rgba(0, 0, 0, 0.1) 40px
-    );
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 20px,
+    rgb(0 0 0 / 10%) 20px,
+    rgb(0 0 0 / 10%) 40px
+  );
 }

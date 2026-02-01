@@ -6,7 +6,7 @@
     if [[ ! data/cache/browserslist_versions.json -nt bun.lock ]]; then
       echo "Regenerating browserslist cache"
       mkdir -p data/cache
-      bunx browserslist | jq -Rnc '
+      browserslist | jq -Rnc '
         [inputs | split(" ") | {browser: .[0], version: (.[1] | split("-") | map(tonumber) | min)}] |
         group_by(.browser) |
         map({(.[0].browser): (map(.version) | min)}) |

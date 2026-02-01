@@ -1,93 +1,100 @@
 #loginModal {
-    --bs-modal-width: 450px;
+  --bs-modal-width: 450px;
 }
 
 .login-body {
-    .brand-img {
-        width: 4em;
-        height: 4em;
+  .brand-img {
+    width: 4em;
+    height: 4em;
+  }
+
+  .divider {
+    position: relative;
+    text-align: center;
+
+    &::before {
+      @extend .bg-body-secondary;
+
+      position: absolute;
+      top: 50%;
+      right: 0;
+      left: 0;
+      height: 1px;
+      content: "";
     }
 
-    .divider {
-        position: relative;
-        text-align: center;
+    .divider-text {
+      @extend .text-muted;
 
-        &::before {
-            @extend .bg-body-secondary;
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-        }
+      position: relative;
+      top: -1px;
+      padding: 0 1rem;
+      font-size: 0.875rem;
+      background: $modal-content-bg;
+    }
+  }
 
-        .divider-text {
-            @extend .text-muted;
-            position: relative;
-            top: -1px;
-            background: $modal-content-bg;
-            padding: 0 1rem;
-            font-size: 0.875rem;
-        }
+  button[data-action="passkey-login"] {
+    img {
+      position: relative;
+      top: -1px;
+      width: 0.875em;
+      height: 0.875em;
+      margin-right: 0.25rem;
+    }
+  }
+
+  // State-based visibility for login flow sections
+  .login-form {
+    [data-section] {
+      display: none;
     }
 
-    button[data-action="passkey-login"] {
-        img {
-            width: 0.875em;
-            height: 0.875em;
-            position: relative;
-            top: -1px;
-            margin-right: 0.25rem;
-        }
+    &[data-login-state="credentials"] [data-section="credentials"] {
+      display: block;
     }
 
-    // State-based visibility for login flow sections
-    .login-form {
-        [data-section] {
-            display: none;
-        }
-        &[data-login-state="credentials"] [data-section="credentials"] {
-            display: block;
-        }
-        &[data-login-state="totp"] [data-section~="totp"] {
-            display: block;
-        }
-        &[data-login-state="recovery"] [data-section~="recovery"] {
-            display: block;
-        }
-        &[data-login-state="passkey"] [data-section="passkey"] {
-            display: block;
-        }
-        &[data-login-state="method-select"] [data-section="method-select"] {
-            display: block;
-        }
+    &[data-login-state="totp"] [data-section~="totp"] {
+      display: block;
     }
 
-    .totp-input-group input {
-        width: 2.5rem;
-        height: 3rem;
-        text-align: center;
-        font-size: 1.5rem;
-        font-weight: 600;
-        padding: 0;
-
-        @include media-breakpoint-down(sm) {
-            width: 2rem;
-        }
+    &[data-login-state="recovery"] [data-section~="recovery"] {
+      display: block;
     }
 
-    // Recovery code input styling
-    input[name="recovery_code"] {
-        @extend .text-center;
-        @extend .fw-semibold;
-
-        letter-spacing: 0.05em;
+    &[data-login-state="passkey"] [data-section="passkey"] {
+      display: block;
     }
 
-    // Fix border on last visible method option (when others are hidden)
-    [data-section="method-select"]
-        .list-group-item:not(.d-none):not(:has(~ .list-group-item:not(.d-none))) {
-        border-bottom: 0;
+    &[data-login-state="method-select"] [data-section="method-select"] {
+      display: block;
     }
+  }
+
+  .totp-input-group input {
+    width: 2.5rem;
+    height: 3rem;
+    padding: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+
+    @include media-breakpoint-down(sm) {
+      width: 2rem;
+    }
+  }
+
+  // Recovery code input styling
+  input[name="recovery_code"] {
+    @extend .text-center;
+    @extend .fw-semibold;
+
+    letter-spacing: 0.05em;
+  }
+
+  // Fix border on last visible method option (when others are hidden)
+  [data-section="method-select"]
+    .list-group-item:not(.d-none, :has(~ .list-group-item:not(.d-none))) {
+    border-bottom: 0;
+  }
 }

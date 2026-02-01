@@ -1,7 +1,8 @@
 .diary-compose-body {
-    .map-container {
-        @extend .border;
-        @extend .rounded-2;
-        height: 400px;
-    }
+  .map-container {
+    @extend .border;
+    @extend .rounded-2;
+
+    height: 400px;
+  }
 }

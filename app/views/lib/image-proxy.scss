@@ -1,17 +1,18 @@
 .rich-text img.image-proxy-loading {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-origin: content-box;
-    animation: image-proxy-pulse 2.2s ease-in-out infinite;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-origin: content-box;
+  background-size: cover;
+  animation: image-proxy-pulse 2.2s ease-in-out infinite;
 }
 
 @keyframes image-proxy-pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
 }

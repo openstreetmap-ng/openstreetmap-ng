@@ -1,12 +1,13 @@
 @use "bootstrap/scss/functions";
 
 @include color-mode(dark) {
-    .badge.text-bg-light {
-        @extend .text-bg-dark;
-        background: functions.shade-color($body-bg-dark, 15%) !important;
-    }
+  .badge.text-bg-light {
+    @extend .text-bg-dark;
 
-    .badge.text-bg-light-green {
-        @extend .text-bg-dark-green;
-    }
+    background: functions.shade-color($body-bg-dark, 15%) !important;
+  }
+
+  .badge.text-bg-light-green {
+    @extend .text-bg-dark-green;
+  }
 }

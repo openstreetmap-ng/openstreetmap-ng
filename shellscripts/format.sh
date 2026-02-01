@@ -45,9 +45,9 @@ run_formatters() {
   format_files '*.nix' -- nixfmt
   format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
   format_files '*.py' '*.pyi' -- ruff format --force-exclude
-  format_files '*.scss' -- bunx prettier --cache --write
+  format_files '*.scss' -- prettier --cache --write
   format_files '*.sh' -- shfmt -w
-  format_files '*.sql' -- bunx sql-formatter --fix
+  format_files '*.sql' -- sql-formatter --fix
   format_files '*.toml' -- tombi format
   format_files '*.ts' '*.tsx' '*.json' -- biome format --write --no-errors-on-unmatched
   format_files --per-file '*.proto' -- buf format -w
@@ -61,6 +61,7 @@ run_linters() {
   BROWSERSLIST_IGNORE_OLD_DATA=true BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=true \
     oxlint --fix --type-aware --type-check \
     app/views vite.config.ts || status=$?
+  stylelint --fix --formatter compact 'app/views/**/*.scss' || status=$?
   buf lint --path app/models/proto || status=$?
   (cd speedup && cargo clippy --locked -- -D warnings) || status=$?
   return $status

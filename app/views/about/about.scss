@@ -1,117 +1,116 @@
 $_icon-color: var(--bs-tertiary-color);
 
 .about-body {
-    .content-header {
-        padding: 0;
-        text-wrap: pretty;
+  .content-header {
+    padding: 0;
+    text-wrap: pretty;
 
-        .landing-image {
-            position: relative;
+    .landing-image {
+      position: relative;
 
-            img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
 
-                @include media-breakpoint-down(md) {
-                    max-height: 15rem;
-                }
-            }
-
-            .attribution {
-                position: absolute;
-                bottom: 0;
-                right: 0;
-
-                margin-bottom: 0;
-                padding: 1rem 1.5rem;
-                line-height: 1.4;
-
-                background: $vibrant-green;
-                color: $body-bg;
-            }
+        @include media-breakpoint-down(md) {
+          max-height: 15rem;
         }
+      }
 
-        .landing-text {
-            padding: 1.5rem 2rem;
-            background: $body-color;
-            color: $body-bg;
+      .attribution {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        padding: 1rem 1.5rem;
+        margin-bottom: 0;
+        line-height: 1.4;
+        color: $body-bg;
+        background: $vibrant-green;
+      }
+    }
 
-            img {
-                height: calc(2rem * 1.2);
-                vertical-align: bottom;
-            }
+    .landing-text {
+      padding: 1.5rem 2rem;
+      color: $body-bg;
+      background: $body-color;
 
-            .vibrant {
-                color: $vibrant-green;
-            }
-        }
+      img {
+        height: calc(2rem * 1.2);
+        vertical-align: bottom;
+      }
 
-        .header-body {
-            @extend .bg-body;
-            padding: 2rem 2.5rem;
-        }
+      .vibrant {
+        color: $vibrant-green;
+      }
     }
 
     .header-body {
-        h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.3em;
-        }
+      @extend .bg-body;
 
-        i.bi {
-            display: inline-block;
-            text-align: center;
-            align-content: center;
-            width: 2rem;
-            height: 2rem;
-            font-size: 0.55em;
+      padding: 2rem 2.5rem;
+    }
+  }
 
-            @extend .rounded-circle;
-            border: 4px solid $_icon-color;
-            color: $_icon-color;
-
-            &.bi-heart-fill::before {
-                position: relative;
-                top: 1px;
-                font-size: 0.875em;
-            }
-        }
+  .header-body {
+    h3 {
+      display: flex;
+      gap: 0.3em;
+      align-items: center;
     }
 
-    .icon-symbol {
-        display: inline-block;
-        text-align: center;
-        align-content: center;
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.7em;
-        font-weight: bold;
+    i.bi {
+      display: inline-block;
+      align-content: center;
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.55em;
+      color: $_icon-color;
+      text-align: center;
+      border: 4px solid $_icon-color;
 
-        @extend .rounded-circle;
-        border: 4px solid $_icon-color;
-        color: $_icon-color;
+      @extend .rounded-circle;
 
-        &.copyright::before {
-            position: relative;
-            top: -0.5px;
-            left: -1px;
-            content: "C";
-        }
-
-        &.section::before {
-            content: "§";
-        }
+      &.bi-heart-fill::before {
+        position: relative;
+        top: 1px;
+        font-size: 0.875em;
+      }
     }
+  }
+
+  .icon-symbol {
+    display: inline-block;
+    align-content: center;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.7em;
+    font-weight: bold;
+    color: $_icon-color;
+    text-align: center;
+    border: 4px solid $_icon-color;
+
+    @extend .rounded-circle;
+
+    &.copyright::before {
+      position: relative;
+      top: -0.5px;
+      left: -1px;
+      content: "C";
+    }
+
+    &.section::before {
+      content: "§";
+    }
+  }
 }
 
 @include color-mode(dark) {
-    .about-body {
-        .content-header {
-            .landing-text {
-                background: $black;
-            }
-        }
+  .about-body {
+    .content-header {
+      .landing-text {
+        background: $black;
+      }
     }
+  }
 }

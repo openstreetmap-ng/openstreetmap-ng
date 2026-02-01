@@ -1,0 +1,20 @@
+{
+  "extends": ["stylelint-config-standard-scss", "stylelint-config-recess-order"],
+  "cache": true,
+  "reportInvalidScopeDisables": true,
+  "reportNeedlessDisables": true,
+  "rules": {
+    "scss/at-extend-no-missing-placeholder": null,
+    "scss/comment-no-empty": null,
+    "scss/dollar-variable-pattern": null,
+    "selector-class-pattern": null,
+    "selector-id-pattern": null,
+
+    "color-no-invalid-hex": true,
+    "font-weight-notation": "named-where-possible",
+    "function-linear-gradient-no-nonstandard-direction": true,
+    "no-unknown-animations": true,
+    "no-unknown-custom-media": true,
+    "unit-no-unknown": true
+  }
+}

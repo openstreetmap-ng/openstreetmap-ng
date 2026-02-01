@@ -1,15 +1,15 @@
 .reports-body {
-    .social-entry {
-        .body-preview {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            flex: 1;
+  .social-entry {
+    .body-preview {
+      display: -webkit-box;
+      flex: 1;
+      overflow: hidden;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
 
-            .avatar {
-                vertical-align: bottom;
-            }
-        }
+      .avatar {
+        vertical-align: bottom;
+      }
     }
+  }
 }

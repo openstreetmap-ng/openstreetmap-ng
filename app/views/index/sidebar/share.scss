@@ -1,14 +1,14 @@
 // Style the "Share" sidebar panel
 .map-sidebar.share {
-    .marker-icon {
-        height: 1em;
-        margin-left: 1px;
-        margin-right: 1px;
-    }
+  .marker-icon {
+    height: 1em;
+    margin-right: 1px;
+    margin-left: 1px;
+  }
 
-    .custom-input-group {
-        .form-control {
-            font-size: 0.95em;
-        }
+  .custom-input-group {
+    .form-control {
+      font-size: 0.95em;
     }
+  }
 }

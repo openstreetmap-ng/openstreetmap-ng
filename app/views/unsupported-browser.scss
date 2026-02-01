@@ -1,17 +1,17 @@
 .unsupported-browser {
-    .logo {
-        height: 10em;
-        width: 10em;
-    }
+  .logo {
+    width: 10em;
+    height: 10em;
+  }
 
-    .browser-option {
-        font-size: 1.6em;
+  .browser-option {
+    font-size: 1.6em;
 
-        img {
-            position: relative;
-            top: -0.05em;
-            height: 1.5em;
-            width: 1.5em;
-        }
+    img {
+      position: relative;
+      top: -0.05em;
+      width: 1.5em;
+      height: 1.5em;
     }
+  }
 }

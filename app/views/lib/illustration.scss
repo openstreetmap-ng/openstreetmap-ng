@@ -1,12 +1,12 @@
 .illustration {
-    // Ignore any clicks/drags on the illustration
-    pointer-events: none;
-    user-select: none;
+  // Ignore any clicks/drags on the illustration
+  pointer-events: none;
+  user-select: none;
 }
 
 // Mirror illustrations
 html[dir="rtl"] {
-    .illustration {
-        transform: scaleX(-1);
-    }
+  .illustration {
+    transform: scaleX(-1);
+  }
 }

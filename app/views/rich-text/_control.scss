@@ -1,61 +1,64 @@
 // Styles for rich text rendered content
 .rich-text {
-    text-wrap: pretty;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    overflow-y: hidden;
-    overflow-y: clip;
+  overflow-y: hidden;
+  overflow-y: clip;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
 
+  code {
+    @extend .bg-body-tertiary;
+
+    padding: 0.15em 0.2em 0;
+  }
+
+  pre {
+    @extend .bg-body-tertiary;
+
+    padding: 0 0.2em;
+    white-space: pre-wrap;
+
+    // Remove padding from nested code blocks
     code {
-        @extend .bg-body-tertiary;
-        padding: 0.15em 0.2em 0;
+      padding: 0;
     }
+  }
 
-    pre {
-        @extend .bg-body-tertiary;
-        padding: 0 0.2em;
-        white-space: pre-wrap;
+  blockquote {
+    @extend .text-body-secondary;
 
-        // Remove padding from nested code blocks
-        code {
-            padding: 0;
-        }
-    }
+    padding-left: 1.5em;
+    border-left: 1.5em solid var(--bs-tertiary-bg);
+  }
 
-    blockquote {
-        @extend .text-body-secondary;
-        border-left: 1.5em solid var(--bs-tertiary-bg);
-        padding-left: 1.5em;
-    }
+  img {
+    @extend .bg-body-tertiary;
 
-    img {
-        @extend .bg-body-tertiary;
-        padding: 1.5rem;
-        display: block;
-        margin: auto;
-        max-width: 100%;
-    }
+    display: block;
+    max-width: 100%;
+    padding: 1.5rem;
+    margin: auto;
+  }
 }
 
 .RichTextPreview {
-    // Seamless preview experience: copy padding and border size from textarea
-    padding: 0.375rem 0.75rem;
-    border: 1px solid transparent;
+  // Seamless preview experience: copy padding and border size from textarea
+  padding: 0.375rem 0.75rem;
+  border: 1px solid transparent;
 
-    @include media-breakpoint-down(md) {
-        // Same default height as the source textarea: better UX when scaling
-        min-height: 445.6px;
-    }
+  @include media-breakpoint-down(md) {
+    // Same default height as the source textarea: better UX when scaling
+    min-height: 445.6px;
+  }
 }
 
 .RichTextHelp {
-    img.markdown-logo {
-        position: relative;
-        top: -0.075em;
-        height: 0.8em;
-    }
+  img.markdown-logo {
+    position: relative;
+    top: -0.075em;
+    height: 0.8em;
+  }
 
-    dd {
-        font-size: 0.75em;
-    }
+  dd {
+    font-size: 0.75em;
+  }
 }

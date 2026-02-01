@@ -1,7 +1,7 @@
 .communities-body {
-    .content-body ul {
-        @include media-breakpoint-up(md) {
-            columns: 2;
-        }
+  .content-body ul {
+    @include media-breakpoint-up(md) {
+      columns: 2;
     }
+  }
 }

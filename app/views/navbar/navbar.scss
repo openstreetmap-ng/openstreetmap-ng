@@ -1,252 +1,259 @@
 @use "sass:color";
 
 .navbar {
-    @extend .bg-body;
-    z-index: 1005; // leaflet controls are 1000
+  @extend .bg-body;
 
+  z-index: 1005; // leaflet controls are 1000
+
+  @include media-breakpoint-up(lg) {
+    white-space: nowrap;
+  }
+
+  .btn {
     @include media-breakpoint-up(lg) {
-        white-space: nowrap;
+      --bs-btn-padding-x: clamp(0.625rem, -0.25rem + 1vw, 0.75rem);
     }
+  }
+
+  .map-actions {
+    $_background: $body-bg;
+    $_border: color.mix($green, $body-bg, 70%);
+    $_color: color.mix($green, $body-color, 70%);
 
     .btn {
-        @include media-breakpoint-up(lg) {
-            --bs-btn-padding-x: clamp(0.625rem, -0.25rem + 1vw, 0.75rem);
-        }
+      @extend .fw-semibold;
+      @extend .d-inline-flex;
+      @extend .align-items-center;
+      @extend .justify-content-center;
+      @include button-variant(
+        $_background,
+        $_border,
+        $_color,
+        $hover-background: $green,
+        $hover-border: $green,
+        $active-background: shade-color($green, $btn-active-bg-shade-amount),
+        $active-border: shade-color($green, $btn-active-border-shade-amount),
+        $disabled-color: $_color
+      );
+
+      --bs-btn-border-radius: var(--bs-border-radius-lg);
+      --bs-btn-disabled-opacity: 0.5;
+      --bs-btn-line-height: 1.25;
+      --bs-btn-padding-x: 0.825rem;
+    }
+
+    .edit-group .dropdown-toggle-split {
+      --bs-btn-padding-x: 0.5rem;
+    }
+
+    .edit-group.disabled .edit-link {
+      cursor: not-allowed;
+    }
+
+    .dropdown-menu {
+      @extend .shadow;
+      @extend .rounded-3;
+
+      border: 1px solid $_border;
+    }
+  }
+
+  .edit-link img {
+    position: relative;
+    top: -1px;
+    width: 19px;
+    height: 19px;
+    margin-right: 0.25rem;
+  }
+
+  .edit-link.default img {
+    top: 0;
+    width: 20px;
+    height: 20px;
+    margin-right: 0;
+    margin-left: 0.5rem;
+    filter: grayscale(10%);
+  }
+
+  .profile-dropdown {
+    .profile-name {
+      max-width: calc(100vw - 8rem);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      @include media-breakpoint-up(lg) {
+        max-width: 18ch;
+      }
+    }
+
+    .badge {
+      font-weight: normal;
+    }
+  }
+
+  @include media-breakpoint-down(lg) {
+    .navbar-collapse {
+      > :first-child {
+        margin-top: 0.625rem;
+      }
+
+      > :last-child {
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    border-bottom: 0 solid transparent;
+    transition: border-bottom 0.04s ease-out;
+
+    &:has(.navbar-collapse.show) {
+      border-bottom: 2px solid var(--bs-dark-bg-subtle);
     }
 
     .map-actions {
-        $_background: $body-bg;
-        $_border: color.mix($green, $body-bg, 70%);
-        $_color: color.mix($green, $body-color, 70%);
-        .btn {
-            @extend .fw-semibold;
-            @extend .d-inline-flex;
-            @extend .align-items-center;
-            @extend .justify-content-center;
-            @include button-variant(
-                $_background,
-                $_border,
-                $_color,
-                $hover-background: $green,
-                $hover-border: $green,
-                $active-background: shade-color($green, $btn-active-bg-shade-amount),
-                $active-border: shade-color($green, $btn-active-border-shade-amount),
-                $disabled-color: $_color
-            );
-            --bs-btn-border-radius: var(--bs-border-radius-lg);
-            --bs-btn-disabled-opacity: 0.5;
-            --bs-btn-line-height: 1.25;
-            --bs-btn-padding-x: 0.825rem;
-        }
+      width: 100%;
 
-        .edit-group .dropdown-toggle-split {
-            --bs-btn-padding-x: 0.5rem;
-        }
-
-        .edit-group.disabled .edit-link {
-            cursor: not-allowed;
-        }
-
-        .dropdown-menu {
-            @extend .shadow;
-            @extend .rounded-3;
-            border: 1px solid $_border;
-        }
+      .btn {
+        flex: 1 1 auto;
+      }
     }
-
-    .edit-link img {
-        margin-right: 0.25rem;
-        position: relative;
-        top: -1px;
-        width: 19px;
-        height: 19px;
-    }
-
-    .edit-link.default img {
-        margin-left: 0.5rem;
-        margin-right: 0;
-        top: 0;
-        width: 20px;
-        height: 20px;
-        filter: grayscale(10%);
-    }
-
-    .profile-dropdown {
-        .profile-name {
-            max-width: calc(100vw - 8rem);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-
-            @include media-breakpoint-up(lg) {
-                max-width: 18ch;
-            }
-        }
-
-        .badge {
-            font-weight: 400;
-        }
-    }
-
-    @include media-breakpoint-down(lg) {
-        .navbar-collapse {
-            > :first-child {
-                margin-top: 0.625rem;
-            }
-
-            > :last-child {
-                margin-bottom: 0.5rem;
-            }
-        }
-
-        border-bottom: 0 solid transparent;
-        transition: border-bottom 0.04s ease-out;
-
-        &:has(.navbar-collapse.show) {
-            border-bottom: 2px solid var(--bs-dark-bg-subtle);
-        }
-
-        .map-actions {
-            width: 100%;
-
-            .btn {
-                flex: 1 1 auto;
-            }
-        }
-    }
+  }
 }
 
 .text-navbar {
-    color: var(--bs-navbar-color);
+  color: var(--bs-navbar-color);
 }
 
 .navbar-brand {
-    display: flex;
-    align-items: center;
-    --bs-navbar-brand-padding-y: 0;
-    --bs-navbar-brand-font-size: 1.15em;
+  display: flex;
+  align-items: center;
 
-    img {
-        height: 1.7em;
-        margin-right: 0.25em;
-    }
+  --bs-navbar-brand-padding-y: 0;
+  --bs-navbar-brand-font-size: 1.15em;
+
+  img {
+    height: 1.7em;
+    margin-right: 0.25em;
+  }
 }
 
 .navbar-nav {
-    font-size: 0.875em;
+  font-size: 0.875em;
 
-    @include media-breakpoint-down(lg) {
-        .nav-item:not(:last-child) {
-            border-bottom: 1px solid var(--bs-border-color);
-        }
+  @include media-breakpoint-down(lg) {
+    .nav-item:not(:last-child) {
+      border-bottom: 1px solid var(--bs-border-color);
     }
+  }
 
-    .nav-link {
-        &.active {
-            transition: none;
-        }
+  .nav-link {
+    &.active {
+      transition: none;
     }
+  }
 }
 
 .navbar-links {
-    min-width: 0;
+  min-width: 0;
 
-    @include media-breakpoint-up(lg) {
-        display: flex;
-        flex: 1 1 0;
-        justify-content: flex-end;
-        align-items: center;
-    }
+  @include media-breakpoint-up(lg) {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: flex-end;
+  }
 
-    .btn {
-        --bs-btn-font-size: 0.875em;
-    }
+  .btn {
+    --bs-btn-font-size: 0.875em;
+  }
 }
 
 #NavbarRight {
-    width: 100%;
-    min-width: 0;
+  width: 100%;
+  min-width: 0;
 
-    @include media-breakpoint-down(lg) {
-        align-items: flex-end;
-    }
+  @include media-breakpoint-down(lg) {
+    align-items: flex-end;
+  }
 
-    @include media-breakpoint-up(lg) {
-        width: auto;
-        flex-grow: 1;
-        justify-content: flex-end;
-    }
+  @include media-breakpoint-up(lg) {
+    flex-grow: 1;
+    justify-content: flex-end;
+    width: auto;
+  }
 
-    .navbar-nav {
-        align-self: stretch;
-    }
+  .navbar-nav {
+    align-self: stretch;
+  }
 }
 
 @include media-breakpoint-down(md) {
-    .nav-tabs-md {
-        &.nav-tabs .nav-link {
-            border-bottom-left-radius: $nav-tabs-border-radius;
-            border-bottom-right-radius: $nav-tabs-border-radius;
-        }
-
-        &.nav-tabs .nav-link.active,
-        &.nav-tabs .nav-item.show .nav-link {
-            border-bottom-color: $nav-tabs-border-color;
-        }
-
-        .nav-item {
-            margin-bottom: 0.25rem;
-        }
+  .nav-tabs-md {
+    &.nav-tabs .nav-link {
+      border-bottom-right-radius: $nav-tabs-border-radius;
+      border-bottom-left-radius: $nav-tabs-border-radius;
     }
+
+    &.nav-tabs .nav-link.active,
+    &.nav-tabs .nav-item.show .nav-link {
+      border-bottom-color: $nav-tabs-border-color;
+    }
+
+    .nav-item {
+      margin-bottom: 0.25rem;
+    }
+  }
 }
 
 @include color-mode(dark) {
-    .dark-filter-invert {
-        filter: invert(1);
+  .dark-filter-invert {
+    filter: invert(1);
+  }
+
+  .navbar {
+    .map-actions {
+      $_background: color.mix($green, $body-bg-dark, 10%);
+      $_border: color.mix($green, $body-bg-dark, 40%);
+      $_color: color.mix($green, $body-color-dark, 40%);
+      $_hover-color: color.mix($green, $body-color-dark, 10%);
+
+      .btn {
+        @include button-variant(
+          $_background,
+          $_border,
+          $_color,
+          $hover-color: $_hover-color,
+          $active-color: $_hover-color,
+          $disabled-color: $_color
+        );
+      }
+
+      .dropdown-menu {
+        border: 1px solid $_border;
+      }
     }
 
-    .navbar {
-        .map-actions {
-            $_background: color.mix($green, $body-bg-dark, 10%);
-            $_border: color.mix($green, $body-bg-dark, 40%);
-            $_color: color.mix($green, $body-color-dark, 40%);
-            $_hover-color: color.mix($green, $body-color-dark, 10%);
-            .btn {
-                @include button-variant(
-                    $_background,
-                    $_border,
-                    $_color,
-                    $hover-color: $_hover-color,
-                    $active-color: $_hover-color,
-                    $disabled-color: $_color
-                );
-            }
-
-            .dropdown-menu {
-                border: 1px solid $_border;
-            }
-        }
-
-        .edit-link.default img.dark-filter-invert {
-            filter: grayscale(10%) invert(1);
-        }
+    .edit-link.default img.dark-filter-invert {
+      filter: grayscale(10%) invert(1);
     }
+  }
 }
 
 .build-info {
-    @extend .font-monospace;
-    position: fixed;
-    top: 1px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-    opacity: 0.3;
-    z-index: 1025; // navbar is 1005, sticky-top is 1020
-    white-space: nowrap;
+  @extend .font-monospace;
 
-    &:hover {
-        opacity: 1;
-    }
+  position: fixed;
+  top: 1px;
+  left: 50%;
+  z-index: 1025; // navbar is 1005, sticky-top is 1020
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0.3;
+  transform: translateX(-50%);
+
+  &:hover {
+    opacity: 1;
+  }
 }

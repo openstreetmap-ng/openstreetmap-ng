@@ -1,22 +1,24 @@
 .content-header {
-    @extend .container-fluid;
-    @extend .bg-body-tertiary;
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+  @extend .container-fluid;
+  @extend .bg-body-tertiary;
 
-    > .container {
-        padding-left: unset;
-        padding-right: unset;
-    }
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+
+  > .container {
+    padding-right: unset;
+    padding-left: unset;
+  }
 }
 
 .content-body {
-    @extend .container-fluid;
-    margin-top: 1.5rem;
-    margin-bottom: 3rem;
+  @extend .container-fluid;
 
-    > .container {
-        padding-left: unset;
-        padding-right: unset;
-    }
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+
+  > .container {
+    padding-right: unset;
+    padding-left: unset;
+  }
 }

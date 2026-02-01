@@ -1,14 +1,14 @@
 .ua-icons {
-    white-space: nowrap;
+  white-space: nowrap;
 
-    & > img {
-        width: 1em;
-        height: 1em;
-    }
+  & > img {
+    width: 1em;
+    height: 1em;
+  }
 }
 
 @include color-mode(dark) {
-    .ua-os-icon {
-        filter: invert(1);
-    }
+  .ua-os-icon {
+    filter: invert(1);
+  }
 }

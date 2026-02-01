@@ -1,42 +1,41 @@
 // Make body a flex container and stretch it to fill the viewport
 .map-body {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 // Expand map container and make it another flex container
 .main-map-container {
-    flex-grow: 1;
-    position: relative;
-    display: flex;
+  position: relative;
+  display: flex;
+  flex-grow: 1;
 
-    @include media-breakpoint-down(lg) {
-        position: absolute;
-        inset: $navbar-mobile-height 0 0;
-    }
+  @include media-breakpoint-down(lg) {
+    position: absolute;
+    inset: $navbar-mobile-height 0 0;
+  }
 
-    @include media-breakpoint-down(md) {
-        flex-direction: column;
-    }
+  @include media-breakpoint-down(md) {
+    flex-direction: column;
+  }
 }
 
 #MainMap {
-    // Disable outline on main map (appears too often by accident)
-    // outline: none;
-    flex-grow: 1;
+  // Disable outline on main map (appears too often by accident)
+  // outline: none;
+  flex-grow: 1;
+  background: radial-gradient(circle, $light 0%, $light-green 100%);
 
-    background: radial-gradient(circle, $light 0%, $light-green 100%);
-
-    .maplibregl-ctrl-top-right {
-        @include media-breakpoint-down(sm) {
-            margin-top: min((breakpoint-max(sm) - 100vw) * 0.5, 3.125rem);
-        }
+  .maplibregl-ctrl-top-right {
+    @include media-breakpoint-down(sm) {
+      margin-top: min((breakpoint-max(sm) - 100vw) * 0.5, 3.125rem);
     }
+  }
 }
 
 @include color-mode(dark) {
-    #MainMap {
-        background: radial-gradient(circle, #444 0%, $dark 100%);
-    }
+  #MainMap {
+    background: radial-gradient(circle, #444 0%, $dark 100%);
+  }
 }

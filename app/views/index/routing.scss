@@ -2,58 +2,59 @@
 // New icons should be kept separate for ease of maintenance.
 // TODO: Split the sprite into separate files.
 @mixin legacy-routing-icon($x, $y) {
-    width: 20px;
-    height: 20px;
-    background: url("/app/static/img/routing/sprite.webp") $x $y;
+  width: 20px;
+  height: 20px;
+  background: url("/app/static/img/routing/sprite.webp") $x $y;
 }
 
 // TODO: hover action
 // TODO: limit navigation updates per sec
 .action-sidebar.routing {
-    .draggable-marker {
-        cursor: move;
-        height: 3.5em;
-        padding: 0.6em 0.45em;
-    }
+  .draggable-marker {
+    height: 3.5em;
+    padding: 0.6em 0.45em;
+    cursor: move;
+  }
 
-    .attribution {
-        text-align: center;
-    }
+  .attribution {
+    text-align: center;
+  }
 }
 
 .route-info {
-    text-align: center;
+  text-align: center;
 }
 
 .route-elevation-info {
-    @extend .text-muted;
-    font-size: 0.875em;
+  @extend .text-muted;
+
+  font-size: 0.875em;
 }
 
 .route-steps {
-    .hover {
-        background: var(--bs-highlight-bg);
-    }
+  .hover {
+    background: var(--bs-highlight-bg);
+  }
 
-    .number {
-        font-weight: bold;
-    }
+  .number {
+    font-weight: bold;
+  }
 
-    .instruction {
-        overflow-wrap: anywhere;
-        word-break: break-word;
-    }
+  .instruction {
+    overflow-wrap: anywhere;
+  }
 
-    // Style the distance text for each turn
-    .distance {
-        @extend .text-muted;
-        font-size: 0.75em;
-        white-space: nowrap;
-    }
+  // Style the distance text for each turn
+  .distance {
+    @extend .text-muted;
 
-    @for $i from 0 through 25 {
-        .icon-#{$i} {
-            @include legacy-routing-icon($i * -20px, 0px);
-        }
+    font-size: 0.75em;
+    white-space: nowrap;
+  }
+
+  @for $i from 0 through 25 {
+    .icon-#{$i} {
+      @include legacy-routing-icon($i * -20px, 0);
     }
+  }
 }
