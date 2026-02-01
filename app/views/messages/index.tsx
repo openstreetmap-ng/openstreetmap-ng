@@ -129,9 +129,8 @@ const MessagesListItem = ({
             class="stretched-link"
             href={`?show=${messageId}`}
             onClick={handleOpen}
-          >
-            <span class="visually-hidden">{message.subject}</span>
-          </a>
+            aria-label={message.subject}
+          />
           <span class="unread-badge badge text-bg-primary">
             <i class="bi bi-bell-fill me-1" />
             {t("state.unread")}

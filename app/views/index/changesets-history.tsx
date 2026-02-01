@@ -797,9 +797,8 @@ const DateFilter = ({ date }: { date: string }) => (
       class="btn btn-sm btn-link btn-close"
       href={routerCtx.value.pathname}
       title={t("action.remove_filter")}
-    >
-      <span class="visually-hidden">{t("action.remove_filter")}</span>
-    </a>
+      aria-label={t("action.remove_filter")}
+    />
   </>
 )
 
