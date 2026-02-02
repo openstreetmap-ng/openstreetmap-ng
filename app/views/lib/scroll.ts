@@ -1,8 +1,8 @@
 export const scrollElementIntoView = (
-  container: Element,
+  container: Element | null | undefined,
   element: Element | null | undefined,
 ) => {
-  if (!element) return
+  if (!(container && element)) return
 
   const containerRect = container.getBoundingClientRect()
   const elementRect = element.getBoundingClientRect()
