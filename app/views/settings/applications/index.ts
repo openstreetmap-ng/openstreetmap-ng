@@ -60,7 +60,7 @@ mount("settings-applications-body", (body) => {
         console.debug("Applications: Token created", data.id)
         const searchParams = qsParse(window.location.search)
         searchParams.expand = data.id.toString()
-        window.location.href = `${window.location.pathname}${qsEncode(searchParams)}${window.location.hash}`
+        window.location.search = qsEncode(searchParams)
       },
       { protobuf: IdResponseSchema },
     )

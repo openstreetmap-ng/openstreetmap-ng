@@ -47,7 +47,7 @@ export const qsParse = (qs: string) => {
  */
 export const qsEncode = (
   obj: Record<string, string | string[] | undefined>,
-  prefix = "?",
+  prefix: "?" | "#" = "?",
 ) => {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(obj)) {
@@ -68,4 +68,4 @@ export const qsEncode = (
 
 /** Read a single query parameter from the current page URL. */
 export const getSearchParam = (key: string) =>
-  new URL(window.location.href).searchParams.get(key)
+  new URLSearchParams(window.location.search).get(key)
