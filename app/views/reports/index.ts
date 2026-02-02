@@ -1,4 +1,5 @@
 import { mount } from "@lib/mount"
+import { qsEncode } from "@lib/qs"
 import { configureStandardPagination } from "@lib/standard-pagination"
 
 mount("reports-body", (body) => {
@@ -6,7 +7,7 @@ mount("reports-body", (body) => {
   reportStatusFilter.addEventListener("change", () => {
     const status = reportStatusFilter.value
     console.debug("ReportsIndex: Status filter changed", status)
-    window.location.href = status ? `?status=${status}` : "?"
+    window.location.search = qsEncode(status ? { status } : {})
   })
 
   configureStandardPagination(body.querySelector("div.reports-pagination"))

@@ -1,9 +1,10 @@
 import { preferredEditorStorage } from "@lib/local-storage"
+import { qsEncode, qsParse } from "@lib/qs"
 
 if (window.location.pathname === "/edit") {
-  const url = new URL(window.location.href)
-  if (!url.searchParams.has("editor")) {
-    url.searchParams.set("editor", preferredEditorStorage.value)
-    window.location.replace(url.pathname + url.search + url.hash)
+  const params = qsParse(window.location.search)
+  if (!params.editor) {
+    params.editor = preferredEditorStorage.value
+    window.location.replace(`${qsEncode(params)}${window.location.hash}`)
   }
 }
