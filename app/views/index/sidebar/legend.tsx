@@ -1,11 +1,11 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { useDisposeEffect } from "@lib/dispose-scope"
 import { activeBaseLayerId, type LayerId } from "@lib/map/layers/layers"
-import { effect, type ReadonlySignal, useSignal } from "@preact/signals"
+import { mainMap } from "@lib/map/main-map"
+import { effect, useSignal } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
 
 /**
  * Zoom specification: number = min zoom, [min, max] = range, null = always visible
@@ -102,29 +102,18 @@ const isLegendLayerId = (layerId: LayerId | null): layerId is LegendLayerId =>
 const toZoomRange = (zoom: ZoomSpec): readonly [minZoom: number, maxZoom: number] =>
   zoom === null ? [0, 99] : typeof zoom === "number" ? [zoom, 99] : zoom
 
-const LegendSidebar = ({
-  map,
-  active,
-  close,
-}: {
-  map: MaplibreMap
-  active: ReadonlySignal<boolean>
-  close: () => void
-}) => {
+export const LegendSidebar = ({ close }: { close: () => void }) => {
+  const map = mainMap.value!
   const getZoom = () => Math.round(map.getZoom())
   const currentZoom = useSignal(getZoom())
 
-  useDisposeSignalEffect((scope) => {
-    if (!active.value) return
-
+  useDisposeEffect((scope) => {
     const onZoomEnd = () => {
       currentZoom.value = getZoom()
     }
     scope.map(map, "zoomend", onZoomEnd)
     onZoomEnd()
-  })
-
-  if (!active.value) return null
+  }, [])
 
   const baseLayerId = activeBaseLayerId.value
   if (!isLegendLayerId(baseLayerId)) return null
@@ -171,27 +160,18 @@ const LegendSidebar = ({
 
 export class LegendSidebarToggleControl extends SidebarToggleControl {
   public constructor() {
-    super("legend", "javascripts.key.tooltip")
+    super("legend", t("javascripts.key.tooltip"))
   }
 
   public override onAdd(map: MaplibreMap) {
     const container = super.onAdd(map)
-
-    render(
-      <LegendSidebar
-        map={map}
-        active={this.active}
-        close={this.close}
-      />,
-      this.sidebar,
-    )
 
     effect(() => {
       if (isLegendLayerId(activeBaseLayerId.value)) {
         if (this.button.disabled) {
           this.button.disabled = false
           this.tooltip.setContent({
-            ".tooltip-inner": t("javascripts.key.tooltip"),
+            ".tooltip-inner": this.tooltipTitle,
           })
         }
         return

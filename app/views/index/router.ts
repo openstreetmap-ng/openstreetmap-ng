@@ -1,15 +1,16 @@
 import { getRouteParamSpecificity, type QuerySchema } from "@lib/codecs"
 import { qsEncode, qsParseAll } from "@lib/qs"
+import type { RemoteEditTarget } from "@lib/remote-edit"
 import { isUnmodifiedLeftClick, unquotePlus } from "@lib/utils"
 import type { ReadonlySignal, Signal } from "@preact/signals"
-import { batch, effect, signal } from "@preact/signals"
+import { batch, computed, effect, signal } from "@preact/signals"
 import { assert } from "@std/assert"
 import { mapNotNullish } from "@std/collections/map-not-nullish"
 import { sumOf } from "@std/collections/sum-of"
 import { trimEndBy } from "@std/text/unstable-trim-by"
 import { z } from "@zod/zod"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import type { ComponentChildren } from "preact"
+import type { ComponentChildren, RefObject } from "preact"
 
 export type RouteLoadReason = "navigation" | "popstate" | "sync"
 
@@ -40,7 +41,7 @@ export type RouteComponent<
 > = (
   props: {
     map: MaplibreMap
-    ctx: ReadonlySignal<RouteContext>
+    sidebarRef: RefObject<HTMLElement>
   } & ParamSignals<P> &
     QuerySignals<Q>,
 ) => ComponentChildren
@@ -399,6 +400,27 @@ const activeQuerySignals = signal<Record<string, Signal<unknown>>>({})
 export const routerQuery: ReadonlySignal<Record<string, Signal<unknown>>> =
   activeQuerySignals
 
+export const routerRemoteEditTarget = computed(() => {
+  const route = routerRoute.value
+  if (!route) return null
+
+  const params = routerParams.value
+
+  let type
+  let id
+  if (route.id === "element" || route.id === "element-history") {
+    type = params.type.value
+    id = params.id.value
+  } else if (route.id === "note") {
+    type = "note"
+    id = params.id.value
+  } else {
+    return null
+  }
+
+  return { type, id } as RemoteEditTarget
+})
+
 const matchRoute = (path: string) => {
   const pathname = removeTrailingSlash(getPathname(path))
   const segments = pathname === "/" ? [] : pathname.slice(1).split("/")
@@ -620,8 +642,9 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
   window.addEventListener("click", (e) => {
     if (!isUnmodifiedLeftClick(e)) return
 
-    const target = (e.target as Element | null)?.closest("a[href]")
-    if (!target?.href || target.origin !== location.origin) return
+    if (!(e.target instanceof Element)) return
+    const target = e.target.closest("a[href]")
+    if (target?.origin !== location.origin) return
 
     const path = removeTrailingSlash(target.pathname) + target.search
     if (path === currentPath.value) {

@@ -3,12 +3,13 @@ import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { isLatitude, isLongitude } from "@lib/coords"
 import { CopyField } from "@lib/copy-group"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { useDisposeEffect } from "@lib/dispose-scope"
 import { shareExportFormatStorage } from "@lib/local-storage"
 import { boundsPadding } from "@lib/map/bounds"
 import { LocationFilterControl } from "@lib/map/controls/location-filter"
 import { exportMapImage } from "@lib/map/export-image"
 import { activeBaseLayerId, addLayerEventHandler } from "@lib/map/layers/layers"
+import { mainMap } from "@lib/map/main-map"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import {
   getInitialMapState,
@@ -19,19 +20,13 @@ import {
   type LonLatZoom,
   type MapState,
 } from "@lib/map/state"
-import {
-  batch,
-  type ReadonlySignal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+import { batch, effect, useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import { format as formatDate } from "@std/datetime/format"
 import { t } from "i18next"
 import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"
-import { render, type TargetedSubmitEvent } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import type { TargetedSubmitEvent } from "preact"
+import { useRef } from "preact/hooks"
 
 const SHARE_FORMATS = [
   { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
@@ -39,18 +34,41 @@ const SHARE_FORMATS = [
   { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
 ] as const
 
-const ShareSidebar = ({
-  map,
-  active,
-  close,
-}: {
-  map: MaplibreMap
-  active: ReadonlySignal<boolean>
-  close: () => void
-}) => {
+let urlMarker: Marker | null = null
+
+const ensureUrlMarker = (
+  logText: string,
+  map: MaplibreMap,
+  lon: number,
+  lat: number,
+) => {
+  let marker = urlMarker
+  if (!marker) {
+    marker = new Marker({
+      anchor: MARKER_ICON_ANCHOR,
+      element: getMarkerIconElement("blue", true),
+      draggable: false,
+    })
+    marker.getElement().style.pointerEvents = "none"
+    urlMarker = marker
+  } else {
+    const point = marker.getLngLat()
+    if (point.lng === lon && point.lat === lat) return
+  }
+
+  console.debug(logText, [lon, lat])
+  marker.setLngLat([lon, lat]).addTo(map)
+}
+
+const removeUrlMarker = () => {
+  urlMarker?.remove()
+  urlMarker = null
+}
+
+export const ShareSidebar = ({ close }: { close: () => void }) => {
+  const map = mainMap.value!
   const shareMarkerEnabled = useSignal(false)
   const shareMarkerRef = useRef<Marker | null>(null)
-  const urlMarkerRef = useRef<Marker | null>(null)
 
   const locationFilterEnabled = useSignal(false)
   const locationFilterRef = useRef<LocationFilterControl | null>(null)
@@ -117,20 +135,22 @@ const ShareSidebar = ({
     shareLayersCode.value = getMapLayersCode(map)
   }
 
-  useDisposeSignalEffect((scope) => {
-    if (!active.value) return
-
+  useDisposeEffect((scope) => {
     scope.map(map, "moveend", updateView)
     updateView()
     updateMarkerLngLat()
+    scope.defer(addLayerEventHandler(updateLayersCode))
     updateLayersCode()
-  })
 
-  useEffect(() => addLayerEventHandler(updateLayersCode), [])
+    return () => () => {
+      shareMarkerRef.current?.remove()
+      locationFilterRef.current?.remove()
+    }
+  }, [])
 
   useSignalEffect(() => {
     let marker = shareMarkerRef.current
-    if (!(active.value && shareMarkerEnabled.value)) {
+    if (!shareMarkerEnabled.value) {
       marker?.remove()
       updateMarkerLngLat()
       return
@@ -153,7 +173,7 @@ const ShareSidebar = ({
 
   useSignalEffect(() => {
     let locationFilter = locationFilterRef.current
-    if (!(active.value && locationFilterEnabled.value)) {
+    if (!locationFilterEnabled.value) {
       locationFilter?.remove()
       return
     }
@@ -165,49 +185,6 @@ const ShareSidebar = ({
 
     // By default, location filter is slightly smaller than the current view
     locationFilter.addTo(map, boundsPadding(map.getBounds(), -0.2))
-  })
-
-  useSignalEffect(() => {
-    const ensureMarker = (logText: string, lon: number, lat: number) => {
-      let marker = urlMarkerRef.current
-      if (!marker) {
-        marker = new Marker({
-          anchor: MARKER_ICON_ANCHOR,
-          element: getMarkerIconElement("blue", true),
-          draggable: false,
-        })
-        marker.getElement().style.pointerEvents = "none"
-        urlMarkerRef.current = marker
-      } else {
-        const point = marker.getLngLat()
-        if (point.lng === lon && point.lat === lat) return
-      }
-
-      console.debug(logText, [lon, lat])
-      marker.setLngLat([lon, lat]).addTo(map)
-    }
-
-    const removeMarker = () => {
-      urlMarkerRef.current?.remove()
-    }
-
-    const { queryParams } = routerCtx.value
-    const mlonText = queryParams.mlon?.at(-1)
-    const mlatText = queryParams.mlat?.at(-1)
-    if (mlonText && mlatText) {
-      const mlon = Number.parseFloat(mlonText)
-      const mlat = Number.parseFloat(mlatText)
-      if (isLongitude(mlon) && isLatitude(mlat)) {
-        ensureMarker("ShareSidebar: Initializing marker from URL", mlon, mlat)
-      } else {
-        removeMarker()
-      }
-    } else if (queryParams.m !== undefined) {
-      const { lon, lat } = getInitialMapState(map)
-      ensureMarker("ShareSidebar: Initializing marker at center", lon, lat)
-    } else {
-      removeMarker()
-    }
   })
 
   const onExportSubmit = async (e: TargetedSubmitEvent<HTMLFormElement>) => {
@@ -241,8 +218,6 @@ const ShareSidebar = ({
       exporting.value = false
     }
   }
-
-  if (!active.value) return null
 
   return (
     <div class="sidebar-content">
@@ -355,20 +330,31 @@ const ShareSidebar = ({
 
 export class ShareSidebarToggleControl extends SidebarToggleControl {
   public constructor() {
-    super("share", "javascripts.share.title")
+    super("share", t("javascripts.share.title"))
   }
 
   public override onAdd(map: MaplibreMap) {
     const container = super.onAdd(map)
 
-    render(
-      <ShareSidebar
-        map={map}
-        active={this.active}
-        close={this.close}
-      />,
-      this.sidebar,
-    )
+    effect(() => {
+      const { queryParams } = routerCtx.value
+      const mlonText = queryParams.mlon?.at(-1)
+      const mlatText = queryParams.mlat?.at(-1)
+      if (mlonText && mlatText) {
+        const mlon = Number.parseFloat(mlonText)
+        const mlat = Number.parseFloat(mlatText)
+        if (isLongitude(mlon) && isLatitude(mlat)) {
+          ensureUrlMarker("ShareSidebar: Initializing marker from URL", map, mlon, mlat)
+        } else {
+          removeUrlMarker()
+        }
+      } else if (queryParams.m !== undefined) {
+        const { lon, lat } = getInitialMapState(map)
+        ensureUrlMarker("ShareSidebar: Initializing marker at center", map, lon, lat)
+      } else {
+        removeUrlMarker()
+      }
+    })
 
     return container
   }

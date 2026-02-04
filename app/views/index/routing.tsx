@@ -1,6 +1,6 @@
 import { create } from "@bufbuild/protobuf"
 import { SidebarHeader } from "@index/_action-sidebar"
-import { defineRoute, type RouteContext } from "@index/router"
+import { defineRoute, routerCtx } from "@index/router"
 import { queryParam } from "@lib/codecs"
 import { formatPoint, tryParsePoint, zoomPrecision } from "@lib/coords"
 import { useDisposeEffect } from "@lib/dispose-scope"
@@ -40,12 +40,7 @@ import { scrollElementIntoView } from "@lib/scroll"
 import { StandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
-import {
-  type ReadonlySignal,
-  type Signal,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
@@ -60,6 +55,7 @@ import {
   Point,
   Popup,
 } from "maplibre-gl"
+import type { RefObject } from "preact"
 import { useId, useRef } from "preact/hooks"
 
 const LAYER_ID = "routing" as LayerId
@@ -268,13 +264,13 @@ const RoutingAttribution = ({
 
 const RoutingSidebar = ({
   map,
-  ctx,
+  sidebarRef,
   engine,
   from,
   to,
 }: {
   map: MaplibreMap
-  ctx: ReadonlySignal<RouteContext>
+  sidebarRef: RefObject<HTMLElement>
   engine: Signal<RoutingEngineKey | undefined>
   from: Signal<string | undefined>
   to: Signal<string | undefined>
@@ -310,10 +306,6 @@ const RoutingSidebar = ({
   } | null>(null)
 
   const sidebarPointerRef = useRef<[number, number] | null>(null)
-
-  const parentSidebar = document
-    .getElementById("ActionSidebar")!
-    .closest("div.sidebar")!
 
   const clearRouteResults = () => {
     popup.current?.remove()
@@ -427,6 +419,7 @@ const RoutingSidebar = ({
     }
 
     if (nextId !== null && scrollIntoView) {
+      const parentSidebar = sidebarRef.current!
       const row = parentSidebar.querySelector(`li[data-instruction-id="${nextId}"]`)
       scrollElementIntoView(parentSidebar, row)
     }
@@ -592,6 +585,8 @@ const RoutingSidebar = ({
 
   // Effect: Main lifecycle
   useDisposeEffect((scope) => {
+    const parentSidebar = sidebarRef.current!
+
     scope.mapLayerLifecycle(map, LAYER_ID)
     scope.defer(resetState)
 
@@ -660,8 +655,7 @@ const RoutingSidebar = ({
 
   // Effect: Apply external URL params
   useSignalEffect(() => {
-    const { reason } = ctx.value
-    if (reason === "sync") return
+    if (routerCtx.value.reason === "sync") return
 
     resetState()
     setEndpointDisplay("start", from.peek() ?? "")

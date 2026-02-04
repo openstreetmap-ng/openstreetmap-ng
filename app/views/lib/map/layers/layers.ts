@@ -356,11 +356,11 @@ type LayerEventHandler = (
   config: LayerConfig,
 ) => void
 
-const layerEventHandlers = new Map<object, LayerEventHandler>()
+const layerEventHandlers = new Map<symbol, LayerEventHandler>()
 
 /** Add a layer event handler, called when a layer is added or removed */
 export const addLayerEventHandler = (handler: LayerEventHandler) => {
-  const id = {}
+  const id = Symbol("layer-event-handler")
   layerEventHandlers.set(id, handler)
   return () => layerEventHandlers.delete(id)
 }

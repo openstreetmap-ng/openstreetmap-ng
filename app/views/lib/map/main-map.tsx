@@ -10,19 +10,16 @@ import { NewNoteRoute } from "@index/new-note"
 import { NoteRoute } from "@index/note"
 import { QueryFeaturesRoute } from "@index/query-features"
 import { configureRouter } from "@index/router"
-import { IndexRouterOutlet } from "@index/router-outlet"
 import { RoutingRoute } from "@index/routing"
 import { SearchRoute } from "@index/search"
-import { configureSearchForm } from "@index/search-form"
+import type { RightSidebarKind } from "@index/sidebar/_toggle-button"
 import { LayerSidebarToggleControl } from "@index/sidebar/layers"
 import { LegendSidebarToggleControl } from "@index/sidebar/legend"
 import { ShareSidebarToggleControl } from "@index/sidebar/share"
 import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
 import { wrapIdleCallbackStatic } from "@lib/utils"
-import { effect } from "@preact/signals"
+import { effect, signal } from "@preact/signals"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
-import { render } from "preact"
-import { handleEditRemotePath, updateNavbarAndHash } from "../../navbar/navbar-left"
 import { CustomGeolocateControl } from "./controls/geolocate"
 import { addControlGroup } from "./controls/group"
 import { NewNoteControl } from "./controls/new-note"
@@ -32,10 +29,18 @@ import { configureDefaultMapBehavior } from "./defaults"
 import { configureDataLayer } from "./layers/data-layer"
 import { addLayerEventHandler, addMapLayerSources } from "./layers/layers"
 import { configureNotesLayer } from "./layers/notes-layer"
+import type { MapState } from "./state"
 import { applyMapState, getInitialMapState, getMapState, parseMapState } from "./state"
 
+export const mainMap = signal<MaplibreMap | null>(null)
+
+export const rightSidebar = signal<RightSidebarKind | null>(null)
+
 /** Get the main map instance */
-const createMainMap = (container: HTMLElement) => {
+const createMainMap = (
+  container: HTMLElement,
+  onMapStateChange: (state: MapState) => void,
+) => {
   console.debug("MainMap: Initializing")
   const map = new MaplibreMap({
     container,
@@ -74,7 +79,7 @@ const createMainMap = (container: HTMLElement) => {
 
   const saveMapStateLazy = wrapIdleCallbackStatic(() => {
     const state = getMapState(map)
-    updateNavbarAndHash(state)
+    onMapStateChange(state)
     mapStateStorage.set(state)
   })
   map.on("moveend", saveMapStateLazy)
@@ -106,11 +111,12 @@ const createMainMap = (container: HTMLElement) => {
   return map
 }
 
-/** Configure the main map and all its components */
-const configureMainMap = (container: HTMLElement) => {
-  const map = createMainMap(container)
-
-  configureSearchForm(map)
+export const initMainMap = (
+  container: HTMLElement,
+  onMapStateChange: (state: MapState) => void,
+) => {
+  const map = createMainMap(container, onMapStateChange)
+  mainMap.value = map
 
   configureRouter([
     IndexRoute,
@@ -127,13 +133,4 @@ const configureMainMap = (container: HTMLElement) => {
     RoutingRoute,
     SearchRoute,
   ])
-
-  const actionSidebar = document.getElementById("ActionSidebar")!
-  render(<IndexRouterOutlet map={map} />, actionSidebar)
-
-  handleEditRemotePath()
 }
-
-const mapContainer = document.getElementById("MainMap")
-export const hasMainMap = mapContainer?.tagName === "DIV"
-if (hasMainMap) configureMainMap(mapContainer!)

@@ -1,41 +1,21 @@
-import { type AnyRouteDef, routerParams, routerQuery, routerRoute } from "@index/router"
-import { useSignalEffect } from "@preact/signals"
-import type { Map as MaplibreMap } from "maplibre-gl"
-import { collapseNavbar } from "../navbar/navbar"
+import { routerParams, routerQuery, routerRoute } from "@index/router"
+import { mainMap } from "@lib/map/main-map"
+import type { RefObject } from "preact"
 
-const RouteRenderer = ({ map, route }: { map: MaplibreMap; route: AnyRouteDef }) => {
-  const RouteComponent = route.Component
-  return (
-    <RouteComponent
-      map={map}
-      {...routerParams.value}
-      {...routerQuery.value}
-    />
-  )
-}
-
-export const IndexRouterOutlet = ({ map }: { map: MaplibreMap }) => {
-  // Effect: apply route-level shell state (classes/overlay) on route changes.
-  useSignalEffect(() => {
-    const route = routerRoute.value
-    if (!route) return
-
-    const sidebar = document.getElementById("ActionSidebar")!.closest("div.sidebar")!
-    sidebar.classList.toggle("sidebar-overlay", Boolean(route.sidebarOverlay))
-
-    map.resize()
-    collapseNavbar()
-  })
-
-  const route = routerRoute.value
-  if (!route) return null
-
+export const IndexRouterOutlet = ({
+  sidebarRef,
+}: {
+  sidebarRef: RefObject<HTMLElement>
+}) => {
+  const route = routerRoute.value!
   return (
     <div class={`action-sidebar ${route.id}`}>
-      <RouteRenderer
+      <route.Component
         key={route.id}
-        map={map}
-        route={route}
+        map={mainMap.value!}
+        sidebarRef={sidebarRef}
+        {...routerParams.value}
+        {...routerQuery.value}
       />
     </div>
   )

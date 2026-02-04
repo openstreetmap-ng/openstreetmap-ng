@@ -6,21 +6,19 @@ import {
   MAP_QUERY_AREA_MAX_SIZE,
   NOTE_QUERY_AREA_MAX_SIZE,
 } from "@lib/config"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { useDisposeEffect } from "@lib/dispose-scope"
 import {
   globeProjectionStorage,
   layerOrderStorage,
   overlayOpacityStorage,
 } from "@lib/local-storage"
 import { boundsSize } from "@lib/map/bounds"
-import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import { dataLayerPending } from "@lib/map/layers/data-layer"
 import {
   AERIAL_LAYER_ID,
   activeBaseLayerId,
   addLayerEventHandler,
   addMapLayer,
-  addMapLayerSources,
   CYCLEMAP_LAYER_ID,
   CYCLOSM_LAYER_ID,
   DATA_LAYER_ID,
@@ -29,7 +27,6 @@ import {
   hasMapLayer,
   type LayerId,
   LIBERTY_LAYER_ID,
-  layersConfig,
   NOTES_LAYER_ID,
   removeMapLayer,
   STANDARD_LAYER_ID,
@@ -37,18 +34,14 @@ import {
   TRANSPORTMAP_LAYER_ID,
 } from "@lib/map/layers/layers"
 import { notesLayerPending } from "@lib/map/layers/notes-layer"
-import {
-  type ReadonlySignal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+import { mainMap } from "@lib/map/main-map"
+import { useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import { withoutAll } from "@std/collections/without-all"
 import { t } from "i18next"
-import { type LngLatBounds, type MapLibreEvent, Map as MaplibreMap } from "maplibre-gl"
+import type { LngLatBounds, MapLibreEvent } from "maplibre-gl"
 import type { ComponentChildren, RefCallback } from "preact"
-import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
+import { MinimapPool } from "./minimap-pool"
 
 const BASE_LAYERS = new Set([
   CYCLOSM_LAYER_ID,
@@ -96,10 +89,11 @@ const LayerTile = ({
     aria-current={kind === "base" ? active : undefined}
     aria-pressed={kind === "overlay" ? active : undefined}
   >
-    <div class="map-container">
-      {minimap.kind === "map" ? (
-        <div ref={minimap.ref} />
-      ) : (
+    <div
+      class="map-container"
+      {...(minimap.kind === "map" ? { ref: minimap.ref } : {})}
+    >
+      {minimap.kind === "image" && (
         <img
           src={minimap.src}
           loading="lazy"
@@ -128,10 +122,11 @@ const ListLayerTile = ({
       onClick={onClick}
       aria-current={active}
     >
-      <div class="map-container">
-        {minimap.kind === "map" ? (
-          <div ref={minimap.ref} />
-        ) : (
+      <div
+        class="map-container"
+        {...(minimap.kind === "map" ? { ref: minimap.ref } : {})}
+      >
+        {minimap.kind === "image" && (
           <img
             src={minimap.src}
             loading="lazy"
@@ -187,19 +182,9 @@ const OverlayToggle = ({
   </BTooltip>
 )
 
-const LayersSidebar = ({
-  map,
-  active,
-  close,
-}: {
-  map: MaplibreMap
-  active: ReadonlySignal<boolean>
-  close: () => void
-}) => {
+export const LayersSidebar = ({ close }: { close: () => void }) => {
+  const map = mainMap.value!
   const currentViewBounds = useSignal<LngLatBounds | null>(null)
-
-  const minimapContainersRef = useRef(new Map<LayerId, HTMLDivElement>())
-  const minimapsRef = useRef<Map<LayerId, MaplibreMap>>()
 
   const orderedLayersCollapsed = useSignal(true)
   const orderedLayerIds = useComputed(() => {
@@ -232,44 +217,25 @@ const LayersSidebar = ({
   const dataDisabled = useSignal(false)
   const dataRestoreOnEnableRef = useRef(false)
 
-  const registerMinimapContainer =
-    (layerId: LayerId) => (el: HTMLDivElement | null) => {
-      if (el) minimapContainersRef.current.set(layerId, el)
-      else minimapContainersRef.current.delete(layerId)
+  const minimapRefs = useRef(new Map<LayerId, RefCallback<HTMLDivElement>>())
+  const getMinimapRef = (layerId: LayerId) => {
+    const existing = minimapRefs.current.get(layerId)
+    if (existing) return existing
+
+    const next: RefCallback<HTMLDivElement> = (el) => {
+      if (el) MinimapPool.attach(layerId, el, map)
+      else MinimapPool.detach(layerId)
     }
+    minimapRefs.current.set(layerId, next)
+    return next
+  }
 
   const getLayerMinimap = (layerId: LayerId): Minimap => {
     if (isMobile()) {
       const thumbnail = LAYER_THUMBNAILS.get(layerId)
       if (thumbnail) return { kind: "image", src: thumbnail }
     }
-    return { kind: "map", ref: registerMinimapContainer(layerId) }
-  }
-
-  const initializeMinimapsOnce = () => {
-    if (minimapsRef.current) return
-    minimapsRef.current = new Map<LayerId, MaplibreMap>()
-
-    for (const [layerId, container] of minimapContainersRef.current) {
-      const config = layersConfig.get(layerId)
-      if (!config) {
-        console.error("LayersSidebar: Minimap layer not found", layerId)
-        continue
-      }
-
-      console.debug("LayersSidebar: Initializing minimap", layerId)
-      const minimap = new MaplibreMap({
-        container,
-        attributionControl: false,
-        interactive: false,
-        refreshExpiredTiles: false,
-      })
-      configureDefaultMapBehavior(minimap)
-      addMapLayerSources(minimap, layerId)
-      addMapLayer(minimap, layerId, false)
-      if (!config.isBaseLayer) minimap.setPaintProperty(layerId, "raster-opacity", 1)
-      minimapsRef.current.set(layerId, minimap)
-    }
+    return { kind: "map", ref: getMinimapRef(layerId) }
   }
 
   const setBaseLayer = (layerId: LayerId) => {
@@ -311,35 +277,16 @@ const LayersSidebar = ({
     map.setPaintProperty(AERIAL_LAYER_ID, "raster-opacity", aerialOpacity.value)
   })
 
-  const syncMinimaps = (kind: "jump" | "ease") => {
-    const options = {
-      center: map.getCenter(),
-      zoom: map.getZoom(),
-    }
-    for (const minimap of minimapsRef.current!.values()) {
-      if (kind === "jump") {
-        minimap.resize()
-        minimap.jumpTo(options)
-      } else {
-        minimap.easeTo(options)
-      }
-    }
-  }
-
-  useDisposeSignalEffect((scope) => {
-    if (!active.value) return
-
+  useDisposeEffect((scope) => {
     const onMoveEnd = (e?: MapLibreEvent) => {
       currentViewBounds.value = map.getBounds()
-      initializeMinimapsOnce()
-      syncMinimaps(e ? "ease" : "jump")
+      MinimapPool.syncFrom(map, e ? "ease" : "jump")
     }
     scope.map(map, "moveend", onMoveEnd)
     onMoveEnd()
-  })
+  }, [])
 
   useSignalEffect(() => {
-    if (!active.value) return
     const bounds = currentViewBounds.value
     if (!bounds) return
     const areaSize = boundsSize(bounds)
@@ -380,8 +327,6 @@ const LayersSidebar = ({
       }
     }
   })
-
-  if (!(active.value || minimapsRef.current)) return null
 
   return (
     <div class="sidebar-content">
@@ -536,21 +481,6 @@ const LayersSidebar = ({
 
 export class LayerSidebarToggleControl extends SidebarToggleControl {
   public constructor() {
-    super("layers", "javascripts.map.layers.title")
-  }
-
-  public override onAdd(map: MaplibreMap) {
-    const container = super.onAdd(map)
-
-    render(
-      <LayersSidebar
-        map={map}
-        active={this.active}
-        close={this.close}
-      />,
-      this.sidebar,
-    )
-
-    return container
+    super("layers", t("javascripts.map.layers.title"))
   }
 }
