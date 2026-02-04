@@ -362,19 +362,19 @@ const RoutingSidebar = ({
 
   const applyResolvedEndpoint = (
     dir: EndpointDir,
-    entry: RoutingResult_EndpointValid,
+    { name, location, bounds }: RoutingResult_EndpointValid,
   ) => {
     const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
-    const label = entry.name || query
-    const { lon, lat } = entry.location
+    const label = name || query
+
     endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
       query,
       label,
-      location: { lon, lat },
-      bounds: entry.bounds,
+      location,
+      bounds,
     })
     setEndpointDisplay(dir, label)
-    getMarker(dir).setLngLat([lon, lat]).addTo(map)
+    getMarker(dir).setLngLat(location).addTo(map)
   }
 
   const getMarker = (dir: EndpointDir) => {
@@ -561,13 +561,16 @@ const RoutingSidebar = ({
     const coords = tryParsePoint(value)
     if (!coords) return
     const [lon, lat] = coords
+    const location = { lon, lat }
+    const bounds = { minLon: lon, minLat: lat, maxLon: lon, maxLat: lat }
+
     endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
       query: value,
       label: value,
-      location: { lon, lat },
-      bounds: { minLon: lon, minLat: lat, maxLon: lon, maxLat: lat },
+      location,
+      bounds,
     })
-    getMarker(dir).setLngLat([lon, lat]).addTo(map)
+    getMarker(dir).setLngLat(location).addTo(map)
   }
 
   // --- Effects ---
