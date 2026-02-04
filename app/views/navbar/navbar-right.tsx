@@ -1,5 +1,5 @@
 import { config } from "@lib/config"
-import { hasMainMap } from "@lib/map/main-map"
+import { mainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState } from "@lib/map/state"
 import { signal } from "@preact/signals"
 import { assertEquals, assertExists } from "@std/assert"
@@ -116,7 +116,7 @@ const NavbarUser = () => {
     messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator,
   )
   const showReports = Boolean(reportsCountModerator || reportsCountAdministrator)
-  const showFindHome = Boolean(hasMainMap && user.homePoint)
+  const showFindHome = Boolean(mainMap.value && user.homePoint)
 
   const onFindHomeClick = () => {
     assertExists(user.homePoint)

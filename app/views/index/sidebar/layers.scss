@@ -69,7 +69,7 @@
       border-top-left-radius: calc($border-radius + 2px);
 
       // Render at a larger viewport and scale down so minimaps show more area
-      > div {
+      > .maplibregl-map {
         width: 200%;
         height: 200%;
         transform: scale(0.5);

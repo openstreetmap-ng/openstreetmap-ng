@@ -1,58 +1,39 @@
-import { IndexRoute } from "@index/index"
-import { routerNavigate } from "@index/router"
+import { routerRemoteEditTarget } from "@index/router"
 import { useDisposeEffect } from "@lib/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@lib/local-storage"
+import { mainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState, type MapState } from "@lib/map/state"
-import { getSearchParam } from "@lib/qs"
+import { qsEncode } from "@lib/qs"
 import { RemoteEditButton } from "@lib/remote-edit"
-import type { OSMObject } from "@lib/types"
-import { batch, computed, signal, useSignalEffect } from "@preact/signals"
+import { computed, signal, useSignalEffect } from "@preact/signals"
 import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
-import { createRef, render } from "preact"
+import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 
 const MIN_EDIT_ZOOM = 13
 
-const hasMainMap = document.getElementById("MainMap")?.tagName === "DIV"
-
 const currentMapState = signal(getInitialMapState())
-const currentObject = signal<OSMObject>()
-const remoteButtonRef = createRef<HTMLButtonElement>()
 
 const currentHash = computed(() =>
-  hasMainMap ? encodeMapState(currentMapState.value) : "",
+  mainMap.value ? encodeMapState(currentMapState.value) : "",
 )
 
 const editDisabled = computed(() =>
-  hasMainMap ? currentMapState.value.zoom < MIN_EDIT_ZOOM : false,
+  mainMap.value ? currentMapState.value.zoom < MIN_EDIT_ZOOM : false,
 )
 
-export const updateNavbarAndHash = (state: MapState, object?: OSMObject) => {
+export const updateNavbarAndHash = (state: MapState) => {
   const hash = encodeMapState(state)
   window.history.replaceState(null, "", hash)
-  batch(() => {
-    currentMapState.value = state
-    currentObject.value = object
-  })
-}
-
-export const handleEditRemotePath = () => {
-  if (location.pathname === "/edit" && getSearchParam("editor") === "remote") {
-    console.debug("NavbarLeft: Handle edit remote path")
-    routerNavigate(IndexRoute)
-    remoteButtonRef.current!.click()
-  }
+  currentMapState.value = state
 }
 
 const buildEditHref = (editor: Editor) => {
-  const url = new URL("/edit", window.location.origin)
-  url.searchParams.set("editor", editor)
-
-  const object = currentObject.value
-  if (object) url.searchParams.set(object.type, String(object.id))
-
-  return url.pathname + url.search + currentHash.value
+  const params: Record<string, string> = { editor }
+  const target = routerRemoteEditTarget.value
+  if (target) params[target.type] = target.id.toString()
+  return `/edit${qsEncode(params)}${currentHash.value}`
 }
 
 const EditorImg = ({
@@ -146,7 +127,7 @@ const NavbarLeft = () => {
   })
 
   const onSelectEditor = (editor: Editor) => {
-    if (rememberChoiceRef.current?.checked) {
+    if (rememberChoiceRef.current!.checked) {
       preferredEditorStorage.value = editor
     }
     dropdownRef.current!.hide()
@@ -212,11 +193,9 @@ const NavbarLeft = () => {
               </a>
 
               <RemoteEditButton
-                buttonRef={remoteButtonRef}
                 class="dropdown-item edit-link"
                 onBeforeOpen={() => onSelectEditor("remote")}
                 state={currentMapState}
-                object={currentObject}
               >
                 <EditorImg
                   editor="remote"

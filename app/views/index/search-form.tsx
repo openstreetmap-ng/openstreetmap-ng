@@ -1,11 +1,12 @@
-import { routerNavigate } from "@index/router"
+import { routerNavigate, routerRoute } from "@index/router"
 import { SearchRoute, searchFormQuery } from "@index/search"
 import { SEARCH_QUERY_MAX_LENGTH } from "@lib/config"
+import { mainMap } from "@lib/map/main-map"
 import { t } from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
-import { render } from "preact"
 
-const SearchForm = ({ map }: { map: MaplibreMap }) => {
+export const SearchForm = () => {
+  const map = mainMap.value!
+
   const onSubmit = (e: Event) => {
     console.debug("SearchForm: Submitted")
     e.preventDefault()
@@ -24,8 +25,13 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
     routerNavigate(SearchRoute, { at })
   }
 
+  const sticky = routerRoute.value?.id === "search"
+
   return (
-    <form onSubmit={onSubmit}>
+    <form
+      class={`SearchForm ${sticky ? "sticky-top" : ""}`}
+      onSubmit={onSubmit}
+    >
       <div class="row g-2">
         <div class="col">
           <div class="input-group">
@@ -128,9 +134,4 @@ const SearchForm = ({ map }: { map: MaplibreMap }) => {
       </div>
     </form>
   )
-}
-
-export const configureSearchForm = (map: MaplibreMap) => {
-  const container = document.getElementById("SearchForm")!
-  render(<SearchForm map={map} />, container)
 }

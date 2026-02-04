@@ -15,7 +15,7 @@ import type {
   MapLayerMouseEvent,
   Map as MaplibreMap,
 } from "maplibre-gl"
-import { MapAlertPanel, mountMapAlert } from "../alerts"
+import { MapAlertPanel, pushMapAlert } from "../alerts"
 import {
   boundsContain,
   boundsPadding,
@@ -203,7 +203,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
     </>
   )
 
-  mountMapAlert(<DataLayerAlerts />)
+  pushMapAlert(<DataLayerAlerts />)
 
   /** On map update, fetch the elements in view and update the data layer */
   const updateLayer = async () => {

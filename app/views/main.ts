@@ -57,7 +57,7 @@ import "./user/signup"
 import "./welcome"
 import "@lib/timezone-update"
 
-import "@lib/map/main-map"
+import "./index/app"
 
 import "@lib/auth-switcher"
 import "@lib/bootstrap"

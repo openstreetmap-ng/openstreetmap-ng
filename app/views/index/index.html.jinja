@@ -9,22 +9,7 @@
 {% block body_class %}map-body{% endblock %}
 {% block body %}
 
-<div class="main-map-container">
-    <div class="sidebar">
-        <div id="SearchForm"></div>
-        <div id="ActionSidebar"></div>
-    </div>
-
-    <div id="MainMap">
-        <div id="MapAlerts"></div>
-    </div>
-
-    <div class="sidebar">
-        <div class="map-sidebar layers" hidden></div>
-        <div class="map-sidebar legend" hidden></div>
-        <div class="map-sidebar share" hidden></div>
-    </div>
-</div>
+<div id="IndexApp" class="main-map-container"></div>
 
 {% include 'index/context-menu' %}
 

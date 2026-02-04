@@ -1,17 +1,28 @@
+import { signal } from "@preact/signals"
 import type { ComponentChild } from "preact"
-import { render } from "preact"
 
-export const mountMapAlert = (node: ComponentChild) => {
-  const container = document.getElementById("MapAlerts")!
-  const mountPoint = document.createElement("div")
-  render(node, mountPoint)
-  container.append(mountPoint)
+const alerts = signal<
+  readonly Readonly<{
+    id: symbol
+    node: ComponentChild
+  }>[]
+>([])
 
+export const pushMapAlert = (node: ComponentChild) => {
+  const id = Symbol("map-alert")
+  alerts.value = [...alerts.peek(), { id, node }]
   return () => {
-    render(null, mountPoint)
-    mountPoint.remove()
+    alerts.value = alerts.peek().filter((a) => a.id !== id)
   }
 }
+
+export const MapAlerts = () => (
+  <div class="map-alerts">
+    {alerts.value.map((a) => (
+      <div key={a.id}>{a.node}</div>
+    ))}
+  </div>
+)
 
 export const MapAlertPanel = ({
   variant,

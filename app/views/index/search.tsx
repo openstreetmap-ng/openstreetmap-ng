@@ -4,7 +4,7 @@ import { defineRoute, routerNavigate } from "@index/router"
 import { useSidebarSearchRpc } from "@index/search-rpc"
 import { queryParam } from "@lib/codecs"
 import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
-import { mountMapAlert } from "@lib/map/alerts"
+import { pushMapAlert } from "@lib/map/alerts"
 import { boundsIntersection, boundsPadding, boundsSize } from "@lib/map/bounds"
 import { clearMapHover, setMapHover } from "@lib/map/hover"
 import { loadMapImage } from "@lib/map/image"
@@ -33,7 +33,7 @@ import type { Feature } from "geojson"
 import { t } from "i18next"
 import type { MapLayerMouseEvent } from "maplibre-gl"
 import { type GeoJSONSource, LngLatBounds, type Map as MaplibreMap } from "maplibre-gl"
-import type { MouseEventHandler, Ref } from "preact"
+import type { MouseEventHandler, Ref, RefObject } from "preact"
 import { useRef } from "preact/hooks"
 
 const LAYER_ID = "search" as LayerId
@@ -190,11 +190,13 @@ const getFeatureIndex = (e: MapLayerMouseEvent) => {
 
 const SearchSidebar = ({
   map,
+  sidebarRef,
   q,
   at,
   local,
 }: {
   map: MaplibreMap
+  sidebarRef: RefObject<HTMLElement>
   q: Signal<string | undefined>
   at: Signal<LonLatZoom | undefined>
   local: Signal<boolean>
@@ -249,11 +251,9 @@ const SearchSidebar = ({
       map.setFeatureState({ source: LAYER_ID, id: nextIndex }, { hover: true })
 
       if (scrollIntoView) {
-        const scrollSidebar = document
-          .getElementById("ActionSidebar")!
-          .closest(".sidebar")!
         const el = entryRefs.current[nextIndex]
-        scrollElementIntoView(scrollSidebar, el)
+        const parentSidebar = sidebarRef.current!
+        scrollElementIntoView(parentSidebar, el)
       }
 
       const objects = elementsByIndex.current[nextIndex]?.()
@@ -276,12 +276,8 @@ const SearchSidebar = ({
 
   // Effect: map layer lifecycle + hover/click handlers (stable; reads latest results via peek()).
   useDisposeEffect((scope) => {
-    const searchForm = document.getElementById("SearchForm")!
-    searchForm.classList.add("sticky-top")
-    scope.defer(() => searchForm.classList.remove("sticky-top"))
-
     scope.defer(
-      mountMapAlert(
+      pushMapAlert(
         <SearchThisAreaAlert
           visible={searchThisAreaVisible}
           onClick={onSearchThisAreaClick}

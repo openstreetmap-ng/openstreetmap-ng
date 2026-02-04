@@ -52,7 +52,7 @@ import {
   type MapLayerMouseEvent,
   type Map as MaplibreMap,
 } from "maplibre-gl"
-import type { ComponentChildren } from "preact"
+import type { ComponentChildren, RefObject } from "preact"
 import { useRef } from "preact/hooks"
 
 // Constants
@@ -152,8 +152,6 @@ const EMPTY_CONTEXT: FetchContext = {
   displayName: undefined,
 }
 
-const changesetDomId = (changesetId: string) => `ChangesetEntry-${changesetId}`
-
 type ScrollState = { state: "above" | "visible" | "below"; distance: number }
 
 const getElementScrollState = (
@@ -177,15 +175,21 @@ const getElementScrollState = (
 
 const ChangesetsHistorySidebar = ({
   map,
+  sidebarRef,
   date,
   scope,
   displayName,
 }: {
   map: MaplibreMap
+  sidebarRef: RefObject<HTMLElement>
   date: ReadonlySignal<string | undefined>
   scope: ReadonlySignal<"nearby" | "friends" | undefined>
   displayName: ReadonlySignal<string | undefined>
 }) => {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const getEntryEl = (changesetId: string) =>
+    rootRef.current?.querySelector(`li[data-changeset-id="${changesetId}"]`)
+
   const changesets = useSignal<Changeset[]>([])
   const noMoreChangesets = useSignal(false)
   const showScrollTop = useSignal(false)
@@ -215,11 +219,6 @@ const ChangesetsHistorySidebar = ({
   })
 
   setPageTitle(sidebarTitle.value.plain)
-
-  const parentSidebarRef = useRef<Element | null>(null)
-  const parentSidebar = (parentSidebarRef.current ??= document
-    .getElementById("ActionSidebar")!
-    .closest("div.sidebar")!)
 
   const loadMoreSentinel = useRef<HTMLDivElement>(null)
 
@@ -287,7 +286,7 @@ const ChangesetsHistorySidebar = ({
   }
 
   const setEntryHoverClass = (id: string, hover: boolean) => {
-    const el = document.getElementById(changesetDomId(id))
+    const el = getEntryEl(id)
     el?.classList.toggle("hover", hover)
   }
 
@@ -426,6 +425,7 @@ const ChangesetsHistorySidebar = ({
   }
 
   const updateLayersVisibilityNow = () => {
+    const parentSidebar = sidebarRef.current!
     const sidebarRect = parentSidebar.getBoundingClientRect()
     const csList = changesets.value
     const hoveredId = hoverState.current?.id
@@ -441,7 +441,7 @@ const ChangesetsHistorySidebar = ({
     for (let i = csList.length - 1; i >= 0; i--) {
       const changeset = csList[i]
       const changesetId = changeset.id.toString()
-      const element = document.getElementById(changesetDomId(changesetId))
+      const element = getEntryEl(changesetId)
       if (!element) continue
 
       const { state, distance } = getElementScrollState(
@@ -631,7 +631,8 @@ const ChangesetsHistorySidebar = ({
   }
 
   const scrollChangesetIntoView = (id: string) => {
-    const element = document.getElementById(changesetDomId(id))
+    const parentSidebar = sidebarRef.current!
+    const element = getEntryEl(id)
     scrollElementIntoView(parentSidebar, element)
   }
 
@@ -690,6 +691,8 @@ const ChangesetsHistorySidebar = ({
 
   // Effect: map + DOM lifecycle
   useDisposeEffect((scope) => {
+    const parentSidebar = sidebarRef.current!
+
     scheduleLayersVisibilityUpdateFn.current = scope.frame(updateLayersVisibilityNow)
     scheduleSidebarFitFn.current = scope.debounce(
       FOCUS_HOVER_DELAY,
@@ -746,7 +749,10 @@ const ChangesetsHistorySidebar = ({
   })
 
   return (
-    <div class="sidebar-content">
+    <div
+      class="sidebar-content"
+      ref={rootRef}
+    >
       <div class="section">
         <SidebarHeader title={sidebarTitle.value.html} />
 
@@ -836,7 +842,7 @@ const ChangesetEntry = ({
 
   return (
     <li
-      id={changesetDomId(changesetId)}
+      data-changeset-id={changesetId}
       class="social-entry clickable"
       onMouseEnter={() => onMouseEnter(changeset)}
       onMouseLeave={() => onMouseLeave(changeset)}

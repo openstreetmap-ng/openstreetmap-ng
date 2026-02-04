@@ -7,6 +7,7 @@ const resources: Resource = (window as any).locales
 console.debug("I18n: Discovered locales", Object.keys(resources))
 
 void init({
+  initAsync: false,
   lng: primaryLanguage,
   fallbackLng: primaryLanguage === "en" ? false : "en",
   contextSeparator: "__",

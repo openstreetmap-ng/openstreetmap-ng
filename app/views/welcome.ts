@@ -66,13 +66,11 @@ mount("welcome-body", (body) => {
     } satisfies MapState
 
     startButton.href = `/edit${qsEncode(startParams)}${encodeMapState(geolocationState)}`
-    startButton.removeEventListener("click", onStartButtonClick)
   }
 
-  /** On geolocation failure, remove event listener */
+  /** On geolocation failure, do nothing */
   const onGeolocationFailure = () => {
     console.debug("Welcome: Geolocation failure")
-    startButton.removeEventListener("click", onStartButtonClick)
   }
 
   /** If permission was granted, start geolocation early */
