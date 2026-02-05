@@ -34,6 +34,7 @@ async def render_response(
         user_config = WebConfig.UserConfig(
             id=user['id'],
             display_name=user['display_name'],
+            email=user['email'],
             avatar_url=user_avatar_url(user),
             activity_tracking=user['activity_tracking'],
             crash_reporting=user['crash_reporting'],

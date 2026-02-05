@@ -282,7 +282,7 @@ const RoutingSidebar = ({
   const loading = useSignal(false)
   const routeView = useSignal<RouteView | null>(null)
   const activeInstructionId = useSignal<number | null>(null)
-  const activeFeatureIdRef = useRef<number | null>(null)
+  const activeFeatureIdRef = useRef<number>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const engineInputId = useId()
@@ -298,14 +298,14 @@ const RoutingSidebar = ({
     end: { marker: null, loaded: null },
   })
 
-  const popup = useRef<Popup | null>(null)
+  const popup = useRef<Popup>(null)
   const popupContent = useRef<{
     root: HTMLDivElement
     number: HTMLSpanElement
     instruction: HTMLSpanElement
-  } | null>(null)
+  }>(null)
 
-  const sidebarPointerRef = useRef<[number, number] | null>(null)
+  const sidebarPointerRef = useRef<[number, number]>(null)
 
   const clearRouteResults = () => {
     popup.current?.remove()

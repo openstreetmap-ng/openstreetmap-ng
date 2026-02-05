@@ -193,7 +193,7 @@ export default defineConfig({
 
           const params = new URLSearchParams(url.searchParams)
           params.delete("rtl")
-          const inlineParts: string[] = []
+          const inlineParts = []
           for (const [key, value] of params.entries()) {
             inlineParts.push(value ? `${key}=${value}` : key)
           }

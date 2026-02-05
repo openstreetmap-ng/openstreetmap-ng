@@ -9,9 +9,9 @@ from connectrpc.code import Code
 from connectrpc.errors import ConnectError
 from connectrpc.interceptor import UnaryInterceptor
 from connectrpc.request import REQ, RES, RequestContext
-from fastapi import HTTPException
 from protovalidate import collect_violations
 from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
 from starlette.routing import Route
 
 from app.config import REQUEST_BODY_MAX_SIZE

@@ -27,6 +27,7 @@ from app.models.proto.changeset_pb2 import AddChangesetCommentRequest
 from app.models.proto.note_pb2 import AddNoteCommentRequest
 from app.models.proto.report_pb2 import CreateReportRequest
 from app.models.proto.search_pb2 import SearchRequest
+from app.models.proto.settings_security_pb2 import RenamePasskeyRequest
 from buf.validate import validate_pb2
 
 if TYPE_CHECKING:
@@ -229,7 +230,6 @@ WIKIMEDIA_OAUTH_SECRET = SecretStr('')
 # Passkeys
 PASSKEY_CHALLENGE_EXPIRE = timedelta(minutes=5)
 PASSKEY_CHALLENGE_CLEANUP_PROBABILITY = 0.001
-PASSKEY_NAME_MAX_LENGTH = 50
 PASSKEY_LIMIT = 5
 
 # TOTP
@@ -546,6 +546,9 @@ CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
 )
 NOTE_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     AddNoteCommentRequest, 'body.string.max_len'
+)
+PASSKEY_NAME_MAX_LENGTH: int = _proto_validate(
+    RenamePasskeyRequest, 'name.string.max_len'
 )
 REPORT_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     CreateReportRequest, 'body.string.max_len'

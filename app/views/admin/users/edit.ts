@@ -24,10 +24,10 @@ mount("admin-user-edit-body", (body) => {
   const accountForm = body.querySelector("form.account-form")
   if (accountForm) {
     const newPasswordInput = accountForm.querySelector(
-      "input[type=password][data-name=new_password]",
+      "input[type=password][name=new_password]",
     )!
     const newPasswordConfirmInput = accountForm.querySelector(
-      "input[type=password][data-name=new_password_confirm]",
+      "input[type=password][name=new_password_confirm]",
     )!
     const roleCheckboxes = accountForm.querySelectorAll("input.role-checkbox")
 

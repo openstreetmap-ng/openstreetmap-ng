@@ -5,11 +5,7 @@ import {
   type DisposeScope,
   useDisposeEffect,
 } from "@lib/dispose-scope"
-import {
-  appendPasswordsToFormData,
-  configurePasswordsForm,
-  handlePasswordSchemaFeedback,
-} from "@lib/password-hash"
+import { createPasswordTransformState } from "@lib/password-hash"
 import {
   type StandardFeedbackDetail_Entry,
   StandardFeedbackDetail_Severity,
@@ -21,7 +17,7 @@ import {
   type LooseMessageInitShape,
   rpcUnary,
 } from "@lib/rpc"
-import { batch, effect, useSignal } from "@preact/signals"
+import { batch, useSignal } from "@preact/signals"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { parseMediaType } from "@std/media-types/parse-media-type"
 import { Alert } from "bootstrap"
@@ -37,36 +33,36 @@ export interface APIDetail {
 
 type ValidationResult = string | APIDetail[] | null
 
+export const formDataBytes = async (formData: FormData, name: string) =>
+  new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
+
+const removeEmptyData = (formData: FormData) => {
+  const keysToDelete = []
+  for (const [key, value] of formData.entries()) {
+    if (typeof value === "string" && !value) {
+      keysToDelete.push(key)
+    }
+  }
+  for (const key of keysToDelete) {
+    formData.delete(key)
+  }
+}
+
 const createStandardFormFeedbackRenderer = (
   form: HTMLFormElement,
   scope: DisposeScope,
   options?: {
     formBody?: Element
     formAppend?: boolean
-    onHiddenInputFeedback?: (ctx: {
-      input: HTMLInputElement
-      type: APIDetail["type"]
-      message: string
-    }) => boolean
   },
 ) => {
-  const { formBody = form, formAppend = false, onHiddenInputFeedback } = options ?? {}
+  const { formBody = form, formAppend = false } = options ?? {}
 
   const handleElementFeedback = (
     element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
     type: APIDetail["type"],
     message: string,
   ) => {
-    if (element.classList.contains("hidden-password-input")) {
-      const actualElement = form.querySelector(
-        `input[type=password][data-name="${element.name}"]`,
-      )
-      if (actualElement) {
-        handleElementFeedback(actualElement, type, message)
-        return
-      }
-    }
-
     element.parentElement!.classList.add("position-relative")
 
     let feedback = element.nextElementSibling
@@ -188,10 +184,10 @@ const createStandardFormFeedbackRenderer = (
   }
 
   const processFormFeedback = (
-    detail: string | (APIDetail | StandardFeedbackDetail_Entry)[],
+    detail: string | readonly (APIDetail | StandardFeedbackDetail_Entry)[],
   ) => {
     console.debug("StandardForm: Received feedback", detail)
-    if (!Array.isArray(detail)) {
+    if (typeof detail === "string") {
       handleFormFeedback("error", detail)
       return
     }
@@ -229,7 +225,6 @@ const createStandardFormFeedbackRenderer = (
       }
 
       if (input instanceof HTMLInputElement && input.type === "hidden") {
-        if (onHiddenInputFeedback?.({ input, type, message: msg })) continue
         handleFormFeedback(type, msg, input)
         continue
       }
@@ -259,7 +254,6 @@ const findScrollableContainer = (element: Node) => {
 type ConfigureStandardFormOptions = {
   formBody?: Element
   formAppend?: boolean
-  cancelOnValidationChange?: boolean
   removeEmptyFields?: boolean
   protobuf?: DescMessage
   validationCallback?: (
@@ -307,7 +301,6 @@ export function configureStandardForm<T = any>(
   const {
     formBody = form,
     formAppend = false,
-    cancelOnValidationChange = false,
     removeEmptyFields = false,
     protobuf,
     validationCallback,
@@ -317,10 +310,9 @@ export function configureStandardForm<T = any>(
   const submitElements = form.querySelectorAll(
     "button[type=submit], input[type=submit]",
   )
-  const passwordInputs = form.querySelectorAll("input[type=password][data-name]")
-  if (passwordInputs.length) configurePasswordsForm(form, passwordInputs)
+  const passwordState = createPasswordTransformState(form)
 
-  let abortController = new AbortController()
+  const abortController = new AbortController()
   scope.defer(() => abortController.abort())
 
   const setPendingState = (state: boolean) => {
@@ -340,16 +332,6 @@ export function configureStandardForm<T = any>(
     createStandardFormFeedbackRenderer(form, scope, {
       formBody,
       formAppend,
-      onHiddenInputFeedback: ({ input, message }) => {
-        if (passwordInputs.length && input.name === "password_schema") {
-          if (handlePasswordSchemaFeedback(form, message)) {
-            setPendingState(false)
-            form.requestSubmit()
-          }
-          return true
-        }
-        return false
-      },
     })
 
   const onSubmit = async (e: SubmitEvent) => {
@@ -365,21 +347,17 @@ export function configureStandardForm<T = any>(
     form.classList.remove("was-validated")
 
     // Stage 2: Handle concurrent submissions
-    if (cancelOnValidationChange) {
-      abortController.abort()
-      abortController = new AbortController()
-    } else if (form.classList.contains("pending")) {
+    if (form.classList.contains("pending")) {
       console.debug("StandardForm: Already pending, ignoring submit", formAction)
       return
     }
-    const currentAbortController = abortController
 
     // Stage 3: Serialize form data
     setPendingState(true)
     const formData = new FormData(form)
 
-    if (passwordInputs.length)
-      await appendPasswordsToFormData(form, formData, passwordInputs)
+    await passwordState.apply(formData)
+    if (removeEmptyFields) removeEmptyData(formData)
 
     formAction = form.getAttribute("action") ?? ""
     const method = form.method.toUpperCase()
@@ -389,43 +367,17 @@ export function configureStandardForm<T = any>(
     if (method === "POST") {
       url = formAction
       body = formData
-      if (removeEmptyFields) {
-        const keysToDelete: string[] = []
-        for (const [key, value] of formData.entries()) {
-          if (typeof value === "string" && !value) {
-            keysToDelete.push(key)
-          }
-        }
-        for (const key of keysToDelete) {
-          formData.delete(key)
-        }
-      }
     } else if (method === "GET") {
       const params = new URLSearchParams()
-      for (const [key, value] of formData.entries()) {
-        const valueString = value.toString()
-        if (removeEmptyFields && !valueString) continue
-        params.append(key, valueString)
-      }
+      formData.forEach((value, key) => params.append(key, value as string))
       url = `${formAction}?${params}`
     } else {
       unreachable(`Unsupported standard form method ${method}`)
     }
 
     // Stage 4: Run client-side validation
-    let disposeValidationEffect: (() => void) | undefined
     if (validationCallback) {
-      let result: Promise<ValidationResult> | ValidationResult | undefined
-      disposeValidationEffect = effect(() => {
-        if (result === undefined) {
-          result = validationCallback(formData)
-        } else if (cancelOnValidationChange) {
-          currentAbortController.abort()
-          disposeValidationEffect!()
-          disposeValidationEffect = undefined
-        }
-      })
-
+      let result = validationCallback(formData)
       if (result instanceof Promise) {
         result = await result
       }
@@ -442,7 +394,7 @@ export function configureStandardForm<T = any>(
       const resp = await fetch(url, {
         method,
         body,
-        signal: cancelOnValidationChange ? currentAbortController.signal : null,
+        signal: abortController.signal,
         priority: "high",
       })
 
@@ -463,10 +415,17 @@ export function configureStandardForm<T = any>(
       } else if (contentType) {
         data = { detail: await resp.text() }
       }
-      currentAbortController.signal.throwIfAborted()
+      abortController.signal.throwIfAborted()
 
       // Process form feedback if present
       const detail = data?.detail ?? ""
+
+      if (passwordState.tryUpdateSchema(detail)) {
+        setPendingState(false)
+        queueMicrotask(() => form.requestSubmit())
+        return
+      }
+
       if (detail) processFormFeedback(detail)
 
       // If the request was successful, call the callback
@@ -489,10 +448,184 @@ export function configureStandardForm<T = any>(
       })
 
       setPendingState(false)
-    } finally {
-      disposeValidationEffect?.()
     }
   }
+  scope.dom(form, "submit", onSubmit)
+  scope.defer(() => form.dispatchEvent(new CustomEvent("invalidate")))
+
+  return scope.dispose
+}
+
+interface ConfigureStandardRpcFormOptions<
+  I extends DescMessage,
+  O extends DescMessage,
+> {
+  method: DescMethodUnary<I, O>
+  buildRequest: (
+    ctx: Readonly<{
+      form: HTMLFormElement
+      formData: FormData
+      submitter: HTMLElement | null
+      signal: AbortSignal
+    }>,
+  ) => LooseMessageInitShape<I> | Promise<LooseMessageInitShape<I>>
+  onSuccess?: (resp: MessageValidType<O>) => void
+  onError?: (err: ConnectError) => void
+  resetOnSuccess?: boolean
+  formBody?: Element
+  formAppend?: boolean
+  validationCallback?: (
+    formData: FormData,
+  ) => Promise<ValidationResult> | ValidationResult
+}
+
+export const configureStandardRpcForm = <I extends DescMessage, O extends DescMessage>(
+  form: HTMLFormElement | null,
+  options: ConfigureStandardRpcFormOptions<I, O>,
+) => {
+  if (!form || form.classList.contains("needs-validation")) return
+  console.debug("StandardForm: Initializing RPC", options.method.localName)
+
+  const scope = createDisposeScope()
+
+  form.classList.add("needs-validation")
+  scope.defer(() =>
+    form.classList.remove("needs-validation", "was-validated", "pending"),
+  )
+
+  const submitElements = form.querySelectorAll(
+    "button[type=submit], input[type=submit]",
+  )
+  const passwordState = createPasswordTransformState(form)
+
+  const {
+    method,
+    buildRequest,
+    onSuccess,
+    onError,
+    resetOnSuccess = false,
+    formBody = form,
+    formAppend = false,
+    validationCallback,
+  } = options
+
+  const abortController = new AbortController()
+  scope.defer(() => abortController.abort())
+
+  const setPendingState = (state: boolean) => {
+    const currentState = form.classList.contains("pending")
+    if (currentState === state) return
+    console.debug("StandardForm: Pending state", state, method.localName)
+    if (state) {
+      form.classList.add("pending")
+      for (const submit of submitElements) submit.disabled = true
+    } else {
+      form.classList.remove("pending")
+      for (const submit of submitElements) submit.disabled = false
+    }
+  }
+
+  const { handleFormFeedback, processFormFeedback } =
+    createStandardFormFeedbackRenderer(form, scope, {
+      formBody,
+      formAppend,
+    })
+
+  const onSubmit = async (e: SubmitEvent) => {
+    console.debug("StandardForm: RPC submit", method.localName)
+    e.preventDefault()
+
+    // Stage 1: Validate form structure
+    if (!form.checkValidity()) {
+      e.stopPropagation()
+      form.classList.add("was-validated")
+      return
+    }
+    form.classList.remove("was-validated")
+
+    // Stage 2: Handle concurrent submissions
+    if (form.classList.contains("pending")) {
+      console.debug("StandardForm: Already pending, ignoring submit", method.localName)
+      return
+    }
+
+    // Stage 3: Serialize form data
+    setPendingState(true)
+    const formData = new FormData(form, e.submitter)
+
+    await passwordState.apply(formData)
+
+    // Stage 4: Run client-side validation
+    if (validationCallback) {
+      let result = validationCallback(formData)
+      if (result instanceof Promise) {
+        result = await result
+      }
+      if (typeof result === "string" || (Array.isArray(result) && result.length > 0)) {
+        console.debug("StandardForm: Client validation failed", method.localName)
+        processFormFeedback(result)
+        setPendingState(false)
+        return
+      }
+    }
+
+    let request: LooseMessageInitShape<I>
+    try {
+      request = await buildRequest({
+        form,
+        formData,
+        submitter: e.submitter,
+        signal: abortController.signal,
+      })
+    } catch (error) {
+      if (error.name === "AbortError") return
+      console.error("StandardForm: buildRequest failed", error)
+      handleFormFeedback("error", error.message)
+      setPendingState(false)
+      return
+    }
+
+    // Stage 5: Execute RPC request and handle response
+    try {
+      const response = await rpcUnary(method)(request, {
+        signal: abortController.signal,
+      })
+
+      if (resetOnSuccess) form.reset()
+
+      const entries = (response as any).feedback?.entries
+      if (Array.isArray(entries) && entries.length) processFormFeedback(entries)
+
+      batch(() => {
+        onSuccess?.(response)
+      })
+
+      setPendingState(false)
+    } catch (error) {
+      if (error.name === "AbortError") return
+
+      const err = ConnectError.from(error)
+      const detail = connectErrorToStandardFeedback(err)
+      if (detail) {
+        if (passwordState.tryUpdateSchema(detail)) {
+          setPendingState(false)
+          queueMicrotask(() => form.requestSubmit())
+          return
+        }
+
+        processFormFeedback(detail)
+      } else {
+        handleFormFeedback("error", connectErrorToMessage(err))
+      }
+
+      batch(() => {
+        onError?.(err)
+      })
+
+      setPendingState(false)
+    }
+  }
+
   scope.dom(form, "submit", onSubmit)
   scope.defer(() => form.dispatchEvent(new CustomEvent("invalidate")))
 
@@ -505,7 +638,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
     ctx: Readonly<{
       form: HTMLFormElement
       formData: FormData
-      submitter: HTMLButtonElement | HTMLInputElement | null
+      submitter: HTMLElement | null
       signal: AbortSignal
     }>,
   ) => LooseMessageInitShape<I> | Promise<LooseMessageInitShape<I>>
@@ -513,7 +646,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
     resp: MessageValidType<O>,
     ctx: Readonly<{
       form: HTMLFormElement
-      submitter: HTMLButtonElement | HTMLInputElement | null
+      submitter: HTMLElement | null
       signal: AbortSignal
       request: LooseMessageInitShape<I>
     }>,
@@ -522,7 +655,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
     err: ConnectError,
     ctx: Readonly<{
       form: HTMLFormElement
-      submitter: HTMLButtonElement | HTMLInputElement | null
+      submitter: HTMLElement | null
       signal: AbortSignal
       request: LooseMessageInitShape<I>
     }>,
@@ -548,13 +681,13 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
   feedbackRoot,
   feedbackRootSelector,
   formRef,
-  class: className,
+  class: className = "",
   children,
 }: StandardFormProps<I, O>) => {
   const innerFormRef = useRef<HTMLFormElement>(null)
-  const feedbackRef = useRef<ReturnType<
-    typeof createStandardFormFeedbackRenderer
-  > | null>(null)
+  const feedbackRef =
+    useRef<ReturnType<typeof createStandardFormFeedbackRenderer>>(null)
+  const passwordStateRef = useRef<ReturnType<typeof createPasswordTransformState>>(null)
 
   const isPending = useSignal(false)
   const isValidated = useSignal(false)
@@ -572,11 +705,14 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
     })
     feedbackRef.current = feedback
 
+    passwordStateRef.current = createPasswordTransformState(form)
+
     return () => {
       abortControllerRef.current.abort()
       isPending.value = false
       form.dispatchEvent(new CustomEvent("invalidate"))
       feedbackRef.current = null
+      passwordStateRef.current = null
     }
   }, [])
 
@@ -591,16 +727,16 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
     isValidated.value = false
   }, [abortKey, concurrency])
 
-  const onSubmit = async (ev: SubmitEvent) => {
+  const onSubmit = async (e: SubmitEvent) => {
     const form = innerFormRef.current
     const feedback = feedbackRef.current
     if (!(form && feedback)) return
 
-    ev.preventDefault()
+    e.preventDefault()
 
     // Stage 1: Validate form structure
     if (!form.checkValidity()) {
-      ev.stopPropagation()
+      e.stopPropagation()
       isValidated.value = true
       return
     }
@@ -618,20 +754,16 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
     isPending.value = true
 
     // Stage 3: Snapshot form data + build request
-    const submitter =
-      ev.submitter instanceof HTMLButtonElement ||
-      ev.submitter instanceof HTMLInputElement
-        ? ev.submitter
-        : null
-
-    const formData = new FormData(form, submitter)
+    const formData = new FormData(form, e.submitter)
 
     let request: LooseMessageInitShape<I>
     try {
+      await passwordStateRef.current!.apply(formData)
+
       request = await buildRequest({
         form,
         formData,
-        submitter,
+        submitter: e.submitter,
         signal: abortController.signal,
       })
     } catch (error) {
@@ -644,7 +776,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
     const ctx = {
       form,
-      submitter,
+      submitter: e.submitter,
       signal: abortController.signal,
       request,
     }
@@ -667,6 +799,12 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
       const err = ConnectError.from(error)
       const detail = connectErrorToStandardFeedback(err)
       if (detail) {
+        if (passwordStateRef.current!.tryUpdateSchema(detail)) {
+          isPending.value = false
+          queueMicrotask(() => form.requestSubmit())
+          return
+        }
+
         feedback.processFormFeedback(detail)
       } else {
         feedback.handleFormFeedback("error", connectErrorToMessage(err))
@@ -690,7 +828,7 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
           formRef.current = el
         }
       }}
-      class={`${className ?? ""} needs-validation ${isPending.value ? "pending" : ""} ${
+      class={`${className} needs-validation ${isPending.value ? "pending" : ""} ${
         isValidated.value ? "was-validated" : ""
       }`}
       onSubmit={onSubmit}

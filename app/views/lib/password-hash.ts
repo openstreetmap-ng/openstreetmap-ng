@@ -9,70 +9,82 @@ type PasswordSchema = keyof TransmitUserPassword
 
 const DEFAULT_SCHEMA: PasswordSchema = "v1"
 
-const formSchemasMap = new WeakMap<HTMLFormElement, PasswordSchema[]>()
+// TODO: harden against downgrade attacks
 
-export const configurePasswordsForm = (
-  form: HTMLFormElement,
-  passwordInputs: NodeListOf<HTMLInputElement>,
-) => {
-  console.debug(
-    "PasswordHash: Initializing",
-    passwordInputs.length,
-    "inputs",
-    form.action,
-  )
-  formSchemasMap.set(form, [DEFAULT_SCHEMA])
-
-  for (const input of passwordInputs) {
-    const inputName = input.dataset.name!
-    const passwordInput = document.createElement("input")
-    passwordInput.classList.add("hidden-password-input", "d-none")
-    passwordInput.type = "text" // as "text" to show standardForm feedback directly next to the original
-    passwordInput.name = inputName
-    input.parentElement!.insertBefore(passwordInput, input.nextSibling)
-  }
+const updatePasswordSchemas = (schemas: readonly PasswordSchema[], schema: string) => {
+  if (!(schema === "v1" || schema === "legacy")) return null
+  if (schemas.includes(schema)) return null
+  return [...schemas, schema] satisfies PasswordSchema[]
 }
 
-export const appendPasswordsToFormData = async (
-  form: HTMLFormElement,
-  formData: FormData,
-  passwordInputs: NodeListOf<HTMLInputElement>,
-) => {
-  const schemas = formSchemasMap.get(form)!
-  console.debug("PasswordHash: Updating with schemas", schemas, form.action)
+const getPasswordFieldNames = (form: HTMLFormElement) =>
+  Array.from(form.querySelectorAll("input[type=password][name]"), (input) => input.name)
 
-  const tasks: Promise<void>[] = []
-  for (const input of passwordInputs) {
-    const inputName = input.dataset.name!
-    if (!inputName.endsWith("_confirm") && input.value) {
-      const buildAndSet = async () => {
-        formData.set(
-          inputName,
-          new Blob([await buildTransmitPassword(schemas, input.value)], {
-            type: "application/octet-stream",
-          }),
+export const createPasswordTransformState = (form: HTMLFormElement) => {
+  const passwordFieldNames = getPasswordFieldNames(form)
+  let schemas: PasswordSchema[] = [DEFAULT_SCHEMA]
+
+  return {
+    apply: async (formData: FormData) => {
+      if (!passwordFieldNames.length) return
+
+      const tasks = []
+
+      for (const name of passwordFieldNames) {
+        if (name.endsWith("_confirm")) {
+          formData.delete(name)
+          continue
+        }
+
+        const value = formData.get(name) as string
+        if (!value) {
+          formData.delete(name)
+          continue
+        }
+
+        tasks.push(
+          (async () => {
+            const bytes = await buildTransmitPassword(schemas, value)
+            formData.set(
+              name,
+              new Blob([bytes], {
+                type: "application/octet-stream",
+              }),
+            )
+          })(),
         )
       }
-      tasks.push(buildAndSet())
-    }
+
+      await Promise.all(tasks)
+    },
+    tryUpdateSchema: (detail: unknown) => {
+      if (!Array.isArray(detail)) return false
+
+      let schema: unknown
+      for (const entry of detail) {
+        if (entry.field === "password_schema") {
+          schema = entry.message
+          break
+        }
+        if (entry.loc?.[1] === "password_schema") {
+          schema = entry.msg
+          break
+        }
+      }
+
+      if (typeof schema !== "string") return false
+      const next = updatePasswordSchemas(schemas, schema)
+      if (!next) return false
+      schemas = next
+      return true
+    },
   }
-  await Promise.all(tasks)
 }
 
-// TODO: harden against downgrade attacks
-export const handlePasswordSchemaFeedback = (form: HTMLFormElement, schema: string) => {
-  if (!(schema === "v1" || schema === "legacy")) return false
-
-  const currentSchemas = formSchemasMap.get(form)!
-  if (currentSchemas.length === 2 && currentSchemas[1] === schema) return false
-
-  const newSchemas = [currentSchemas[0], schema] satisfies PasswordSchema[]
-  console.debug("PasswordHash: Setting schemas", newSchemas, form.action)
-  formSchemasMap.set(form, newSchemas)
-  return true
-}
-
-const buildTransmitPassword = async (schemas: PasswordSchema[], password: string) => {
+const buildTransmitPassword = async (
+  schemas: readonly PasswordSchema[],
+  password: string,
+) => {
   const transmitUserPassword = create(TransmitUserPasswordSchema)
   const tasks: Promise<void>[] = []
   for (const schema of schemas) {

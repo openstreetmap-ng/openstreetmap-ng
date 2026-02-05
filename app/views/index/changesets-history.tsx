@@ -226,11 +226,11 @@ const ChangesetsHistorySidebar = ({
     | Readonly<{ source: "sidebar"; id: string; numBounds: number }>
     | Readonly<{ source: "map"; id: string; numBounds: number; featureId: number }>
 
-  const hoverState = useRef<HoverState | null>(null)
+  const hoverState = useRef<HoverState>(null)
 
   const idFirstFeatureIdMap = useRef(new Map<string, number>())
 
-  const activeFetch = useRef<ActiveFetch | null>(null)
+  const activeFetch = useRef<ActiveFetch>(null)
   const fetchedContext = useRef<FetchContext>(EMPTY_CONTEXT)
 
   const layerState = useRef<{
@@ -239,9 +239,9 @@ const ChangesetsHistorySidebar = ({
     visibleBounds: LngLatBounds | null
   }>({ hiddenBefore: 0, hiddenAfter: 0, visibleBounds: null })
 
-  const scheduleLayersVisibilityUpdateFn = useRef<Scheduled<() => void> | null>(null)
-  const scheduleSidebarFitFn = useRef<Scheduled<(cs: Changeset) => void> | null>(null)
-  const scheduleMapScrollFn = useRef<Scheduled<(id: string) => void> | null>(null)
+  const scheduleLayersVisibilityUpdateFn = useRef<Scheduled<() => void>>(null)
+  const scheduleSidebarFitFn = useRef<Scheduled<(cs: Changeset) => void>>(null)
+  const scheduleMapScrollFn = useRef<Scheduled<(id: string) => void>>(null)
 
   const clearDerivedState = () => {
     setHoverState(null)

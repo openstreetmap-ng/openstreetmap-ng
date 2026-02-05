@@ -42,7 +42,7 @@ const NewNoteSidebar = ({
   const textId = useId()
   const textHelpId = useId()
 
-  const markerRef = useRef<Marker | null>(null)
+  const markerRef = useRef<Marker>(null)
   const text = useSignal("")
 
   const setAt = ({ lng, lat }: LngLat) => {
