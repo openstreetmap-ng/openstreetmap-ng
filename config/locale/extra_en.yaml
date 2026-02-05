@@ -562,6 +562,9 @@ time:
   never: Never
 validation:
   invalid_value: Invalid value
+  image_file_too_large: The image file is too large. Please upload a smaller file.
+  image_invalid_format: The image format is not supported or the file is corrupted.
+  image_decompression_failed: Failed to process the image. The file may be corrupted or too large.
   display_name_is_taken: This display name is already taken
   new_email_is_current: The new email address is the same as the current one
   invalid_email_address: Invalid email address
