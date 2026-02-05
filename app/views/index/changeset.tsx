@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
@@ -309,7 +309,7 @@ const ChangesetSidebar = ({
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetChangesetCommentsResponseValid | null>(null)
 
-  const { resource, data } = useSidebarRpc(
+  const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
     ChangesetService.method.getChangeset,
     (r) => r.changeset,

@@ -88,11 +88,11 @@ export const SidebarResourceBody = <T extends object>({
   }
 }
 
-export function useSidebarRpc<I extends DescMessage, O extends DescMessage>(
+export function useSidebar<I extends DescMessage, O extends DescMessage>(
   request: ReadonlySignal<LooseMessageInitShape<I> | null>,
   method: DescMethodUnary<I, O>,
 ): SidebarFetchResult<MessageValidType<O>>
-export function useSidebarRpc<
+export function useSidebar<
   I extends DescMessage,
   O extends DescMessage,
   T extends object,
@@ -101,7 +101,7 @@ export function useSidebarRpc<
   method: DescMethodUnary<I, O>,
   map: (response: MessageValidType<O>) => T,
 ): SidebarFetchResult<T>
-export function useSidebarRpc<
+export function useSidebar<
   I extends DescMessage,
   O extends DescMessage,
   T extends object,

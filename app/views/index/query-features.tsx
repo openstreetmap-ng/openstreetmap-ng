@@ -1,8 +1,4 @@
-import {
-  SidebarHeader,
-  SidebarResourceBody,
-  useSidebarRpc,
-} from "@index/_action-sidebar"
+import { SidebarHeader, SidebarResourceBody, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { queryParam } from "@lib/codecs"
 import { prefersReducedMotion } from "@lib/config"
@@ -116,7 +112,7 @@ const QueryFeaturesSidebar = ({
 
   const queryAt = useComputed(() => getQueryAt(at.value))
 
-  const { resource } = useSidebarRpc(
+  const { resource } = useSidebar(
     useComputed(() => {
       const p = queryAt.value
       return p ? { at: p } : null

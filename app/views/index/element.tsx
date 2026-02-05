@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
 import { API_URL } from "@lib/config"
@@ -277,7 +277,7 @@ const ElementSidebar = ({
   id: ReadonlySignal<bigint>
   version: ReadonlySignal<bigint | undefined>
 }) => {
-  const { resource, data } = useSidebarRpc(
+  const { resource, data } = useSidebar(
     useComputed(() => {
       const typeValue = ElementType[type.value]
       const idValue = id.value
