@@ -73,8 +73,8 @@ const EditorImg = ({
 const NavbarLeft = () => {
   const dropdownRootRef = useRef<HTMLDivElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
-  const dropdownRef = useRef<Dropdown | null>(null)
-  const tooltipRef = useRef<Tooltip | null>(null)
+  const dropdownRef = useRef<Dropdown>(null)
+  const tooltipRef = useRef<Tooltip>(null)
   const rememberChoiceRef = useRef<HTMLInputElement>(null)
 
   // Effect: initialize dropdown

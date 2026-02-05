@@ -149,8 +149,8 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
   )
 }
 
-const RichTextHelp = memo(({ class: extraClass }: { class?: string }) => (
-  <div class={`RichTextHelp p-2 p-md-0 ${extraClass ?? ""}`}>
+const RichTextHelp = memo(({ class: className = "" }: { class?: string }) => (
+  <div class={`RichTextHelp p-2 p-md-0 ${className}`}>
     <h5>
       <img
         class="markdown-logo me-2"

@@ -6,24 +6,24 @@
 {% block settings_body %}
 
 <h3 class="mb-3">{{ t('settings.change_password') }}</h3>
-<form class="password-form" method="POST" action="/api/web/settings/password">
+<form class="password-form">
     <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}" autocomplete="username">
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.current_password') }}</span>
-        <input type="password" class="form-control mt-2" data-name="old_password" autocomplete="current-password"
+        <input type="password" class="form-control mt-2" name="old_password" autocomplete="current-password"
             required>
     </label>
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password') }}</span>
-        <input type="password" class="form-control mt-2" data-name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
+        <input type="password" class="form-control mt-2" name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
             autocomplete="new-password" required>
     </label>
 
     <label class="form-label d-block mb-3">
         <span class="required">{{ t('settings.new_password_repeat') }}</span>
-        <input type="password" class="form-control mt-2" data-name="new_password_confirm"
+        <input type="password" class="form-control mt-2" name="new_password_confirm"
             minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
     </label>
 
@@ -88,10 +88,10 @@
                             </button>
                             <span class="text-body-secondary mx-1-5">&mdash;</span>
                             {{- t('two_fa.added_on_date', date=_date) | safe -}}
-                            <button class="btn btn-sm btn-link p-0 ms-1-5" type="button"
-                                data-auth-action="/api/web/settings/passkey/{{ passkey.credential_id | b64 }}/remove"
-                                data-title="{{ t('two_fa.remove_passkey') }}" data-bs-toggle="modal"
-                                data-bs-target="#disableAuthMethodModal">
+                            <button class="btn btn-sm btn-link p-0 ms-1-5 disable-auth-method-btn" type="button"
+                                data-auth-method="passkey"
+                                data-credential-id="{{ passkey.credential_id | b64 }}"
+                                data-title="{{ t('two_fa.remove_passkey') }}">
                                 {{ t('action.remove') }}
                             </button>
                         </li>
@@ -102,7 +102,7 @@
             </div>
             <div class="col-sm-auto text-end">
                 {% if passkeys | length < PASSKEY_LIMIT %}
-                <form class="add-passkey-form d-inline" method="POST" action="/api/web/settings/passkey/register">
+                <form class="add-passkey-form d-inline">
                     <button class="btn btn-soft" type="submit">
                         {{ t('action.configure') }}
                     </button>
@@ -138,14 +138,12 @@
             </div>
             <div class="col-sm-auto text-end">
                 {% if totp_created_at %}
-                <button class="btn btn-soft" type="button" data-auth-action="/api/web/settings/totp/remove"
-                    data-title="{{ t('two_fa.disable_authenticator_app') }}" data-bs-toggle="modal"
-                    data-bs-target="#disableAuthMethodModal">
+                <button class="btn btn-soft disable-auth-method-btn" type="button" data-auth-method="totp"
+                    data-title="{{ t('two_fa.disable_authenticator_app') }}">
                     {{ t('action.disable') }}
                 </button>
                 {% else %}
-                <button class="btn btn-soft" type="button" data-bs-toggle="modal"
-                    data-bs-target="#setupTotpModal">
+                <button class="btn btn-soft setup-totp-btn" type="button">
                     {{ t('action.configure') }}
                 </button>
                 {% endif %}
@@ -181,8 +179,7 @@
                 </div>
             </div>
             <div class="col-sm-auto text-end">
-                <button class="btn btn-soft" type="button" data-bs-toggle="modal"
-                    data-bs-target="#generateRecoveryCodesModal">
+                <button class="btn btn-soft generate-recovery-codes-btn" type="button">
                     {% if recovery_codes_status.num_remaining %}
                     {{ t('action.regenerate') }}
                     {% else %}
@@ -243,7 +240,7 @@
                 </div>
             </div>
             <div class="col-sm-auto align-self-center text-end">
-                <form class="revoke-token-form" method="POST" action="/api/web/settings/revoke-token">
+                <form class="revoke-token-form">
                     <input type="hidden" name="token_id" value="{{ session.id }}">
                     <button class="btn btn-sm btn-soft" type="submit">
                         {{ t('action.end_session') }}
@@ -254,11 +251,5 @@
     </li>
     {% endfor %}
 </ul>
-
-{% if not totp_created_at %}
-{% include 'settings/_setup-totp-modal' %}
-{% endif %}
-{% include 'settings/_disable-auth-method-modal' %}
-{% include 'settings/_generate-recovery-codes-modal' %}
 
 {% endblock %}

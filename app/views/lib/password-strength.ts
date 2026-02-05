@@ -123,225 +123,229 @@ const evaluateStrength = (
   return { score, level, suggestions: [...suggestions] }
 }
 
-const inputs = document.querySelectorAll(
-  "input[type=password][data-name=new_password], input[type=password][data-name=password][autocomplete=new-password]",
-)
-console.debug("PasswordStrength: Initializing", inputs.length)
-for (const input of inputs) {
-  const minLength = input.minLength
-  const idealLength = Math.max(minLength + 4, 12)
-
-  const container = document.createElement("div")
-  container.classList.add("password-strength")
-
-  const header = document.createElement("div")
-  header.classList.add("password-strength-header")
-  container.append(header)
-
-  const label = document.createElement("span")
-  label.classList.add("password-strength-label")
-  label.textContent = t("password_strength.password_strength")
-  header.append(label)
-
-  const status = document.createElement("span")
-  status.classList.add("password-strength-status")
-  status.ariaLive = "polite"
-  status.role = "status"
-  header.append(status)
-
-  const progress = document.createElement("div")
-  progress.classList.add("progress", "password-strength-progress")
-  container.append(progress)
-
-  const progressBar = document.createElement("div")
-  progressBar.classList.add("progress-bar", "password-strength-progress-bar")
-  progressBar.role = "progressbar"
-  progressBar.ariaValueMin = "0"
-  progressBar.ariaValueMax = "100"
-  progressBar.ariaLabel = t("password_strength.password_strength")
-  progress.append(progressBar)
-
-  const hintText = document.createElement("p")
-  hintText.classList.add("password-strength-hint-text")
-  container.append(hintText)
-
-  const hintList = document.createElement("ul")
-  hintList.classList.add("password-strength-hints")
-  container.append(hintList)
-  hintList.hidden = true
-
-  const hintId = `password-strength-hint-${hintIdCounter++}`
-  hintText.id = hintId
-  const describedBy = input.getAttribute("aria-describedby")
-  input.setAttribute(
-    "aria-describedby",
-    describedBy ? `${describedBy} ${hintId}` : hintId,
+export const configurePasswordStrength = (root: ParentNode) => {
+  const inputs = root.querySelectorAll(
+    "input[type=password][name=new_password], input[type=password][name=password][autocomplete=new-password]",
   )
+  console.debug("PasswordStrength: Initializing", inputs.length)
+  for (const input of inputs) {
+    const minLength = input.minLength
+    const idealLength = Math.max(minLength + 4, 12)
 
-  const passwordToCheck = signal("")
+    const container = document.createElement("div")
+    container.classList.add("password-strength")
 
-  const renderEmptyState = () => {
-    container.dataset.level = "empty"
-    progressBar.style.width = "0%"
-    progressBar.ariaValueNow = "0"
-    status.textContent = ""
-    hintText.hidden = true
-    hintList.replaceChildren()
+    const header = document.createElement("div")
+    header.classList.add("password-strength-header")
+    container.append(header)
+
+    const label = document.createElement("span")
+    label.classList.add("password-strength-label")
+    label.textContent = t("password_strength.password_strength")
+    header.append(label)
+
+    const status = document.createElement("span")
+    status.classList.add("password-strength-status")
+    status.ariaLive = "polite"
+    status.role = "status"
+    header.append(status)
+
+    const progress = document.createElement("div")
+    progress.classList.add("progress", "password-strength-progress")
+    container.append(progress)
+
+    const progressBar = document.createElement("div")
+    progressBar.classList.add("progress-bar", "password-strength-progress-bar")
+    progressBar.role = "progressbar"
+    progressBar.ariaValueMin = "0"
+    progressBar.ariaValueMax = "100"
+    progressBar.ariaLabel = t("password_strength.password_strength")
+    progress.append(progressBar)
+
+    const hintText = document.createElement("p")
+    hintText.classList.add("password-strength-hint-text")
+    container.append(hintText)
+
+    const hintList = document.createElement("ul")
+    hintList.classList.add("password-strength-hints")
+    container.append(hintList)
     hintList.hidden = true
-  }
 
-  const update = () => {
-    const password = input.value
-    if (!password) {
-      renderEmptyState()
-      return
-    }
+    const hintId = `password-strength-hint-${hintIdCounter++}`
+    hintText.id = hintId
+    const describedBy = input.getAttribute("aria-describedby")
+    input.setAttribute(
+      "aria-describedby",
+      describedBy ? `${describedBy} ${hintId}` : hintId,
+    )
 
-    const { score, level, suggestions } = evaluateStrength(password, {
-      minLength,
-      idealLength,
-    })
+    const passwordToCheck = signal("")
 
-    container.dataset.level = level.key
-    const displayedScore = level.key === "perfect" ? 100 : score
-    progressBar.style.width = `${Math.max(displayedScore, 5)}%`
-    progressBar.ariaValueNow = displayedScore.toString()
-
-    let levelLabel: string
-    switch (level.key) {
-      case "weak":
-        levelLabel = t("password_strength.levels.weak")
-        break
-      case "fair":
-        levelLabel = t("password_strength.levels.fair")
-        break
-      case "good":
-        levelLabel = t("password_strength.levels.good")
-        break
-      case "strong":
-        levelLabel = t("password_strength.levels.strong")
-        break
-      case "perfect":
-        levelLabel = t("password_strength.levels.perfect")
-        break
-      default:
-        levelLabel = "?"
-    }
-    status.textContent = levelLabel
-
-    hintText.hidden = false
-
-    if (suggestions.length) {
-      hintText.textContent = `${t("password_strength.to_strengthen_it_you_can")}:`
-      hintList.hidden = false
-      hintList.replaceChildren(
-        ...suggestions.map((suggestion) => {
-          const item = document.createElement("li")
-          switch (suggestion) {
-            case "min_length":
-              item.textContent = t(
-                "password_strength.suggestions.use_at_least_min_length_characters",
-                { min_length: minLength },
-              )
-              break
-            case "add_more_characters":
-              item.textContent = t(
-                "password_strength.suggestions.add_couple_more_characters",
-              )
-              break
-            case "add_lowercase":
-              item.textContent = t(
-                "password_strength.suggestions.include_lowercase_letters",
-              )
-              break
-            case "add_uppercase":
-              item.textContent = t(
-                "password_strength.suggestions.include_uppercase_letters",
-              )
-              break
-            case "add_numbers":
-              item.textContent = t("password_strength.suggestions.include_digits")
-              break
-            case "add_symbols":
-              item.textContent = t("password_strength.suggestions.include_symbols")
-              break
-            case "avoid_repeats":
-              item.textContent = t(
-                "password_strength.suggestions.avoid_repeated_characters",
-              )
-              break
-            case "pwned_password":
-              item.classList.add("text-danger")
-              item.textContent = t(
-                "password_strength.suggestions.use_a_password_not_widely_known",
-              )
-              break
-          }
-          return item
-        }),
-      )
-    } else {
-      hintText.textContent = t("password_strength.great_password_nice_work")
-      hintList.hidden = true
+    const renderEmptyState = () => {
+      container.dataset.level = "empty"
+      progressBar.style.width = "0%"
+      progressBar.ariaValueNow = "0"
+      status.textContent = ""
+      hintText.hidden = true
       hintList.replaceChildren()
-    }
-  }
-
-  let scheduledCheckAbort: AbortController | undefined
-  const requestPwnedCheck = async (immediate: boolean) => {
-    scheduledCheckAbort?.abort()
-
-    const password = input.value
-    if (!password || immediate) {
-      passwordToCheck.value = password
-      return
+      hintList.hidden = true
     }
 
-    scheduledCheckAbort = new AbortController()
-    try {
-      await delay(PWNED_PASSWORD_CHECK_DELAY, {
-        signal: scheduledCheckAbort.signal,
+    const update = () => {
+      const password = input.value
+      if (!password) {
+        renderEmptyState()
+        return
+      }
+
+      const { score, level, suggestions } = evaluateStrength(password, {
+        minLength,
+        idealLength,
       })
-    } catch {
-      return
-    }
-    passwordToCheck.value = password
-  }
 
-  update()
-  input.addEventListener("input", () => {
-    passwordToCheck.value = ""
-    update()
-    void requestPwnedCheck(false)
-  })
-  input.addEventListener("blur", () => requestPwnedCheck(true))
-  input.form?.addEventListener("reset", async () => {
-    scheduledCheckAbort?.abort()
-    passwordToCheck.value = ""
-    await delay(0)
-    update()
-  })
-  input.after(container)
+      container.dataset.level = level.key
+      const displayedScore = level.key === "perfect" ? 100 : score
+      progressBar.style.width = `${Math.max(displayedScore, 5)}%`
+      progressBar.ariaValueNow = displayedScore.toString()
 
-  effect(() => {
-    const password = passwordToCheck.value
-    if (password.length < minLength) return
+      let levelLabel: string
+      switch (level.key) {
+        case "weak":
+          levelLabel = t("password_strength.levels.weak")
+          break
+        case "fair":
+          levelLabel = t("password_strength.levels.fair")
+          break
+        case "good":
+          levelLabel = t("password_strength.levels.good")
+          break
+        case "strong":
+          levelLabel = t("password_strength.levels.strong")
+          break
+        case "perfect":
+          levelLabel = t("password_strength.levels.perfect")
+          break
+        default:
+          levelLabel = "?"
+      }
+      status.textContent = levelLabel
 
-    const abortController = new AbortController()
-    const lookupAndUpdate = async () => {
-      try {
-        await lookupPwnedPassword(password, abortController.signal)
-        update()
-      } catch (error) {
-        if (error.name === "AbortError") return
-        console.error("PasswordStrength: Failed to check pwned", error)
+      hintText.hidden = false
+
+      if (suggestions.length) {
+        hintText.textContent = `${t("password_strength.to_strengthen_it_you_can")}:`
+        hintList.hidden = false
+        hintList.replaceChildren(
+          ...suggestions.map((suggestion) => {
+            const item = document.createElement("li")
+            switch (suggestion) {
+              case "min_length":
+                item.textContent = t(
+                  "password_strength.suggestions.use_at_least_min_length_characters",
+                  { min_length: minLength },
+                )
+                break
+              case "add_more_characters":
+                item.textContent = t(
+                  "password_strength.suggestions.add_couple_more_characters",
+                )
+                break
+              case "add_lowercase":
+                item.textContent = t(
+                  "password_strength.suggestions.include_lowercase_letters",
+                )
+                break
+              case "add_uppercase":
+                item.textContent = t(
+                  "password_strength.suggestions.include_uppercase_letters",
+                )
+                break
+              case "add_numbers":
+                item.textContent = t("password_strength.suggestions.include_digits")
+                break
+              case "add_symbols":
+                item.textContent = t("password_strength.suggestions.include_symbols")
+                break
+              case "avoid_repeats":
+                item.textContent = t(
+                  "password_strength.suggestions.avoid_repeated_characters",
+                )
+                break
+              case "pwned_password":
+                item.classList.add("text-danger")
+                item.textContent = t(
+                  "password_strength.suggestions.use_a_password_not_widely_known",
+                )
+                break
+            }
+            return item
+          }),
+        )
+      } else {
+        hintText.textContent = t("password_strength.great_password_nice_work")
+        hintList.hidden = true
+        hintList.replaceChildren()
       }
     }
-    void lookupAndUpdate()
 
-    return () => abortController.abort()
-  })
+    let scheduledCheckAbort: AbortController | undefined
+    const requestPwnedCheck = async (immediate: boolean) => {
+      scheduledCheckAbort?.abort()
+
+      const password = input.value
+      if (!password || immediate) {
+        passwordToCheck.value = password
+        return
+      }
+
+      scheduledCheckAbort = new AbortController()
+      try {
+        await delay(PWNED_PASSWORD_CHECK_DELAY, {
+          signal: scheduledCheckAbort.signal,
+        })
+      } catch {
+        return
+      }
+      passwordToCheck.value = password
+    }
+
+    update()
+    input.addEventListener("input", () => {
+      passwordToCheck.value = ""
+      update()
+      void requestPwnedCheck(false)
+    })
+    input.addEventListener("blur", () => requestPwnedCheck(true))
+    input.form?.addEventListener("reset", async () => {
+      scheduledCheckAbort?.abort()
+      passwordToCheck.value = ""
+      await delay(0)
+      update()
+    })
+    input.after(container)
+
+    effect(() => {
+      const password = passwordToCheck.value
+      if (password.length < minLength) return
+
+      const abortController = new AbortController()
+      const lookupAndUpdate = async () => {
+        try {
+          await lookupPwnedPassword(password, abortController.signal)
+          update()
+        } catch (error) {
+          if (error.name === "AbortError") return
+          console.error("PasswordStrength: Failed to check pwned", error)
+        }
+      }
+      void lookupAndUpdate()
+
+      return () => abortController.abort()
+    })
+  }
 }
+
+configurePasswordStrength(document)
 
 const lookupPwnedPassword = async (password: string, abortSignal: AbortSignal) => {
   const cached = pwnedPasswordCache.get(password)

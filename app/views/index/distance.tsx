@@ -88,9 +88,9 @@ const DistanceSidebar = ({
   const nextMarkerId = useRef(0)
   const markers = useRef<MarkerEntry[]>([])
   const markerIdToIndex = useRef<Map<number, number>>(new Map())
-  const ghostMarker = useRef<Marker | null>(null)
-  const ghostEndMarkerId = useRef<number | null>(null)
-  const ghostMaterializedMarkerId = useRef<number | null>(null)
+  const ghostMarker = useRef<Marker>(null)
+  const ghostEndMarkerId = useRef<number>(null)
+  const ghostMaterializedMarkerId = useRef<number>(null)
   const isDragging = useRef(false)
 
   const computeLine = () => {

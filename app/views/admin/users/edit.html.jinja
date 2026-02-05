@@ -147,14 +147,14 @@
                     <h4 class="mb-3">{{ t('settings.change_password') }}</h4>
                     <label class="form-label d-block">
                         <span>{{ t('settings.new_password') }}</span>
-                        <input type="password" class="form-control mt-2" data-name="new_password"
+                        <input type="password" class="form-control mt-2" name="new_password"
                             minlength="{{ PASSWORD_MIN_LENGTH }}">
                     </label>
                     <p class="form-text">Leave blank to keep current password</p>
 
                     <label class="form-label d-block">
                         <span>{{ t('settings.new_password_repeat') }}</span>
-                        <input type="password" class="form-control mt-2" data-name="new_password_confirm"
+                        <input type="password" class="form-control mt-2" name="new_password_confirm"
                             minlength="{{ PASSWORD_MIN_LENGTH }}">
                     </label>
 

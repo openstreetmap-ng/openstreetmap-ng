@@ -43,10 +43,10 @@ const buildAssertionBlob = (credential: PublicKeyCredential) => {
   return new Blob([toBinary(PasskeyAssertionSchema, assertion)])
 }
 
-/** Register a new passkey, returning registration blob or error string */
+/** Register a new passkey, returning registration payload or throwing on error */
 export const getPasskeyRegistration = async () => {
   const challenge = await fetchPasskeyChallenge()
-  if (typeof challenge === "string") return challenge
+  if (typeof challenge === "string") throw new Error(challenge)
 
   // Convert user ID to bytes for WebAuthn
   const userIdBytes = new Uint8Array(8)
@@ -78,7 +78,7 @@ export const getPasskeyRegistration = async () => {
   } catch (error) {
     console.warn("WebAuthn: Registration failed", error)
   }
-  if (!credential) return t("two_fa.could_not_complete_passkey_registration")
+  if (!credential) throw new Error(t("two_fa.could_not_complete_passkey_registration"))
 
   const response = credential.response as AuthenticatorAttestationResponse
   const registration = create(PasskeyRegistrationSchema, {
@@ -86,7 +86,7 @@ export const getPasskeyRegistration = async () => {
     attestationObject: new Uint8Array(response.attestationObject),
     transports: response.getTransports?.() ?? [],
   })
-  return new Blob([toBinary(PasskeyRegistrationSchema, registration)])
+  return registration
 }
 
 /** Perform WebAuthn authentication, returning assertion blob or error string */

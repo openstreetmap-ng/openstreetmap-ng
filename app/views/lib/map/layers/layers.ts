@@ -1,7 +1,7 @@
 import { overlayOpacityStorage } from "@lib/local-storage"
 import { effectiveTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
-import { effect, signal } from "@preact/signals"
+import { batch, effect, signal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { filterKeys } from "@std/collections/filter-keys"
 import type { FeatureCollection } from "geojson"
@@ -502,9 +502,11 @@ export const addMapLayer = (
   }
 
   if (triggerEvent) {
-    for (const handler of layerEventHandlers.values()) {
-      handler(true, layerId, config)
-    }
+    batch(() => {
+      for (const handler of layerEventHandlers.values()) {
+        handler(true, layerId, config)
+      }
+    })
   }
 }
 
@@ -541,9 +543,11 @@ export const removeMapLayer = (
     }
 
     if (triggerEvent) {
-      for (const handler of layerEventHandlers.values()) {
-        handler(false, layerId, config)
-      }
+      batch(() => {
+        for (const handler of layerEventHandlers.values()) {
+          handler(false, layerId, config)
+        }
+      })
     }
   } else {
     console.debug("Layers: Nothing to remove", layerId)

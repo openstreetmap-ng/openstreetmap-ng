@@ -38,11 +38,57 @@ const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text)
   } catch (error) {
     console.warn("Copy: Failed to copy", error)
-    alert(error.message)
+    alert(error instanceof Error ? error.message : String(error))
     return false
   }
 
   return true
+}
+
+export const CopyButton = ({
+  getText,
+  class: className = "btn btn-primary",
+  title,
+  iconClass = "",
+  children,
+}: {
+  getText: () => string
+  class?: string
+  title?: string
+  iconClass?: string
+  children?: ComponentChildren
+}) => {
+  const copied = useSignal(false)
+  const feedbackAbortRef = useRef<AbortController>(null)
+
+  const onCopy = async () => {
+    const ok = await copyToClipboard(getText())
+    if (!ok) return
+
+    copied.value = true
+    feedbackAbortRef.current?.abort()
+    feedbackAbortRef.current = new AbortController()
+
+    try {
+      await delay(FEEDBACK_DURATION, { signal: feedbackAbortRef.current.signal })
+    } catch {
+      return
+    }
+
+    copied.value = false
+  }
+
+  return (
+    <button
+      class={className}
+      type="button"
+      title={title}
+      onClick={onCopy}
+    >
+      <i class={`bi ${copied.value ? "bi-check2" : "bi-copy"} ${iconClass}`} />
+      {children}
+    </button>
+  )
 }
 
 export const configureCopyGroups = (root: ParentNode) => {
@@ -81,34 +127,14 @@ export const configureCopyGroups = (root: ParentNode) => {
 export const CopyField = ({
   label,
   value,
-  inputClass,
+  inputClass = "",
 }: {
   label: ComponentChildren
   value: string
   inputClass?: string
 }) => {
-  const copied = useSignal(false)
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const inputId = useId()
-  const feedbackAbortRef = useRef<AbortController | null>(null)
-
-  const onCopy = async () => {
-    inputRef.current?.select()
-    const ok = await copyToClipboard(value)
-    if (!ok) return
-
-    copied.value = true
-    feedbackAbortRef.current?.abort()
-    feedbackAbortRef.current = new AbortController()
-
-    try {
-      await delay(FEEDBACK_DURATION, { signal: feedbackAbortRef.current.signal })
-    } catch {
-      return
-    }
-
-    copied.value = false
-  }
 
   return (
     <div class="custom-input-group mb-2">
@@ -116,24 +142,22 @@ export const CopyField = ({
       <div class="input-group">
         <input
           id={inputId}
-          class={`form-control ${inputClass ?? ""}`}
+          class={`form-control ${inputClass}`}
           type="text"
           autoComplete="off"
           readOnly
           value={value}
-          ref={(el) => {
-            inputRef.current = el
-          }}
+          ref={inputRef}
           onFocus={(e) => e.currentTarget.select()}
         />
-        <button
+        <CopyButton
           class="btn btn-primary"
-          type="button"
           title={t("action.copy")}
-          onClick={onCopy}
-        >
-          <i class={`bi ${copied.value ? "bi-check2" : "bi-copy"}`} />
-        </button>
+          getText={() => {
+            inputRef.current!.select()
+            return value
+          }}
+        />
       </div>
     </div>
   )

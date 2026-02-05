@@ -68,10 +68,10 @@ const removeUrlMarker = () => {
 export const ShareSidebar = ({ close }: { close: () => void }) => {
   const map = mainMap.value!
   const shareMarkerEnabled = useSignal(false)
-  const shareMarkerRef = useRef<Marker | null>(null)
+  const shareMarkerRef = useRef<Marker>(null)
 
   const locationFilterEnabled = useSignal(false)
-  const locationFilterRef = useRef<LocationFilterControl | null>(null)
+  const locationFilterRef = useRef<LocationFilterControl>(null)
 
   const withAttribution = useSignal(true)
   const exporting = useSignal(false)

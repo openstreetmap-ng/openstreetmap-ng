@@ -7,11 +7,9 @@ import { t } from "i18next"
 mount("signup-body", (body) => {
   const signupForm = body.querySelector("form.signup-form")!
   const displayNameInput = signupForm.querySelector("input[name=display_name]")!
-  const passwordInput = signupForm.querySelector(
-    "input[type=password][data-name=password]",
-  )!
+  const passwordInput = signupForm.querySelector("input[type=password][name=password]")!
   const passwordConfirmInput = signupForm.querySelector(
-    "input[type=password][data-name=password_confirm]",
+    "input[type=password][name=password_confirm]",
   )!
 
   const trackingInput = signupForm.querySelector("input[name=tracking]")!

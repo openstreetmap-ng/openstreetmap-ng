@@ -7,7 +7,7 @@ import { createKeyedAbort } from "@lib/keyed-abort"
 import { ElementService } from "@lib/proto/element_pb"
 import { rpcClient } from "@lib/rpc"
 import type { OSMNode, OSMWay } from "@lib/types"
-import { signal } from "@preact/signals"
+import { batch, signal } from "@preact/signals"
 import { t } from "i18next"
 import type {
   GeoJSONSource,
@@ -227,8 +227,10 @@ export const configureDataLayer = (map: MaplibreMap) => {
     const fetchArea = boundsSize(fetchBounds)
     if (fetchArea > MAP_QUERY_AREA_MAX_SIZE) {
       abort.abort()
-      errorDataAlertVisible.value = true
-      loadDataAlertVisible.value = false
+      batch(() => {
+        errorDataAlertVisible.value = true
+        loadDataAlertVisible.value = false
+      })
       clearData()
       return
     }
@@ -257,8 +259,10 @@ export const configureDataLayer = (map: MaplibreMap) => {
       if (error.name === "AbortError") return
       const err = ConnectError.from(error)
       if (err.code === Code.InvalidArgument) {
-        errorDataAlertVisible.value = true
-        loadDataAlertVisible.value = false
+        batch(() => {
+          errorDataAlertVisible.value = true
+          loadDataAlertVisible.value = false
+        })
         clearData()
         return
       }

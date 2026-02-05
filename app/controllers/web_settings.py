@@ -1,37 +1,22 @@
-from base64 import urlsafe_b64decode
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, File, Form, Response, UploadFile
-from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import (
-    PASSKEY_NAME_MAX_LENGTH,
-    USER_DESCRIPTION_MAX_LENGTH,
-    USER_MAX_SOCIALS,
-)
+from app.config import USER_DESCRIPTION_MAX_LENGTH, USER_MAX_SOCIALS
 from app.lib.auth_context import web_user
 from app.lib.image import UserAvatarType
-from app.lib.render_response import render_response
 from app.lib.socials import SOCIALS_CONFIG
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.db.connected_account import AuthProvider
-from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.models.db.user_profile import UserSocial, UserSocialType
-from app.models.proto.shared_pb2 import PasskeyRegistration
 from app.models.types import LocaleCode, Password
-from app.services.auth_service import AuthService
 from app.services.connected_account_service import ConnectedAccountService
-from app.services.oauth2_token_service import OAuth2TokenService
-from app.services.user_passkey_service import UserPasskeyService
-from app.services.user_password_service import UserPasswordService
 from app.services.user_profile_service import UserProfileService
-from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_service import UserService
-from app.services.user_totp_service import UserTOTPService
 from app.validators.display_name import DisplayNameValidating
 from app.validators.email import EmailValidating
 
@@ -89,62 +74,6 @@ async def settings_email(
     )
 
 
-@router.post('/settings/password')
-async def settings_password(
-    _: Annotated[User, web_user()],
-    old_password: Annotated[Password, File()],
-    new_password: Annotated[Password, File()],
-    revoke_other_sessions: Annotated[bool, Form()] = False,
-):
-    await UserPasswordService.update_password(
-        old_password=old_password,
-        new_password=new_password,
-    )
-
-    if revoke_other_sessions:
-        current_session = await AuthService.authenticate_oauth2(None)
-        assert current_session is not None
-        await OAuth2TokenService.revoke_by_client_id(
-            SYSTEM_APP_WEB_CLIENT_ID, skip_ids=[current_session['id']]
-        )
-
-    return StandardFeedback.success_result(
-        None, t('settings.password_has_been_changed')
-    )
-
-
-@router.post('/settings/totp/setup')
-async def settings_totp_setup(
-    _: Annotated[User, web_user()],
-    secret: Annotated[SecretStr, Form()],
-    digits: Annotated[Literal['6', '8'], Form()],
-    totp_code: Annotated[str, Form(pattern=r'^(?:\d{6}|\d{8})$')],
-):
-    await UserTOTPService.setup_totp(secret, int(digits), totp_code)
-    return Response(None, status.HTTP_204_NO_CONTENT)
-
-
-@router.post('/settings/totp/remove')
-async def settings_totp_remove(
-    _: Annotated[User, web_user()],
-    password: Annotated[Password, File()],
-):
-    await UserTOTPService.remove_totp(password=password)
-    return Response(None, status.HTTP_204_NO_CONTENT)
-
-
-@router.post('/settings/recovery-codes/generate')
-async def settings_recovery_codes_generate(
-    _: Annotated[User, web_user()],
-    password: Annotated[Password, File()],
-):
-    codes = await UserRecoveryCodeService.generate_recovery_codes(password=password)
-    return await render_response(
-        'settings/_recovery_codes',
-        {'codes': codes},
-    )
-
-
 @router.post('/settings/description')
 async def settings_description(
     _: Annotated[User, web_user()],
@@ -191,37 +120,3 @@ async def settings_connections(
 ):
     await ConnectedAccountService.remove_connection(provider)
     return RedirectResponse('/settings/connections', status.HTTP_303_SEE_OTHER)
-
-
-@router.post('/settings/passkey/register')
-async def settings_passkey_register(
-    _: Annotated[User, web_user()],
-    passkey: Annotated[bytes, File()],
-):
-    registration = PasskeyRegistration.FromString(passkey)
-    await UserPasskeyService.register_passkey(registration)
-    return Response(None, status.HTTP_204_NO_CONTENT)
-
-
-@router.post('/settings/passkey/{credential_id_b64:str}/rename')
-async def settings_passkey_rename(
-    _: Annotated[User, web_user()],
-    credential_id_b64: str,
-    name: Annotated[str, Form(max_length=PASSKEY_NAME_MAX_LENGTH)] = '',
-):
-    credential_id = urlsafe_b64decode(credential_id_b64 + '==')
-    effective_name = await UserPasskeyService.rename_passkey(credential_id, name=name)
-    if effective_name is None:
-        return Response(None, status.HTTP_404_NOT_FOUND)
-    return {'name': effective_name}
-
-
-@router.post('/settings/passkey/{credential_id_b64:str}/remove')
-async def settings_passkey_remove(
-    _: Annotated[User, web_user()],
-    credential_id_b64: str,
-    password: Annotated[Password, File()],
-):
-    credential_id = urlsafe_b64decode(credential_id_b64 + '==')
-    await UserPasskeyService.remove_passkey(credential_id, password=password)
-    return Response(None, status.HTTP_204_NO_CONTENT)

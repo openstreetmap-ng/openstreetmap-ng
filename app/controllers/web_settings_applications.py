@@ -22,15 +22,6 @@ from app.utils import id_response
 router = APIRouter(prefix='/api/web')
 
 
-@router.post('/settings/revoke-token')
-async def settings_revoke_token(
-    _: Annotated[User, web_user()],
-    token_id: Annotated[OAuth2TokenId, Form()],
-):
-    await OAuth2TokenService.revoke_by_id(token_id)
-    return Response(None, status.HTTP_204_NO_CONTENT)
-
-
 @router.post('/settings/revoke-application')
 async def settings_revoke_application(
     _: Annotated[User, web_user()],

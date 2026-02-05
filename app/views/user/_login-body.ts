@@ -22,7 +22,7 @@ if (loginForm) {
   const bypass2faInput = loginForm.querySelector("input[name=bypass_2fa]")!
   const recoveryCodeInput = loginForm.querySelector("input[name=recovery_code]")!
   const displayNameInput = loginForm.querySelector("input[name=display_name_or_email]")!
-  const passwordInput = loginForm.querySelector("input[data-name=password]")!
+  const passwordInput = loginForm.querySelector("input[type=password][name=password]")!
   const rememberInput = loginForm.querySelector("input[name=remember]")!
 
   let conditionalMediationAbort: AbortController | undefined

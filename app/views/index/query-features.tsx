@@ -21,7 +21,7 @@ import {
   QueryFeaturesService,
 } from "@lib/proto/query_features_pb"
 import { setPageTitle } from "@lib/title"
-import { type Signal, useComputed, useSignalEffect } from "@preact/signals"
+import { type ReadonlySignal, useComputed, useSignalEffect } from "@preact/signals"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
@@ -107,7 +107,7 @@ const QueryFeaturesSidebar = ({
   at,
 }: {
   map: MaplibreMap
-  at: Signal<LonLatZoom | undefined>
+  at: ReadonlySignal<LonLatZoom | undefined>
 }) => {
   const source = map.getSource<GeoJSONSource>(LAYER_ID)!
 
