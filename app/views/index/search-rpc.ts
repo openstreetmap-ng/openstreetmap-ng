@@ -1,4 +1,4 @@
-import { useSidebarRpc } from "@index/_action-sidebar"
+import { useSidebar } from "@index/_action-sidebar"
 import { zoomPrecision } from "@lib/coords"
 import { boundsPadding } from "@lib/map/bounds"
 import type { LonLatZoom } from "@lib/map/state"
@@ -40,7 +40,7 @@ export const useSidebarSearchRpc = ({
   at: ReadonlySignal<LonLatZoom | undefined>
   local: ReadonlySignal<boolean>
 }) => {
-  const search = useSidebarRpc(
+  const search = useSidebar(
     useComputed(() => {
       const query = q.value
       return query ? getSearchRequest(map, query, local.value) : null
@@ -49,7 +49,7 @@ export const useSidebarSearchRpc = ({
     (r) => r.data,
   )
 
-  const reverse = useSidebarRpc(
+  const reverse = useSidebar(
     useComputed(() => {
       if (q.value) return null
       const p = at.value

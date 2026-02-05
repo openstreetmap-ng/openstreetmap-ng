@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarHeader, useSidebarRpc } from "@index/_action-sidebar"
+import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { routeParam } from "@lib/codecs"
 import {
@@ -340,7 +340,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetNoteCommentsResponseValid | null>(null)
 
-  const { resource, data } = useSidebarRpc(
+  const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
     NoteService.method.getNote,
     (r) => r.note,
