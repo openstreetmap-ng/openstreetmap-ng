@@ -1,9 +1,13 @@
-import { create, toBinary } from "@bufbuild/protobuf"
+import { create, type MessageInitShape, toBinary } from "@bufbuild/protobuf"
 import {
   type TransmitUserPassword,
   TransmitUserPasswordSchema,
 } from "@lib/proto/shared_pb"
 import { roundTo } from "@std/math/round-to"
+
+export type TransmitUserPasswordInit = MessageInitShape<
+  typeof TransmitUserPasswordSchema
+>
 
 type PasswordSchema = keyof TransmitUserPassword
 
@@ -44,7 +48,7 @@ export const createPasswordTransformState = (form: HTMLFormElement) => {
 
         tasks.push(
           (async () => {
-            const bytes = await buildTransmitPassword(schemas, value)
+            const bytes = await buildTransmitPasswordBytes(schemas, value)
             formData.set(
               name,
               new Blob([bytes], {
@@ -56,6 +60,35 @@ export const createPasswordTransformState = (form: HTMLFormElement) => {
       }
 
       await Promise.all(tasks)
+    },
+    collect: async (formData: FormData) => {
+      const passwords: Record<string, TransmitUserPasswordInit> = {}
+      if (!passwordFieldNames.length) return passwords
+
+      const tasks = []
+
+      for (const name of passwordFieldNames) {
+        if (name.endsWith("_confirm")) {
+          formData.delete(name)
+          continue
+        }
+
+        const value = formData.get(name) as string
+        if (!value) {
+          formData.delete(name)
+          continue
+        }
+
+        tasks.push(
+          (async () => {
+            passwords[name] = await buildTransmitPasswordInit(schemas, value)
+            formData.delete(name)
+          })(),
+        )
+      }
+
+      await Promise.all(tasks)
+      return passwords
     },
     tryUpdateSchema: (detail: unknown) => {
       if (!Array.isArray(detail)) return false
@@ -81,21 +114,32 @@ export const createPasswordTransformState = (form: HTMLFormElement) => {
   }
 }
 
-const buildTransmitPassword = async (
+const buildTransmitPasswordInit = async (
   schemas: readonly PasswordSchema[],
   password: string,
 ) => {
-  const transmitUserPassword = create(TransmitUserPasswordSchema)
-  const tasks: Promise<void>[] = []
+  const result: TransmitUserPasswordInit = {}
+  const tasks = []
+
   for (const schema of schemas) {
-    tasks.push(clientHashPassword(transmitUserPassword, schema, password))
+    tasks.push(clientHashPassword(result, schema, password))
   }
+
   await Promise.all(tasks)
+  return result
+}
+
+const buildTransmitPasswordBytes = async (
+  schemas: readonly PasswordSchema[],
+  password: string,
+) => {
+  const init = await buildTransmitPasswordInit(schemas, password)
+  const transmitUserPassword = create(TransmitUserPasswordSchema, init)
   return toBinary(TransmitUserPasswordSchema, transmitUserPassword)
 }
 
 const clientHashPassword = async (
-  transmitUserPassword: TransmitUserPassword,
+  transmitUserPassword: TransmitUserPasswordInit,
   schema: PasswordSchema,
   password: string,
 ) => {

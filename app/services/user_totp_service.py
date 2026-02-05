@@ -8,9 +8,10 @@ from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.crypto import decrypt, encrypt
+from app.lib.password_hash import PasswordLike
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
-from app.models.types import Password, UserId
+from app.models.types import UserId
 from app.queries.user_totp_query import UserTOTPQuery
 from app.services.audit_service import audit
 from app.services.user_password_service import UserPasswordService
@@ -129,7 +130,7 @@ class UserTOTPService:
     @staticmethod
     async def remove_totp(
         *,
-        password: Password | None,
+        password: PasswordLike | None,
         user_id: UserId | None = None,
     ):
         if password is None:

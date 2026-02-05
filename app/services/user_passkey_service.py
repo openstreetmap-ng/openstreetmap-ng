@@ -7,6 +7,7 @@ from starlette.exceptions import HTTPException
 from app.config import PASSKEY_LIMIT
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.password_hash import PasswordLike
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.webauthn import (
@@ -20,7 +21,7 @@ from app.models.proto.shared_pb2 import (
     PasskeyCredential,
     PasskeyRegistration,
 )
-from app.models.types import Password, UserId
+from app.models.types import UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.services.audit_service import audit
 from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
@@ -134,7 +135,7 @@ class UserPasskeyService:
     async def remove_passkey(
         credential_id: bytes,
         *,
-        password: Password | None,
+        password: PasswordLike | None,
         user_id: UserId | None = None,
     ):
         """Remove a passkey from a user's account."""
