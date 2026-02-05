@@ -3,11 +3,7 @@ import { mount } from "@lib/mount"
 import { SettingsSecurityService } from "@lib/proto/settings_security_pb"
 import { qsEncode } from "@lib/qs"
 import { rpcUnary } from "@lib/rpc"
-import {
-  type APIDetail,
-  configureStandardRpcForm,
-  formDataBytes,
-} from "@lib/standard-form"
+import { type APIDetail, configureStandardRpcForm } from "@lib/standard-form"
 import { resolveUserAgentIconsLazy } from "@lib/user-agent-icons"
 import { getPasskeyRegistration } from "@lib/webauthn"
 import { t } from "i18next"
@@ -27,9 +23,9 @@ mount("settings-security-body", (body) => {
 
   configureStandardRpcForm(passwordForm, {
     method: SettingsSecurityService.method.changePassword,
-    buildRequest: async ({ formData }) => ({
-      oldPassword: await formDataBytes(formData, "old_password"),
-      newPassword: await formDataBytes(formData, "new_password"),
+    buildRequest: ({ formData, passwords }) => ({
+      oldPassword: passwords.old_password,
+      newPassword: passwords.new_password,
       revokeOtherSessions: formData.get("revoke_other_sessions") === "true",
     }),
     resetOnSuccess: true,

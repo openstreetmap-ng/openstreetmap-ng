@@ -13,6 +13,7 @@ from app.models.proto.shared_pb2 import TransmitUserPassword
 from app.models.types import Password
 
 PasswordSchema = Literal['legacy', 'v1']
+PasswordLike = Password | TransmitUserPassword
 
 
 class VerifyResult(NamedTuple):
@@ -33,21 +34,21 @@ _HASHER_V1 = PasswordHasher(
 
 class PasswordHash:
     @staticmethod
-    def hash(password: Password):
+    def hash(password: PasswordLike):
         """
         Hash a password using the latest recommended algorithm.
         Returns None if the given password schema cannot be used.
         """
-        transmit_password = TransmitUserPassword.FromString(password)
+        transmit_password = _parse_transmit_password(password)
         if transmit_password.v1:
             return _hash_v1(transmit_password.v1)
 
         return None
 
     @staticmethod
-    def verify(password_pb: bytes, password: Password):
+    def verify(password_pb: bytes, password: PasswordLike):
         """Verify a password against a hash."""
-        transmit_password = TransmitUserPassword.FromString(password)
+        transmit_password = _parse_transmit_password(password)
         password_pb_ = UserPassword.FromString(password_pb)
         password_pb_schema = password_pb_.WhichOneof('schema')
 
@@ -59,6 +60,15 @@ class PasswordHash:
         raise NotImplementedError(
             f'Unsupported password_pb schema: {password_pb_schema!r}'
         )
+
+
+@cython.cfunc
+def _parse_transmit_password(password: PasswordLike):
+    return (
+        password
+        if isinstance(password, TransmitUserPassword)
+        else TransmitUserPassword.FromString(password)
+    )
 
 
 @cython.cfunc

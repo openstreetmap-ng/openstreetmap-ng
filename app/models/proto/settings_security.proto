@@ -15,8 +15,8 @@ service SettingsSecurityService {
 }
 
 message ChangePasswordRequest {
-  bytes old_password = 1;
-  bytes new_password = 2;
+  TransmitUserPassword old_password = 1 [(buf.validate.field).required = true];
+  TransmitUserPassword new_password = 2 [(buf.validate.field).required = true];
   bool revoke_other_sessions = 3;
 }
 
@@ -38,7 +38,7 @@ message SetupTotpRequest {
 message SetupTotpResponse {}
 
 message DisableTotpRequest {
-  bytes password = 1;
+  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
 }
 
 message DisableTotpResponse {}
@@ -59,14 +59,14 @@ message RenamePasskeyResponse {
 }
 
 message RemovePasskeyRequest {
-  bytes credential_id = 1;
-  bytes password = 2;
+  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
+  bytes credential_id = 2;
 }
 
 message RemovePasskeyResponse {}
 
 message GenerateRecoveryCodesRequest {
-  bytes password = 1;
+  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
 }
 
 message GenerateRecoveryCodesResponse {

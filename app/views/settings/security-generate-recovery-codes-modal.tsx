@@ -1,7 +1,7 @@
 import { config } from "@lib/config"
 import { CopyButton } from "@lib/copy-group"
 import { SettingsSecurityService } from "@lib/proto/settings_security_pb"
-import { formDataBytes, StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@lib/standard-form"
 import { useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
@@ -98,8 +98,8 @@ const GenerateRecoveryCodesModal = () => {
           ) : (
             <StandardForm
               method={SettingsSecurityService.method.generateRecoveryCodes}
-              buildRequest={async ({ formData }) => ({
-                password: await formDataBytes(formData, "password"),
+              buildRequest={({ passwords }) => ({
+                password: passwords.password,
               })}
               onSuccess={(resp) => (codes.value = resp.codes)}
             >

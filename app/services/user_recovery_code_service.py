@@ -3,10 +3,11 @@ from psycopg.rows import dict_row
 from app.config import RECOVERY_CODE_MAX_ATTEMPTS, RECOVERY_CODE_RATE_LIMIT_WINDOW
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.password_hash import PasswordLike
 from app.lib.recovery_code import generate_recovery_codes, verify_recovery_code
 from app.lib.translation import t
 from app.models.db.user_recovery_code import UserRecoveryCode
-from app.models.types import Password, UserId
+from app.models.types import UserId
 from app.services.audit_service import audit
 from app.services.rate_limit_service import RateLimitService
 from app.services.user_password_service import UserPasswordService
@@ -14,7 +15,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserRecoveryCodeService:
     @staticmethod
-    async def generate_recovery_codes(*, password: Password):
+    async def generate_recovery_codes(*, password: PasswordLike):
         """
         Generate or rotate recovery codes for a user.
 

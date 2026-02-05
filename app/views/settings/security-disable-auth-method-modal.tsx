@@ -1,7 +1,7 @@
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { config } from "@lib/config"
 import { SettingsSecurityService } from "@lib/proto/settings_security_pb"
-import { formDataBytes, StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@lib/standard-form"
 import { type Signal, signal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { Modal } from "bootstrap"
@@ -114,9 +114,9 @@ const DisableAuthMethodModal = ({
           {current?.method === "passkey" ? (
             <StandardForm
               method={SettingsSecurityService.method.removePasskey}
-              buildRequest={async ({ formData }) => ({
+              buildRequest={({ passwords }) => ({
                 credentialId: base64Decode(current.credentialId),
-                password: await formDataBytes(formData, "password"),
+                password: passwords.password,
               })}
               onSuccess={() => window.location.reload()}
             >
@@ -125,8 +125,8 @@ const DisableAuthMethodModal = ({
           ) : current?.method === "totp" ? (
             <StandardForm
               method={SettingsSecurityService.method.disableTotp}
-              buildRequest={async ({ formData }) => ({
-                password: await formDataBytes(formData, "password"),
+              buildRequest={({ passwords }) => ({
+                password: passwords.password,
               })}
               onSuccess={() => window.location.reload()}
             >

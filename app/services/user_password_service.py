@@ -9,13 +9,13 @@ from app.config import ENV
 from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
-from app.lib.password_hash import PasswordHash
+from app.lib.password_hash import PasswordHash, PasswordLike
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, user_is_test
-from app.models.types import Password, UserId
+from app.models.types import UserId
 from app.queries.user_token_query import UserTokenQuery
 from app.services.audit_service import audit
 from app.services.oauth2_token_service import OAuth2TokenService
@@ -25,7 +25,7 @@ class UserPasswordService:
     @staticmethod
     async def verify_password(
         user: User,
-        password: Password,
+        password: PasswordLike,
         *,
         field_name: str | None = None,
         error_message: Literal['ignore'] | Callable[[], str] | None = None,
@@ -93,7 +93,7 @@ class UserPasswordService:
 
     @staticmethod
     async def set_password_unsafe(
-        conn: AsyncConnection, user_id: UserId, password: Password
+        conn: AsyncConnection, user_id: UserId, password: PasswordLike
     ):
         """Set or update password for user (upsert)."""
         password_pb = PasswordHash.hash(password)
@@ -112,8 +112,8 @@ class UserPasswordService:
     @staticmethod
     async def update_password(
         *,
-        old_password: Password,
-        new_password: Password,
+        old_password: PasswordLike,
+        new_password: PasswordLike,
     ):
         """Update password for authenticated user."""
         user = auth_user(required=True)
@@ -135,7 +135,7 @@ class UserPasswordService:
     async def reset_password(
         token: SecretStr,
         *,
-        new_password: Password,
+        new_password: PasswordLike,
         revoke_other_sessions: bool,
     ):
         """Reset password via token."""

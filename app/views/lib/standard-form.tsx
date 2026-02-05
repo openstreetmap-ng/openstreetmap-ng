@@ -5,7 +5,10 @@ import {
   type DisposeScope,
   useDisposeEffect,
 } from "@lib/dispose-scope"
-import { createPasswordTransformState } from "@lib/password-hash"
+import {
+  createPasswordTransformState,
+  type TransmitUserPasswordInit,
+} from "@lib/password-hash"
 import {
   type StandardFeedbackDetail_Entry,
   StandardFeedbackDetail_Severity,
@@ -467,6 +470,7 @@ interface ConfigureStandardRpcFormOptions<
       formData: FormData
       submitter: HTMLElement | null
       signal: AbortSignal
+      passwords: Readonly<Record<string, TransmitUserPasswordInit>>
     }>,
   ) => LooseMessageInitShape<I> | Promise<LooseMessageInitShape<I>>
   onSuccess?: (resp: MessageValidType<O>) => void
@@ -553,8 +557,6 @@ export const configureStandardRpcForm = <I extends DescMessage, O extends DescMe
     setPendingState(true)
     const formData = new FormData(form, e.submitter)
 
-    await passwordState.apply(formData)
-
     // Stage 4: Run client-side validation
     if (validationCallback) {
       let result = validationCallback(formData)
@@ -576,6 +578,7 @@ export const configureStandardRpcForm = <I extends DescMessage, O extends DescMe
         formData,
         submitter: e.submitter,
         signal: abortController.signal,
+        passwords: await passwordState.collect(formData),
       })
     } catch (error) {
       if (error.name === "AbortError") return
@@ -640,6 +643,7 @@ interface StandardFormProps<I extends DescMessage, O extends DescMessage> {
       formData: FormData
       submitter: HTMLElement | null
       signal: AbortSignal
+      passwords: Readonly<Record<string, TransmitUserPasswordInit>>
     }>,
   ) => LooseMessageInitShape<I> | Promise<LooseMessageInitShape<I>>
   onSuccess?: (
@@ -758,13 +762,12 @@ export const StandardForm = <I extends DescMessage, O extends DescMessage>({
 
     let request: LooseMessageInitShape<I>
     try {
-      await passwordStateRef.current!.apply(formData)
-
       request = await buildRequest({
         form,
         formData,
         submitter: e.submitter,
         signal: abortController.signal,
+        passwords: await passwordStateRef.current!.collect(formData),
       })
     } catch (error) {
       if (error.name === "AbortError") return
