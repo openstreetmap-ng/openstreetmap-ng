@@ -6,7 +6,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import COOKIE_AUTH_MAX_AGE, ENV, TIMEZONE_MAX_LENGTH
+from app.config import COOKIE_AUTH_MAX_AGE, ENV
 from app.lib.auth_context import auth_user, web_user
 from app.lib.referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
@@ -194,11 +194,3 @@ async def reset_password_token(
             else ''
         ),
     )
-
-
-@router.post('/timezone')
-async def update_timezone(
-    timezone: Annotated[str, Form(max_length=TIMEZONE_MAX_LENGTH)],
-):
-    await UserService.update_timezone(timezone)
-    return Response(None, status.HTTP_204_NO_CONTENT)
