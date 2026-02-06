@@ -143,7 +143,7 @@ const NavbarLeft = () => {
       >
         <a
           class={`btn edit-link default ${disabled ? "disabled" : ""}`}
-          href={disabled ? undefined : buildEditHref(preferredEditorStorage.value)}
+          href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
         >

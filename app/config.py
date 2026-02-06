@@ -24,6 +24,7 @@ from pydantic import (
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
 from app.models.proto.changeset_pb2 import AddChangesetCommentRequest
+from app.models.proto.message_pb2 import SendMessageRequest
 from app.models.proto.note_pb2 import AddNoteCommentRequest
 from app.models.proto.report_pb2 import CreateReportRequest
 from app.models.proto.search_pb2 import SearchRequest
@@ -335,9 +336,6 @@ DIARY_COMMENTS_PAGE_SIZE = 10
 LOCALE_CODE_MAX_LENGTH = 15
 
 # Messages
-MESSAGE_RECIPIENTS_LIMIT = 5
-MESSAGE_SUBJECT_MAX_LENGTH = 100
-MESSAGE_BODY_MAX_LENGTH = 50_000
 MESSAGES_INBOX_PAGE_SIZE = 15
 
 # Follows
@@ -543,6 +541,15 @@ def _proto_validate(message_cls: type[Message], path: str):
 
 CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     AddChangesetCommentRequest, 'body.string.max_len'
+)
+MESSAGE_BODY_MAX_LENGTH: int = _proto_validate(
+    SendMessageRequest, 'body.string.max_len'
+)
+MESSAGE_RECIPIENTS_LIMIT: int = _proto_validate(
+    SendMessageRequest, 'recipient.repeated.max_items'
+)
+MESSAGE_SUBJECT_MAX_LENGTH: int = _proto_validate(
+    SendMessageRequest, 'subject.string.max_len'
 )
 NOTE_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     AddNoteCommentRequest, 'body.string.max_len'

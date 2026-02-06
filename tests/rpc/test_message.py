@@ -9,7 +9,15 @@ from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
-from app.models.proto.message_pb2 import MessageRead
+from app.models.proto.message_pb2 import (
+    DeleteMessageRequest,
+    GetMessageRequest,
+    GetMessageResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+    SetMessageReadStateRequest,
+    SetMessageReadStateResponse,
+)
 from app.models.types import DisplayName, MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
@@ -24,25 +32,31 @@ async def test_message_crud(client: AsyncClient):
 
     # CREATE: Send message from user1 to user2
     r = await client.post(
-        '/api/web/messages',
-        data={
-            'subject': 'Test Subject',
-            'body': 'Test Body',
-            'recipient': 'user2',
-        },
+        '/rpc/MessageService/SendMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=SendMessageRequest(
+            subject='Test Subject',
+            body='Test Body',
+            recipient=['user2'],
+        ).SerializeToString(),
     )
     assert r.is_success, r.text
 
     # Parse message ID from redirect URL: /messages/outbox?show=123
-    parsed_url = urlsplit(r.json()['redirect_url'])
+    create_resp = SendMessageResponse.FromString(r.content)
+    parsed_url = urlsplit(create_resp.redirect_url)
     query_params = parse_qs(parsed_url.query, strict_parsing=True)
     message_id = MessageId(int(query_params['show'][0]))
 
     # Test sender can read their own sent message
-    r = await client.get(f'/api/web/messages/{message_id}')
+    r = await client.post(
+        '/rpc/MessageService/GetMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetMessageRequest(id=message_id).SerializeToString(),
+    )
     assert r.is_success, r.text
 
-    msg = MessageRead.FromString(r.content)
+    msg = GetMessageResponse.FromString(r.content)
     assert msg.sender.display_name == 'user1'
     assert msg.sender.avatar_url
     assert len(msg.recipients) == 1
@@ -61,10 +75,14 @@ async def test_message_crud(client: AsyncClient):
     client.headers['Authorization'] = 'User user2'
 
     # READ: Get message as recipient
-    r = await client.get(f'/api/web/messages/{message_id}')
+    r = await client.post(
+        '/rpc/MessageService/GetMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetMessageRequest(id=message_id).SerializeToString(),
+    )
     assert r.is_success, r.text
 
-    msg = MessageRead.FromString(r.content)
+    msg = GetMessageResponse.FromString(r.content)
     assert msg.sender.display_name == 'user1'
     assert msg.sender.avatar_url
     assert len(msg.recipients) == 1
@@ -80,18 +98,34 @@ async def test_message_crud(client: AsyncClient):
         assert message['recipients'][0]['read']  # type: ignore
 
         # UPDATE: Mark message as unread
-        r = await client.post(f'/api/web/messages/{message_id}/unread')
-        assert r.status_code == status.HTTP_204_NO_CONTENT
+        r = await client.post(
+            '/rpc/MessageService/SetMessageReadState',
+            headers={'Content-Type': 'application/proto'},
+            content=SetMessageReadStateRequest(
+                id=message_id,
+                read=False,
+            ).SerializeToString(),
+        )
+        assert r.is_success, r.text
+        assert SetMessageReadStateResponse.FromString(r.content).updated
 
         message = await MessageQuery.get_by_id(message_id)
         assert not message['recipients'][0]['read']  # type: ignore
 
     # DELETE: Delete message
-    r = await client.post(f'/api/web/messages/{message_id}/delete')
-    assert r.status_code == status.HTTP_204_NO_CONTENT
+    r = await client.post(
+        '/rpc/MessageService/DeleteMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=DeleteMessageRequest(id=message_id).SerializeToString(),
+    )
+    assert r.is_success, r.text
 
     # Test accessing deleted message
-    r = await client.get(f'/api/web/messages/{message_id}')
+    r = await client.post(
+        '/rpc/MessageService/GetMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetMessageRequest(id=message_id).SerializeToString(),
+    )
     assert r.status_code == status.HTTP_404_NOT_FOUND
 
     # Authenticate as user1 (sender)
@@ -113,8 +147,12 @@ async def test_message_crud(client: AsyncClient):
         )
 
         # DELETE: Delete message
-        r = await client.post(f'/api/web/messages/{message_id}/delete')
-        assert r.status_code == status.HTTP_204_NO_CONTENT
+        r = await client.post(
+            '/rpc/MessageService/DeleteMessage',
+            headers={'Content-Type': 'application/proto'},
+            content=DeleteMessageRequest(id=message_id).SerializeToString(),
+        )
+        assert r.is_success, r.text
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)

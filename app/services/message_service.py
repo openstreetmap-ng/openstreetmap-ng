@@ -28,15 +28,7 @@ class MessageService:
     ):
         """Send a message to a user."""
         assert recipients, 'Recipients must be set'
-
-        if len(recipients) > MESSAGE_RECIPIENTS_LIMIT:
-            StandardFeedback.raise_error(
-                'recipient',
-                t(
-                    'validation.you_can_send_message_to_at_most_limit_recipients',
-                    limit=MESSAGE_RECIPIENTS_LIMIT,
-                ),
-            )
+        assert len(recipients) <= MESSAGE_RECIPIENTS_LIMIT, 'Too many recipients'
 
         if isinstance(recipients[0], str):
             to_users = await UserQuery.find_by_display_names(recipients)  # type: ignore

@@ -8,21 +8,39 @@ from psycopg.sql import SQL
 from app.config import MESSAGES_INBOX_PAGE_SIZE
 from app.lib.auth_context import require_web_user
 from app.lib.standard_pagination import sp_paginate_table
-from app.models.db.message import Message
+from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import user_proto
 from app.models.proto.message_connect import (
-    MessageService,
+    MessageService as MessageServiceConnect,
+)
+from app.models.proto.message_connect import (
     MessageServiceASGIApplication,
 )
 from app.models.proto.message_pb2 import (
+    DeleteMessageRequest,
+    DeleteMessageResponse,
+    GetMessageRequest,
+    GetMessageResponse,
     GetMessagesPageRequest,
     GetMessagesPageResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+    SetMessageReadStateRequest,
+    SetMessageReadStateResponse,
 )
+from app.models.types import DisplayName, MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
+from app.services.message_service import MessageService
+from app.validators.unicode import unicode_unquote_normalize
 
 
-class _Service(MessageService):
+@cython.cfunc
+def _normalize_display_name(value: str):
+    return DisplayName(unicode_unquote_normalize(value))
+
+
+class _Service(MessageServiceConnect):
     @override
     async def get_messages_page(
         self, request: GetMessagesPageRequest, ctx: RequestContext
@@ -83,6 +101,75 @@ class _Service(MessageService):
             _build_message_summary(message, inbox=inbox) for message in messages
         ]
         return GetMessagesPageResponse(state=state, messages=summaries)
+
+    @override
+    async def get_message(self, request: GetMessageRequest, ctx: RequestContext):
+        require_web_user()
+        message_id = MessageId(request.id)
+
+        message = await MessageQuery.get_by_id(message_id)
+        assert 'recipients' in message, 'Message recipients must be set'
+
+        user_recipient = message.get('user_recipient')
+        is_recipient = user_recipient is not None
+
+        async with TaskGroup() as tg:
+            items = [message]
+            tg.create_task(messages_resolve_rich_text(items))
+            tg.create_task(
+                UserQuery.resolve_users(
+                    items, user_id_key='from_user_id', user_key='from_user'
+                )
+            )
+            tg.create_task(UserQuery.resolve_users(message['recipients']))
+            mark_read_t = (
+                tg.create_task(MessageService.set_state(message_id, read=True))
+                if is_recipient
+                else None
+            )
+
+        return GetMessageResponse(
+            was_unread=mark_read_t.result() if mark_read_t else False,
+            sender=user_proto(message['from_user']),  # type: ignore
+            recipients=[
+                user_proto(r['user'])  # type: ignore
+                for r in message['recipients']
+            ],
+            is_recipient=is_recipient,
+            created_at=int(message['created_at'].timestamp()),
+            subject=message['subject'],
+            body_rich=message['body_rich'],  # type: ignore
+        )
+
+    @override
+    async def set_message_read_state(
+        self, request: SetMessageReadStateRequest, ctx: RequestContext
+    ):
+        require_web_user()
+        updated = await MessageService.set_state(
+            MessageId(request.id),
+            read=request.read,
+        )
+        return SetMessageReadStateResponse(updated=updated)
+
+    @override
+    async def delete_message(self, request: DeleteMessageRequest, ctx: RequestContext):
+        require_web_user()
+        await MessageService.delete_message(MessageId(request.id))
+        return DeleteMessageResponse()
+
+    @override
+    async def send_message(self, request: SendMessageRequest, ctx: RequestContext):
+        require_web_user()
+        recipients = list(
+            dict.fromkeys(_normalize_display_name(value) for value in request.recipient)
+        )
+        message_id = await MessageService.send(
+            recipients=recipients,
+            subject=request.subject,
+            body=request.body,
+        )
+        return SendMessageResponse(redirect_url=f'/messages/outbox?show={message_id}')
 
 
 def _build_message_summary(

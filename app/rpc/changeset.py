@@ -2,6 +2,7 @@ from asyncio import TaskGroup
 from datetime import date, datetime, time, timedelta
 from typing import override
 
+import cython
 from connectrpc.request import RequestContext
 from psycopg.sql import SQL
 from shapely import Point, measurement, set_srid
@@ -56,6 +57,11 @@ from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.unicode import unicode_unquote_normalize
 
 
+@cython.cfunc
+def _normalize_display_name(value: str):
+    return DisplayName(unicode_unquote_normalize(value))
+
+
 class _Service(ChangesetService):
     @override
     async def get_map_changesets(
@@ -65,9 +71,8 @@ class _Service(ChangesetService):
         scope = request.scope if request.HasField('scope') else None
 
         if request.HasField('display_name'):
-            display_name = unicode_unquote_normalize(request.display_name)
             target_user = await UserQuery.find_by_display_name(
-                DisplayName(display_name)
+                _normalize_display_name(request.display_name)
             )
             user_ids = [target_user['id']] if target_user is not None else []
         else:

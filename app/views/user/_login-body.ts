@@ -106,6 +106,7 @@ if (loginForm) {
       })
 
       input.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.isComposing) return
         if (e.key === "Backspace" && !input.value && index) {
           inputs[index - 1].focus()
           inputs[index - 1].select()

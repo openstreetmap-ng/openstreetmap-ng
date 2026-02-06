@@ -2,43 +2,8 @@ import { base64Decode } from "@bufbuild/protobuf/wire"
 import { WebConfigSchema } from "@lib/proto/shared_pb"
 import { fromBinaryValid } from "@lib/rpc"
 import { memoize } from "@std/cache/memoize"
-import {
-  _API_URL,
-  _CHANGESET_COMMENT_BODY_MAX_LENGTH,
-  _ENV,
-  _ID_PATH,
-  _MAP_QUERY_AREA_MAX_SIZE,
-  _NOTE_COMMENT_BODY_MAX_LENGTH,
-  _NOTE_QUERY_AREA_MAX_SIZE,
-  _RAPID_PATH,
-  _REPORT_COMMENT_BODY_MAX_LENGTH,
-  _SEARCH_QUERY_MAX_LENGTH,
-  _SENTRY_DSN,
-  _SENTRY_TRACES_SAMPLE_RATE,
-  _STANDARD_PAGINATION_DISTANCE,
-  _STANDARD_PAGINATION_MAX_FULL_PAGES,
-  _URLSAFE_BLACKLIST,
-  _URLSAFE_BLACKLIST_RE,
-  _VERSION,
-} from "./config.macro" with { type: "macro" }
-
-export const API_URL = _API_URL
-export const CHANGESET_COMMENT_BODY_MAX_LENGTH = _CHANGESET_COMMENT_BODY_MAX_LENGTH
-export const ENV = _ENV
-export const ID_PATH = _ID_PATH
-export const MAP_QUERY_AREA_MAX_SIZE = _MAP_QUERY_AREA_MAX_SIZE
-export const NOTE_COMMENT_BODY_MAX_LENGTH = _NOTE_COMMENT_BODY_MAX_LENGTH
-export const NOTE_QUERY_AREA_MAX_SIZE = _NOTE_QUERY_AREA_MAX_SIZE
-export const RAPID_PATH = _RAPID_PATH
-export const REPORT_COMMENT_BODY_MAX_LENGTH = _REPORT_COMMENT_BODY_MAX_LENGTH
-export const SEARCH_QUERY_MAX_LENGTH = _SEARCH_QUERY_MAX_LENGTH
-export const SENTRY_DSN = _SENTRY_DSN
-export const SENTRY_TRACES_SAMPLE_RATE = _SENTRY_TRACES_SAMPLE_RATE
-export const STANDARD_PAGINATION_DISTANCE = _STANDARD_PAGINATION_DISTANCE
-export const STANDARD_PAGINATION_MAX_FULL_PAGES = _STANDARD_PAGINATION_MAX_FULL_PAGES
-export const URLSAFE_BLACKLIST = _URLSAFE_BLACKLIST
-export const URLSAFE_BLACKLIST_RE = _URLSAFE_BLACKLIST_RE
-export const VERSION = _VERSION
+import { ENV, SENTRY_DSN, VERSION } from "./config.macro" with { type: "macro" }
+export * from "./config.macro" with { type: "macro" }
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinaryValid(

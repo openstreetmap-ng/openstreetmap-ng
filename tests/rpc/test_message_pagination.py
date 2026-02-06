@@ -1,6 +1,11 @@
 from httpx import AsyncClient
 
-from app.models.proto.message_pb2 import GetMessagesPageRequest, GetMessagesPageResponse
+from app.models.proto.message_pb2 import (
+    GetMessagesPageRequest,
+    GetMessagesPageResponse,
+    SendMessageRequest,
+    SendMessageResponse,
+)
 
 
 async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
@@ -8,17 +13,20 @@ async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
 
     subject = test_messages_inbox_page_standard_pagination.__qualname__
     r = await client.post(
-        '/api/web/messages',
-        data={
-            'subject': subject,
-            'body': 'Hello from a test message.',
-            'recipient': 'user2',
-        },
+        '/rpc/MessageService/SendMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=SendMessageRequest(
+            subject=subject,
+            body='Hello from a test message.',
+            recipient=['user2'],
+        ).SerializeToString(),
     )
     assert r.is_success, r.text
 
     # Sanity check: ensure redirect looks like /messages/outbox?show=...
-    assert r.json()['redirect_url'].startswith('/messages/outbox?show=')
+    assert SendMessageResponse.FromString(r.content).redirect_url.startswith(
+        '/messages/outbox?show='
+    )
 
     client.headers['Authorization'] = 'User user2'
 
@@ -38,12 +46,13 @@ async def test_messages_outbox_page_standard_pagination(client: AsyncClient):
 
     subject = test_messages_outbox_page_standard_pagination.__qualname__
     r = await client.post(
-        '/api/web/messages',
-        data={
-            'subject': subject,
-            'body': 'Hello from a test message.',
-            'recipient': 'user2',
-        },
+        '/rpc/MessageService/SendMessage',
+        headers={'Content-Type': 'application/proto'},
+        content=SendMessageRequest(
+            subject=subject,
+            body='Hello from a test message.',
+            recipient=['user2'],
+        ).SerializeToString(),
     )
     assert r.is_success, r.text
 
