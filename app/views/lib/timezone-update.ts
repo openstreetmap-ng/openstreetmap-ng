@@ -1,7 +1,8 @@
 import { isLoggedIn } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { timezoneUpdateTimeStorage } from "@lib/local-storage"
-import { assert } from "@std/assert"
+import { SettingsService } from "@lib/proto/settings_pb"
+import { rpcUnary } from "@lib/rpc"
 import { DAY, SECOND } from "@std/datetime/constants"
 
 const UPDATE_DELAY = DAY
@@ -15,16 +16,8 @@ const timezoneUpdate = async () => {
   const timezone = getTimezoneName()
   console.debug("TimezoneUpdate: Updating to", timezone)
 
-  const formData = new FormData()
-  formData.append("timezone", timezone)
-
   try {
-    const resp = await fetch("/api/web/user/timezone", {
-      method: "POST",
-      body: formData,
-      priority: "low",
-    })
-    assert(resp.ok, `${resp.status} ${resp.statusText}`)
+    await rpcUnary(SettingsService.method.updateTimezone)({ timezone })
     console.debug("TimezoneUpdate: Success")
   } catch (error) {
     console.warn("TimezoneUpdate: Failed", error)
