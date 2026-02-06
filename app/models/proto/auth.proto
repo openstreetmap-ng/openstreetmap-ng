@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+import "buf/validate/validate.proto";
+
+service AuthService {
+  rpc GetPasskeyChallenge(GetPasskeyChallengeRequest) returns (GetPasskeyChallengeResponse) {}
+}
+
+message GetPasskeyChallengeRequest {
+  message Credentials {
+    string display_name_or_email = 1 [(buf.validate.field).string.min_len = 1];
+    TransmitUserPassword password = 2 [(buf.validate.field).required = true];
+  }
+
+  optional Credentials credentials = 1;
+}
+
+message GetPasskeyChallengeResponse {
+  PasskeyChallenge challenge = 1 [(buf.validate.field).required = true];
+}
+
+message TransmitUserPassword {
+  optional string legacy = 1; // Unencrypted password (deprecated)
+  optional bytes v1 = 2; // Client-side PBKDF2 hash digest
+}
+
+// Passkey registration attestation from WebAuthn create()
+message PasskeyRegistration {
+  bytes client_data_json = 1;
+  bytes attestation_object = 2;
+  repeated string transports = 3;
+}
+
+// Passkey login assertion from WebAuthn get()
+message PasskeyAssertion {
+  bytes credential_id = 1;
+  bytes client_data_json = 2;
+  bytes authenticator_data = 3;
+  bytes signature = 4;
+}
+
+// Passkey credential for WebAuthn allow/exclude lists
+message PasskeyCredential {
+  bytes credential_id = 1;
+  repeated string transports = 2;
+}
+
+// Passkey challenge response for WebAuthn create()/get()
+message PasskeyChallenge {
+  bytes challenge = 1;
+  repeated PasskeyCredential credentials = 2;
+  uint64 user_id = 3;
+  string user_display_name = 4;
+  string user_email = 5;
+}
+
+// Login response for 2FA flow
+message LoginResponse {
+  optional bool passkey = 1;
+  optional uint32 totp = 2;
+  optional bool recovery = 3;
+}

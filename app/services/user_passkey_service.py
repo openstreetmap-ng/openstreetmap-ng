@@ -16,7 +16,7 @@ from app.lib.webauthn import (
     parse_client_data,
     verify_assertion,
 )
-from app.models.proto.shared_pb2 import (
+from app.models.proto.auth_pb2 import (
     PasskeyAssertion,
     PasskeyCredential,
     PasskeyRegistration,

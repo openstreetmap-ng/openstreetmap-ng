@@ -1,5 +1,5 @@
 import { mount } from "@lib/mount"
-import { type LoginResponse, LoginResponseSchema } from "@lib/proto/shared_pb"
+import { type LoginResponse, LoginResponseSchema } from "@lib/proto/auth_pb"
 import { qsParse } from "@lib/qs"
 import { configureStandardForm } from "@lib/standard-form"
 import { NON_DIGIT_RE } from "@lib/utils"
@@ -189,6 +189,7 @@ if (loginForm) {
           passkeyAssertion ??
           (await getPasskeyAssertion(
             formData,
+            undefined,
             isPasswordless ? "required" : "discouraged",
           ))
         passkeyAssertion = null

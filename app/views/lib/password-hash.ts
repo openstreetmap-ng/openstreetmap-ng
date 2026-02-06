@@ -2,7 +2,7 @@ import { create, type MessageInitShape, toBinary } from "@bufbuild/protobuf"
 import {
   type TransmitUserPassword,
   TransmitUserPasswordSchema,
-} from "@lib/proto/shared_pb"
+} from "@lib/proto/auth_pb"
 import { roundTo } from "@std/math/round-to"
 
 export type TransmitUserPasswordInit = MessageInitShape<
