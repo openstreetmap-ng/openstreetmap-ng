@@ -30,7 +30,7 @@ export const queryParam = {
   string: () =>
     z.codec(z.array(z.string()).optional(), z.string().optional(), {
       decode: (raw) => raw?.at(-1),
-      encode: (value) => (value === undefined ? undefined : [value]),
+      encode: (value) => (value !== undefined ? [value] : undefined),
     }),
 
   positive: () => {
@@ -42,7 +42,7 @@ export const queryParam = {
         const parsed = schema.safeDecode(last)
         return parsed.success ? parsed.data : undefined
       },
-      encode: (value) => (value === undefined ? undefined : [schema.encode(value)]),
+      encode: (value) => (value !== undefined ? [schema.encode(value)] : undefined),
     })
   },
 
@@ -55,7 +55,7 @@ export const queryParam = {
         const parsed = schema.safeDecode(last)
         return parsed.success ? parsed.data : undefined
       },
-      encode: (value) => (value === undefined ? undefined : [value]),
+      encode: (value) => (value !== undefined ? [value] : undefined),
     })
   },
 

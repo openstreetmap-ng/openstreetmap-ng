@@ -1,7 +1,7 @@
 import "./main.scss"
-import { _ENV } from "@lib/config.macro" with { type: "macro" }
+import { ENV } from "@lib/config.macro" with { type: "macro" }
 
-if (_ENV !== "prod") {
+if (ENV !== "prod") {
   void import("preact/debug")
 }
 

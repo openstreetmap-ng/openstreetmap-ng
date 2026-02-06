@@ -91,7 +91,7 @@ export const CopyButton = ({
   )
 }
 
-export const configureCopyGroups = (root: ParentNode) => {
+const configureCopyGroups = (root: ParentNode) => {
   const elements = root.querySelectorAll(".copy-group")
   console.debug("CopyGroup: Initializing", elements.length)
 

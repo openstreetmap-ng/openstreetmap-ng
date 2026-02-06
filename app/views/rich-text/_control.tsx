@@ -1,42 +1,29 @@
+import { ConnectError } from "@connectrpc/connect"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { useSignal } from "@preact/signals"
-import { assertExists } from "@std/assert"
+import { RichTextService } from "@lib/proto/rich_text_pb"
+import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
+import { type Signal, useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { render } from "preact"
+import { type Ref, render } from "preact"
 import { memo } from "preact/compat"
 import { useRef } from "preact/hooks"
 
-type RichTextMode = "idle" | "edit" | "preview" | "help"
+type RichTextMode = "edit" | "preview" | "help"
 
-type RichTextConfig = {
+export const RichTextControl = ({
+  name,
+  value = "",
+  maxLength,
+  required = false,
+  textareaRef,
+}: {
   name: string
-  value: string
-  maxLength: number | undefined
-  rows: number
-  required: boolean
-}
-
-const parseNumber = (value: string | undefined) =>
-  value ? Number.parseInt(value, 10) : undefined
-
-const parseBoolean = (value: string | undefined) =>
-  value === "true" || value === "1" || value === "yes"
-
-const getConfig = (root: HTMLElement): RichTextConfig => {
-  const { name, value, maxlength, rows, required } = root.dataset
-  assertExists(name, "RichTextControl: Missing data-name")
-
-  return {
-    name,
-    value: value ?? "",
-    rows: parseNumber(rows) ?? 18,
-    required: parseBoolean(required),
-    maxLength: parseNumber(maxlength),
-  }
-}
-
-const RichTextControl = ({ config }: { config: RichTextConfig }) => {
-  const mode = useSignal<RichTextMode>("idle")
+  value?: string | undefined
+  maxLength?: number | undefined
+  required?: boolean | undefined
+  textareaRef?: Ref<HTMLTextAreaElement> | undefined
+}) => {
+  const mode = useSignal<RichTextMode>("edit")
   const previewHtml = useSignal("")
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -47,48 +34,49 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
       return
     }
 
-    const formData = new FormData()
-    formData.append("text", textAreaRef.current!.value)
     previewHtml.value = t("browse.start_rjs.loading")
 
     const fetchPreview = async () => {
       try {
-        const resp = await fetch("/api/web/rich-text", {
-          method: "POST",
-          body: formData,
-          signal: scope.signal,
-          priority: "high",
-        })
-        const respText = await resp.text()
+        const resp = await rpcUnary(RichTextService.method.renderMarkdown)(
+          { text: textAreaRef.current!.value },
+          {
+            signal: scope.signal,
+          },
+        )
         scope.signal.throwIfAborted()
-        previewHtml.value = respText
+        previewHtml.value = resp.html
       } catch (error) {
         if (error.name === "AbortError") return
         console.error("RichTextControl: Preview fetch failed", error)
-        previewHtml.value = error.message
+        previewHtml.value =
+          error instanceof ConnectError ? connectErrorToMessage(error) : error.message
       }
     }
     void fetchPreview()
   })
-
-  const isEditing = mode.value === "idle" || mode.value === "edit"
-  const isPreviewing = mode.value === "preview"
-  const isHelp = mode.value === "help"
 
   return (
     <div class="row flex-column-reverse flex-md-row">
       <div class="col-md-8">
         <textarea
           class="form-control"
-          name={config.name}
-          rows={config.rows}
-          maxLength={config.maxLength}
-          required={config.required}
-          defaultValue={config.value}
-          ref={textAreaRef}
-          hidden={!isEditing}
+          name={name}
+          rows={18}
+          maxLength={maxLength}
+          required={required}
+          defaultValue={value}
+          ref={(el) => {
+            textAreaRef.current = el
+            if (typeof textareaRef === "function") {
+              textareaRef(el)
+            } else if (textareaRef) {
+              textareaRef.current = el
+            }
+          }}
+          hidden={mode.value !== "edit"}
         />
-        {isPreviewing && (
+        {mode.value === "preview" && (
           <div
             class="RichTextPreview rich-text"
             dangerouslySetInnerHTML={{ __html: previewHtml.value }}
@@ -97,57 +85,64 @@ const RichTextControl = ({ config }: { config: RichTextConfig }) => {
       </div>
       <div class="col-md-4">
         <div class="sticky-top pt-md-2">
-          <fieldset class="btn-group mb-4 d-none d-md-inline-flex border-0 p-0 m-0">
-            <button
-              class="btn btn-primary"
-              type="button"
-              disabled={isEditing}
-              onClick={() => (mode.value = "edit")}
-            >
-              {t("layouts.edit")}
-            </button>
-            <button
-              class="btn btn-primary"
-              type="button"
-              disabled={isPreviewing}
-              onClick={() => (mode.value = "preview")}
-            >
-              {t("shared.richtext_field.preview")}
-            </button>
-          </fieldset>
-          <fieldset class="btn-group mb-2 d-flex d-sm-inline-flex d-md-none border-0 p-0 m-0">
-            <button
-              class="btn btn-primary px-sm-3"
-              type="button"
-              disabled={isEditing}
-              onClick={() => (mode.value = "edit")}
-            >
-              {t("layouts.edit")}
-            </button>
-            <button
-              class="btn btn-primary px-sm-3"
-              type="button"
-              disabled={isPreviewing}
-              onClick={() => (mode.value = "preview")}
-            >
-              {t("shared.richtext_field.preview")}
-            </button>
-            <button
-              class="btn btn-soft px-sm-3"
-              type="button"
-              disabled={isHelp}
-              onClick={() => (mode.value = "help")}
-            >
-              {t("rich_text.formatting_tips")}
-            </button>
-          </fieldset>
-          {isHelp && <RichTextHelp class="d-md-none" />}
+          <ModeButtons
+            class="mb-4 d-none d-md-inline-flex"
+            mode={mode}
+          />
+          <ModeButtons
+            class="mb-2 d-flex d-sm-inline-flex d-md-none"
+            mode={mode}
+            showHelp
+            mobile
+          />
+          {mode.value === "help" && <RichTextHelp class="d-md-none" />}
           <RichTextHelp class="d-none d-md-block" />
         </div>
       </div>
     </div>
   )
 }
+
+const ModeButtons = ({
+  class: className,
+  mode,
+  showHelp = false,
+  mobile = false,
+}: {
+  class: string
+  mode: Signal<RichTextMode>
+  showHelp?: boolean | undefined
+  mobile?: boolean | undefined
+}) => (
+  <fieldset class={`btn-group ${className} border-0 p-0 m-0`}>
+    <button
+      class={mobile ? "btn btn-primary px-sm-3" : "btn btn-primary"}
+      type="button"
+      disabled={mode.value === "edit"}
+      onClick={() => (mode.value = "edit")}
+    >
+      {t("layouts.edit")}
+    </button>
+    <button
+      class={mobile ? "btn btn-primary px-sm-3" : "btn btn-primary"}
+      type="button"
+      disabled={mode.value === "preview"}
+      onClick={() => (mode.value = "preview")}
+    >
+      {t("shared.richtext_field.preview")}
+    </button>
+    {showHelp && (
+      <button
+        class={mobile ? "btn btn-soft px-sm-3" : "btn btn-soft"}
+        type="button"
+        disabled={mode.value === "help"}
+        onClick={() => (mode.value = "help")}
+      >
+        {t("rich_text.formatting_tips")}
+      </button>
+    )}
+  </fieldset>
+)
 
 const RichTextHelp = memo(({ class: className = "" }: { class?: string }) => (
   <div class={`RichTextHelp p-2 p-md-0 ${className}`}>
@@ -211,5 +206,14 @@ const RichTextHelp = memo(({ class: className = "" }: { class?: string }) => (
 const roots = document.querySelectorAll<HTMLElement>(".RichTextControl")
 console.debug("RichTextControl: Initializing", roots.length, "containers")
 for (const root of roots) {
-  render(<RichTextControl config={getConfig(root)} />, root)
+  const { name, value, maxlength, required } = root.dataset
+  render(
+    <RichTextControl
+      name={name!}
+      value={value}
+      maxLength={maxlength ? Number.parseInt(maxlength, 10) : undefined}
+      required={Boolean(required)}
+    />,
+    root,
+  )
 }

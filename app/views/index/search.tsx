@@ -357,7 +357,7 @@ const SearchSidebar = ({
     const shouldAutoFit =
       Boolean(q.peek()) && (Boolean(d.bounds) || d.results.length > 0)
 
-    let initialBounds = shouldAutoFit ? null : map.getBounds()
+    let initialBounds = !shouldAutoFit ? map.getBounds() : null
 
     const moveEndScope = scope.child()
     moveEndScope.map(map, "moveend", () => {

@@ -52,7 +52,7 @@ const DisableAuthMethodModal = ({
           type="text"
           class="d-none"
           name="display_name"
-          value={config.userConfig!.displayName}
+          defaultValue={config.userConfig!.displayName}
           autoComplete="username"
         />
 

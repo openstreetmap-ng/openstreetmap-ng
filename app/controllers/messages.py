@@ -6,11 +6,7 @@ from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import (
-    APP_URL,
-    MESSAGE_BODY_MAX_LENGTH,
-    MESSAGE_SUBJECT_MAX_LENGTH,
-)
+from app.config import APP_URL
 from app.lib.auth_context import web_user
 from app.lib.date_utils import format_sql_date
 from app.lib.exceptions_context import raise_for
@@ -51,7 +47,7 @@ async def new_message(
     reply_diary: Annotated[DiaryId | None, Query()] = None,
     reply_diary_comment: Annotated[DiaryCommentId | None, Query()] = None,
 ):
-    recipients: str | None = None
+    recipients: str = ''
     subject: str = ''
     body: str = ''
 
@@ -137,8 +133,6 @@ async def new_message(
             'recipients': recipients,
             'subject': subject,
             'body': body,
-            'MESSAGE_SUBJECT_MAX_LENGTH': MESSAGE_SUBJECT_MAX_LENGTH,
-            'MESSAGE_BODY_MAX_LENGTH': MESSAGE_BODY_MAX_LENGTH,
         },
     )
 

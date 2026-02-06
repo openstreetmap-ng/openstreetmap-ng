@@ -71,7 +71,7 @@ export function useQuerySignal<TSchema, TDefault>(
           : (next as Exclude<typeof next, TDefault>)
 
       const params: Record<string, string[] | undefined> = qsParseAll(url.search)
-      params[key] = nextDefault === undefined ? undefined : schema.encode(nextDefault)
+      params[key] = nextDefault !== undefined ? schema.encode(nextDefault) : undefined
       url.search = qsEncode(params)
     }, mode)
   })

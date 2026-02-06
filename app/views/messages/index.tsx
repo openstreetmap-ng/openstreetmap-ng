@@ -1,31 +1,29 @@
+import { ConnectError } from "@connectrpc/connect"
 import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { mount } from "@lib/mount"
 import {
+  type GetMessageResponseValid,
   type GetMessagesPageResponse_SummaryValid,
-  MessageReadSchema,
-  type MessageReadValid,
   MessageService,
 } from "@lib/proto/message_pb"
 import type { UserValid } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
-import { fromBinaryValid } from "@lib/rpc"
+import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
 import { useQuerySignal } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
-import { batch, useSignal, useSignalEffect } from "@preact/signals"
-import { assert } from "@std/assert"
+import { type ReadonlySignal, type Signal, batch, useSignal } from "@preact/signals"
 import { t } from "i18next"
 import { render } from "preact"
 import { memo } from "preact/compat"
-import { useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 type PreviewState =
-  | { status: "closed" }
   | { status: "loading" }
-  | { status: "ready"; message: MessageReadValid }
+  | { status: "ready"; message: GetMessageResponseValid }
   | { status: "error"; error: string }
 
 const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
@@ -82,22 +80,20 @@ const MessagesListItem = ({
   message,
   inbox,
   openMessageId,
-  onOpen,
 }: {
   message: GetMessagesPageResponse_SummaryValid
   inbox: boolean
-  openMessageId: bigint | undefined
-  onOpen: (messageId: bigint) => void
+  openMessageId: Signal<bigint | undefined>
 }) => {
   const messageId = message.id
   const isUnread = inbox && message.unread
-  const isActive = openMessageId === messageId
+  const isActive = openMessageId.value === messageId
 
   const handleOpen = (event: MouseEvent) => {
     if (!isUnmodifiedLeftClick(event)) return
     event.preventDefault()
     if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
-    onOpen(messageId)
+    openMessageId.value = messageId
   }
 
   return (
@@ -154,7 +150,7 @@ const MessageActionsToolbar = ({
 }: {
   inbox: boolean
   messageId: bigint
-  message: MessageReadValid
+  message: GetMessageResponseValid
   onUnread: () => void
   onDelete: () => void
 }) => {
@@ -208,23 +204,26 @@ const MessageActionsToolbar = ({
 
 const MessagePreview = ({
   inbox,
-  messageId,
-  state,
-  onClose,
+  previewState,
+  openMessageId,
   onUnread,
   onDelete,
-  previewRef,
 }: {
   inbox: boolean
-  messageId: bigint
-  state: PreviewState
-  onClose: () => void
+  previewState: ReadonlySignal<PreviewState>
+  openMessageId: Signal<bigint | undefined>
   onUnread: () => void
   onDelete: () => void
-  previewRef: { current: HTMLDivElement | null }
 }) => {
-  const message = state.status === "ready" ? state.message : null
+  const messageId = openMessageId.value!
+  const preview = previewState.value
+  const message = preview.status === "ready" ? preview.message : null
   const sender = message?.sender
+  const previewRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    previewRef.current!.scrollIntoView({ block: "start" })
+  }, [])
 
   return (
     <div
@@ -279,13 +278,13 @@ const MessagePreview = ({
               class="btn-close"
               aria-label={t("javascripts.close")}
               type="button"
-              onClick={onClose}
+              onClick={() => (openMessageId.value = undefined)}
             />
           </div>
         </div>
       </div>
       <div class="card-body">
-        {state.status === "loading" && (
+        {preview.status === "loading" && (
           <div class="text-center mt-4">
             <output
               class="spinner-border text-body-secondary"
@@ -295,12 +294,12 @@ const MessagePreview = ({
             </output>
           </div>
         )}
-        {state.status === "error" && (
+        {preview.status === "error" && (
           <div
             class="alert alert-danger mt-4"
             role="alert"
           >
-            {state.error}
+            {preview.error}
           </div>
         )}
         {message && (
@@ -336,28 +335,18 @@ const MessagePreview = ({
 const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
   const messages = useSignal<GetMessagesPageResponse_SummaryValid[]>([])
   const openMessageId = useQuerySignal("show", queryParam.positive())
-  const previewState = useSignal<PreviewState>({ status: "closed" })
-  const previewRef = useRef<HTMLDivElement>(null)
+  const previewState = useSignal<PreviewState>({ status: "loading" })
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) => {
-    messages.value = messages.value.map((message) => {
-      if (message.id === messageId && message.unread !== unread) {
-        message.unread = unread
-      }
-      return message
-    })
+    messages.value = messages.value.map((message) =>
+      message.id === messageId && message.unread !== unread
+        ? { ...message, unread }
+        : message,
+    )
   }
 
   const removeMessage = (messageId: bigint) => {
     messages.value = messages.value.filter((message) => message.id !== messageId)
-  }
-
-  const openMessage = (messageId: bigint) => {
-    openMessageId.value = messageId
-  }
-
-  const closeMessage = () => {
-    openMessageId.value = undefined
   }
 
   const markMessageUnread = async () => {
@@ -365,24 +354,24 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
     if (!messageId) return
 
     const preview = previewState.peek()
-    const message = preview.status === "ready" ? preview.message : null
-    if (!(inbox && message?.isRecipient)) return
+    if (!(inbox && preview.status === "ready" && preview.message.isRecipient)) return
 
     try {
-      const resp = await fetch(`/api/web/messages/${messageId}/unread`, {
-        method: "POST",
-        priority: "high",
+      const response = await rpcUnary(MessageService.method.setMessageReadState)({
+        id: messageId,
+        read: false,
       })
-      assert(resp.ok, `${resp.status} ${resp.statusText}`)
 
       batch(() => {
-        updateMessageUnread(messageId, true)
-        changeUnreadMessagesBadge(1)
-        closeMessage()
+        if (response.updated) {
+          updateMessageUnread(messageId, true)
+          changeUnreadMessagesBadge(1)
+        }
+        openMessageId.value = undefined
       })
     } catch (error) {
       console.error("Messages: Failed to mark unread", messageId, error)
-      alert(error.message)
+      alert(connectErrorToMessage(ConnectError.from(error)))
     }
   }
 
@@ -390,43 +379,30 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
     const messageId = openMessageId.value
     if (!(messageId && confirm(t("messages.delete_confirmation")))) return
     try {
-      const resp = await fetch(`/api/web/messages/${messageId}/delete`, {
-        method: "POST",
-        priority: "high",
-      })
-      assert(resp.ok, `${resp.status} ${resp.statusText}`)
+      await rpcUnary(MessageService.method.deleteMessage)({ id: messageId })
 
       batch(() => {
         removeMessage(messageId)
-        closeMessage()
+        openMessageId.value = undefined
       })
     } catch (error) {
       console.error("Messages: Failed to delete", messageId, error)
-      alert(error.message)
+      alert(connectErrorToMessage(ConnectError.from(error)))
     }
   }
 
   // Effect: Fetch open message details
   useDisposeSignalEffect((scope) => {
     const messageId = openMessageId.value
-    if (!messageId) {
-      previewState.value = { status: "closed" }
-      return
-    }
-
     previewState.value = { status: "loading" }
+    if (!messageId) return
 
     const fetchMessage = async () => {
       try {
-        const resp = await fetch(`/api/web/messages/${messageId}`, {
-          signal: scope.signal,
-          priority: "high",
-        })
-        assert(resp.ok, `${resp.status} ${resp.statusText}`)
-
-        const buffer = await resp.arrayBuffer()
-        scope.signal.throwIfAborted()
-        const message = fromBinaryValid(MessageReadSchema, new Uint8Array(buffer))
+        const message = await rpcUnary(MessageService.method.getMessage)(
+          { id: messageId },
+          { signal: scope.signal },
+        )
 
         batch(() => {
           if (inbox && message.isRecipient && message.wasUnread) {
@@ -441,17 +417,11 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
 
         previewState.value = {
           status: "error",
-          error: error.message,
+          error: connectErrorToMessage(ConnectError.from(error)),
         }
       }
     }
     void fetchMessage()
-  })
-
-  // Effect: Scroll preview into view when opened
-  useSignalEffect(() => {
-    if (!openMessageId.value) return
-    previewRef.current!.scrollIntoView({ block: "start" })
   })
 
   return (
@@ -470,8 +440,7 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
                     key={message.id}
                     message={message}
                     inbox={inbox}
-                    openMessageId={openMessageId.value}
-                    onOpen={openMessage}
+                    openMessageId={openMessageId}
                   />
                 ))
               ) : (
@@ -484,13 +453,12 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
       {openMessageId.value && (
         <div class="col-lg mb-3">
           <MessagePreview
+            key={openMessageId.value.toString()}
             inbox={inbox}
-            messageId={openMessageId.value}
-            state={previewState.value}
-            onClose={closeMessage}
+            previewState={previewState}
+            openMessageId={openMessageId}
             onUnread={markMessageUnread}
             onDelete={deleteMessage}
-            previewRef={previewRef}
           />
         </div>
       )}

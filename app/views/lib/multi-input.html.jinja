@@ -1,13 +1,6 @@
-<div class="multi-input-container">
-    <div class="form-control d-flex flex-wrap align-items-center">
-        <div class="multi-input-tokens d-flex flex-wrap align-items-center gap-1"></div>
-        <input id="multi-input-{{ multi_input_name }}" type="text" class="form-control" name="{{ multi_input_name }}"
-            placeholder="{{ multi_input_placeholder }}" value="{{ multi_input_value or "" }}" autocomplete="off"
-            autocapitalize="none" enterkeyhint="enter" {% if multi_input_required %}required{% endif %}>
-    </div>
-
-    <div class="form-text">
-        {{ t('multi_input.add_new_entries_with_enter_or_comma') }}
-        {{ t('multi_input.use_backspace_to_edit_the_last_item') }}
-    </div>
+<div class="multi-input-container" data-name="{{ multi_input_name }}" data-id="multi-input-{{ multi_input_name }}"
+    data-placeholder="{{ multi_input_placeholder | default('') }}" data-value="{{ multi_input_value | default('') }}"
+    {% if multi_input_required %} data-required="true" {% endif %} {% if multi_input_max_length %}
+    data-max-item-length="{{ multi_input_max_length }}" {% endif %} {% if multi_input_max_items %}
+    data-max-items="{{ multi_input_max_items[0] }}" data-max-items-error="{{ multi_input_max_items[1] }}" {% endif %}>
 </div>

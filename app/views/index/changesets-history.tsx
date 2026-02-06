@@ -532,7 +532,7 @@ const ChangesetsHistorySidebar = ({
     const fetchScope = scope.value
     const fetchDisplayName = displayName.value
     const isScoped = Boolean(fetchScope || fetchDisplayName)
-    const fetchBounds = isScoped ? null : map.getBounds()
+    const fetchBounds = !isScoped ? map.getBounds() : null
     if (options?.fromMapMove && !fetchBounds) return
 
     const nextContext: FetchContext = {

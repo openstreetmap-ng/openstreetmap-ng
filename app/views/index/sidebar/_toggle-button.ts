@@ -52,7 +52,7 @@ export class SidebarToggleControl implements IControl {
 
       this.button.blur()
 
-      rightSidebar.value = rightSidebar.peek() === this._kind ? null : this._kind
+      rightSidebar.value = rightSidebar.peek() !== this._kind ? this._kind : null
     })
 
     this._container = container

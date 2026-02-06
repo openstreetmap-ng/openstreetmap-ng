@@ -21,7 +21,6 @@
     border: 0;
 
     &:focus {
-      outline: none;
       box-shadow: unset;
     }
   }
@@ -43,20 +42,25 @@
     max-width: 12.5rem;
     line-height: 1.4rem;
     white-space: nowrap;
-    transition: $btn-transition;
     animation: token-appear 0.2s ease-in-out;
 
     &:hover {
       background: color.mix($primary, black, 90%);
     }
 
-    span {
+    .multi-input-label {
       margin-right: 0.35rem;
       overflow-x: hidden;
       text-overflow: ellipsis;
+      color: inherit;
+      text-align: left;
+      background: none;
+      border: 0;
+      padding: 0;
+      max-width: 100%;
     }
 
-    button {
+    .multi-input-remove {
       @extend .text-bg-primary;
 
       display: inline-flex;

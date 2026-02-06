@@ -206,8 +206,7 @@ export const ReportButton = ({
   )
 }
 
-// Configure report buttons in dynamic content
-export const configureReportButtons = (searchElement: Element) => {
+const configureReportButtons = (searchElement: Element) => {
   for (const button of searchElement.querySelectorAll("button[data-report-type]")) {
     button.addEventListener("click", (event) => {
       event.preventDefault()

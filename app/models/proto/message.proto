@@ -7,6 +7,10 @@ service MessageService {
   rpc GetMessagesPage(GetMessagesPageRequest) returns (GetMessagesPageResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
+  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse) {}
+  rpc SetMessageReadState(SetMessageReadStateRequest) returns (SetMessageReadStateResponse) {}
+  rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse) {}
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
 }
 
 message GetMessagesPageRequest {
@@ -30,7 +34,11 @@ message GetMessagesPageResponse {
   repeated Summary messages = 2;
 }
 
-message MessageRead {
+message GetMessageRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message GetMessageResponse {
   bool was_unread = 1;
   User sender = 2 [(buf.validate.field).required = true];
   repeated User recipients = 3;
@@ -38,4 +46,44 @@ message MessageRead {
   uint64 created_at = 5;
   string subject = 6;
   string body_rich = 7;
+}
+
+message SetMessageReadStateRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  bool read = 2;
+}
+
+message SetMessageReadStateResponse {
+  bool updated = 1;
+}
+
+message DeleteMessageRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteMessageResponse {}
+
+message SendMessageRequest {
+  string subject = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 100
+  }];
+  string body = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50000
+  }];
+  repeated string recipient = 3 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 5
+    items: {
+      string: {
+        min_len: 1
+        max_len: 255
+      }
+    }
+  }];
+}
+
+message SendMessageResponse {
+  string redirect_url = 1;
 }
