@@ -28,16 +28,11 @@ from app.models.proto.message_pb2 import (
     SetMessageReadStateRequest,
     SetMessageReadStateResponse,
 )
-from app.models.types import DisplayName, MessageId
+from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 from app.services.message_service import MessageService
-from app.validators.unicode import unicode_unquote_normalize
-
-
-@cython.cfunc
-def _normalize_display_name(value: str):
-    return DisplayName(unicode_unquote_normalize(value))
+from app.validators.unicode import normalize_display_name
 
 
 class _Service(MessageServiceConnect):
@@ -162,7 +157,7 @@ class _Service(MessageServiceConnect):
     async def send_message(self, request: SendMessageRequest, ctx: RequestContext):
         require_web_user()
         recipients = list(
-            dict.fromkeys(_normalize_display_name(value) for value in request.recipient)
+            dict.fromkeys(normalize_display_name(value) for value in request.recipient)
         )
         message_id = await MessageService.send(
             recipients=recipients,

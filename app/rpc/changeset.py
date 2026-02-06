@@ -2,7 +2,6 @@ from asyncio import TaskGroup
 from datetime import date, datetime, time, timedelta
 from typing import override
 
-import cython
 from connectrpc.request import RequestContext
 from psycopg.sql import SQL
 from shapely import Point, measurement, set_srid
@@ -44,7 +43,7 @@ from app.models.proto.changeset_pb2 import (
     SetChangesetSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import Bounds
-from app.models.types import ChangesetId, DisplayName
+from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -54,12 +53,7 @@ from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 from app.services.user_subscription_service import UserSubscriptionService
-from app.validators.unicode import unicode_unquote_normalize
-
-
-@cython.cfunc
-def _normalize_display_name(value: str):
-    return DisplayName(unicode_unquote_normalize(value))
+from app.validators.unicode import normalize_display_name
 
 
 class _Service(ChangesetService):
@@ -72,7 +66,7 @@ class _Service(ChangesetService):
 
         if request.HasField('display_name'):
             target_user = await UserQuery.find_by_display_name(
-                _normalize_display_name(request.display_name)
+                normalize_display_name(request.display_name)
             )
             user_ids = [target_user['id']] if target_user is not None else []
         else:

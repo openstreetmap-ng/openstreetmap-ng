@@ -1,24 +1,57 @@
 import { create, toBinary } from "@bufbuild/protobuf"
+import { ConnectError } from "@connectrpc/connect"
+import type { TransmitUserPasswordInit } from "@lib/password-hash"
 import {
   PasskeyAssertionSchema,
-  PasskeyChallengeSchema,
   PasskeyRegistrationSchema,
-} from "@lib/proto/shared_pb"
-import { fromBinaryValid } from "@lib/rpc"
+  TransmitUserPasswordSchema,
+} from "@lib/proto/auth_pb"
+import { AuthService } from "@lib/proto/auth_pb"
+import { connectErrorToMessage, fromBinaryValid, rpcUnary } from "@lib/rpc"
 import { t } from "i18next"
 
 /** Fetch and parse passkey challenge from server, returns challenge or error string */
-const fetchPasskeyChallenge = async (formData?: FormData) => {
-  const resp = await fetch("/api/web/user/login/passkey/challenge", {
-    method: "POST",
-    body: formData ?? null,
-    priority: "high",
-  })
-  if (!resp.ok) return `Error: ${resp.status} ${resp.statusText}`
-  return fromBinaryValid(
-    PasskeyChallengeSchema,
-    new Uint8Array(await resp.arrayBuffer()),
-  )
+const fetchPasskeyChallenge = async (
+  formData?: FormData,
+  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
+) => {
+  try {
+    const response = await rpcUnary(AuthService.method.getPasskeyChallenge)(
+      await buildPasskeyChallengeRequest(formData, passwords),
+    )
+    return response.challenge
+  } catch (error) {
+    return connectErrorToMessage(ConnectError.from(error))
+  }
+}
+
+/** Build passkey challenge request payload from login form state */
+const buildPasskeyChallengeRequest = async (
+  formData?: FormData,
+  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
+) => {
+  if (!formData) return {}
+
+  const displayNameOrEmail = formData.get("display_name_or_email")
+  if (!(typeof displayNameOrEmail === "string" && displayNameOrEmail)) return {}
+
+  let password = passwords?.password
+  if (!password) {
+    const formPassword = formData.get("password")
+    if (!(formPassword instanceof Blob && formPassword.size)) return {}
+
+    password = fromBinaryValid(
+      TransmitUserPasswordSchema,
+      new Uint8Array(await formPassword.arrayBuffer()),
+    )
+  }
+
+  return {
+    credentials: {
+      displayNameOrEmail,
+      password,
+    },
+  }
 }
 
 /** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials */
@@ -92,9 +125,10 @@ export const getPasskeyRegistration = async () => {
 /** Perform WebAuthn authentication, returning assertion blob or error string */
 export const getPasskeyAssertion = async (
   formData?: FormData,
+  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
   userVerification: UserVerificationRequirement = "required",
 ) => {
-  const challenge = await fetchPasskeyChallenge(formData)
+  const challenge = await fetchPasskeyChallenge(formData, passwords)
   if (typeof challenge === "string") return challenge
 
   let credential: PublicKeyCredential | null = null

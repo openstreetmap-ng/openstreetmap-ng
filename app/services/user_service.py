@@ -23,7 +23,7 @@ from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 from app.lib.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, UserRole, user_avatar_url, user_is_test
-from app.models.proto.shared_pb2 import LoginResponse, PasskeyAssertion
+from app.models.proto.auth_pb2 import LoginResponse, PasskeyAssertion
 from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
