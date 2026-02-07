@@ -1,42 +1,58 @@
 {% extends 'settings/_base' %}
-{% block title_prefix %}Administrative tasks | {% endblock %}
+{% block title_prefix %}Administrative tasks |{% endblock %}
 {% block body_class %}admin-tasks-body{% endblock %}
 {% block settings_active_href %}/admin/tasks{% endblock %}
 {% block settings_title %}Administrative tasks{% endblock %}
 {% block settings_body %}
-
-<div class="row">
+  <div class="row">
     {% for task in tasks %}
-    <div class="col-xl-6">
+      <div class="col-xl-6">
         <div class="card mb-4">
-            <h5 class="card-header mb-0">
-                <code>{{ task.id }}</code>
-            </h5>
-            <div class="card-body">
-                <form class="task-form" method="POST" action="/api/web/admin/tasks">
-                    <input type="hidden" name="id" value="{{ task.id }}">
-                    {% for arg_name, arg_info in task.arguments.items() %}
-                    <div class="mb-3">
-                        <label class="form-label d-block">
-                            <span {% if arg_info.required %} class="required" {% endif %}>{{ arg_name }}</span>
-                            <input type="{% if arg_info.numeric %}number{% else %}text{% endif %}"
-                                class="form-control mt-2" name="arg_{{ arg_name }}" placeholder="{{ arg_info.default }}"
-                                autocapitalize="none" {% if arg_info.required %}required{% endif %}>
-                        </label>
-                        <div class="form-text">Type: {{ arg_info.type }}</div>
-                    </div>
-                    {% endfor %}
-                    <div class="d-flex justify-content-between align-items-end">
-                        <button type="submit" class="btn btn-primary">
-                            Start task
-                        </button>
-                        <span class="status-badge badge"></span>
-                    </div>
-                </form>
-            </div>
+          <h5 class="card-header mb-0">
+            <code>{{ task.id }}</code>
+          </h5>
+          <div class="card-body">
+            <form
+              class="task-form"
+              method="POST"
+              action="/api/web/admin/tasks"
+            >
+              <input
+                type="hidden"
+                name="id"
+                value="{{ task.id }}"
+              />
+              {% for arg_name, arg_info in task.arguments.items() %}
+                <div class="mb-3">
+                  <label class="form-label d-block">
+                    <span {% if arg_info.required %}class="required"{% endif %}
+                      >{{ arg_name }}</span
+                    >
+                    <input
+                      type="{% if arg_info.numeric %}number{% else %}text{% endif %}"
+                      class="form-control mt-2"
+                      name="arg_{{ arg_name }}"
+                      placeholder="{{ arg_info.default }}"
+                      autocapitalize="none"
+                      {% if arg_info.required %}required{% endif %}
+                    />
+                  </label>
+                  <div class="form-text">Type: {{ arg_info.type }}</div>
+                </div>
+              {% endfor %}
+              <div class="d-flex justify-content-between align-items-end">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                >
+                  Start task
+                </button>
+                <span class="status-badge badge"></span>
+              </div>
+            </form>
+          </div>
         </div>
-    </div>
+      </div>
     {% endfor %}
-</div>
-
+  </div>
 {% endblock %}

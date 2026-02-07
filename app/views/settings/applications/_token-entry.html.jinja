@@ -1,105 +1,148 @@
 {% set _expanded = token_entry_expanded | default(false) %}
 {% set _readonly = token_entry_readonly | default(false) %}
 <div class="accordion">
-    <div class="accordion-header">
-        <button class="accordion-button {% if not _expanded %}collapsed{% endif %}"
-            data-bs-target="#token-entry-{{ token.id }}" aria-expanded="{{ _expanded | lower }}"
-            aria-controls="token-entry-{{ token.id }}">
-
-            <div class="row align-items-center g-3 g-lg-4">
-                <div class="col-auto">
-                    <i class="token-icon bi bi-key{% if token.authorized_at is not none %}-fill{% endif %}"></i>
-                </div>
-                <div class="col">
-                    <h6 class="mb-1">{{ token.name }}</h6>
-                    <p class="form-text mb-0">
-                        {% if token.authorized_at is not none %}
-                        {% set date %}
-                        <time class="fw-medium" datetime="{{ token.authorized_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ token.authorized_at.isoformat() }}" data-style="long"></time>)
-                        {% endset %}
-                        {{ t('settings.updated_at', date=date) | safe }}
-                        {% else %}
-                        {% set date %}
-                        <time class="fw-medium" datetime="{{ token.created_at.isoformat() }}" data-date="long"
-                            data-time="short"></time>
-                        (<time datetime="{{ token.created_at.isoformat() }}" data-style="long"></time>)
-                        {% endset %}
-                        {{ t('settings.created_at', date=date) | safe }}
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-        </button>
-    </div>
-    <div id="token-entry-{{ token.id }}" class="accordion-collapse collapse {% if _expanded %}show{% endif %}">
-        <div class="accordion-body">
-            <label class="reset-secret-control w-100 mb-3">
-                <span class="h6">{{ t('settings.access_token') }}</span>
-                <div class="input-group copy-group mt-2">
-                    <input type="text" class="form-control font-monospace bg-body-tertiary"
-                        value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
-                        readonly>
-                    {% if not _readonly %}
-                    <button class="btn btn-soft reset-secret-btn" type="button">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        {{ t('settings.new_access_token') }}
-                    </button>
-                    <button class="btn btn-primary" title="{{ t('action.copy') }}" type="button">
-                        <i class="bi bi-copy"></i>
-                    </button>
-                    {% endif %}
-                </div>
-                {% if not _readonly %}
-                <form class="reset-secret-form" method="POST"
-                    action="/api/web/settings/applications/token/{{ token.id }}/reset-access-token">
-                </form>
-                {% endif %}
-            </label>
-
-            <div class="row g-3 g-md-2">
-                <div class="col-md">
-                    <h6>{{ t('settings.requested_permissions') }}</h6>
-                    <ul class="list-unstyled">
-                        {% for scope in token.scopes %}
-                        <li class="d-flex">
-                            <i class="bi bi-check text-success me-1"></i>
-                            <span>
-                                {% if scope == 'read_prefs' %}
-                                {{ t('permissions.read_user_preferences') }}
-                                {% elif scope == 'write_prefs' %}
-                                {{ t('permissions.modify_user_preferences') }}
-                                {% elif scope == 'write_api' %}
-                                {{ t('permissions.manage_changesets_and_map_data') }}
-                                {% elif scope == 'read_gpx' %}
-                                {{ t('permissions.read_all_gps_traces') }}
-                                {% elif scope == 'write_gpx' %}
-                                {{ t('permissions.manage_gps_traces') }}
-                                {% elif scope == 'write_notes' %}
-                                {{ t('permissions.manage_notes') }}
-                                {% endif %}
-                                <span class="scope">({{ scope }})</span>
-                            </span>
-                        </li>
-                        {% endfor %}
-                        {% if not token.scopes %}
-                        <li class="d-flex">
-                            <i class="bi bi-dot text-muted me-1"></i>
-                            <span>{{ t('permissions.no_permissions') }}</span>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-                {% if not _readonly %}
-                <div class="col-md-auto align-self-end text-end">
-                    <form class="revoke-application-form" method="POST"
-                        action="/api/web/settings/applications/token/{{ token.id }}/revoke">
-                        <button class="btn btn-soft" type="submit">{{ t('action.revoke_key') }}</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
+  <div class="accordion-header">
+    <button
+      class="accordion-button {% if not _expanded %}collapsed{% endif %}"
+      data-bs-target="#token-entry-{{ token.id }}"
+      aria-expanded="{{ _expanded | lower }}"
+      aria-controls="token-entry-{{ token.id }}"
+    >
+      <div class="row align-items-center g-3 g-lg-4">
+        <div class="col-auto">
+          <i
+            class="token-icon bi bi-key{% if token.authorized_at is not none %}-fill{% endif %}"
+          ></i>
         </div>
+        <div class="col">
+          <h6 class="mb-1">{{ token.name }}</h6>
+          <p class="form-text mb-0">
+            {% if token.authorized_at is not none %}
+              {% set date %}
+                <time
+                  class="fw-medium"
+                  datetime="{{ token.authorized_at.isoformat() }}"
+                  data-date="long"
+                  data-time="short"
+                ></time>
+                (<time
+                  datetime="{{ token.authorized_at.isoformat() }}"
+                  data-style="long"
+                ></time
+                >)
+              {% endset %}
+              {{ t('settings.updated_at', date=date) | safe }}
+            {% else %}
+              {% set date %}
+                <time
+                  class="fw-medium"
+                  datetime="{{ token.created_at.isoformat() }}"
+                  data-date="long"
+                  data-time="short"
+                ></time>
+                (<time
+                  datetime="{{ token.created_at.isoformat() }}"
+                  data-style="long"
+                ></time
+                >)
+              {% endset %}
+              {{ t('settings.created_at', date=date) | safe }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </button>
+  </div>
+  <div
+    id="token-entry-{{ token.id }}"
+    class="accordion-collapse collapse {% if _expanded %}show{% endif %}"
+  >
+    <div class="accordion-body">
+      <label class="reset-secret-control w-100 mb-3">
+        <span class="h6">{{ t('settings.access_token') }}</span>
+        <div class="input-group copy-group mt-2">
+          <input
+            type="text"
+            class="form-control font-monospace bg-body-tertiary"
+            value="{% if token.token_preview is not none %}{{ token.token_preview }}...{% endif %}"
+            readonly
+          />
+          {% if not _readonly %}
+            <button
+              class="btn btn-soft reset-secret-btn"
+              type="button"
+            >
+              <i class="bi bi-arrow-clockwise"></i>
+              {{ t('settings.new_access_token') }}
+            </button>
+            <button
+              class="btn btn-primary"
+              title="{{ t('action.copy') }}"
+              type="button"
+            >
+              <i class="bi bi-copy"></i>
+            </button>
+          {% endif %}
+        </div>
+        {% if not _readonly %}
+          <form
+            class="reset-secret-form"
+            method="POST"
+            action="/api/web/settings/applications/token/{{ token.id }}/reset-access-token"
+          ></form>
+        {% endif %}
+      </label>
+
+      <div class="row g-3 g-md-2">
+        <div class="col-md">
+          <h6>{{ t('settings.requested_permissions') }}</h6>
+          <ul class="list-unstyled">
+            {% for scope in token.scopes %}
+              <li class="d-flex">
+                <i class="bi bi-check text-success me-1"></i>
+                <span>
+                  {% if scope == 'read_prefs' %}
+                    {{ t('permissions.read_user_preferences') }}
+                  {% elif scope == 'write_prefs' %}
+                    {{ t('permissions.modify_user_preferences') }}
+                  {% elif scope == 'write_api' %}
+                    {{ t('permissions.manage_changesets_and_map_data') }}
+                  {% elif scope == 'read_gpx' %}
+                    {{ t('permissions.read_all_gps_traces') }}
+                  {% elif scope == 'write_gpx' %}
+                    {{ t('permissions.manage_gps_traces') }}
+                  {% elif scope == 'write_notes' %}
+                    {{ t('permissions.manage_notes') }}
+                  {% endif %}
+                  <span class="scope">({{ scope }})</span>
+                </span>
+              </li>
+            {% endfor %}
+            {% if not token.scopes %}
+              <li class="d-flex">
+                <i class="bi bi-dot text-muted me-1"></i>
+                <span>{{ t('permissions.no_permissions') }}</span>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+        {% if not _readonly %}
+          <div class="col-md-auto align-self-end text-end">
+            <form
+              class="revoke-application-form"
+              method="POST"
+              action="/api/web/settings/applications/token/{{ token.id }}/revoke"
+            >
+              <button
+                class="btn btn-soft"
+                type="submit"
+              >
+                {{ t('action.revoke_key') }}
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </div>

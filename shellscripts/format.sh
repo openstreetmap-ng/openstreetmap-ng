@@ -45,7 +45,7 @@ run_formatters() {
   format_files '*.nix' -- nixfmt
   format_files '*.py' '*.pyi' -- ruff check --select I --fix --force-exclude
   format_files '*.py' '*.pyi' -- ruff format --force-exclude
-  format_files '*.scss' -- prettier --cache --write
+  format_files '*.html.jinja' '*.scss' -- prettier --cache --write --log-level warn
   format_files '*.sh' -- shfmt -w
   format_files '*.sql' -- sql-formatter --fix
   format_files '*.toml' -- tombi format

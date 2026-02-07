@@ -1,67 +1,98 @@
 <li class="row g-2">
-    {% if not entry_hide_preview %}
-    <a class="col-auto" href="/trace/{{ trace.id }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
+  {% if not entry_hide_preview %}
+    <a
+      class="col-auto"
+      href="/trace/{{ trace.id }}"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="92"
+        height="92"
+        viewBox="-1 -1 92 92"
+      ></svg>
     </a>
-    {% endif %}
-    <div class="col">
-        <div class="social-entry {% if not entry_no_link %}clickable{% endif %}">
-            <div class="header text-muted d-flex justify-content-between">
-                <div>
-                    <a href="/user/{{ trace.user.display_name }}">
-                        <img class="avatar" src="{{ user_avatar_url(trace.user) }}" alt="{{ t('alt.profile_picture') }}"
-                            loading="lazy">
-                        {{- trace.user.display_name -}}
-                    </a>
-                    {{ t('action.uploaded') }}
-                    <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
-                </div>
-                <div>
-                    {% if not entry_no_link %}
-                    <a class="stretched-link" href="/trace/{{ trace.id }}">{{- trace.name -}}</a>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="body">
-                <p class="mb-0">
-                    <span class="fst-italic">{{ trace.description }}</span>
-                    {% for tag in trace.tags %}
-                    <a class="hashtag" href="{{ base_url_notag }}/tag/{{ tag }}">#{{ tag }}</a>
-                    {% endfor %}
-                </p>
-                <div class="trace-stats">
-                    {% if trace.visibility == 'identifiable' %}
-                    <span class="stat-visibility text-bg-green">
-                        <i class="bi bi-eye"></i>{{ t('traces.trace.identifiable') | capitalize }}
-                    </span>
-                    {% elif trace.visibility == 'public' %}
-                    <span class="stat-visibility text-bg-green">
-                        <i class="bi bi-eye"></i>{{ t('traces.trace.public') | capitalize }}
-                    </span>
-                    {% elif trace.visibility == 'trackable' %}
-                    <span class="stat-visibility text-bg-danger">
-                        <i class="bi bi-eye-slash"></i>{{ t('traces.trace.trackable') | capitalize }}
-                    </span>
-                    {% elif trace.visibility == 'private' %}
-                    <span class="stat-visibility text-bg-danger">
-                        <i class="bi bi-eye-slash"></i>{{ t('traces.trace.private') | capitalize }}
-                    </span>
-                    {% endif %}
-                    <span class="stat-points text-bg-secondary">
-                        {{ nt('traces.trace.count_points', trace.size) }}
-                    </span>
-                </div>
-            </div>
+  {% endif %}
+  <div class="col">
+    <div class="social-entry {% if not entry_no_link %}clickable{% endif %}">
+      <div class="header text-muted d-flex justify-content-between">
+        <div>
+          <a href="/user/{{ trace.user.display_name }}">
+            <img
+              class="avatar"
+              src="{{ user_avatar_url(trace.user) }}"
+              alt="{{ t('alt.profile_picture') }}"
+              loading="lazy"
+            />
+            {{- trace.user.display_name -}}
+          </a>
+          {{ t('action.uploaded') }}
+          <time
+            datetime="{{ trace.created_at.isoformat() }}"
+            data-style="long"
+          ></time>
         </div>
+        <div>
+          {% if not entry_no_link %}
+            <a
+              class="stretched-link"
+              href="/trace/{{ trace.id }}"
+              >{{- trace.name -}}</a
+            >
+          {% endif %}
+        </div>
+      </div>
+      <div class="body">
+        <p class="mb-0">
+          <span class="fst-italic">{{ trace.description }}</span>
+          {% for tag in trace.tags %}
+            <a
+              class="hashtag"
+              href="{{ base_url_notag }}/tag/{{ tag }}"
+              >#{{ tag }}</a
+            >
+          {% endfor %}
+        </p>
+        <div class="trace-stats">
+          {% if trace.visibility == 'identifiable' %}
+            <span class="stat-visibility text-bg-green">
+              <i class="bi bi-eye"></i>{{ t('traces.trace.identifiable') | capitalize }}
+            </span>
+          {% elif trace.visibility == 'public' %}
+            <span class="stat-visibility text-bg-green">
+              <i class="bi bi-eye"></i>{{ t('traces.trace.public') | capitalize }}
+            </span>
+          {% elif trace.visibility == 'trackable' %}
+            <span class="stat-visibility text-bg-danger">
+              <i class="bi bi-eye-slash"></i
+              >{{ t('traces.trace.trackable') | capitalize }}
+            </span>
+          {% elif trace.visibility == 'private' %}
+            <span class="stat-visibility text-bg-danger">
+              <i class="bi bi-eye-slash"></i
+              >{{ t('traces.trace.private') | capitalize }}
+            </span>
+          {% endif %}
+          <span class="stat-points text-bg-secondary">
+            {{ nt('traces.trace.count_points', trace.size) }}
+          </span>
+        </div>
+      </div>
     </div>
-    {% if user is not none %}
+  </div>
+  {% if user is not none %}
     <div class="col-auto d-none d-md-block">
-        <div class="btn-group" role="group">
-            <a class="btn btn-sm btn-link" href="/edit?gpx={{ trace.id }}">
-                <i class="bi bi-pencil fs-5"></i>
-                <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
-            </a>
-        </div>
+      <div
+        class="btn-group"
+        role="group"
+      >
+        <a
+          class="btn btn-sm btn-link"
+          href="/edit?gpx={{ trace.id }}"
+        >
+          <i class="bi bi-pencil fs-5"></i>
+          <span>{{ t('traces.trace.edit_map') | capitalize }}</span>
+        </a>
+      </div>
     </div>
-    {% endif %}
+  {% endif %}
 </li>

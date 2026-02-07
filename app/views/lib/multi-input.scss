@@ -49,6 +49,8 @@
     }
 
     .multi-input-label {
+      max-width: 100%;
+      padding: 0;
       margin-right: 0.35rem;
       overflow-x: hidden;
       text-overflow: ellipsis;
@@ -56,8 +58,6 @@
       text-align: left;
       background: none;
       border: 0;
-      padding: 0;
-      max-width: 100%;
     }
 
     .multi-input-remove {

@@ -1,21 +1,26 @@
 {% extends 'email/_base' %}
 {% block body %}
-<p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
-<p>{{ t('report.email_confirmation.thank_you_our_team_will_review') }}</p>
-<p>{{ reported_content_html | safe }}:</p>
-<table style="width: 100%; margin: 1em 0; background: #eee">
+  <p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
+  <p>{{ t('report.email_confirmation.thank_you_our_team_will_review') }}</p>
+  <p>{{ reported_content_html | safe }}:</p>
+  <table style="width: 100%; margin: 1em 0; background: #eee">
     <tr>
-        <td style="width: 50px; vertical-align: top">
-            <div style="margin: 1em">
-                <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
-                    <img src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
-                        width="50" height="50" style="background: #fff; border-radius: 50%">
-                </a>
-            </div>
-        </td>
-        <td style="vertical-align: top">
-            <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
-        </td>
+      <td style="width: 50px; vertical-align: top">
+        <div style="margin: 1em">
+          <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
+            <img
+              src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}"
+              alt="{{ t('alt.profile_picture') }}"
+              width="50"
+              height="50"
+              style="background: #fff; border-radius: 50%"
+            />
+          </a>
+        </div>
+      </td>
+      <td style="vertical-align: top">
+        <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
+      </td>
     </tr>
-</table>
+  </table>
 {% endblock %}

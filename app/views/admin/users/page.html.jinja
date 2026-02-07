@@ -1,96 +1,138 @@
 {% if users %}
-{% for user in users %}
-{% set _is_deleted = user_is_deleted(user) %}
-<tr data-user-id="{{ user.id }}">
-    <td>
+  {% for user in users %}
+    {% set _is_deleted = user_is_deleted(user) %}
+    <tr data-user-id="{{ user.id }}">
+      <td>
         <a href="/user-id/{{ user.id }}">
-            <img class="avatar me-1-5" src="{{ user_avatar_url(user) }}" alt="{{ t('alt.profile_picture') }}"
-                loading="lazy">
-            <span class="display-name {% if _is_deleted %}text-muted{% endif %}">{{ user.display_name }}</span>
+          <img
+            class="avatar me-1-5"
+            src="{{ user_avatar_url(user) }}"
+            alt="{{ t('alt.profile_picture') }}"
+            loading="lazy"
+          />
+          <span class="display-name {% if _is_deleted %}text-muted{% endif %}"
+            >{{ user.display_name }}</span
+          >
         </a>
         <span class="roles">
-            {% for role in user.roles %}
+          {% for role in user.roles %}
             {% if role == 'administrator' %}
-            <i class="bi bi-star-fill text-danger" data-bs-toggle="tooltip"
-                data-bs-title="{{ t('users.show.role.administrator') }}"></i>
+              <i
+                class="bi bi-star-fill text-danger"
+                data-bs-toggle="tooltip"
+                data-bs-title="{{ t('users.show.role.administrator') }}"
+              ></i>
             {% elif role == 'moderator' %}
-            <i class="bi bi-star-fill text-blue" data-bs-toggle="tooltip"
-                data-bs-title="{{ t('users.show.role.moderator') }}"></i>
+              <i
+                class="bi bi-star-fill text-blue"
+                data-bs-toggle="tooltip"
+                data-bs-title="{{ t('users.show.role.moderator') }}"
+              ></i>
             {% else %}
-            <i class="bi bi-star-fill text-secondary" data-bs-toggle="tooltip" data-bs-title="{{ role | title }}"></i>
+              <i
+                class="bi bi-star-fill text-secondary"
+                data-bs-toggle="tooltip"
+                data-bs-title="{{ role | title }}"
+              ></i>
             {% endif %}
-            {% endfor %}
+          {% endfor %}
         </span>
-    </td>
-    <td>
-        <span class="{% if _is_deleted %}text-muted{% else %}text-body-secondary{% endif %}">
-            {{- user.email -}}
+      </td>
+      <td>
+        <span
+          class="{% if _is_deleted %}text-muted{% else %}text-body-secondary{% endif %}"
+        >
+          {{- user.email -}}
         </span>
-    </td>
-    <td class="status">
+      </td>
+      <td class="status">
         {% if not user.email_verified %}
-        <span class="badge text-bg-danger">Unverified</span>
-        {% set _has_status = True %}
+          <span class="badge text-bg-danger">Unverified</span>
+          {% set _has_status = True %}
         {% endif %}
         {% if user.scheduled_delete_at is not none %}
-        <span class="badge text-bg-warning">Pending deletion</span>
-        {% set _has_status = True %}
+          <span class="badge text-bg-warning">Pending deletion</span>
+          {% set _has_status = True %}
         {% endif %}
         {% if _is_deleted %}
-        <span class="badge text-bg-secondary">Deleted</span>
-        {% set _has_status = True %}
+          <span class="badge text-bg-secondary">Deleted</span>
+          {% set _has_status = True %}
         {% endif %}
         {% if _has_status is undefined %}
-        <span class="text-body-secondary">&mdash;</span>
+          <span class="text-body-secondary">&mdash;</span>
         {% endif %}
-    </td>
-    <td>
+      </td>
+      <td>
         <div class="d-flex gap-1">
-            {% set _2fa = two_fa_status[user.id] %}
-            {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
-            <i class="bi bi-fingerprint {{ _map[_2fa.has_passkeys] }}"></i>
-            <i class="bi bi-phone {{ _map[_2fa.has_totp] }}"></i>
-            <i class="bi bi-file-text {{ _map[_2fa.has_recovery] }}"></i>
+          {% set _2fa = two_fa_status[user.id] %}
+          {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
+          <i class="bi bi-fingerprint {{ _map[_2fa.has_passkeys] }}"></i>
+          <i class="bi bi-phone {{ _map[_2fa.has_totp] }}"></i>
+          <i class="bi bi-file-text {{ _map[_2fa.has_recovery] }}"></i>
         </div>
-    </td>
-    <td>
-        <time datetime="{{ user.created_at.isoformat() }}" data-style="short"></time>
-    </td>
-    {% set _user_ips = ip_counts[user.id] %}
-    <td>
+      </td>
+      <td>
+        <time
+          datetime="{{ user.created_at.isoformat() }}"
+          data-style="short"
+        ></time>
+      </td>
+      {% set _user_ips = ip_counts[user.id] %}
+      <td>
         {% if _user_ips %}
-        {% set _main_ip, _main_count = _user_ips | first %}
-        {% set _more_ips = _user_ips[1:10] %}
-        {% set _has_more = _user_ips | length > 10 %}
+          {% set _main_ip, _main_count = _user_ips | first %}
+          {% set _more_ips = _user_ips[1:10] %}
+          {% set _has_more = _user_ips | length > 10 %}
 
-        <a href="/audit?ip={{ _main_ip }}"
-            class="{% if _main_count >= 2 %}text-bg-warning rounded{% else %}text-body-secondary{% endif %}">
+          <a
+            href="/audit?ip={{ _main_ip }}"
+            class="{% if _main_count >= 2 %}text-bg-warning rounded{% else %}text-body-secondary{% endif %}"
+          >
             {{- _main_ip -}}
-        </a>
-        {% if _main_count > 1 %}
-        <small class="text-muted">×{{ _main_count }}</small>
-        {% endif %}
+          </a>
+          {% if _main_count > 1 %}
+            <small class="text-muted">×{{ _main_count }}</small>
+          {% endif %}
 
-        {% if _more_ips %}
-        <span class="text-primary ms-1" role="button" data-bs-toggle="tooltip" data-bs-html="true"
-            data-bs-title="{% for ip, count in _more_ips %}<a href='/audit?ip={{ ip }}'>{{ ip }}</a> <small>×{{ count }}</small><br>{% endfor %}{% if _has_more %}...{% endif %}">
-            +{{ (_user_ips | length) - 1 }} more
-        </span>
-        {% endif %}
+          {% if _more_ips %}
+            {% set _more_ips_tooltip %}
+              {% for ip, count in _more_ips %}
+                <a href="/audit?ip={{ ip }}">{{ ip }}</a>
+                <small>×{{ count }}</small><br />
+              {% endfor %}
+              {% if _has_more %}...{% endif %}
+            {% endset %}
+            <span
+              class="text-primary ms-1"
+              role="button"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-title="{{ _more_ips_tooltip }}"
+            >
+              +{{ (_user_ips | length) - 1 }} more
+            </span>
+          {% endif %}
         {% else %}
-        <span class="text-body-secondary">&mdash;</span>
+          <span class="text-body-secondary">&mdash;</span>
         {% endif %}
-    </td>
-    <td>
-        <a href="/admin/users/{{ user.id }}" class="link-primary me-2">Manage</a>
+      </td>
+      <td>
+        <a
+          href="/admin/users/{{ user.id }}"
+          class="link-primary me-2"
+          >Manage</a
+        >
         <a href="/audit?user={{ user.id }}">Audit</a>
-    </td>
-</tr>
-{% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
 {% else %}
-<tr>
-    <td colspan="7" class="text-center text-muted py-4">
-        No users found matching your filters.
+  <tr>
+    <td
+      colspan="7"
+      class="text-center text-muted py-4"
+    >
+      No users found matching your filters.
     </td>
-</tr>
+  </tr>
 {% endif %}

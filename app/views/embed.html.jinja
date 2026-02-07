@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 {%- set _dir = t('html.dir') -%}
-<html lang="{{ lang }}" dir="{{ _dir }}" data-config="{{ WEB_CONFIG }}">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html
+  lang="{{ lang }}"
+  dir="{{ _dir }}"
+  data-config="{{ WEB_CONFIG }}"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
 
     {%- for file in I18NEXT_FILES -%}
-    <script src="/static-locale/{{ file }}" defer></script>
+      <script
+        src="/static-locale/{{ file }}"
+        defer
+      ></script>
     {%- endfor -%}
     {{ vite_render_asset('app/views/embed.ts', rtl=_dir == 'rtl') | safe }}
 
     <title>{{ t('project_name') }}</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="map"></div>
-</body>
-
+  </body>
 </html>

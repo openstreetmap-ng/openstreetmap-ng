@@ -1,278 +1,399 @@
 {% extends '_base' %}
-{% block title_prefix %}Users | {{ edit_user.display_name }} | {% endblock %}
+{% block title_prefix %}Users | {{ edit_user.display_name }} |{% endblock %}
 {% block body_class %}admin-user-edit-body{% endblock %}
 {% block body %}
-{% set _is_deleted = user_is_deleted(edit_user) %}
+  {% set _is_deleted = user_is_deleted(edit_user) %}
 
-<div class="content-header pb-0">
+  <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <a href="/admin/users" class="btn btn-sm btn-soft mb-3">
-            <i class="bi bi-arrow-left me-1-5"></i>Back to users
-        </a>
-        <div class="row mb-3">
-            <div class="col-auto">
-                <a href="/user/{{ edit_user.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(edit_user) }}" alt="{{ t('alt.profile_picture') }}">
-                </a>
-            </div>
-            <div class="col">
-                <h1 class="mb-2">
-                    <a class="link-body-emphasis text-decoration-none" href="/user/{{ edit_user.display_name }}">
-                        {{ edit_user.display_name }}
-                    </a>
-                </h1>
-                <div class="d-flex flex-wrap gap-3 text-body-secondary">
-                    <span>
-                        <i class="bi bi-calendar3 me-1"></i>
-                        Registered
-                        <time datetime="{{ edit_user.created_at.isoformat() }}" data-date="short"
-                            data-time="short"></time>
-                    </span>
-                    <a href="/audit?user_id={{ edit_user.id }}">
-                        <i class="bi bi-journal-text me-1-5"></i>Audit logs
-                    </a>
-                </div>
-                {% if _is_deleted %}
-                <div class="alert alert-secondary mt-3 mb-0" role="alert">
-                    <i class="bi bi-info-circle me-2"></i>
-                    This account has been deleted
-                </div>
-                {% elif edit_user.scheduled_delete_at %}
-                <div class="alert alert-warning mt-3 mb-0" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    Scheduled for deletion on <time datetime="{{ edit_user.scheduled_delete_at.isoformat() }}"
-                        data-date="long" data-time="short"></time>
-                </div>
-                {% endif %}
-            </div>
-            {% if not _is_deleted %}
-            <div class="col-auto">
-                <form class="impersonate-form" method="POST"
-                    action="/api/web/admin/users/{{ edit_user.id }}/impersonate">
-                    <button class="btn btn-secondary" type="submit">
-                        Login as user
-                        <i class="bi bi-box-arrow-in-right ms-1"></i>
-                    </button>
-                </form>
-            </div>
-            {% endif %}
+      <a
+        href="/admin/users"
+        class="btn btn-sm btn-soft mb-3"
+      >
+        <i class="bi bi-arrow-left me-1-5"></i>Back to users
+      </a>
+      <div class="row mb-3">
+        <div class="col-auto">
+          <a href="/user/{{ edit_user.display_name }}">
+            <img
+              class="avatar"
+              src="{{ user_avatar_url(edit_user) }}"
+              alt="{{ t('alt.profile_picture') }}"
+            />
+          </a>
         </div>
-
+        <div class="col">
+          <h1 class="mb-2">
+            <a
+              class="link-body-emphasis text-decoration-none"
+              href="/user/{{ edit_user.display_name }}"
+            >
+              {{ edit_user.display_name }}
+            </a>
+          </h1>
+          <div class="d-flex flex-wrap gap-3 text-body-secondary">
+            <span>
+              <i class="bi bi-calendar3 me-1"></i>
+              Registered
+              <time
+                datetime="{{ edit_user.created_at.isoformat() }}"
+                data-date="short"
+                data-time="short"
+              ></time>
+            </span>
+            <a href="/audit?user_id={{ edit_user.id }}">
+              <i class="bi bi-journal-text me-1-5"></i>Audit logs
+            </a>
+          </div>
+          {% if _is_deleted %}
+            <div
+              class="alert alert-secondary mt-3 mb-0"
+              role="alert"
+            >
+              <i class="bi bi-info-circle me-2"></i>
+              This account has been deleted
+            </div>
+          {% elif edit_user.scheduled_delete_at %}
+            <div
+              class="alert alert-warning mt-3 mb-0"
+              role="alert"
+            >
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Scheduled for deletion on
+              <time
+                datetime="{{ edit_user.scheduled_delete_at.isoformat() }}"
+                data-date="long"
+                data-time="short"
+              ></time>
+            </div>
+          {% endif %}
+        </div>
         {% if not _is_deleted %}
+          <div class="col-auto">
+            <form
+              class="impersonate-form"
+              method="POST"
+              action="/api/web/admin/users/{{ edit_user.id }}/impersonate"
+            >
+              <button
+                class="btn btn-secondary"
+                type="submit"
+              >
+                Login as user
+                <i class="bi bi-box-arrow-in-right ms-1"></i>
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if not _is_deleted %}
         <nav>
-            <ul class="nav nav-underline gap-2 gap-sm-3 justify-content-around justify-content-sm-start mb-4">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#account" data-bs-toggle="tab">
-                        Account settings
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#connections" data-bs-toggle="tab">
-                        {{ t('settings.connected_accounts') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#authorizations" data-bs-toggle="tab">
-                        {{ t('settings.authorizations.title') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#applications" data-bs-toggle="tab">
-                        {{ t('settings.my_applications.title') }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#tokens" data-bs-toggle="tab">
-                        {{ t('settings.my_tokens.title') }}
-                    </a>
-                </li>
-            </ul>
+          <ul
+            class="nav nav-underline gap-2 gap-sm-3 justify-content-around justify-content-sm-start mb-4"
+          >
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                href="#account"
+                data-bs-toggle="tab"
+              >
+                Account settings
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#connections"
+                data-bs-toggle="tab"
+              >
+                {{ t('settings.connected_accounts') }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#authorizations"
+                data-bs-toggle="tab"
+              >
+                {{ t('settings.authorizations.title') }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#applications"
+                data-bs-toggle="tab"
+              >
+                {{ t('settings.my_applications.title') }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="#tokens"
+                data-bs-toggle="tab"
+              >
+                {{ t('settings.my_tokens.title') }}
+              </a>
+            </li>
+          </ul>
         </nav>
-        {% endif %}
+      {% endif %}
     </div>
-</div>
+  </div>
 
-<div class="content-body">
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        {% if not _is_deleted %}
+      {% if not _is_deleted %}
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="account">
-                <h3 class="mb-3">Account information</h3>
-                <form class="account-form mb-4" method="POST" action="/api/web/admin/users/{{ edit_user.id }}/update">
-                    <label class="form-label d-block">
-                        <span>{{ t('activerecord.attributes.user.display_name') | capitalize }}</span>
-                        <input type="text" class="form-control mt-2" name="display_name"
-                            placeholder="{{ edit_user.display_name }}" maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}">
+          <div
+            class="tab-pane fade show active"
+            id="account"
+          >
+            <h3 class="mb-3">Account information</h3>
+            <form
+              class="account-form mb-4"
+              method="POST"
+              action="/api/web/admin/users/{{ edit_user.id }}/update"
+            >
+              <label class="form-label d-block">
+                <span
+                  >{{ t('activerecord.attributes.user.display_name') | capitalize }}</span
+                >
+                <input
+                  type="text"
+                  class="form-control mt-2"
+                  name="display_name"
+                  placeholder="{{ edit_user.display_name }}"
+                  maxlength="{{ DISPLAY_NAME_MAX_LENGTH }}"
+                />
+              </label>
+              <p class="form-text">Leave blank to keep current value</p>
+
+              <label class="form-label d-block">
+                <span>{{ t('passwords.new.email address') | capitalize }}</span>
+                <input
+                  type="email"
+                  class="form-control mt-2"
+                  name="email"
+                  placeholder="{{ edit_user.email }}"
+                />
+              </label>
+              <p class="form-text">Leave blank to keep current value</p>
+
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="email_verified"
+                    value="true"
+                    {% if edit_user.email_verified %}checked{% endif %}
+                  />
+                  Email verified
+                </label>
+              </div>
+
+              <hr class="my-3" />
+
+              <h4 class="mb-3">Roles</h4>
+              <div class="mb-3">
+                {% for role in USER_ROLES %}
+                  <div class="form-check">
+                    <label class="form-check-label">
+                      <input
+                        class="form-check-input role-checkbox"
+                        type="checkbox"
+                        name="roles"
+                        value="{{ role }}"
+                        {% if role in edit_user.roles %}checked{% endif %}
+                      />
+                      {% if role == 'administrator' %}
+                        <i class="bi bi-star-fill text-danger"></i>
+                      {% elif role == 'moderator' %}
+                        <i class="bi bi-star-fill text-blue"></i>
+                      {% else %}
+                        <i class="bi bi-star-fill text-secondary"></i>
+                      {% endif %}
+                      <span>{{ role | title }}</span>
                     </label>
-                    <p class="form-text">Leave blank to keep current value</p>
+                  </div>
+                {% endfor %}
+              </div>
 
-                    <label class="form-label d-block">
-                        <span>{{ t('passwords.new.email address') | capitalize }}</span>
-                        <input type="email" class="form-control mt-2" name="email" placeholder="{{ edit_user.email }}">
-                    </label>
-                    <p class="form-text">Leave blank to keep current value</p>
+              <hr class="my-3" />
 
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" name="email_verified" value="true"
-                                {% if edit_user.email_verified %}checked{% endif %}>
-                            Email verified
-                        </label>
-                    </div>
+              <h4 class="mb-3">{{ t('settings.change_password') }}</h4>
+              <label class="form-label d-block">
+                <span>{{ t('settings.new_password') }}</span>
+                <input
+                  type="password"
+                  class="form-control mt-2"
+                  name="new_password"
+                  minlength="{{ PASSWORD_MIN_LENGTH }}"
+                />
+              </label>
+              <p class="form-text">Leave blank to keep current password</p>
 
-                    <hr class="my-3">
+              <label class="form-label d-block">
+                <span>{{ t('settings.new_password_repeat') }}</span>
+                <input
+                  type="password"
+                  class="form-control mt-2"
+                  name="new_password_confirm"
+                  minlength="{{ PASSWORD_MIN_LENGTH }}"
+                />
+              </label>
 
-                    <h4 class="mb-3">Roles</h4>
-                    <div class="mb-3">
-                        {% for role in USER_ROLES %}
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input role-checkbox" type="checkbox" name="roles"
-                                    value="{{ role }}" {% if role in edit_user.roles %}checked{% endif %}>
-                                {% if role == 'administrator' %}
-                                <i class="bi bi-star-fill text-danger"></i>
-                                {% elif role == 'moderator' %}
-                                <i class="bi bi-star-fill text-blue"></i>
-                                {% else %}
-                                <i class="bi bi-star-fill text-secondary"></i>
-                                {% endif %}
-                                <span>{{ role | title }}</span>
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
+              <hr class="my-4" />
 
-                    <hr class="my-3">
+              <div class="text-end">
+                <button
+                  class="btn btn-primary px-3"
+                  type="submit"
+                >
+                  {{ t('action.save_changes') }}
+                </button>
+              </div>
+            </form>
 
-                    <h4 class="mb-3">{{ t('settings.change_password') }}</h4>
-                    <label class="form-label d-block">
-                        <span>{{ t('settings.new_password') }}</span>
-                        <input type="password" class="form-control mt-2" name="new_password"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}">
-                    </label>
-                    <p class="form-text">Leave blank to keep current password</p>
-
-                    <label class="form-label d-block">
-                        <span>{{ t('settings.new_password_repeat') }}</span>
-                        <input type="password" class="form-control mt-2" name="new_password_confirm"
-                            minlength="{{ PASSWORD_MIN_LENGTH }}">
-                    </label>
-
-                    <hr class="my-4">
-
-                    <div class="text-end">
-                        <button class="btn btn-primary px-3" type="submit">
-                            {{ t('action.save_changes') }}
-                        </button>
-                    </div>
+            <h4 class="mb-3">{{ t('two_fa.two_factor_methods') }}</h4>
+            <div class="d-flex gap-3">
+              {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
+              <i
+                class="bi bi-fingerprint fs-4 {{ _map[two_fa_status.has_passkeys] }}"
+              ></i>
+              <i class="bi bi-phone fs-4 {{ _map[two_fa_status.has_totp] }}"></i>
+              <i
+                class="bi bi-file-text fs-4 {{ _map[two_fa_status.has_recovery] }}"
+              ></i>
+              {% if two_fa_status.has_passkeys or two_fa_status.has_totp %}
+                <form
+                  class="reset-2fa-form ms-2"
+                  method="POST"
+                  action="/api/web/admin/users/{{ edit_user.id }}/reset-2fa"
+                >
+                  <button
+                    class="btn btn-outline-danger"
+                    type="submit"
+                  >
+                    Reset 2FA
+                  </button>
                 </form>
-
-                <h4 class="mb-3">{{ t('two_fa.two_factor_methods') }}</h4>
-                <div class="d-flex gap-3">
-                    {% set _map = {True: 'text-success', False: 'text-body-tertiary'} %}
-                    <i class="bi bi-fingerprint fs-4 {{ _map[two_fa_status.has_passkeys] }}"></i>
-                    <i class="bi bi-phone fs-4 {{ _map[two_fa_status.has_totp] }}"></i>
-                    <i class="bi bi-file-text fs-4 {{ _map[two_fa_status.has_recovery] }}"></i>
-                    {% if two_fa_status.has_passkeys or two_fa_status.has_totp %}
-                    <form class="reset-2fa-form ms-2" method="POST"
-                        action="/api/web/admin/users/{{ edit_user.id }}/reset-2fa">
-                        <button class="btn btn-outline-danger" type="submit">
-                            Reset 2FA
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
+              {% endif %}
             </div>
+          </div>
 
-            <div class="tab-pane fade" id="connections">
-                <h3 class="mb-3">{{ t('settings.connected_accounts') }}</h3>
-                <p>{{ t('settings.connections.description') }}</p>
-                {% if connected_accounts %}
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <tbody>
-                            {% for account in connected_accounts %}
-                            {% set provider = account.provider %}
-                            <tr>
-                                <td class="d-flex align-items-center">
-                                    {% set auth_provider_icon_name = provider %}
-                                    {% include 'settings/_auth-provider-icon' %}
-                                    <div>
-                                        <h6 class="mb-0">{{ t('service.' ~ provider ~ '.title') }}</h6>
-                                        <p class="form-text mb-0">
-                                            UID:
-                                            <code>{{ account.uid }}</code>
-                                            ·
-                                            <time datetime="{{ account.created_at.isoformat() }}" data-date="long"
-                                                data-time="short"></time>
-                                        </p>
-                                    </div>
-                                </td>
-                                <td class="text-end text-success">
-                                    <i class="bi bi-link-45deg me-2"></i>{{ t('state.connected') }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <p class="text-body-secondary">No connected accounts</p>
-                {% endif %}
-            </div>
-
-            <div class="tab-pane fade" id="authorizations">
-                <h3 class="mb-3">{{ t('settings.authorizations.title') }}</h3>
-                <p>{{ t('settings.authorizations.description') }}</p>
-                {% if authorizations %}
-                {% set application_entry_expanded = false %}
-                {% set application_entry_readonly = true %}
-                <ul class="applications-list list-unstyled">
-                    {% for token in authorizations | selectattr('application') | rejectattr('application.client_id', 'eq', 'SystemApp.pat') %}
-                    {% set app = token.application %}
-                    <li>{% include 'settings/applications/_application-entry' %}</li>
+          <div
+            class="tab-pane fade"
+            id="connections"
+          >
+            <h3 class="mb-3">{{ t('settings.connected_accounts') }}</h3>
+            <p>{{ t('settings.connections.description') }}</p>
+            {% if connected_accounts %}
+              <div class="table-responsive">
+                <table class="table align-middle">
+                  <tbody>
+                    {% for account in connected_accounts %}
+                      {% set provider = account.provider %}
+                      <tr>
+                        <td class="d-flex align-items-center">
+                          {% set auth_provider_icon_name = provider %}
+                          {% include 'settings/_auth-provider-icon' %}
+                          <div>
+                            <h6 class="mb-0">
+                              {{ t('service.' ~ provider ~ '.title') }}
+                            </h6>
+                            <p class="form-text mb-0">
+                              UID:
+                              <code>{{ account.uid }}</code>
+                              ·
+                              <time
+                                datetime="{{ account.created_at.isoformat() }}"
+                                data-date="long"
+                                data-time="short"
+                              ></time>
+                            </p>
+                          </div>
+                        </td>
+                        <td class="text-end text-success">
+                          <i class="bi bi-link-45deg me-2"></i
+                          >{{ t('state.connected') }}
+                        </td>
+                      </tr>
                     {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-body-secondary">No authorized applications</p>
-                {% endif %}
-            </div>
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <p class="text-body-secondary">No connected accounts</p>
+            {% endif %}
+          </div>
 
-            <div class="tab-pane fade" id="applications">
-                <h3 class="mb-3">{{ t('settings.my_applications.title') }}</h3>
-                <p>{{ t('settings.my_applications.description') }}</p>
-                {% if applications %}
-                {% set application_entry_expanded = false %}
-                {% set application_entry_readonly = true %}
-                <ul class="applications-list list-unstyled">
-                    {% for app in applications %}
-                    <li>{% include 'settings/applications/_application-entry' %}</li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-body-secondary">
-                    {{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}</p>
-                {% endif %}
-            </div>
+          <div
+            class="tab-pane fade"
+            id="authorizations"
+          >
+            <h3 class="mb-3">{{ t('settings.authorizations.title') }}</h3>
+            <p>{{ t('settings.authorizations.description') }}</p>
+            {% if authorizations %}
+              {% set application_entry_expanded = false %}
+              {% set application_entry_readonly = true %}
+              <ul class="applications-list list-unstyled">
+                {% for token in authorizations | selectattr('application') | rejectattr('application.client_id', 'eq', 'SystemApp.pat') %}
+                  {% set app = token.application %}
+                  <li>{% include 'settings/applications/_application-entry' %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-secondary">No authorized applications</p>
+            {% endif %}
+          </div>
 
-            <div class="tab-pane fade" id="tokens">
-                <h3 class="mb-3">{{ t('settings.my_tokens.title') }}</h3>
-                <p>{{ t('settings.my_tokens.description') }}</p>
-                {% if tokens %}
-                {% set token_entry_expanded = false %}
-                {% set token_entry_readonly = true %}
-                <ul class="applications-list list-unstyled">
-                    {% for token in tokens %}
-                    <li>{% include 'settings/applications/_token-entry' %}</li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p class="text-body-secondary">{{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}</p>
-                {% endif %}
-            </div>
+          <div
+            class="tab-pane fade"
+            id="applications"
+          >
+            <h3 class="mb-3">{{ t('settings.my_applications.title') }}</h3>
+            <p>{{ t('settings.my_applications.description') }}</p>
+            {% if applications %}
+              {% set application_entry_expanded = false %}
+              {% set application_entry_readonly = true %}
+              <ul class="applications-list list-unstyled">
+                {% for app in applications %}
+                  <li>{% include 'settings/applications/_application-entry' %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-secondary">
+                {{ t('settings.my_applications.you_have_not_registered_any_applications_yet') }}
+              </p>
+            {% endif %}
+          </div>
+
+          <div
+            class="tab-pane fade"
+            id="tokens"
+          >
+            <h3 class="mb-3">{{ t('settings.my_tokens.title') }}</h3>
+            <p>{{ t('settings.my_tokens.description') }}</p>
+            {% if tokens %}
+              {% set token_entry_expanded = false %}
+              {% set token_entry_readonly = true %}
+              <ul class="applications-list list-unstyled">
+                {% for token in tokens %}
+                  <li>{% include 'settings/applications/_token-entry' %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-body-secondary">
+                {{ t('settings.my_tokens.you_have_not_created_any_tokens_yet') }}
+              </p>
+            {% endif %}
+          </div>
         </div>
-        {% endif %}
+      {% endif %}
     </div>
-</div>
-
+  </div>
 {% endblock %}

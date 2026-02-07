@@ -1,43 +1,58 @@
 <nav class="navbar navbar-expand-lg">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-semibold py-1" href="/">
-            <img src="/static/img/favicon/256.webp" alt="{{ t('alt.logo', name=t('project_name')) }}">
-            {{ t('project_name') }}
-        </a>
+  <div class="container-fluid">
+    <a
+      class="navbar-brand fw-semibold py-1"
+      href="/"
+    >
+      <img
+        src="/static/img/favicon/256.webp"
+        alt="{{ t('alt.logo', name=t('project_name')) }}"
+      />
+      {{ t('project_name') }}
+    </a>
 
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <button
+      class="navbar-toggler ms-auto"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div
+      class="collapse navbar-collapse"
+      id="navbarSupportedContent"
+    >
+      <div
+        id="NavbarLeft"
+        class="map-actions btn-group d-flex flex-wrap me-auto"
+        role="group"
+      ></div>
 
-            <div
-                id="NavbarLeft"
-                class="map-actions btn-group d-flex flex-wrap me-auto"
-                role="group">
-            </div>
-
-            <div
-                id="NavbarRight"
-                class="d-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-center">
-            </div>
-
-        </div>
+      <div
+        id="NavbarRight"
+        class="d-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-center"
+      ></div>
     </div>
+  </div>
 </nav>
 
 {% if ENV != 'prod' %}
-<span class="build-info">
-    [
-    osm-ng testing
+  <span class="build-info">
+    [ osm-ng testing
     {% if VERSION[:4] == 'git#' %}
-    <a href="https://github.com/openstreetmap-ng/openstreetmap-ng/commit/{{ VERSION[4:] }}"
-        target="_blank">{{ VERSION }}</a>
+      <a
+        href="https://github.com/openstreetmap-ng/openstreetmap-ng/commit/{{ VERSION[4:] }}"
+        target="_blank"
+        >{{ VERSION }}</a
+      >
     {% else %}
-    {{ VERSION }}
+      {{ VERSION }}
     {% endif %}
     ]
-</span>
+  </span>
 {% endif %}

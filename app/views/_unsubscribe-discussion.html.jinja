@@ -1,51 +1,67 @@
-<div class="modal fade" id="unsubscribeDiscussionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+<div
+  class="modal fade"
+  id="unsubscribeDiscussionModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fs-4 text-primary">
+          <i class="bi bi-bookmark-dash me-2"></i>
+          {{ t('javascripts.changesets.show.unsubscribe') }}
+        </h5>
+        <a
+          class="btn-close"
+          href="/{{ unsubscribe_target }}/{{ unsubscribe_id }}"
+          data-bs-dismiss="modal"
+          aria-label="{{ t('javascripts.close') }}"
+        ></a>
+      </div>
 
-            <div class="modal-header border-bottom-0 pb-0">
-                <h5 class="modal-title fs-4 text-primary">
-                    <i class="bi bi-bookmark-dash me-2"></i>
-                    {{ t('javascripts.changesets.show.unsubscribe') }}
-                </h5>
-                <a class="btn-close" href="/{{ unsubscribe_target }}/{{ unsubscribe_id }}" data-bs-dismiss="modal"
-                    aria-label="{{ t('javascripts.close') }}"></a>
-            </div>
-
-            <div class="modal-body pt-2">
-                <p class="fs-5 mb-3">
-                    {{ t('subscription.would_you_like_to_unsubscribe_from_this_type_discussion', type=unsubscribe_target) }}
-                </p>
-                <div class="d-flex p-3 bg-body-tertiary rounded-3 mb-2">
-                    <div class="me-3 text-primary fs-4">
-                        <i class="bi bi-info-circle"></i>
-                    </div>
-                    <div class="small">
-                        <p class="mb-1">{{ t('subscription.if_you_unsubscribe.title') }}:</p>
-                        <ul class="mb-0 ps-3">
-                            <li>{{ t('subscription.if_you_unsubscribe.no_notifications') }}</li>
-                            <li>{{ t('subscription.if_you_unsubscribe.can_still_participate') }}</li>
-                            <li>{{ t('subscription.if_you_unsubscribe.can_resubscribe') }}</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer border-top-0 pt-0">
-                <div class="d-flex gap-2 w-100">
-                    <a class="btn btn-secondary flex-fill" href="/{{ unsubscribe_target }}/{{ unsubscribe_id }}"
-                        data-bs-dismiss="modal">
-                        {{ t('subscription.no_keep_me_updated') }}
-                    </a>
-
-                    <form class="d-inline subscription-form flex-fill" method="POST"
-                        action="/api/web/user-subscription/{{ unsubscribe_target }}/{{ unsubscribe_id }}/unsubscribe">
-                        <button class="btn btn-primary w-100" type="submit">
-                            {{ t('subscription.yes_unsubscribe_me') }}
-                        </button>
-                    </form>
-                </div>
-            </div>
-
+      <div class="modal-body pt-2">
+        <p class="fs-5 mb-3">
+          {{ t('subscription.would_you_like_to_unsubscribe_from_this_type_discussion', type=unsubscribe_target) }}
+        </p>
+        <div class="d-flex p-3 bg-body-tertiary rounded-3 mb-2">
+          <div class="me-3 text-primary fs-4">
+            <i class="bi bi-info-circle"></i>
+          </div>
+          <div class="small">
+            <p class="mb-1">{{ t('subscription.if_you_unsubscribe.title') }}:</p>
+            <ul class="mb-0 ps-3">
+              <li>{{ t('subscription.if_you_unsubscribe.no_notifications') }}</li>
+              <li>{{ t('subscription.if_you_unsubscribe.can_still_participate') }}</li>
+              <li>{{ t('subscription.if_you_unsubscribe.can_resubscribe') }}</li>
+            </ul>
+          </div>
         </div>
+      </div>
+
+      <div class="modal-footer border-top-0 pt-0">
+        <div class="d-flex gap-2 w-100">
+          <a
+            class="btn btn-secondary flex-fill"
+            href="/{{ unsubscribe_target }}/{{ unsubscribe_id }}"
+            data-bs-dismiss="modal"
+          >
+            {{ t('subscription.no_keep_me_updated') }}
+          </a>
+
+          <form
+            class="d-inline subscription-form flex-fill"
+            method="POST"
+            action="/api/web/user-subscription/{{ unsubscribe_target }}/{{ unsubscribe_id }}/unsubscribe"
+          >
+            <button
+              class="btn btn-primary w-100"
+              type="submit"
+            >
+              {{ t('subscription.yes_unsubscribe_me') }}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

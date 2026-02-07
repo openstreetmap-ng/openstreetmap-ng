@@ -1,255 +1,348 @@
 {% extends 'settings/_base' %}
-{% block title_prefix %}{{ t('settings.password_and_security') }} | {% endblock %}
+{% block title_prefix %}{{ t('settings.password_and_security') }} |{% endblock %}
 {% block body_class %}settings-security-body{% endblock %}
 {% block settings_active_href %}/settings/security{% endblock %}
 {% block settings_title %}{{ t('settings.password_and_security') }}{% endblock %}
 {% block settings_body %}
-
-<h3 class="mb-3">{{ t('settings.change_password') }}</h3>
-<form class="password-form">
-    <input type="text" class="d-none" name="display_name" value="{{ user.display_name }}" autocomplete="username">
+  <h3 class="mb-3">{{ t('settings.change_password') }}</h3>
+  <form class="password-form">
+    <input
+      type="text"
+      class="d-none"
+      name="display_name"
+      value="{{ user.display_name }}"
+      autocomplete="username"
+    />
 
     <label class="form-label d-block mb-3">
-        <span class="required">{{ t('settings.current_password') }}</span>
-        <input type="password" class="form-control mt-2" name="old_password" autocomplete="current-password"
-            required>
+      <span class="required">{{ t('settings.current_password') }}</span>
+      <input
+        type="password"
+        class="form-control mt-2"
+        name="old_password"
+        autocomplete="current-password"
+        required
+      />
     </label>
 
     <label class="form-label d-block mb-3">
-        <span class="required">{{ t('settings.new_password') }}</span>
-        <input type="password" class="form-control mt-2" name="new_password" minlength="{{ PASSWORD_MIN_LENGTH }}"
-            autocomplete="new-password" required>
+      <span class="required">{{ t('settings.new_password') }}</span>
+      <input
+        type="password"
+        class="form-control mt-2"
+        name="new_password"
+        minlength="{{ PASSWORD_MIN_LENGTH }}"
+        autocomplete="new-password"
+        required
+      />
     </label>
 
     <label class="form-label d-block mb-3">
-        <span class="required">{{ t('settings.new_password_repeat') }}</span>
-        <input type="password" class="form-control mt-2" name="new_password_confirm"
-            minlength="{{ PASSWORD_MIN_LENGTH }}" autocomplete="new-password" required>
+      <span class="required">{{ t('settings.new_password_repeat') }}</span>
+      <input
+        type="password"
+        class="form-control mt-2"
+        name="new_password_confirm"
+        minlength="{{ PASSWORD_MIN_LENGTH }}"
+        autocomplete="new-password"
+        required
+      />
     </label>
 
     <div class="row g-2 g-md-3 align-items-center">
-        <div class="col-md">
-            <div class="form-check ms-1">
-                <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="revoke_other_sessions" value="true"
-                        autocomplete="off">
-                    {{ t('settings.logout_from_browsers') }}
-                </label>
-            </div>
+      <div class="col-md">
+        <div class="form-check ms-1">
+          <label class="form-check-label">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="revoke_other_sessions"
+              value="true"
+              autocomplete="off"
+            />
+            {{ t('settings.logout_from_browsers') }}
+          </label>
         </div>
-        <div class="col-md-auto text-end">
-            <a class="link-primary me-3" href="/reset-password">{{ t('sessions.new.lost password link') }}</a>
-            <button class="btn btn-primary px-3" type="submit">
-                {{ t('action.submit') }}
-            </button>
-        </div>
+      </div>
+      <div class="col-md-auto text-end">
+        <a
+          class="link-primary me-3"
+          href="/reset-password"
+          >{{ t('sessions.new.lost password link') }}</a
+        >
+        <button
+          class="btn btn-primary px-3"
+          type="submit"
+        >
+          {{ t('action.submit') }}
+        </button>
+      </div>
     </div>
-</form>
+  </form>
 
-<hr class="my-4">
+  <hr class="my-4" />
 
-<h3>{{ t('two_fa.two_factor_methods') }}</h3>
-<p>{{ t('two_fa.secure_your_account_using_additional_verification_methods') }}</p>
-<ul class="two-factor-methods list-unstyled mx-2">
+  <h3>{{ t('two_fa.two_factor_methods') }}</h3>
+  <p>{{ t('two_fa.secure_your_account_using_additional_verification_methods') }}</p>
+  <ul class="two-factor-methods list-unstyled mx-2">
     <li>
-        <div class="row g-2 align-items-center">
-            <div class="col-sm d-flex gap-2 gap-sm-3">
-                <i class="bi bi-fingerprint two-factor-icon"></i>
-                <div>
-                    <h6 class="d-flex align-items-center mb-0">
-                        {{ t('two_fa.passkeys') }}
-                        {% if passkeys %}
-                        <span class="enabled-badge">{{ t('state.enabled') }}</span>
-                        {% endif %}
-                    </h6>
-                    <p class="form-text mb-0">
-                        {{ t('two_fa.sign_in_securely_with_biometrics_or_security_keys') }}
-                    </p>
-                    {% if passkeys %}
-                    <ul class="metadata list-unstyled mt-0 mb-0">
-                        {% for passkey in passkeys %}
-                        <li class="passkey-entry">
-                            {% set _date %}
-                            <time datetime="{{ passkey.created_at.isoformat() }}" data-date="medium"
-                                data-time="short"></time>
-                            {% endset %}
-                            {% if passkey.icons %}
-                            <img class="passkey-icon-light align-text-top" src="{{ passkey.icons[0] }}" alt=""
-                                width="16" height="16">
-                            <img class="passkey-icon-dark align-text-top" src="{{ passkey.icons[1] }}" alt="" width="16"
-                                height="16">
-                            {% else %}
-                            <i class="bi bi-key-fill text-body"></i>
-                            {% endif %}
-                            <span class="passkey-name ms-1">{{ passkey.name }}</span>
-                            <button class="btn btn-sm btn-link p-0 ms-1-5 passkey-rename-btn" type="button"
-                                data-credential-id="{{ passkey.credential_id | b64 }}">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <span class="text-body-secondary mx-1-5">&mdash;</span>
-                            {{- t('two_fa.added_on_date', date=_date) | safe -}}
-                            <button class="btn btn-sm btn-link p-0 ms-1-5 disable-auth-method-btn" type="button"
-                                data-auth-method="passkey"
-                                data-credential-id="{{ passkey.credential_id | b64 }}"
-                                data-title="{{ t('two_fa.remove_passkey') }}">
-                                {{ t('action.remove') }}
-                            </button>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="col-sm-auto text-end">
-                {% if passkeys | length < PASSKEY_LIMIT %}
-                <form class="add-passkey-form d-inline">
-                    <button class="btn btn-soft" type="submit">
-                        {{ t('action.configure') }}
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-    </li>
-    <li>
-        <div class="row g-2 align-items-center">
-            <div class="col-sm d-flex gap-2 gap-sm-3">
-                <i class="bi bi-phone two-factor-icon"></i>
-                <div>
-                    <h6 class="d-flex align-items-center mb-0">
-                        {{ t('two_fa.authenticator_app') }}
-                        {% if totp_created_at %}
-                        <span class="enabled-badge">{{ t('state.enabled') }}</span>
-                        {% endif %}
-                    </h6>
-                    <p class="form-text mb-0">
-                        {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}
-                    </p>
-                    {% if totp_created_at %}
-                    <span class="metadata">
-                        {% set _date %}
-                        <time datetime="{{ totp_created_at.isoformat() }}" data-date="medium" data-time="short"></time>
-                        {% endset %}
-                        <i class="bi bi-clock-history me-1-5"></i>
-                        {{- t('two_fa.configured_on_date', date=_date) | safe -}}
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="col-sm-auto text-end">
-                {% if totp_created_at %}
-                <button class="btn btn-soft disable-auth-method-btn" type="button" data-auth-method="totp"
-                    data-title="{{ t('two_fa.disable_authenticator_app') }}">
-                    {{ t('action.disable') }}
-                </button>
-                {% else %}
-                <button class="btn btn-soft setup-totp-btn" type="button">
-                    {{ t('action.configure') }}
-                </button>
-                {% endif %}
-            </div>
-        </div>
-    </li>
-    <li>
-        <div class="row g-2 align-items-center">
-            <div class="col-sm d-flex gap-2 gap-sm-3">
-                <i class="bi bi-file-text two-factor-icon"></i>
-                <div>
-                    <h6 class="d-flex align-items-center mb-0">
-                        {{ t('two_fa.recovery_codes') }}
-                        {% if recovery_codes_status.num_remaining %}
-                        <span class="enabled-badge">
-                            {{ nt('two_fa.unused_codes_count', recovery_codes_status.num_remaining) }}
-                        </span>
-                        {% endif %}
-                    </h6>
-                    <p class="form-text mb-0">
-                        {{ t('two_fa.access_your_account_if_you_lose_your_two_factor_authenticator') }}
-                    </p>
-                    {% if recovery_codes_status.num_remaining %}
-                    <span class="metadata">
-                        {% set _date %}
-                        <time datetime="{{ recovery_codes_status.created_at.isoformat() }}" data-date="medium"
-                            data-time="short"></time>
-                        {% endset %}
-                        <i class="bi bi-clock-history me-1-5"></i>
-                        {{- t('two_fa.generated_on_date', date=_date) | safe -}}
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="col-sm-auto text-end">
-                <button class="btn btn-soft generate-recovery-codes-btn" type="button">
-                    {% if recovery_codes_status.num_remaining %}
-                    {{ t('action.regenerate') }}
+      <div class="row g-2 align-items-center">
+        <div class="col-sm d-flex gap-2 gap-sm-3">
+          <i class="bi bi-fingerprint two-factor-icon"></i>
+          <div>
+            <h6 class="d-flex align-items-center mb-0">
+              {{ t('two_fa.passkeys') }}
+              {% if passkeys %}
+                <span class="enabled-badge">{{ t('state.enabled') }}</span>
+              {% endif %}
+            </h6>
+            <p class="form-text mb-0">
+              {{ t('two_fa.sign_in_securely_with_biometrics_or_security_keys') }}
+            </p>
+            {% if passkeys %}
+              <ul class="metadata list-unstyled mt-0 mb-0">
+                {% for passkey in passkeys %}
+                  <li class="passkey-entry">
+                    {% set _date %}
+                      <time
+                        datetime="{{ passkey.created_at.isoformat() }}"
+                        data-date="medium"
+                        data-time="short"
+                      ></time>
+                    {% endset %}
+                    {% if passkey.icons %}
+                      <img
+                        class="passkey-icon-light align-text-top"
+                        src="{{ passkey.icons[0] }}"
+                        alt=""
+                        width="16"
+                        height="16"
+                      />
+                      <img
+                        class="passkey-icon-dark align-text-top"
+                        src="{{ passkey.icons[1] }}"
+                        alt=""
+                        width="16"
+                        height="16"
+                      />
                     {% else %}
-                    {{ t('action.configure') }}
+                      <i class="bi bi-key-fill text-body"></i>
                     {% endif %}
-                </button>
-            </div>
-        </div>
-    </li>
-</ul>
-
-<hr class="my-4">
-
-<h3>{{ t('settings.active_sessions') }}</h3>
-<p>{{ t('settings.review_and_manage_your_active_login_sessions') }}</p>
-<ul class="active-sessions list-unstyled mx-2">
-    {% for session in active_sessions %}
-    {% set _activity = session.last_activity %}
-    <li>
-        <div class="row g-2 align-items-center">
-            <div class="col-sm d-flex gap-2 gap-sm-3 align-items-center">
-                {% if _activity and _activity.user_agent %}
-                <span class="ua-icons" title="{{ _activity.user_agent }}"></span>
-                {% endif %}
-                <div>
-                    <h6 class="mb-1">
-                        {% if session.id == current_session_id %}
-                        <span class="current-session me-1" data-bs-toggle="tooltip"
-                            data-bs-title="{{ t('settings.this_is_your_current_session') }}"
-                            aria-label="{{ t('settings.this_is_your_current_session') }}"></span>
-                        {% endif %}
-                        {% if _activity %}
-                        {% set _date %}
-                        <time datetime="{{ _activity.created_at.isoformat() }}" data-style="day"></time>
-                        {% endset %}
-                        {% set _ip %}<span class="fw-normal">{{ _activity.ip | mask_ip }}</span>{% endset %}
-                        {{ t('settings.last_seen_date_from_ip', date=_date, ip=_ip) | safe }}
-                        {% else %}
-                        {{ t('settings.unknown_device') }}
-                        {% endif %}
-                    </h6>
-                    <p class="form-text mb-0">
-                        {% set _id %}
-                        <span class="session-id">
-                            {{- str(session.id)[:5] -}}
-                            <i class="bi bi-three-dots"></i>
-                            {{- str(session.id)[-7:] -}}
-                        </span>
-                        {% endset %}
-                        {{ t('settings.session_id', id=_id) | safe }}
-                        <span class="text-body-secondary mx-1">&middot;</span>
-                        {% set _date %}
-                        <time datetime="{{ session.authorized_at.isoformat() }}" data-date="medium"
-                            data-time="short"></time>
-                        {% endset %}
-                        {{ t('settings.authorized_at', date=_date) | safe }}
-                    </p>
-                </div>
-            </div>
-            <div class="col-sm-auto align-self-center text-end">
-                <form class="revoke-token-form">
-                    <input type="hidden" name="token_id" value="{{ session.id }}">
-                    <button class="btn btn-sm btn-soft" type="submit">
-                        {{ t('action.end_session') }}
+                    <span class="passkey-name ms-1">{{ passkey.name }}</span>
+                    <button
+                      class="btn btn-sm btn-link p-0 ms-1-5 passkey-rename-btn"
+                      type="button"
+                      data-credential-id="{{ passkey.credential_id | b64 }}"
+                    >
+                      <i class="bi bi-pencil-square"></i>
                     </button>
-                </form>
-            </div>
+                    <span class="text-body-secondary mx-1-5">&mdash;</span>
+                    {{- t('two_fa.added_on_date', date=_date) | safe -}}
+                    <button
+                      class="btn btn-sm btn-link p-0 ms-1-5 disable-auth-method-btn"
+                      type="button"
+                      data-auth-method="passkey"
+                      data-credential-id="{{ passkey.credential_id | b64 }}"
+                      data-title="{{ t('two_fa.remove_passkey') }}"
+                    >
+                      {{ t('action.remove') }}
+                    </button>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
         </div>
+        <div class="col-sm-auto text-end">
+          {% if passkeys | length < PASSKEY_LIMIT %}
+            <form class="add-passkey-form d-inline">
+              <button
+                class="btn btn-soft"
+                type="submit"
+              >
+                {{ t('action.configure') }}
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
     </li>
-    {% endfor %}
-</ul>
+    <li>
+      <div class="row g-2 align-items-center">
+        <div class="col-sm d-flex gap-2 gap-sm-3">
+          <i class="bi bi-phone two-factor-icon"></i>
+          <div>
+            <h6 class="d-flex align-items-center mb-0">
+              {{ t('two_fa.authenticator_app') }}
+              {% if totp_created_at %}
+                <span class="enabled-badge">{{ t('state.enabled') }}</span>
+              {% endif %}
+            </h6>
+            <p class="form-text mb-0">
+              {{ t('two_fa.require_code_from_your_mobile_authenticator_app_when_signing_in') }}
+            </p>
+            {% if totp_created_at %}
+              <span class="metadata">
+                {% set _date %}
+                  <time
+                    datetime="{{ totp_created_at.isoformat() }}"
+                    data-date="medium"
+                    data-time="short"
+                  ></time>
+                {% endset %}
+                <i class="bi bi-clock-history me-1-5"></i>
+                {{- t('two_fa.configured_on_date', date=_date) | safe -}}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-sm-auto text-end">
+          {% if totp_created_at %}
+            <button
+              class="btn btn-soft disable-auth-method-btn"
+              type="button"
+              data-auth-method="totp"
+              data-title="{{ t('two_fa.disable_authenticator_app') }}"
+            >
+              {{ t('action.disable') }}
+            </button>
+          {% else %}
+            <button
+              class="btn btn-soft setup-totp-btn"
+              type="button"
+            >
+              {{ t('action.configure') }}
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+    <li>
+      <div class="row g-2 align-items-center">
+        <div class="col-sm d-flex gap-2 gap-sm-3">
+          <i class="bi bi-file-text two-factor-icon"></i>
+          <div>
+            <h6 class="d-flex align-items-center mb-0">
+              {{ t('two_fa.recovery_codes') }}
+              {% if recovery_codes_status.num_remaining %}
+                <span class="enabled-badge">
+                  {{ nt('two_fa.unused_codes_count', recovery_codes_status.num_remaining) }}
+                </span>
+              {% endif %}
+            </h6>
+            <p class="form-text mb-0">
+              {{ t('two_fa.access_your_account_if_you_lose_your_two_factor_authenticator') }}
+            </p>
+            {% if recovery_codes_status.num_remaining %}
+              <span class="metadata">
+                {% set _date %}
+                  <time
+                    datetime="{{ recovery_codes_status.created_at.isoformat() }}"
+                    data-date="medium"
+                    data-time="short"
+                  ></time>
+                {% endset %}
+                <i class="bi bi-clock-history me-1-5"></i>
+                {{- t('two_fa.generated_on_date', date=_date) | safe -}}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-sm-auto text-end">
+          <button
+            class="btn btn-soft generate-recovery-codes-btn"
+            type="button"
+          >
+            {% if recovery_codes_status.num_remaining %}
+              {{ t('action.regenerate') }}
+            {% else %}
+              {{ t('action.configure') }}
+            {% endif %}
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
 
+  <hr class="my-4" />
+
+  <h3>{{ t('settings.active_sessions') }}</h3>
+  <p>{{ t('settings.review_and_manage_your_active_login_sessions') }}</p>
+  <ul class="active-sessions list-unstyled mx-2">
+    {% for session in active_sessions %}
+      {% set _activity = session.last_activity %}
+      <li>
+        <div class="row g-2 align-items-center">
+          <div class="col-sm d-flex gap-2 gap-sm-3 align-items-center">
+            {% if _activity and _activity.user_agent %}
+              <span
+                class="ua-icons"
+                title="{{ _activity.user_agent }}"
+              ></span>
+            {% endif %}
+            <div>
+              <h6 class="mb-1">
+                {% if session.id == current_session_id %}
+                  <span
+                    class="current-session me-1"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="{{ t('settings.this_is_your_current_session') }}"
+                    aria-label="{{ t('settings.this_is_your_current_session') }}"
+                  ></span>
+                {% endif %}
+                {% if _activity %}
+                  {% set _date %}
+                    <time
+                      datetime="{{ _activity.created_at.isoformat() }}"
+                      data-style="day"
+                    ></time>
+                  {% endset %}
+                  {% set _ip %}
+                    <span class="fw-normal">{{ _activity.ip | mask_ip }}</span>
+                  {% endset %}
+                  {{ t('settings.last_seen_date_from_ip', date=_date, ip=_ip) | safe }}
+                {% else %}
+                  {{ t('settings.unknown_device') }}
+                {% endif %}
+              </h6>
+              <p class="form-text mb-0">
+                {% set _id %}
+                  <span class="session-id">
+                    {{- str(session.id)[:5] -}}
+                    <i class="bi bi-three-dots"></i>
+                    {{- str(session.id)[-7:] -}}
+                  </span>
+                {% endset %}
+                {{ t('settings.session_id', id=_id) | safe }}
+                <span class="text-body-secondary mx-1">&middot;</span>
+                {% set _date %}
+                  <time
+                    datetime="{{ session.authorized_at.isoformat() }}"
+                    data-date="medium"
+                    data-time="short"
+                  ></time>
+                {% endset %}
+                {{ t('settings.authorized_at', date=_date) | safe }}
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-auto align-self-center text-end">
+            <form class="revoke-token-form">
+              <input
+                type="hidden"
+                name="token_id"
+                value="{{ session.id }}"
+              />
+              <button
+                class="btn btn-sm btn-soft"
+                type="submit"
+              >
+                {{ t('action.end_session') }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
 {% endblock %}

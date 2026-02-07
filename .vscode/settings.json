@@ -1,6 +1,6 @@
 {
   "[jinja-html]": {
-    "editor.rulers": [120]
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
@@ -47,8 +47,8 @@
   "explorer.fileNesting.patterns": {
     ".gitignore": ".gitattributes",
     "*.html.jinja": "${capture}.*",
-    "*.tsx": "${capture}.macro.ts,${capture}.scss",
     "*.ts": "${capture}.macro.ts,${capture}.scss",
+    "*.tsx": "${capture}.macro.ts,${capture}.scss",
     "package.json": ".npmrc,bunfig.toml",
     "pyproject.toml": "uv.lock",
     "README.md": "LICENSE"
@@ -57,7 +57,6 @@
     ".*cache/": true,
     ".direnv/": true,
     ".venv/": true,
-    "bun.lock": true,
     "{app,script}/**/*.c": true,
     "**/__pycache__/": true,
     "**/_generated/": true,
@@ -67,12 +66,14 @@
     "**/build/": true,
     "/nix/store/": true,
     "app/static/vite/**/*.js": true,
+    "bun.lock": true,
     "config/locale/download/": true,
     "dist/": true
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "prettier.documentSelectors": ["**/*.html.jinja"],
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.packageIndexDepths": [
     {

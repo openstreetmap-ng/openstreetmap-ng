@@ -1,71 +1,97 @@
 {% extends '_base' %}
 {% block heading %}
 
-{% if active_tab == 0 %}
-{{ t('layouts.user_diaries') }}
-{% elif active_tab == 1 or active_tab == 2 %}
-{{ t('diary_entries.index.in_language_title', language=language_name) }}
-{% elif active_tab == 3 %}
-{{ t('diary_entries.index.my_diary') }}
-{% elif active_tab == 4 %}
-{{ t('diary_entries.index.user_title', user=profile.display_name) }}
-{% endif %}
-
+  {% if active_tab == 0 %}
+    {{ t('layouts.user_diaries') }}
+  {% elif active_tab == 1 or active_tab == 2 %}
+    {{ t('diary_entries.index.in_language_title', language=language_name) }}
+  {% elif active_tab == 3 %}
+    {{ t('diary_entries.index.my_diary') }}
+  {% elif active_tab == 4 %}
+    {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+  {% endif %}
 {% endblock %}
-{% block title_prefix %}{{ self.heading() | trim }} | {% endblock %}
+{% block title_prefix %}{{ self.heading() | trim }} |{% endblock %}
 {% block body_class %}diary-index-body{% endblock %}
 {% block body %}
-{% set _avatar_in_header = profile is not none %}
+  {% set _avatar_in_header = profile is not none %}
 
-<div class="content-header pb-0">
+  <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="row mb-3">
-            {% if _avatar_in_header %}
-            <div class="col-auto">
-                <a href="/user/{{ profile.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
-                </a>
-            </div>
-            {% endif %}
-            <div class="col">
-                <h1>{{ self.heading() }}</h1>
-                <p class="mb-0">{{ t('diary.index.description') }}</p>
-            </div>
+      <div class="row mb-3">
+        {% if _avatar_in_header %}
+          <div class="col-auto">
+            <a href="/user/{{ profile.display_name }}">
+              <img
+                class="avatar"
+                src="{{ user_avatar_url(profile) }}"
+                alt="{{ t('alt.profile_picture') }}"
+              />
+            </a>
+          </div>
+        {% endif %}
+        <div class="col">
+          <h1>{{ self.heading() }}</h1>
+          <p class="mb-0">{{ t('diary.index.description') }}</p>
         </div>
+      </div>
 
-        {% include 'diary/_nav' %}
+      {% include 'diary/_nav' %}
     </div>
-</div>
-<div class="content-body">
+  </div>
+  <div class="content-body">
     <div class="row g-0">
-        <div id="diary-scroll-nav" class="col-lg-3 sticky-top">
-            <div id="diary-scroll-nav-offcanvas" class="offcanvas-lg offcanvas-start offset-xxl-1" tabindex="-1">
-                <div class="text-end d-lg-none">
-                    <button type="button" class="btn-close p-3 d-lg-none" data-bs-dismiss="offcanvas"
-                        data-bs-target="#diary-scroll-nav-offcanvas" aria-label="{{ t('javascripts.close') }}"></button>
-                </div>
-                <nav class="pt-3 pe-4" hidden>
-                    <h5 class="fw-bold ms-3 mb-2">{{ t('diary.jump_to') }}</h5>
-                    <ul class="nav flex-column"></ul>
-                </nav>
-            </div>
-            <button class="btn btn-primary btn-floating-bottom-left d-lg-none" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#diary-scroll-nav-offcanvas" aria-controls="diary-scroll-nav-offcanvas" hidden>
-                <i class="bi bi-list me-2"></i>{{ t('diary.jump_to') }}
-            </button>
+      <div
+        id="diary-scroll-nav"
+        class="col-lg-3 sticky-top"
+      >
+        <div
+          id="diary-scroll-nav-offcanvas"
+          class="offcanvas-lg offcanvas-start offset-xxl-1"
+          tabindex="-1"
+        >
+          <div class="text-end d-lg-none">
+            <button
+              type="button"
+              class="btn-close p-3 d-lg-none"
+              data-bs-dismiss="offcanvas"
+              data-bs-target="#diary-scroll-nav-offcanvas"
+              aria-label="{{ t('javascripts.close') }}"
+            ></button>
+          </div>
+          <nav
+            class="pt-3 pe-4"
+            hidden
+          >
+            <h5 class="fw-bold ms-3 mb-2">{{ t('diary.jump_to') }}</h5>
+            <ul class="nav flex-column"></ul>
+          </nav>
         </div>
-        <div class="col-lg-9 col-xl-8 col-xxl-6">
-            <div class="diary-pagination">
-                <nav aria-label="{{ t('alt.page_navigation') }}">
-                    <ul class="pagination justify-content-end mb-2"></ul>
-                </nav>
-                <div class="diary-list mb-3"></div>
-                <nav aria-label="{{ t('alt.page_navigation') }}">
-                    <ul class="pagination justify-content-end mb-0" data-action="{{ pagination_action }}"></ul>
-                </nav>
-            </div>
+        <button
+          class="btn btn-primary btn-floating-bottom-left d-lg-none"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#diary-scroll-nav-offcanvas"
+          aria-controls="diary-scroll-nav-offcanvas"
+          hidden
+        >
+          <i class="bi bi-list me-2"></i>{{ t('diary.jump_to') }}
+        </button>
+      </div>
+      <div class="col-lg-9 col-xl-8 col-xxl-6">
+        <div class="diary-pagination">
+          <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul class="pagination justify-content-end mb-2"></ul>
+          </nav>
+          <div class="diary-list mb-3"></div>
+          <nav aria-label="{{ t('alt.page_navigation') }}">
+            <ul
+              class="pagination justify-content-end mb-0"
+              data-action="{{ pagination_action }}"
+            ></ul>
+          </nav>
         </div>
+      </div>
     </div>
-</div>
-
+  </div>
 {% endblock %}

@@ -1,106 +1,163 @@
 {% if apps %}
-{% for app in apps %}
-{% set _is_system = oauth2_app_is_system(app) %}
-<tr data-app-id="{{ app.id }}">
-    <td>
+  {% for app in apps %}
+    {% set _is_system = oauth2_app_is_system(app) %}
+    <tr data-app-id="{{ app.id }}">
+      <td>
         <div class="d-flex align-items-center">
-            <img class="avatar me-2" src="{{ oauth2_app_avatar_url(app) }}" alt="{{ t('alt.application_image') }}"
-                loading="lazy">
-            <div class="small">
-                <abbr class="text-decoration-none" title="{{ app.client_id }}">{{ app.name }}</abbr>
-                <div class="lh-1">
-                    <code>{{ app.id }}</code>
-                    <small class="text-body-secondary">
-                        ·
-                        {% if app.confidential %}{{ t('settings.confidential_client') }}
-                        {% else %}
-                        {{ t('settings.public_client') }}
-                        {% endif %}
-                    </small>
-                </div>
+          <img
+            class="avatar me-2"
+            src="{{ oauth2_app_avatar_url(app) }}"
+            alt="{{ t('alt.application_image') }}"
+            loading="lazy"
+          />
+          <div class="small">
+            <abbr
+              class="text-decoration-none"
+              title="{{ app.client_id }}"
+              >{{ app.name }}</abbr
+            >
+            <div class="lh-1">
+              <code>{{ app.id }}</code>
+              <small class="text-body-secondary">
+                ·
+                {% if app.confidential %}
+                  {{ t('settings.confidential_client') }}
+                {% else %}
+                  {{ t('settings.public_client') }}
+                {% endif %}
+              </small>
             </div>
+          </div>
         </div>
-    </td>
-    <td class="text-body-secondary lh-sm small">
+      </td>
+      <td class="text-body-secondary lh-sm small">
         {% set _uris = app.redirect_uris %}
         {% set _scopes = app.scopes %}
         <div>
-            <i class="bi bi-link-45deg me-1"></i>
-            {% if _uris %}
-            <a class="" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-container="body"
-                data-bs-content="{% for uri in _uris %}<a href='{{ uri }}' target='_blank' rel='noopener noreferrer'>{{ uri }}</a>{% endfor %}">
-                {{ _uris | length }} redirect URIs
+          <i class="bi bi-link-45deg me-1"></i>
+          {% if _uris %}
+            {% set _uris_popover %}
+              {% for uri in _uris %}
+                <a
+                  href="{{ uri }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ uri }}</a
+                >
+              {% endfor %}
+            {% endset %}
+            <a
+              class=""
+              role="button"
+              data-bs-toggle="popover"
+              data-bs-html="true"
+              data-bs-container="body"
+              data-bs-content="{{ _uris_popover }}"
+            >
+              {{ _uris | length }} redirect URIs
             </a>
-            {% else %}
+          {% else %}
             0 redirect URIs
-            {% endif %}
+          {% endif %}
         </div>
 
         <div>
-            <i class="bi bi-key me-1"></i>
-            {% if _scopes %}
-            <a class="" role="button" data-bs-toggle="popover" data-bs-html="true" data-bs-container="body"
-                data-bs-content="<ul class='mb-0 ps-3 font-monospace'>{% for s in _scopes | sort %}<li>{{ s }}</li>{% endfor %}</ul>">
-                {{ _scopes | length }} scopes
+          <i class="bi bi-key me-1"></i>
+          {% if _scopes %}
+            <a
+              class=""
+              role="button"
+              data-bs-toggle="popover"
+              data-bs-html="true"
+              data-bs-container="body"
+              data-bs-content="<ul class='mb-0 ps-3 font-monospace'>{% for s in _scopes | sort %}
+                <li>{{ s }}</li>
+              {% endfor %}</ul>"
+            >
+              {{ _scopes | length }} scopes
             </a>
-            {% else %}
+          {% else %}
             0 scopes
-            {% endif %}
+          {% endif %}
         </div>
-    </td>
-    <td>
+      </td>
+      <td>
         {% if _is_system %}
-        <span class="text-body-secondary">
+          <span class="text-body-secondary">
             <i class="bi bi-shield-fill-check text-success me-2"></i>System
-        </span>
+          </span>
         {% else %}
-        <a href="/user-id/{{ app.user_id }}">
-            <img class="avatar me-1-5" src="{{ user_avatar_url(app.user) }}" alt="{{ t('alt.profile_picture') }}"
-                loading="lazy">
+          <a href="/user-id/{{ app.user_id }}">
+            <img
+              class="avatar me-1-5"
+              src="{{ user_avatar_url(app.user) }}"
+              alt="{{ t('alt.profile_picture') }}"
+              loading="lazy"
+            />
             <span class="display-name">{{ app.user.display_name }}</span>
-        </a>
+          </a>
         {% endif %}
-    </td>
-    <td>
+      </td>
+      <td>
         <span class="text-body-secondary">{{ user_counts.get(app.id, 0) }}</span>
-    </td>
-    <td>
-        <time datetime="{{ app.created_at.isoformat() }}" data-style="short"></time>
-    </td>
-    {% set _app_ips = ip_counts[app.id] %}
-    <td>
+      </td>
+      <td>
+        <time
+          datetime="{{ app.created_at.isoformat() }}"
+          data-style="short"
+        ></time>
+      </td>
+      {% set _app_ips = ip_counts[app.id] %}
+      <td>
         {% if _app_ips %}
-        {% set _main_ip, _main_count = _app_ips | first %}
-        {% set _more_ips = _app_ips[1:10] %}
-        {% set _has_more = _app_ips | length > 10 %}
+          {% set _main_ip, _main_count = _app_ips | first %}
+          {% set _more_ips = _app_ips[1:10] %}
+          {% set _has_more = _app_ips | length > 10 %}
 
-        <a href="/audit?ip={{ _main_ip }}"
-            class="{% if _main_count >= 2 %}text-bg-warning rounded{% else %}text-body-secondary{% endif %}">
+          <a
+            href="/audit?ip={{ _main_ip }}"
+            class="{% if _main_count >= 2 %}text-bg-warning rounded{% else %}text-body-secondary{% endif %}"
+          >
             {{- _main_ip -}}
-        </a>
-        {% if _main_count > 1 %}
-        <small class="text-muted">×{{ _main_count }}</small>
-        {% endif %}
+          </a>
+          {% if _main_count > 1 %}
+            <small class="text-muted">×{{ _main_count }}</small>
+          {% endif %}
 
-        {% if _more_ips %}
-        <span class="text-primary ms-1" role="button" data-bs-toggle="tooltip" data-bs-html="true"
-            data-bs-title="{% for ip, count in _more_ips %}<a href='/audit?ip={{ ip }}'>{{ ip }}</a> <small>×{{ count }}</small><br>{% endfor %}{% if _has_more %}...{% endif %}">
-            +{{ (_app_ips | length) - 1 }} more
-        </span>
-        {% endif %}
+          {% if _more_ips %}
+            {% set _more_ips_tooltip %}
+              {% for ip, count in _more_ips %}
+                <a href="/audit?ip={{ ip }}">{{ ip }}</a> <small>×{{ count }}</small
+                ><br />
+              {% endfor %}
+              {% if _has_more %}...{% endif %}
+            {% endset %}
+            <span
+              class="text-primary ms-1"
+              role="button"
+              data-bs-toggle="tooltip"
+              data-bs-html="true"
+              data-bs-title="{{ _more_ips_tooltip }}"
+            >
+              +{{ (_app_ips | length) - 1 }} more
+            </span>
+          {% endif %}
         {% else %}
-        <span class="text-body-secondary">&mdash;</span>
+          <span class="text-body-secondary">&mdash;</span>
         {% endif %}
-    </td>
-    <td>
+      </td>
+      <td>
         <a href="/audit?application_id={{ app.id }}">Audit</a>
-    </td>
-</tr>
-{% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
 {% else %}
-<tr>
-    <td colspan="7" class="text-center text-muted py-4">
-        No applications found matching your filters.
+  <tr>
+    <td
+      colspan="7"
+      class="text-center text-muted py-4"
+    >
+      No applications found matching your filters.
     </td>
-</tr>
+  </tr>
 {% endif %}

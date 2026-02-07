@@ -1,8 +1,11 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ t('action.send_a_message') }} | {% endblock %}
+{% block title_prefix %}{{ t('action.send_a_message') }} |{% endblock %}
 {% block body_class %}messages-new-body{% endblock %}
 {% block body %}
-
-<div id="MessagesNewRoot" data-recipients="{{ recipients }}" data-subject="{{ subject }}" data-body="{{ body }}"></div>
-
+  <div
+    id="MessagesNewRoot"
+    data-recipients="{{ recipients }}"
+    data-subject="{{ subject }}"
+    data-body="{{ body }}"
+  ></div>
 {% endblock %}

@@ -1,134 +1,175 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ t('oauth.authorization_request_app', name=app.name) }} | {% endblock %}
+{% block title_prefix %}{{ t('oauth.authorization_request_app', name=app.name) }} |{% endblock %}
 {% block body_class %}oauth-authorize-body{% endblock %}
 {% block body %}
 
-{% set _app_name %}
-<span class="fw-semibold">{{ app.name }}</span>
-{% endset %}
-{% set _user_link %}
-<a class="link-body-emphasis" href="/user/{{ user.display_name }}" target="_blank">
-    {{- user.display_name -}}
-</a>
-{% endset %}
-{% set _owner_link %}
-<a href="/user/{{ app.user.display_name }}" target="_blank">
-    {{- app.user.display_name -}}
-</a>
-{% endset %}
-{% set _time_ago -%}
-<time datetime="{{ app.created_at.isoformat() }}" data-style="long"></time>
-{%- endset %}
 
-<div class="content-header px-md-5">
+  {% set _app_name %}
+    <span class="fw-semibold">{{ app.name }}</span>
+  {% endset %}
+  {% set _user_link %}
+    <a
+      class="link-body-emphasis"
+      href="/user/{{ user.display_name }}"
+      target="_blank"
+    >
+      {{- user.display_name -}}
+    </a>
+  {% endset %}
+  {% set _owner_link %}
+    <a
+      href="/user/{{ app.user.display_name }}"
+      target="_blank"
+    >
+      {{- app.user.display_name -}}
+    </a>
+  {% endset %}
+  {% set _time_ago -%}
+    <time
+      datetime="{{ app.created_at.isoformat() }}"
+      data-style="long"
+    ></time>
+  {%- endset %}
+
+  <div class="content-header px-md-5">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
-        <p class="text-body-secondary text-uppercase small fw-semibold mb-1">
-            {{- t('oauth.authorization_request_app', name=app.name) -}}
-        </p>
-        <h1 class="h3 text-body-emphasis mb-3">
-            {{- t('oauth.authorize_app_to_access_your_account', name=_app_name) | safe -}}
-        </h1>
-        <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
-            <img class="avatar authorization-avatar" src="{{ oauth2_app_avatar_url(app) }}"
-                alt="{{ t('alt.application_image') }}">
-            <span class="authorization-arrow" aria-hidden="true">
-                <i class="bi bi-arrow-right-short"></i>
-            </span>
-            <img class="avatar authorization-avatar" src="{{ user_avatar_url(user) }}"
-                alt="{{ t('alt.profile_picture') }}">
-            <span class="text-body-secondary small">
-                {{- t('oauth.you_are_currently_signed_in_as', name=_user_link) | safe -}}
-            </span>
-        </div>
+      <p class="text-body-secondary text-uppercase small fw-semibold mb-1">
+        {{- t('oauth.authorization_request_app', name=app.name) -}}
+      </p>
+      <h1 class="h3 text-body-emphasis mb-3">
+        {{- t('oauth.authorize_app_to_access_your_account', name=_app_name) | safe -}}
+      </h1>
+      <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
+        <img
+          class="avatar authorization-avatar"
+          src="{{ oauth2_app_avatar_url(app) }}"
+          alt="{{ t('alt.application_image') }}"
+        />
+        <span
+          class="authorization-arrow"
+          aria-hidden="true"
+        >
+          <i class="bi bi-arrow-right-short"></i>
+        </span>
+        <img
+          class="avatar authorization-avatar"
+          src="{{ user_avatar_url(user) }}"
+          alt="{{ t('alt.profile_picture') }}"
+        />
+        <span class="text-body-secondary small">
+          {{- t('oauth.you_are_currently_signed_in_as', name=_user_link) | safe -}}
+        </span>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="content-body">
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
-        <form class="card" method="POST">
-            <div class="card-body py-4 py-sm-5 px-4 px-md-5">
-                <div class="row g-2 g-md-3 mb-4 mb-md-5">
-                    <div class="col-lg">
-                        <h2 class="h5 mb-3">
-                            {{- t('oauth.app_is_requesting_permissions_to', name=_app_name) | safe -}}
-                        </h2>
-                        <ul class="authorize-scope-list list-unstyled mb-lg-0">
-                            {% for scope in scopes %}
-                            <li>
-                                <i class="bi bi-check-circle-fill"></i>
-                                <span>
-                                    {% if scope == 'read_prefs' %}
-                                    {{ t('permissions.read_user_preferences') }}
-                                    {% elif scope == 'write_prefs' %}
-                                    {{ t('permissions.modify_user_preferences') }}
-                                    {% elif scope == 'write_api' %}
-                                    {{ t('permissions.manage_changesets_and_map_data') }}
-                                    {% elif scope == 'read_gpx' %}
-                                    {{ t('permissions.read_all_gps_traces') }}
-                                    {% elif scope == 'write_gpx' %}
-                                    {{ t('permissions.manage_gps_traces') }}
-                                    {% elif scope == 'write_notes' %}
-                                    {{ t('permissions.manage_notes') }}
-                                    {% elif scope == 'web_user' %}
-                                    {{ t('permissions.access_the_website') }}
-                                    {% endif %}
-                                    <span class="scope">({{ scope }})</span>
-                                </span>
-                            </li>
-                            {% endfor %}
-                            {% if not scopes %}
-                            <li>
-                                {{- t('permissions.no_permissions') -}}
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-auto">
-                        <div class="authorize-summary">
-                            <div>
-                                <h2 class="h6 text-uppercase text-body-secondary">
-                                    {{- t('oauth.authorizing_will_redirect_you_to') -}}
-                                </h2>
-                                <ul class="authorize-summary-list list-unstyled">
-                                    <li>
-                                        <i class="bi bi-link-45deg text-primary"></i>
-                                        <span class="text-break">{{ redirect_uri }}</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h2 class="h6 text-uppercase text-body-secondary">
-                                    {{- t('oauth.application_information') -}}
-                                </h2>
-                                <ul class="authorize-summary-list list-unstyled mb-0">
-                                    <li>
-                                        <img class="avatar" src="{{ user_avatar_url(app.user) }}"
-                                            alt="{{ t('alt.profile_picture') }}">
-                                        <span>{{ t('settings.owned_by_user', name=_owner_link) | safe }}</span>
-                                    </li>
-                                    <li>
-                                        <i class="bi bi-clock-history text-primary"></i>
-                                        <span>{{ t('browse.created_ago_html', time_ago=_time_ago) | safe }}</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex flex-column flex-sm-row-reverse gap-2 mx-md-5 mb-4">
-                    <button class="btn btn-lg btn-primary w-100" type="submit">{{ t('action.authorize') }}</button>
-                    <a href="/" class="btn btn-lg btn-outline-secondary w-100">{{ t('action.cancel') }}</a>
-                </div>
-
-                <div class="authorize-footnote" role="note">
-                    <i class="bi bi-shield-lock"></i>
-                    <span class="text-body-secondary small">{{ t('oauth.revoke_access_anytime_in_settings') }}</span>
-                </div>
+      <form
+        class="card"
+        method="POST"
+      >
+        <div class="card-body py-4 py-sm-5 px-4 px-md-5">
+          <div class="row g-2 g-md-3 mb-4 mb-md-5">
+            <div class="col-lg">
+              <h2 class="h5 mb-3">
+                {{- t('oauth.app_is_requesting_permissions_to', name=_app_name) | safe -}}
+              </h2>
+              <ul class="authorize-scope-list list-unstyled mb-lg-0">
+                {% for scope in scopes %}
+                  <li>
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>
+                      {% if scope == 'read_prefs' %}
+                        {{ t('permissions.read_user_preferences') }}
+                      {% elif scope == 'write_prefs' %}
+                        {{ t('permissions.modify_user_preferences') }}
+                      {% elif scope == 'write_api' %}
+                        {{ t('permissions.manage_changesets_and_map_data') }}
+                      {% elif scope == 'read_gpx' %}
+                        {{ t('permissions.read_all_gps_traces') }}
+                      {% elif scope == 'write_gpx' %}
+                        {{ t('permissions.manage_gps_traces') }}
+                      {% elif scope == 'write_notes' %}
+                        {{ t('permissions.manage_notes') }}
+                      {% elif scope == 'web_user' %}
+                        {{ t('permissions.access_the_website') }}
+                      {% endif %}
+                      <span class="scope">({{ scope }})</span>
+                    </span>
+                  </li>
+                {% endfor %}
+                {% if not scopes %}
+                  <li>{{- t('permissions.no_permissions') -}}</li>
+                {% endif %}
+              </ul>
             </div>
-        </form>
-    </div>
-</div>
 
+            <div class="col-lg-auto">
+              <div class="authorize-summary">
+                <div>
+                  <h2 class="h6 text-uppercase text-body-secondary">
+                    {{- t('oauth.authorizing_will_redirect_you_to') -}}
+                  </h2>
+                  <ul class="authorize-summary-list list-unstyled">
+                    <li>
+                      <i class="bi bi-link-45deg text-primary"></i>
+                      <span class="text-break">{{ redirect_uri }}</span>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h2 class="h6 text-uppercase text-body-secondary">
+                    {{- t('oauth.application_information') -}}
+                  </h2>
+                  <ul class="authorize-summary-list list-unstyled mb-0">
+                    <li>
+                      <img
+                        class="avatar"
+                        src="{{ user_avatar_url(app.user) }}"
+                        alt="{{ t('alt.profile_picture') }}"
+                      />
+                      <span
+                        >{{ t('settings.owned_by_user', name=_owner_link) | safe }}</span
+                      >
+                    </li>
+                    <li>
+                      <i class="bi bi-clock-history text-primary"></i>
+                      <span
+                        >{{ t('browse.created_ago_html', time_ago=_time_ago) | safe }}</span
+                      >
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column flex-sm-row-reverse gap-2 mx-md-5 mb-4">
+            <button
+              class="btn btn-lg btn-primary w-100"
+              type="submit"
+            >
+              {{ t('action.authorize') }}
+            </button>
+            <a
+              href="/"
+              class="btn btn-lg btn-outline-secondary w-100"
+              >{{ t('action.cancel') }}</a
+            >
+          </div>
+
+          <div
+            class="authorize-footnote"
+            role="note"
+          >
+            <i class="bi bi-shield-lock"></i>
+            <span class="text-body-secondary small"
+              >{{ t('oauth.revoke_access_anytime_in_settings') }}</span
+            >
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock %}

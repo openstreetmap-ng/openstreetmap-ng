@@ -1,78 +1,99 @@
 {% extends 'email/_base' %}
 {% block body %}
-<p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
-<p>
+  <p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
+  <p>
     {% set _commenter -%}
-    <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
-        style="text-decoration: none; color: #222"><b>{{ comment.user.display_name }}</b></a>
+      <a
+        href="{{ APP_URL }}/user-id/{{ comment.user_id }}"
+        style="text-decoration: none; color: #222"
+        ><b>{{ comment.user.display_name }}</b></a
+      >
     {%- endset %}
     {% if comment.event == 'commented' %}
-    {% if is_note_owner %}
-    {{ t('user_mailer.note_comment_notification.commented.your_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
-    {% else %}
-    {{ t('user_mailer.note_comment_notification.commented.commented_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
-    {% endif %}
+      {% if is_note_owner %}
+        {{
+          t('user_mailer.note_comment_notification.commented.your_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% else %}
+        {{
+          t('user_mailer.note_comment_notification.commented.commented_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% endif %}
     {% elif comment.event == 'closed' %}
-    {% if is_note_owner %}
-    {{ t('user_mailer.note_comment_notification.closed.your_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
-    {% else %}
-    {{ t('user_mailer.note_comment_notification.closed.commented_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
-    {% endif %}
+      {% if is_note_owner %}
+        {{
+          t('user_mailer.note_comment_notification.closed.your_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% else %}
+        {{
+          t('user_mailer.note_comment_notification.closed.commented_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% endif %}
     {% elif comment.event == 'reopened' %}
-    {% if is_note_owner %}
-    {{ t('user_mailer.note_comment_notification.reopened.your_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
-    {% else %}
-    {{ t('user_mailer.note_comment_notification.reopened.commented_note_html',
-        commenter=_commenter,
-        place=place
-    ) | safe }}
+      {% if is_note_owner %}
+        {{
+          t('user_mailer.note_comment_notification.reopened.your_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% else %}
+        {{
+          t('user_mailer.note_comment_notification.reopened.commented_note_html',
+              commenter=_commenter,
+              place=place
+          ) | safe
+        }}
+      {% endif %}
     {% endif %}
-    {% endif %}
-</p>
-{% if comment.body %}
-<table style="width: 100%; margin: 1em 0; background: #eee">
-    <tr>
+  </p>
+  {% if comment.body %}
+    <table style="width: 100%; margin: 1em 0; background: #eee">
+      <tr>
         <td style="width: 50px; vertical-align: top">
-            <div style="margin: 1em">
-                <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
-                    <img src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}"
-                        width="50" height="50" style="background: #fff; border-radius: 50%;">
-                </a>
-            </div>
+          <div style="margin: 1em">
+            <a href="{{ APP_URL }}/user-id/{{ comment.user_id }}">
+              <img
+                src="{{ APP_URL }}{{ user_avatar_url(comment.user) }}"
+                alt="{{ t('alt.profile_picture') }}"
+                width="50"
+                height="50"
+                style="background: #fff; border-radius: 50%;"
+              />
+            </a>
+          </div>
         </td>
         <td style="vertical-align: top">
-            <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
+          <div style="margin: 1em 1em 1em 0;">{{ comment.body_rich | safe }}</div>
         </td>
-    </tr>
-</table>
-{% endif %}
-<p>
-    › <a href="{{ APP_URL }}/note/{{ comment.note_id }}#comment{{ comment.id }}">
-        {{- t('notifications.visit_the_discussion_page') -}}
-    </a>.
-</p>
+      </tr>
+    </table>
+  {% endif %}
+  <p>
+    ›
+    <a href="{{ APP_URL }}/note/{{ comment.note_id }}#comment{{ comment.id }}">
+      {{- t('notifications.visit_the_discussion_page') -}} </a
+    >.
+  </p>
 {% endblock %}
 
 {% block footer %}
-<p style="text-align: center; font-size: 0.85em; color: #111">
+  <p style="text-align: center; font-size: 0.85em; color: #111">
     {{ t('subscription.no_longer_interested_in_this_discussion') }}
     <a href="{{ APP_URL }}/note/{{ comment.note_id }}/unsubscribe">
-        {{- t('subscription.click_here_to_unsubscribe') -}}
-    </a>.
-</p>
+      {{- t('subscription.click_here_to_unsubscribe') -}} </a
+    >.
+  </p>
 {% endblock %}

@@ -46,6 +46,7 @@
     "osm-community-index": "latest",
     "preact": "latest",
     "prettier": "latest",
+    "prettier-plugin-jinja-template": "latest",
     "purgecss": "latest",
     "qrcode-generator": "latest",
     "rollup-plugin-visualizer": "latest",
@@ -89,5 +90,19 @@
   },
   "browserslist": [
     "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
-  ]
+  ],
+  "prettier": {
+    "singleAttributePerLine": true,
+    "plugins": [
+      "prettier-plugin-jinja-template"
+    ],
+    "overrides": [
+      {
+        "files": "**/*.html.jinja",
+        "options": {
+          "parser": "jinja-template"
+        }
+      }
+    ]
+  }
 }

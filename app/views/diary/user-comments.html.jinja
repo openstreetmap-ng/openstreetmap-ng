@@ -1,30 +1,30 @@
 {% extends '_base' %}
 {% block heading %}
-{{ t('diary_entries.comments.heading', user=profile.display_name) }}
+  {{ t('diary_entries.comments.heading', user=profile.display_name) }}
 {% endblock %}
-{% block title_prefix %}{{ self.heading() | trim }} | {% endblock %}
+{% block title_prefix %}{{ self.heading() | trim }} |{% endblock %}
 {% block body_class %}diary-user-comments-body{% endblock %}
 {% block body %}
-
-<div class="content-header">
+  <div class="content-header">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <h1>{{ self.heading() }}</h1>
-        <p class="mb-1-5">{{ t('diary.user_comments.description') }}</p>
+      <h1>{{ self.heading() }}</h1>
+      <p class="mb-1-5">{{ t('diary.user_comments.description') }}</p>
     </div>
-</div>
-<div class="content-body">
+  </div>
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="diary-user-comments-pagination">
-            <nav aria-label="{{ t('alt.comments_page_navigation') }}">
-                <ul class="pagination justify-content-end mb-2"></ul>
-            </nav>
-            <ul class="diary-user-comments-list social-list list-unstyled mb-2"></ul>
-            <nav aria-label="{{ t('alt.comments_page_navigation') }}">
-                <ul class="pagination justify-content-end mb-0"
-                    data-action="/api/web/diary/user/{{ profile.id }}/comments">
-                </ul>
-            </nav>
-        </div>
+      <div class="diary-user-comments-pagination">
+        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+          <ul class="pagination justify-content-end mb-2"></ul>
+        </nav>
+        <ul class="diary-user-comments-list social-list list-unstyled mb-2"></ul>
+        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+          <ul
+            class="pagination justify-content-end mb-0"
+            data-action="/api/web/diary/user/{{ profile.id }}/comments"
+          ></ul>
+        </nav>
+      </div>
     </div>
-</div>
+  </div>
 {% endblock %}
