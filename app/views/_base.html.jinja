@@ -37,7 +37,8 @@
     />
 
     <title>
-      {% set _title_prefix = self.title_prefix() | trim %}
+      {% set _title_prefix %}{% block title_prefix %}{% endblock %}{% endset %}
+      {% set _title_prefix = _title_prefix | trim %}
       {% block title %}{{ _title_prefix }}{{ ' ' if _title_prefix else '' }}{{ self.site_name() }}{% endblock %}
     </title>
     <meta
