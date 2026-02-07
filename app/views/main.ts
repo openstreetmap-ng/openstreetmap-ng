@@ -1,9 +1,4 @@
 import "./main.scss"
-import { ENV } from "@lib/config.macro" with { type: "macro" }
-
-if (ENV !== "prod") {
-  void import("preact/debug")
-}
 
 import "@lib/polyfills"
 

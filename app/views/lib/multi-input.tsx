@@ -65,9 +65,15 @@ export const MultiInput = ({
   const tokens = useSignal<string[]>(
     seedTokens(defaultValue, maxItemsLimit, maxItemLength),
   )
-  const inputValue = useSignal("")
   const latestInsertBlocked = useSignal(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const getInputValue = () => inputRef.current?.value ?? ""
+
+  const setInputValue = (value: string) => {
+    const input = inputRef.current
+    if (input) input.value = value
+  }
 
   const setInputCursorEnd = () => {
     const input = inputRef.current
@@ -90,7 +96,7 @@ export const MultiInput = ({
   }
 
   const commitInput = () => {
-    if (tryInsert(inputValue.peek()) !== "blocked") inputValue.value = ""
+    if (tryInsert(getInputValue()) !== "blocked") setInputValue("")
   }
 
   const editLastToken = () => {
@@ -99,7 +105,7 @@ export const MultiInput = ({
     if (!value) return
 
     tokens.value = current.slice(0, -1)
-    inputValue.value = value
+    setInputValue(value)
     inputRef.current?.focus()
     setInputCursorEnd()
   }
@@ -114,7 +120,7 @@ export const MultiInput = ({
   const editToken = (value: string) => {
     commitInput()
     removeTokenValue(value)
-    inputValue.value = value
+    setInputValue(value)
     inputRef.current?.focus()
     setInputCursorEnd()
   }
@@ -162,7 +168,6 @@ export const MultiInput = ({
           type="text"
           class="form-control"
           placeholder={visibleTokens.length ? "" : placeholder}
-          value={inputValue.value}
           maxLength={maxItemLength}
           required={required && !visibleTokens.length}
           autoComplete="off"
@@ -171,8 +176,7 @@ export const MultiInput = ({
           onInput={(event) => {
             const raw = event.currentTarget.value
             if (!raw.includes(MULTI_INPUT_DELIMITER)) {
-              inputValue.value = raw
-              latestInsertBlocked.value = false
+              if (latestInsertBlocked.peek()) latestInsertBlocked.value = false
               return
             }
 
@@ -181,7 +185,7 @@ export const MultiInput = ({
               if (tryInsert(token) !== "blocked") continue
               break
             }
-            inputValue.value =
+            event.currentTarget.value =
               normalizeMultiInputToken(parts.at(-1)!, maxItemLength) ?? ""
           }}
           onKeyDown={(event) => {
@@ -189,7 +193,7 @@ export const MultiInput = ({
             if (event.key === "Enter" || event.key === MULTI_INPUT_DELIMITER) {
               event.preventDefault()
               commitInput()
-            } else if (event.key === "Backspace" && !inputValue.peek()) {
+            } else if (event.key === "Backspace" && !event.currentTarget.value) {
               event.preventDefault()
               editLastToken()
             }

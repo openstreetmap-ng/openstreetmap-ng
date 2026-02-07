@@ -42,6 +42,11 @@ def vite_render_asset(path: str, *, rtl: bool = False):
 
         lines.append(f'<script src="{base}@vite/client" type="module"></script>')
 
+        if suffix == '.ts':
+            lines.append(
+                f'<script src="{base}@id/preact/debug" type="module"></script>'
+            )
+
         if path == 'app/views/main.ts':
             lines.append(f'<script src="{base}app/views/main-sync.ts"></script>')
 

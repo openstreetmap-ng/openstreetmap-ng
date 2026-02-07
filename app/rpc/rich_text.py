@@ -9,18 +9,13 @@ from app.models.proto.rich_text_connect import (
     RichTextService,
     RichTextServiceASGIApplication,
 )
-from app.models.proto.rich_text_pb2 import (
-    RenderMarkdownRequest,
-    RenderMarkdownResponse,
-)
+from app.models.proto.rich_text_pb2 import RenderMarkdownRequest, RenderMarkdownResponse
 
 
 class _Service(RichTextService):
     @override
     async def render_markdown(
-        self,
-        request: RenderMarkdownRequest,
-        ctx: RequestContext,
+        self, request: RenderMarkdownRequest, ctx: RequestContext
     ):
         require_web_user()
         html = (await rich_text(request.text, None, 'markdown'))[0]
