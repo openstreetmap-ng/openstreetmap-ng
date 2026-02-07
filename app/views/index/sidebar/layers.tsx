@@ -2,7 +2,7 @@ import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { BTooltip } from "@lib/bootstrap"
 import {
-  isMobile,
+  isBreakpointDown,
   MAP_QUERY_AREA_MAX_SIZE,
   NOTE_QUERY_AREA_MAX_SIZE,
 } from "@lib/config"
@@ -231,7 +231,7 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
   }
 
   const getLayerMinimap = (layerId: LayerId): Minimap => {
-    if (isMobile()) {
+    if (isBreakpointDown("md")) {
       const thumbnail = LAYER_THUMBNAILS.get(layerId)
       if (thumbnail) return { kind: "image", src: thumbnail }
     }
