@@ -14,7 +14,7 @@ import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
 import { useQuerySignal } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
-import { type ReadonlySignal, type Signal, batch, useSignal } from "@preact/signals"
+import { batch, type ReadonlySignal, type Signal, useSignal } from "@preact/signals"
 import { t } from "i18next"
 import { render } from "preact"
 import { memo } from "preact/compat"
@@ -222,7 +222,13 @@ const MessagePreview = ({
   const previewRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    previewRef.current!.scrollIntoView({ block: "start" })
+    const preview = previewRef.current!
+
+    const previewTop = preview.getBoundingClientRect().top + window.scrollY
+    const viewportTop = window.scrollY
+    if (previewTop >= viewportTop) return
+
+    preview.scrollIntoView({ block: "start" })
   }, [])
 
   return (
