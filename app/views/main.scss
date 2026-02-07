@@ -191,12 +191,24 @@ summary {
   }
 }
 
-* {
+:where(*) {
   scroll-behavior: smooth;
 }
 
+:where(
+  textarea,
+  input,
+  select,
+  option,
+  [contenteditable],
+  [role="textbox"],
+  [role="combobox"]
+) {
+  scroll-behavior: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  * {
+  :where(*) {
     scroll-behavior: auto;
   }
 }
