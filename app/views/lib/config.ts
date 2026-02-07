@@ -3,7 +3,23 @@ import { WebConfigSchema } from "@lib/proto/shared_pb"
 import { fromBinaryValid } from "@lib/rpc"
 import { memoize } from "@std/cache/memoize"
 import { ENV, SENTRY_DSN, VERSION } from "./config.macro" with { type: "macro" }
+
 export * from "./config.macro" with { type: "macro" }
+
+const BOOTSTRAP_BREAKPOINTS = {
+  xs: 0,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+  xxl: 1400,
+} as const
+
+const BOOTSTRAP_BREAKPOINT_ORDER = Object.keys(
+  BOOTSTRAP_BREAKPOINTS,
+) as BootstrapBreakpoint[]
+
+type BootstrapBreakpoint = keyof typeof BOOTSTRAP_BREAKPOINTS
 
 /** Global dataset options that are defined on <html> tag */
 export const config = fromBinaryValid(
@@ -38,8 +54,41 @@ export const isAdministrator =
  */
 export const primaryLanguage = document.documentElement.lang
 
-/** Whether user is on a mobile device */
-export const isMobile = memoize(() => window.innerWidth <= 1024)
+const maxWidthQuery = (breakpoint: BootstrapBreakpoint) => {
+  const index = BOOTSTRAP_BREAKPOINT_ORDER.indexOf(breakpoint)
+  const next = BOOTSTRAP_BREAKPOINT_ORDER[index + 1]
+  if (!next) return null
+
+  // Match Bootstrap media-breakpoint-down() behavior: next breakpoint - 0.02px.
+  const maxWidth = BOOTSTRAP_BREAKPOINTS[next] - 0.02
+  return `(max-width: ${maxWidth.toFixed(2)}px)`
+}
+
+const minWidthQuery = (breakpoint: BootstrapBreakpoint) =>
+  `(min-width: ${BOOTSTRAP_BREAKPOINTS[breakpoint]}px)`
+
+/** Whether viewport width is at or above the breakpoint */
+export const isBreakpointUp = (breakpoint: BootstrapBreakpoint) =>
+  window.matchMedia(minWidthQuery(breakpoint)).matches
+
+/** Whether viewport width is at or below the breakpoint */
+export const isBreakpointDown = (breakpoint: BootstrapBreakpoint) => {
+  const query = maxWidthQuery(breakpoint)
+  return query ? window.matchMedia(query).matches : true
+}
+
+/**
+ * Whether viewport width is between two breakpoints.
+ * When only one breakpoint is provided, it matches exactly that breakpoint range.
+ */
+export const isBreakpointBetween = (
+  breakpointFrom: BootstrapBreakpoint,
+  breakpointTo: BootstrapBreakpoint = breakpointFrom,
+) => {
+  const minQuery = minWidthQuery(breakpointFrom)
+  const maxQuery = maxWidthQuery(breakpointTo)
+  return window.matchMedia(maxQuery ? `${minQuery} and ${maxQuery}` : minQuery).matches
+}
 
 /** Whether user prefers reduced motion */
 export const prefersReducedMotion = memoize(
