@@ -1,74 +1,100 @@
 <div class="card">
-    <div class="card-body pb-0">
-        <h5 class="card-title ms-1">
-            <a href="/user/{{ profile.display_name }}/traces">
-                <b>{{ traces_count }}</b>
-                {{ nt('trace.count', traces_count) }}
-            </a>
-        </h5>
+  <div class="card-body pb-0">
+    <h5 class="card-title ms-1">
+      <a href="/user/{{ profile.display_name }}/traces">
+        <b>{{ traces_count }}</b>
+        {{ nt('trace.count', traces_count) }}
+      </a>
+    </h5>
 
-        <ul class="content-list content-list-sm traces-list social-list-sm list-unstyled"
-            data-lines="{{ traces_lines | safe }}">
-            {% for trace in traces %}
-            <li class="row g-2">
-                <a class="col-auto" href="/trace/{{ trace.id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="92" height="92" viewBox="-1 -1 92 92"></svg>
-                </a>
-                <div class="col">
-                    <div class="social-entry clickable h-100">
-                        <p class="header text-muted d-flex justify-content-between">
-                            <span>
-                                {{ t('action.uploaded') | title }}
-                                <time datetime="{{ trace.created_at.isoformat() }}" data-style="long"></time>
-                            </span>
-                            <a class="stretched-link" href="/trace/{{ trace.id }}">{{ trace.id }}</a>
-                        </p>
-                        <div class="body">
-                            <p class="mb-0">
-                                <span class="fst-italic me-1">
-                                    {{ trace.description }}
-                                </span>
-                                {% for tag in trace.tags %}
-                                <a class="hashtag"
-                                    href="/user/{{ profile.display_name }}/traces/tag/{{ tag }}">#{{ tag }}</a>
-                                {% endfor %}
-                            </p>
-                            <div class="trace-stats">
-                                {% if trace.visibility == 'identifiable' %}
-                                <span class="stat-visibility text-bg-green">
-                                    <i class="bi bi-eye"></i>{{ t('traces.trace.identifiable') | capitalize }}
-                                </span>
-                                {% elif trace.visibility == 'public' %}
-                                <span class="stat-visibility text-bg-green">
-                                    <i class="bi bi-eye"></i>{{ t('traces.trace.public') | capitalize }}
-                                </span>
-                                {% elif trace.visibility == 'trackable' %}
-                                <span class="stat-visibility text-bg-danger">
-                                    <i class="bi bi-eye-slash"></i>{{ t('traces.trace.trackable') | capitalize }}
-                                </span>
-                                {% elif trace.visibility == 'private' %}
-                                <span class="stat-visibility text-bg-danger">
-                                    <i class="bi bi-eye-slash"></i>{{ t('traces.trace.private') | capitalize }}
-                                </span>
-                                {% endif %}
-                                <span class="stat-points text-bg-secondary">
-                                    <i class="bi bi-geo-alt"></i> {{ nt('traces.trace.count_points', trace.size) }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+    <ul
+      class="content-list content-list-sm traces-list social-list-sm list-unstyled"
+      data-lines="{{ traces_lines | safe }}"
+    >
+      {% for trace in traces %}
+        <li class="row g-2">
+          <a
+            class="col-auto"
+            href="/trace/{{ trace.id }}"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="92"
+              height="92"
+              viewBox="-1 -1 92 92"
+            ></svg>
+          </a>
+          <div class="col">
+            <div class="social-entry clickable h-100">
+              <p class="header text-muted d-flex justify-content-between">
+                <span>
+                  {{ t('action.uploaded') | title }}
+                  <time
+                    datetime="{{ trace.created_at.isoformat() }}"
+                    data-style="long"
+                  ></time>
+                </span>
+                <a
+                  class="stretched-link"
+                  href="/trace/{{ trace.id }}"
+                  >{{ trace.id }}</a
+                >
+              </p>
+              <div class="body">
+                <p class="mb-0">
+                  <span class="fst-italic me-1"> {{ trace.description }} </span>
+                  {% for tag in trace.tags %}
+                    <a
+                      class="hashtag"
+                      href="/user/{{ profile.display_name }}/traces/tag/{{ tag }}"
+                      >#{{ tag }}</a
+                    >
+                  {% endfor %}
+                </p>
+                <div class="trace-stats">
+                  {% if trace.visibility == 'identifiable' %}
+                    <span class="stat-visibility text-bg-green">
+                      <i class="bi bi-eye"></i
+                      >{{ t('traces.trace.identifiable') | capitalize }}
+                    </span>
+                  {% elif trace.visibility == 'public' %}
+                    <span class="stat-visibility text-bg-green">
+                      <i class="bi bi-eye"></i
+                      >{{ t('traces.trace.public') | capitalize }}
+                    </span>
+                  {% elif trace.visibility == 'trackable' %}
+                    <span class="stat-visibility text-bg-danger">
+                      <i class="bi bi-eye-slash"></i
+                      >{{ t('traces.trace.trackable') | capitalize }}
+                    </span>
+                  {% elif trace.visibility == 'private' %}
+                    <span class="stat-visibility text-bg-danger">
+                      <i class="bi bi-eye-slash"></i
+                      >{{ t('traces.trace.private') | capitalize }}
+                    </span>
+                  {% endif %}
+                  <span class="stat-points text-bg-secondary">
+                    <i class="bi bi-geo-alt"></i>
+                    {{ nt('traces.trace.count_points', trace.size) }}
+                  </span>
                 </div>
-            </li>
-            {% endfor %}
-            {% if traces_count > USER_RECENT_ACTIVITY_ENTRIES %}
-            <li class="view-more">
-                <a class="btn btn-sm btn-soft" href="/user/{{ profile.display_name }}/traces">
-                    {{ t('action.view_more') }}
-                </a>
-            </li>
-            {% elif traces_count == 0 %}
-            <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
-            {% endif %}
-        </ul>
-    </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+      {% if traces_count > USER_RECENT_ACTIVITY_ENTRIES %}
+        <li class="view-more">
+          <a
+            class="btn btn-sm btn-soft"
+            href="/user/{{ profile.display_name }}/traces"
+          >
+            {{ t('action.view_more') }}
+          </a>
+        </li>
+      {% elif traces_count == 0 %}
+        <li class="no-activity">{{ t('user.no_activity_yet') }}</li>
+      {% endif %}
+    </ul>
+  </div>
 </div>

@@ -1,57 +1,76 @@
 {% extends '_base' %}
 {% block title_prefix %}
-{{ t('diary_entries.index.user_title', user=profile.display_name) }} | {{ diary.title | truncate(80) }} |
+  {{ t('diary_entries.index.user_title', user=profile.display_name) }}
+  | {{ diary.title | truncate(80) }} |
 {% endblock %}
 {% block body_class %}diary-details-body{% endblock %}
 {% block body %}
-
-<div class="content-header pb-0">
+  <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="row mb-3">
-            <div class="col-auto">
-                <a href="/user/{{ profile.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
-                </a>
-            </div>
-            <div class="col">
-                <h2>{{ diary.title }}</h2>
-                <p class="small mb-0">
-                    {% set link_user -%}
-                    <a href="/user/{{ diary.user.display_name }}" rel="author">{{ diary.user.display_name }}</a>
-                    {%- endset %}
-                    {% set created -%}
-                    <time datetime="{{ diary.created_at.isoformat() }}" data-date="long" data-time="short"></time>
-                    {%- endset %}
-                    {% set language_link -%}
-                    <a href="/diary/{{ diary.language }}">{{ LOCALES_NAMES_MAP[diary.language].display_name }}</a>
-                    {%- endset %}
-                    {{ t('diary_entries.diary_entry.posted_by_html',
-                        link_user=link_user,
-                        created=created,
-                        language_link=language_link
-                    ) | safe }}
-                </p>
-                {% if diary.updated_at > diary.created_at %}
-                <p class="small text-muted fst-italic mt-2 mb-0">
-                    {% set updated -%}
-                    <time datetime="{{ diary.updated_at.isoformat() }}" data-date="long" data-time="short"></time>
-                    {%- endset %}
-                    {{ t('diary_entries.diary_entry.updated_at_html', updated=updated) | safe }}
-                </p>
-                {% endif %}
-            </div>
+      <div class="row mb-3">
+        <div class="col-auto">
+          <a href="/user/{{ profile.display_name }}">
+            <img
+              class="avatar"
+              src="{{ user_avatar_url(profile) }}"
+              alt="{{ t('alt.profile_picture') }}"
+            />
+          </a>
         </div>
+        <div class="col">
+          <h2>{{ diary.title }}</h2>
+          <p class="small mb-0">
+            {% set link_user -%}
+              <a
+                href="/user/{{ diary.user.display_name }}"
+                rel="author"
+                >{{ diary.user.display_name }}</a
+              >
+            {%- endset %}
+            {% set created -%}
+              <time
+                datetime="{{ diary.created_at.isoformat() }}"
+                data-date="long"
+                data-time="short"
+              ></time>
+            {%- endset %}
+            {% set language_link -%}
+              <a href="/diary/{{ diary.language }}"
+                >{{ LOCALES_NAMES_MAP[diary.language].display_name }}</a
+              >
+            {%- endset %}
+            {{
+              t('diary_entries.diary_entry.posted_by_html',
+                  link_user=link_user,
+                  created=created,
+                  language_link=language_link
+              ) | safe
+            }}
+          </p>
+          {% if diary.updated_at > diary.created_at %}
+            <p class="small text-muted fst-italic mt-2 mb-0">
+              {% set updated -%}
+                <time
+                  datetime="{{ diary.updated_at.isoformat() }}"
+                  data-date="long"
+                  data-time="short"
+                ></time>
+              {%- endset %}
+              {{ t('diary_entries.diary_entry.updated_at_html', updated=updated) | safe }}
+            </p>
+          {% endif %}
+        </div>
+      </div>
 
-        {% include 'diary/_nav' %}
+      {% include 'diary/_nav' %}
     </div>
-</div>
-<div class="content-body">
+  </div>
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="diary-list mb-4">
-            {% set entry_mode = 'details' %}
-            {% include 'diary/_entry' %}
-        </div>
+      <div class="diary-list mb-4">
+        {% set entry_mode = 'details' %}
+        {% include 'diary/_entry' %}
+      </div>
     </div>
-</div>
-
+  </div>
 {% endblock %}

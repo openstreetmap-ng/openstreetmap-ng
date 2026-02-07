@@ -1,44 +1,64 @@
 {% extends 'settings/_base' %}
-{% block title_prefix %}{{ t('settings.connected_accounts') }} | {% endblock %}
+{% block title_prefix %}{{ t('settings.connected_accounts') }} |{% endblock %}
 {% block body_class %}settings-connections-body{% endblock %}
 {% block settings_active_href %}/settings/connections{% endblock %}
 {% block settings_title %}{{ t('settings.connected_accounts') }}{% endblock %}
 {% block settings_body %}
-
-<h3>{{ t('settings.connections.external_services') }}</h3>
-<p>{{ t('settings.connections.description') }}</p>
-<div class="table-responsive">
+  <h3>{{ t('settings.connections.external_services') }}</h3>
+  <p>{{ t('settings.connections.description') }}</p>
+  <div class="table-responsive">
     <table class="table align-middle">
-        <tbody>
-            {% for service in CONFIGURED_AUTH_PROVIDERS %}
-            <tr>
-                <td class="d-flex align-items-center">
-                    {% set auth_provider_icon_name = service %}
-                    {% include 'settings/_auth-provider-icon' %}
-                    <div>
-                        <h6 class="mb-0">{{ t('service.' ~ service ~ '.title') }}</h6>
-                        <p class="form-text mb-0">{{ t('service.' ~ service ~ '.description') }}</p>
-                    </div>
-                </td>
-                <td>
-                    {% if service in provider_id_set %}
-                    <form class="d-flex justify-content-end align-items-center" method="POST"
-                        action="/api/web/settings/connections/{{ service }}/disconnect">
-                        <i class="bi bi-link-45deg me-2" title="{{ t('state.connected') }}"></i>
-                        <button type="submit" class="btn btn-soft">{{ t('action.disconnect') }}</button>
-                    </form>
-                    {% else %}
-                    <form class="d-flex justify-content-end align-items-center" method="POST"
-                        action="/oauth2/{{ service }}/authorize">
-                        <button type="submit" class="btn btn-soft" name="action"
-                            value="settings">{{ t('action.connect') }}</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
+      <tbody>
+        {% for service in CONFIGURED_AUTH_PROVIDERS %}
+          <tr>
+            <td class="d-flex align-items-center">
+              {% set auth_provider_icon_name = service %}
+              {% include 'settings/_auth-provider-icon' %}
+              <div>
+                <h6 class="mb-0">{{ t('service.' ~ service ~ '.title') }}</h6>
+                <p class="form-text mb-0">
+                  {{ t('service.' ~ service ~ '.description') }}
+                </p>
+              </div>
+            </td>
+            <td>
+              {% if service in provider_id_set %}
+                <form
+                  class="d-flex justify-content-end align-items-center"
+                  method="POST"
+                  action="/api/web/settings/connections/{{ service }}/disconnect"
+                >
+                  <i
+                    class="bi bi-link-45deg me-2"
+                    title="{{ t('state.connected') }}"
+                  ></i>
+                  <button
+                    type="submit"
+                    class="btn btn-soft"
+                  >
+                    {{ t('action.disconnect') }}
+                  </button>
+                </form>
+              {% else %}
+                <form
+                  class="d-flex justify-content-end align-items-center"
+                  method="POST"
+                  action="/oauth2/{{ service }}/authorize"
+                >
+                  <button
+                    type="submit"
+                    class="btn btn-soft"
+                    name="action"
+                    value="settings"
+                  >
+                    {{ t('action.connect') }}
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
-</div>
-
+  </div>
 {% endblock %}

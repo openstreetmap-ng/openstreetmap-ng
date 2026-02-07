@@ -1,65 +1,81 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ t('follows.following') if active_tab == 'following' else t('follows.followers') }} |
+{% block title_prefix %}
+  {{ t('follows.following') if active_tab == 'following' else t('follows.followers') }}
+  |
 {% endblock %}
 {% block body_class %}follows-body{% endblock %}
 {% block body %}
-
-<div class="content-header pb-0">
+  <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <h1>{{ t('follows.title') }}</h1>
-        <p>{{ t('follows.description') }}</p>
+      <h1>{{ t('follows.title') }}</h1>
+      <p>{{ t('follows.description') }}</p>
 
-        <nav>
-            <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
-                <li class="nav-item">
-                    <a href="/follows/following" {% if active_tab == 'following' %} class="nav-link active"
-                        aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('follows.following') -}}
-                        <span class="badge text-bg-secondary ms-2">{{ following_count }}</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/follows/followers" {% if active_tab == 'followers' %} class="nav-link active"
-                        aria-current="page" {% else %} class="nav-link" {% endif %}>
-                        {{ t('follows.followers') -}}
-                        <span class="badge text-bg-secondary ms-2">{{ followers_count }}</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+      <nav>
+        <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
+          <li class="nav-item">
+            <a
+              href="/follows/following"
+              {% if active_tab == 'following' %}
+                class="nav-link active" aria-current="page"
+              {% else %}
+                class="nav-link"
+              {% endif %}
+            >
+              {{ t('follows.following') -}}
+              <span class="badge text-bg-secondary ms-2">{{ following_count }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              href="/follows/followers"
+              {% if active_tab == 'followers' %}
+                class="nav-link active" aria-current="page"
+              {% else %}
+                class="nav-link"
+              {% endif %}
+            >
+              {{ t('follows.followers') -}}
+              <span class="badge text-bg-secondary ms-2">{{ followers_count }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
-</div>
+  </div>
 
-<div class="content-body">
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        {% if active_tab == 'following' %}
+      {% if active_tab == 'following' %}
         <div class="follows-pagination">
-            <nav aria-label="{{ t('pagination.page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
-            </nav>
-            <ul class="list-unstyled mb-2"></ul>
-            <nav aria-label="{{ t('pagination.page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2" data-action="/api/web/follows/following"
-                    data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}">
-                </ul>
-            </nav>
+          <nav aria-label="{{ t('pagination.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
+          </nav>
+          <ul class="list-unstyled mb-2"></ul>
+          <nav aria-label="{{ t('pagination.page_navigation') }}">
+            <ul
+              class="pagination pagination-sm justify-content-end mb-2"
+              data-action="/api/web/follows/following"
+              data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}"
+            ></ul>
+          </nav>
         </div>
-        {% endif %}
+      {% endif %}
 
-        {% if active_tab == 'followers' %}
+      {% if active_tab == 'followers' %}
         <div class="follows-pagination">
-            <nav aria-label="{{ t('pagination.page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
-            </nav>
-            <ul class="list-unstyled mb-2"></ul>
-            <nav aria-label="{{ t('pagination.page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2" data-action="/api/web/follows/followers"
-                    data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}">
-                </ul>
-            </nav>
+          <nav aria-label="{{ t('pagination.page_navigation') }}">
+            <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
+          </nav>
+          <ul class="list-unstyled mb-2"></ul>
+          <nav aria-label="{{ t('pagination.page_navigation') }}">
+            <ul
+              class="pagination pagination-sm justify-content-end mb-2"
+              data-action="/api/web/follows/followers"
+              data-page-size="{{ FOLLOWS_LIST_PAGE_SIZE }}"
+            ></ul>
+          </nav>
         </div>
-        {% endif %}
+      {% endif %}
     </div>
-</div>
-
+  </div>
 {% endblock %}

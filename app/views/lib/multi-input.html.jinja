@@ -1,6 +1,15 @@
-<div class="multi-input-container" data-name="{{ multi_input_name }}" data-id="multi-input-{{ multi_input_name }}"
-    data-placeholder="{{ multi_input_placeholder | default('') }}" data-value="{{ multi_input_value | default('') }}"
-    {% if multi_input_required %} data-required="true" {% endif %} {% if multi_input_max_length %}
-    data-max-item-length="{{ multi_input_max_length }}" {% endif %} {% if multi_input_max_items %}
-    data-max-items="{{ multi_input_max_items[0] }}" data-max-items-error="{{ multi_input_max_items[1] }}" {% endif %}>
-</div>
+<div
+  class="multi-input-container"
+  data-name="{{ multi_input_name }}"
+  data-id="multi-input-{{ multi_input_name }}"
+  data-placeholder="{{ multi_input_placeholder | default('') }}"
+  data-value="{{ multi_input_value | default('') }}"
+  {% if multi_input_required %}data-required="true"{% endif %}
+  {% if multi_input_max_length %}
+    data-max-item-length="{{ multi_input_max_length }}"
+  {% endif %}
+  {% if multi_input_max_items %}
+    data-max-items="{{ multi_input_max_items[0] }}"
+    data-max-items-error="{{ multi_input_max_items[1] }}"
+  {% endif %}
+></div>

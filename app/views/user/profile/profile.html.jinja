@@ -1,242 +1,345 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ profile.display_name }} | {% endblock %}
+{% block title_prefix %}{{ profile.display_name }} |{% endblock %}
 {% block body_class %}user-profile-body{% endblock %}
 {% block body %}
+  <div class="content-header px-0">
+    <form
+      class="background-form"
+      method="POST"
+      action="/api/web/settings/background"
+      enctype="multipart/form-data"
+    >
+      <input
+        class="visually-hidden"
+        type="file"
+        name="background_file"
+        accept="image/*"
+      />
+      <img
+        class="background"
+        {% if background_url %}src="{{ background_url }}"{% endif %}
+        alt="{{ t('alt.background_image') }}"
+      />
 
-<div class="content-header px-0">
-    <form class="background-form" method="POST" action="/api/web/settings/background" enctype="multipart/form-data">
-        <input class="visually-hidden" type="file" name="background_file" accept="image/*">
-        <img class="background" {% if background_url %} src="{{ background_url }}" {% endif %}
-            alt="{{ t('alt.background_image') }}">
-
-        {% if is_self %}
+      {% if is_self %}
         <div class="dropdown">
-            <button class="btn btn-sm btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                <i class="bi bi-image text-muted me-1-5"></i>
-                {{- t('user.edit_background') }}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <h6 class="dropdown-header">
-                        {{ t('alt.background_image') }}
-                    </h6>
-                </li>
-                <li>
-                    <button class="dropdown-item upload-btn" type="button">
-                        {{ t('action.upload_image') }}...
-                    </button>
-                </li>
-                <li>
-                    <button class="dropdown-item remove-btn" type="button">
-                        {{ t('action.remove_image') }}
-                    </button>
-                </li>
-            </ul>
+          <button
+            class="btn btn-sm btn-soft dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-image text-muted me-1-5"></i>
+            {{- t('user.edit_background') }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <h6 class="dropdown-header">{{ t('alt.background_image') }}</h6>
+            </li>
+            <li>
+              <button
+                class="dropdown-item upload-btn"
+                type="button"
+              >
+                {{ t('action.upload_image') }}...
+              </button>
+            </li>
+            <li>
+              <button
+                class="dropdown-item remove-btn"
+                type="button"
+              >
+                {{ t('action.remove_image') }}
+              </button>
+            </li>
+          </ul>
         </div>
-        {% endif %}
+      {% endif %}
     </form>
 
     <div class="header-footer">
-        <div class="container">
-            <div class="d-flex offset-xxl-1">
-                <form class="avatar-form" method="POST" action="/api/web/settings/avatar" enctype="multipart/form-data">
-                    <input type="hidden" name="avatar_type" autocomplete="off" required>
-                    <input class="visually-hidden" type="file" name="avatar_file" accept="image/*">
-                    <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
+      <div class="container">
+        <div class="d-flex offset-xxl-1">
+          <form
+            class="avatar-form"
+            method="POST"
+            action="/api/web/settings/avatar"
+            enctype="multipart/form-data"
+          >
+            <input
+              type="hidden"
+              name="avatar_type"
+              autocomplete="off"
+              required
+            />
+            <input
+              class="visually-hidden"
+              type="file"
+              name="avatar_file"
+              accept="image/*"
+            />
+            <img
+              class="avatar"
+              src="{{ user_avatar_url(profile) }}"
+              alt="{{ t('alt.profile_picture') }}"
+            />
 
-                    {% if is_self %}
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-soft dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle text-muted me-1-5"></i>
-                            {{- t('layouts.edit') }}
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <h6 class="dropdown-header">
-                                    {{ t('alt.profile_picture') }}
-                                </h6>
-                            </li>
-                            <li>
-                                <button class="dropdown-item upload-btn" type="button">
-                                    {{ t('action.upload_image') }}...
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item gravatar-btn" type="button">
-                                    {{ t('profiles.edit.gravatar.gravatar') }}
-                                </button>
-                            </li>
-                            <li>
-                                <button class="dropdown-item remove-btn" type="button">
-                                    {{ t('action.remove_image') }}
-                                </button>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="https://wiki.openstreetmap.org/wiki/Gravatar"
-                                    target="_blank">
-                                    {{ t('profiles.edit.gravatar.what_is_gravatar') }}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    {% endif %}
-                </form>
-
-                <div class="info">
-                    <div class="row g-2 g-md-3 h1">
-                        <h1 class="col-auto d-flex align-items-center mb-0">
-                            {{ profile.display_name }}
-                            {% if user_is_admin(profile) %}
-                            <i class="role bi bi-star-fill text-danger ms-2" data-bs-toggle="tooltip"
-                                data-bs-title="{{ t('users.show.role.administrator') }}"></i>
-                            {% elif user_is_moderator(profile) %}
-                            <i class="role bi bi-star-fill text-blue ms-2" data-bs-toggle="tooltip"
-                                data-bs-title="{{ t('users.show.role.moderator') }}"></i>
-                            {% endif %}
-                        </h1>
-                        {% if is_new_user %}
-                        <div class="col-auto d-flex align-items-center">
-                            <span class="badge rounded-pill text-bg-green" data-bs-toggle="tooltip"
-                                data-bs-title="{{ t('user.i_am_new_here') }}">
-                                {{- t('user.new') -}}
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <p class="mapper-since mb-2">
-                        {{ t('users.show.mapper since') | title }}
-                        <time datetime="{{ profile.created_at.date().isoformat() }}" data-date="long"></time>
-                    </p>
-                    <div class="user-actions mb-2">
-                        {% if user is not none and not is_self %}
-                        <address>
-                            <a href="/message/new?to_id={{ profile.id }}" class="btn btn-sm btn-soft">
-                                <i class="bi bi-envelope-plus me-2"></i>
-                                {{- t('action.send_a_message') }}
-                            </a>
-                        </address>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="content-body">
-    <div class="container">
-        <div class="row g-4 g-xl-5">
-            <div class="col-lg-7">
-                {% if user_profile.description or user_profile.socials or is_self %}
-                <h3 class="ms-1 {% if user_profile.socials %}mb-2{% else %}mb-3{% endif %} d-flex align-items-center">
-                    {{ t('user.about_me') }}
-                    {% if is_self %}
-                    <button class="btn btn-sm btn-soft ms-3" data-bs-toggle="modal"
-                        data-bs-target="#profileSocialsModal">
-                        <i class="bi bi-pencil-square me-1-5"></i>
-                        {{- t('user.edit_socials') }}
+            {% if is_self %}
+              <div class="dropdown">
+                <button
+                  class="btn btn-sm btn-soft dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="bi bi-person-circle text-muted me-1-5"></i>
+                  {{- t('layouts.edit') }}
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <h6 class="dropdown-header">{{ t('alt.profile_picture') }}</h6>
+                  </li>
+                  <li>
+                    <button
+                      class="dropdown-item upload-btn"
+                      type="button"
+                    >
+                      {{ t('action.upload_image') }}...
                     </button>
-                    <button class="btn btn-sm btn-soft ms-2" data-bs-toggle="modal"
-                        data-bs-target="#profileDescriptionModal">
-                        <i class="bi bi-pencil-square me-1-5"></i>
-                        {{- t('user.edit_description') }}
+                  </li>
+                  <li>
+                    <button
+                      class="dropdown-item gravatar-btn"
+                      type="button"
+                    >
+                      {{ t('profiles.edit.gravatar.gravatar') }}
                     </button>
-                    {% endif %}
-                </h3>
-                {% if user_profile.socials %}
-                <div
-                    class="ms-1 {% if user_profile.description or is_self %}mb-3{% else %}mb-4{% endif %} d-flex flex-wrap gap-2">
-                    {% for social in user_profile.socials %}
-                    {% set _config = SOCIALS_CONFIG[social.service] %}
-                    {% set _service_title = t('service.' + social.service.replace('-', '_') + '.title') %}
-                    {% if _config.template is defined and not _config.template %}
-                    <span class="btn btn-sm btn-soft d-flex align-items-center" title="{{ _service_title }}">
-                        <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
-                        {{- social.value -}}
-                    </span>
-                    {% else %}
-                    {% set _url = _config.template.format(social.value) if _config.template else social.value %}
-                    <a href="{{ _url }}" target="_blank" rel="noopener nofollow" title="{{ _service_title }}"
-                        class="btn btn-sm btn-soft d-flex align-items-center">
-                        <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
-                        {{- social.value -}}
+                  </li>
+                  <li>
+                    <button
+                      class="dropdown-item remove-btn"
+                      type="button"
+                    >
+                      {{ t('action.remove_image') }}
+                    </button>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider" />
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="https://wiki.openstreetmap.org/wiki/Gravatar"
+                      target="_blank"
+                    >
+                      {{ t('profiles.edit.gravatar.what_is_gravatar') }}
                     </a>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-                {% if user_profile.description %}
-                <div class="mb-4 ms-1 rich-text">{{ user_profile.description_rich | safe }}</div>
-                {% elif is_self %}
-                <div class="mb-4 ms-1 form-text">{{ t('user.you_have_not_provided_a_description') }}</div>
-                {% endif %}
-                {% endif %}
+                  </li>
+                </ul>
+              </div>
+            {% endif %}
+          </form>
 
-                <h3 class="ms-1 mb-3">{{ t('user.contributions' ) }}</h3>
-                <div class="row row-cols-sm-2 g-3">
-                    <div>{% include 'user/profile/_edits' %}</div>
-                    <div>{% include 'user/profile/_notes' %}</div>
-                    <div>{% include 'user/profile/_traces' %}</div>
-                    <div>{% include 'user/profile/_diary' %}</div>
+          <div class="info">
+            <div class="row g-2 g-md-3 h1">
+              <h1 class="col-auto d-flex align-items-center mb-0">
+                {{ profile.display_name }}
+                {% if user_is_admin(profile) %}
+                  <i
+                    class="role bi bi-star-fill text-danger ms-2"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="{{ t('users.show.role.administrator') }}"
+                  ></i>
+                {% elif user_is_moderator(profile) %}
+                  <i
+                    class="role bi bi-star-fill text-blue ms-2"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="{{ t('users.show.role.moderator') }}"
+                  ></i>
+                {% endif %}
+              </h1>
+              {% if is_new_user %}
+                <div class="col-auto d-flex align-items-center">
+                  <span
+                    class="badge rounded-pill text-bg-green"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="{{ t('user.i_am_new_here') }}"
+                  >
+                    {{- t('user.new') -}}
+                  </span>
                 </div>
+              {% endif %}
             </div>
-            <div class="col-lg-5">
-                {% include 'user/profile/_activity' %}
-                <hr>
-                {% include 'user/profile/_groups' %}
-
-                {% if user is not none and not is_self %}
-                <form class="follow-form" method="POST"
-                    action="/api/web/follows/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}">
-                    <button type="submit" class="btn btn-soft w-100 mt-4">
-                        {% if is_following %}
-                        {{ t('action.unfollow_user') -}}
-                        <i class="bi bi-bookmark-dash ms-1-5"></i>
-                        {% elif is_followed_by %}
-                        {{ t('follows.follow_back') -}}
-                        <i class="bi bi-bookmark-plus ms-1-5"></i>
-                        {% else %}
-                        {{ t('action.follow_user') -}}
-                        <i class="bi bi-bookmark-plus ms-1-5"></i>
-                        {% endif %}
-                    </button>
-                </form>
-                <p class="form-text mx-1 mb-4">
-                    {{ t('follows.description') }}
-                </p>
-
-                <div class="text-end">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-report-type="user"
-                            data-report-type-id="{{ profile.id }}"
-                            data-report-action="user_profile">{{ t('report.report_object', object=t('activerecord.models.user')) }}</button>
-                        <button type="button"
-                            class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
-                            data-bs-toggle="dropdown" aria-expanded="false"
-                            aria-label="{{ t('action.show_more') }}"></button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button class="dropdown-item">
-                                    TODO:
-                                    {{ t('action.block_user') }}
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                {% endif %}
+            <p class="mapper-since mb-2">
+              {{ t('users.show.mapper since') | title }}
+              <time
+                datetime="{{ profile.created_at.date().isoformat() }}"
+                data-date="long"
+              ></time>
+            </p>
+            <div class="user-actions mb-2">
+              {% if user is not none and not is_self %}
+                <address>
+                  <a
+                    href="/message/new?to_id={{ profile.id }}"
+                    class="btn btn-sm btn-soft"
+                  >
+                    <i class="bi bi-envelope-plus me-2"></i>
+                    {{- t('action.send_a_message') }}
+                  </a>
+                </address>
+              {% endif %}
             </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
+  <div class="content-body">
+    <div class="container">
+      <div class="row g-4 g-xl-5">
+        <div class="col-lg-7">
+          {% if user_profile.description or user_profile.socials or is_self %}
+            <h3
+              class="ms-1 {% if user_profile.socials %}mb-2{% else %}mb-3{% endif %} d-flex align-items-center"
+            >
+              {{ t('user.about_me') }}
+              {% if is_self %}
+                <button
+                  class="btn btn-sm btn-soft ms-3"
+                  data-bs-toggle="modal"
+                  data-bs-target="#profileSocialsModal"
+                >
+                  <i class="bi bi-pencil-square me-1-5"></i>
+                  {{- t('user.edit_socials') }}
+                </button>
+                <button
+                  class="btn btn-sm btn-soft ms-2"
+                  data-bs-toggle="modal"
+                  data-bs-target="#profileDescriptionModal"
+                >
+                  <i class="bi bi-pencil-square me-1-5"></i>
+                  {{- t('user.edit_description') }}
+                </button>
+              {% endif %}
+            </h3>
+            {% if user_profile.socials %}
+              <div
+                class="ms-1 {% if user_profile.description or is_self %}mb-3{% else %}mb-4{% endif %} d-flex flex-wrap gap-2"
+              >
+                {% for social in user_profile.socials %}
+                  {% set _config = SOCIALS_CONFIG[social.service] %}
+                  {% set _service_title = t('service.' + social.service.replace('-', '_') + '.title') %}
+                  {% if _config.template is defined and not _config.template %}
+                    <span
+                      class="btn btn-sm btn-soft d-flex align-items-center"
+                      title="{{ _service_title }}"
+                    >
+                      <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
+                      {{- social.value -}}
+                    </span>
+                  {% else %}
+                    {% set _url = _config.template.format(social.value) if _config.template else social.value %}
+                    <a
+                      href="{{ _url }}"
+                      target="_blank"
+                      rel="noopener nofollow"
+                      title="{{ _service_title }}"
+                      class="btn btn-sm btn-soft d-flex align-items-center"
+                    >
+                      <i class="bi bi-{{ _config.icon or social.service }} me-1-5"></i>
+                      {{- social.value -}}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if user_profile.description %}
+              <div class="mb-4 ms-1 rich-text">
+                {{ user_profile.description_rich | safe }}
+              </div>
+            {% elif is_self %}
+              <div class="mb-4 ms-1 form-text">
+                {{ t('user.you_have_not_provided_a_description') }}
+              </div>
+            {% endif %}
+          {% endif %}
 
-{% if is_self %}
-{% include 'user/profile/_description-modal' %}
-{% include 'user/profile/_socials-modal' %}
-{% endif %}
+          <h3 class="ms-1 mb-3">{{ t('user.contributions' ) }}</h3>
+          <div class="row row-cols-sm-2 g-3">
+            <div>{% include 'user/profile/_edits' %}</div>
+            <div>{% include 'user/profile/_notes' %}</div>
+            <div>{% include 'user/profile/_traces' %}</div>
+            <div>{% include 'user/profile/_diary' %}</div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          {% include 'user/profile/_activity' %}
+          <hr />
+          {% include 'user/profile/_groups' %}
 
+          {% if user is not none and not is_self %}
+            <form
+              class="follow-form"
+              method="POST"
+              action="/api/web/follows/{{ profile.id }}/{% if is_following %}unfollow{% else %}follow{% endif %}"
+            >
+              <button
+                type="submit"
+                class="btn btn-soft w-100 mt-4"
+              >
+                {% if is_following %}
+                  {{ t('action.unfollow_user') -}}
+                  <i class="bi bi-bookmark-dash ms-1-5"></i>
+                {% elif is_followed_by %}
+                  {{ t('follows.follow_back') -}}
+                  <i class="bi bi-bookmark-plus ms-1-5"></i>
+                {% else %}
+                  {{ t('action.follow_user') -}}
+                  <i class="bi bi-bookmark-plus ms-1-5"></i>
+                {% endif %}
+              </button>
+            </form>
+            <p class="form-text mx-1 mb-4">{{ t('follows.description') }}</p>
+
+            <div class="text-end">
+              <div
+                class="btn-group"
+                role="group"
+              >
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary"
+                  data-report-type="user"
+                  data-report-type-id="{{ profile.id }}"
+                  data-report-action="user_profile"
+                >
+                  {{ t('report.report_object', object=t('activerecord.models.user')) }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  aria-label="{{ t('action.show_more') }}"
+                ></button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <button class="dropdown-item">
+                      TODO: {{ t('action.block_user') }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if is_self %}
+    {% include 'user/profile/_description-modal' %}
+    {% include 'user/profile/_socials-modal' %}
+  {% endif %}
 {% endblock %}

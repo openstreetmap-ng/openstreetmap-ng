@@ -1,57 +1,74 @@
 {% set show_user = True %}
 {% if reports %}
-{% for report in reports %}
-<li class="social-entry clickable">
-    <p class="header text-muted d-flex justify-content-between">
+  {% for report in reports %}
+    <li class="social-entry clickable">
+      <p class="header text-muted d-flex justify-content-between">
         <span>
-            {% if report.reported_user %}
+          {% if report.reported_user %}
             <a href="/user/{{ report.reported_user.display_name }}">
-                <img class="avatar" src="{{ user_avatar_url(report.reported_user) }}"
-                    alt="{{ t('alt.profile_picture') }}" loading="lazy">
+              <img
+                class="avatar"
+                src="{{ user_avatar_url(report.reported_user) }}"
+                alt="{{ t('alt.profile_picture') }}"
+                loading="lazy"
+              />
             </a>
             <strong>Reported</strong>
-            <a class="ms-1" href="/user/{{ report.reported_user.display_name }}">
-                {{- report.reported_user.display_name -}}
+            <a
+              class="ms-1"
+              href="/user/{{ report.reported_user.display_name }}"
+            >
+              {{- report.reported_user.display_name -}}
             </a>
-            {% elif report.type == 'anonymous_note' %}
+          {% elif report.type == 'anonymous_note' %}
             <strong>Reported anonymous</strong>
-            <a class="ms-1" href="/note/{{ report.type_id }}">note {{ report.type_id }}</a>
-            {% else %}
+            <a
+              class="ms-1"
+              href="/note/{{ report.type_id }}"
+              >note {{ report.type_id }}</a
+            >
+          {% else %}
             <strong>Reported {{ report.type | replace('_', ' ') }}</strong>
-            {% endif %}
-            • updated
-            <time datetime="{{ report.updated_at.isoformat() }}" data-style="long"></time>
-            <a class="stretched-link" href="/reports/{{ report.id }}"></a>
+          {% endif %}
+          • updated
+          <time
+            datetime="{{ report.updated_at.isoformat() }}"
+            data-style="long"
+          ></time>
+          <a
+            class="stretched-link"
+            href="/reports/{{ report.id }}"
+          ></a>
         </span>
         {% if not report.closed_at %}
-        <span class="badge bg-primary">Open</span>
+          <span class="badge bg-primary">Open</span>
         {% endif %}
-    </p>
-    {% set comment = report.comments | last %}
-    <div class="body">
+      </p>
+      {% set comment = report.comments | last %}
+      <div class="body">
         <div class="d-flex justify-content-between">
-            <div class="body-preview">
-                {% include 'reports/_comment' %}
-            </div>
-            <div class="num-comments ms-3">
-                {% set _last_comment = comment %}
-                {% set _attention =
-                    not report.closed_at
-                    and _last_comment.action not in ('comment', 'close', 'reopen', None)
-                    and _last_comment.has_access
-                %}
-                <span
-                    class="badge d-flex align-items-center {% if _attention %}text-bg-light-green{% else %}text-body{% endif %}">
-                    {{ report.num_comments -}}
-                    <i class="bi bi-chat-left-text"></i>
-                </span>
-            </div>
+          <div class="body-preview">{% include 'reports/_comment' %}</div>
+          <div class="num-comments ms-3">
+            {% set _last_comment = comment %}
+            {%
+              set _attention =
+              not report.closed_at
+              and _last_comment.action not in ('comment', 'close', 'reopen', None)
+              and _last_comment.has_access
+            %}
+            <span
+              class="badge d-flex align-items-center {% if _attention %}text-bg-light-green{% else %}text-body{% endif %}"
+            >
+              {{ report.num_comments -}}
+              <i class="bi bi-chat-left-text"></i>
+            </span>
+          </div>
         </div>
-    </div>
-</li>
-{% endfor %}
+      </div>
+    </li>
+  {% endfor %}
 {% else %}
-<li>
+  <li>
     <h3>{{ t('traces.index.empty_title') }}</h3>
-</li>
+  </li>
 {% endif %}

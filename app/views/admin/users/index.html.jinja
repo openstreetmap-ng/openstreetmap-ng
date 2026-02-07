@@ -1,134 +1,234 @@
 {% extends '_base' %}
-{% block title_prefix %}Users | {% endblock %}
+{% block title_prefix %}Users |{% endblock %}
 {% block body_class %}admin-users-body{% endblock %}
 {% block body %}
-
-<div class="content-header pb-1">
+  <div class="content-header pb-1">
     <div class="container">
-        <h1><i class="bi bi-database-gear me-3"></i>Users</h1>
-        <p>Filter and manage registered users.</p>
+      <h1><i class="bi bi-database-gear me-3"></i>Users</h1>
+      <p>Filter and manage registered users.</p>
 
-        <form class="filters-form">
-            <div class="row g-3 mb-3">
-                <div class="col-12">
-                    <label class="form-label" for="searchInput">Search</label>
-                    <input id="searchInput" type="text" class="form-control" name="search" value="{{ search }}"
-                        placeholder="Search by name, email, or IP address (e.g., @gmail.com, 192.168.1.1, 10.0.0.0/8)"
-                        autocomplete="off" spellcheck="false">
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label" for="sortSelect">Sort</label>
-                    <select id="sortSelect" class="form-select form-select-sm" name="sort">
-                        <option value="created_desc" {% if sort == 'created_desc' %}selected{% endif %}>
-                            Newest first
-                        </option>
-                        <option value="created_asc" {% if sort == 'created_asc' %}selected{% endif %}>
-                            Oldest first
-                        </option>
-                        <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>
-                            Name (A-Z)
-                        </option>
-                        <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>
-                            Name (Z-A)
-                        </option>
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label" for="applicationIdInput">Application ID</label>
-                    <input id="applicationIdInput" type="number" class="form-control form-control-sm"
-                        name="application_id" value="{{ application_id }}" min="1" step="1" placeholder="ID"
-                        autocomplete="off">
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label" for="createdAfter">
-                        Registered from <small class="text-body-secondary">(local tz)</small>
-                    </label>
-                    <input id="createdAfter" type="datetime-local" class="form-control form-control-sm"
-                        name="created_after" data-value="{{ created_after }}">
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label" for="createdBefore">
-                        Registered to <small class="text-body-secondary">(local tz)</small>
-                    </label>
-                    <input id="createdBefore" type="datetime-local" class="form-control form-control-sm"
-                        name="created_before" data-value="{{ created_before }}">
-                </div>
-                <div class="col-6 col-md-2">
-                    <label class="form-label" for="rolesSelect">Roles</label>
-                    <select id="rolesSelect" class="form-select form-select-sm" name="roles" multiple>
-                        <option value="moderator" {% if 'moderator' in roles %}selected{% endif %}>
-                            Moderator
-                        </option>
-                        <option value="administrator" {% if 'administrator' in roles %}selected{% endif %}>
-                            Administrator
-                        </option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <div class="form-check">
-                        <input id="unverifiedCheck" type="checkbox" class="form-check-input" name="unverified"
-                            value="True" {% if unverified %}checked{% endif %}>
-                        <label class="form-check-label" for="unverifiedCheck">
-                            Unverified
-                        </label>
-                    </div>
-                </div>
+      <form class="filters-form">
+        <div class="row g-3 mb-3">
+          <div class="col-12">
+            <label
+              class="form-label"
+              for="searchInput"
+              >Search</label
+            >
+            <input
+              id="searchInput"
+              type="text"
+              class="form-control"
+              name="search"
+              value="{{ search }}"
+              placeholder="Search by name, email, or IP address (e.g., @gmail.com, 192.168.1.1, 10.0.0.0/8)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+          <div class="col-6 col-md-2">
+            <label
+              class="form-label"
+              for="sortSelect"
+              >Sort</label
+            >
+            <select
+              id="sortSelect"
+              class="form-select form-select-sm"
+              name="sort"
+            >
+              <option
+                value="created_desc"
+                {% if sort == 'created_desc' %}selected{% endif %}
+              >
+                Newest first
+              </option>
+              <option
+                value="created_asc"
+                {% if sort == 'created_asc' %}selected{% endif %}
+              >
+                Oldest first
+              </option>
+              <option
+                value="name_asc"
+                {% if sort == 'name_asc' %}selected{% endif %}
+              >
+                Name (A-Z)
+              </option>
+              <option
+                value="name_desc"
+                {% if sort == 'name_desc' %}selected{% endif %}
+              >
+                Name (Z-A)
+              </option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label
+              class="form-label"
+              for="applicationIdInput"
+              >Application ID</label
+            >
+            <input
+              id="applicationIdInput"
+              type="number"
+              class="form-control form-control-sm"
+              name="application_id"
+              value="{{ application_id }}"
+              min="1"
+              step="1"
+              placeholder="ID"
+              autocomplete="off"
+            />
+          </div>
+          <div class="col-6 col-md-2">
+            <label
+              class="form-label"
+              for="createdAfter"
+            >
+              Registered from <small class="text-body-secondary">(local tz)</small>
+            </label>
+            <input
+              id="createdAfter"
+              type="datetime-local"
+              class="form-control form-control-sm"
+              name="created_after"
+              data-value="{{ created_after }}"
+            />
+          </div>
+          <div class="col-6 col-md-2">
+            <label
+              class="form-label"
+              for="createdBefore"
+            >
+              Registered to <small class="text-body-secondary">(local tz)</small>
+            </label>
+            <input
+              id="createdBefore"
+              type="datetime-local"
+              class="form-control form-control-sm"
+              name="created_before"
+              data-value="{{ created_before }}"
+            />
+          </div>
+          <div class="col-6 col-md-2">
+            <label
+              class="form-label"
+              for="rolesSelect"
+              >Roles</label
+            >
+            <select
+              id="rolesSelect"
+              class="form-select form-select-sm"
+              name="roles"
+              multiple
+            >
+              <option
+                value="moderator"
+                {% if 'moderator' in roles %}selected{% endif %}
+              >
+                Moderator
+              </option>
+              <option
+                value="administrator"
+                {% if 'administrator' in roles %}selected{% endif %}
+              >
+                Administrator
+              </option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <div class="form-check">
+              <input
+                id="unverifiedCheck"
+                type="checkbox"
+                class="form-check-input"
+                name="unverified"
+                value="True"
+                {% if unverified %}checked{% endif %}
+              />
+              <label
+                class="form-check-label"
+                for="unverifiedCheck"
+              >
+                Unverified
+              </label>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-secondary export-visible-btn">
-                        <i class="bi bi-clipboard"></i> Copy page
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary export-all-btn">
-                        <i class="bi bi-download"></i> Export all
-                    </button>
-                </div>
-                <div>
-                    <span class="text-muted me-2">
-                        <span data-sp-num-items>…</span> users
-                    </span>
-                    <div class="btn-group" role="group">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-funnel"></i> Apply
-                        </button>
-                        <a class="btn btn-outline-secondary" href="/admin/users">
-                            <i class="bi bi-arrow-counterclockwise"></i> Clear
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="content-body">
-    <div class="container">
-        <nav aria-label="{{ t('alt.page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-2">
-            </ul>
-        </nav>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle users-table">
-                <thead>
-                    <tr>
-                        <th scope="col">User</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">2FA</th>
-                        <th scope="col">Registered</th>
-                        <th scope="col">Client</th>
-                        <th scope="col">Actions</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+          </div>
         </div>
-        <nav aria-label="{{ t('alt.page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-0" data-action="{{ pagination_action }}">
-            </ul>
-        </nav>
-    </div>
-</div>
 
+        <div class="d-flex justify-content-between align-items-center">
+          <div
+            class="btn-group"
+            role="group"
+          >
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary export-visible-btn"
+            >
+              <i class="bi bi-clipboard"></i> Copy page
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary export-all-btn"
+            >
+              <i class="bi bi-download"></i> Export all
+            </button>
+          </div>
+          <div>
+            <span class="text-muted me-2">
+              <span data-sp-num-items>…</span> users
+            </span>
+            <div
+              class="btn-group"
+              role="group"
+            >
+              <button
+                type="submit"
+                class="btn btn-outline-primary"
+              >
+                <i class="bi bi-funnel"></i> Apply
+              </button>
+              <a
+                class="btn btn-outline-secondary"
+                href="/admin/users"
+              >
+                <i class="bi bi-arrow-counterclockwise"></i> Clear
+              </a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="content-body">
+    <div class="container">
+      <nav aria-label="{{ t('alt.page_navigation') }}">
+        <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
+      </nav>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle users-table">
+          <thead>
+            <tr>
+              <th scope="col">User</th>
+              <th scope="col">Email</th>
+              <th scope="col">Status</th>
+              <th scope="col">2FA</th>
+              <th scope="col">Registered</th>
+              <th scope="col">Client</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <nav aria-label="{{ t('alt.page_navigation') }}">
+        <ul
+          class="pagination pagination-sm justify-content-end mb-0"
+          data-action="{{ pagination_action }}"
+        ></ul>
+      </nav>
+    </div>
+  </div>
 {% endblock %}

@@ -1,56 +1,110 @@
 <!DOCTYPE html>
 {%- set _dir = t('html.dir') -%}
-<html lang="{{ lang }}" dir="{{ _dir }}">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html
+  lang="{{ lang }}"
+  dir="{{ _dir }}"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
 
     <title>
-        {{ t('unsupported_browser.title.short') | title }} |
-        {{ t('project_name') }}
+      {{ t('unsupported_browser.title.short') | title }} | {{ t('project_name') }}
     </title>
 
     {{ vite_render_asset('app/views/main.scss', rtl=_dir == 'rtl') | safe }}
 
-    <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
-    <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
-    <link rel="icon" sizes="256x256" type="image/webp" href="/static/img/favicon/256.webp">
-    <link rel="icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
-    <link rel="apple-touch-icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
-    <link rel="apple-touch-icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
-</head>
+    <link
+      rel="icon"
+      sizes="512x512"
+      type="image/webp"
+      href="/static/img/favicon/512.webp"
+    />
+    <link
+      rel="icon"
+      sizes="512x512"
+      type="image/png"
+      href="/static/img/favicon/512.png"
+    />
+    <link
+      rel="icon"
+      sizes="256x256"
+      type="image/webp"
+      href="/static/img/favicon/256.webp"
+    />
+    <link
+      rel="icon"
+      sizes="256x256"
+      type="image/png"
+      href="/static/img/favicon/256.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="512x512"
+      type="image/png"
+      href="/static/img/favicon/512.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="256x256"
+      type="image/png"
+      href="/static/img/favicon/256.png"
+    />
+  </head>
 
-<body class="unsupported-browser container py-4 py-md-5">
-
+  <body class="unsupported-browser container py-4 py-md-5">
     <div class="text-center mb-5">
-        <img class="logo mb-3" src="/static/img/favicon/256.png" alt="{{ t('alt.logo', name=t('project_name')) }}">
-        <h1 class="display-4">{{ t('unsupported_browser.title.long') }}</h1>
-        <p class="lead">{{ t('unsupported_browser.description') }}</p>
+      <img
+        class="logo mb-3"
+        src="/static/img/favicon/256.png"
+        alt="{{ t('alt.logo', name=t('project_name')) }}"
+      />
+      <h1 class="display-4">{{ t('unsupported_browser.title.long') }}</h1>
+      <p class="lead">{{ t('unsupported_browser.description') }}</p>
     </div>
 
     <div class="row">
-        <div class="col-xl-4 mb-3">
-            <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
-                href="https://www.mozilla.org/firefox/new/" rel="noopener">
-                <img src="/static/img/browser/_generated/firefox.webp" alt="{{ t('alt.logo', name='Firefox') }}">
-                Firefox
-            </a>
-        </div>
-        <div class="col-xl-4 mb-3">
-            <a class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
-                href="https://www.google.com/chrome/" rel="noopener">
-                <img src="/static/img/browser/_generated/chrome.webp" alt="{{ t('alt.logo', name='Google Chrome') }}">
-                Google Chrome
-            </a>
-        </div>
-        <form class="col-xl-4 mb-3" method="POST" action="/api/web/unsupported-browser/override">
-            <button class="w-100 browser-option btn btn-soft fw-semibold py-3" type="submit">
-                {{ t('unsupported_browser.proceed_anyway') }}
-            </button>
-        </form>
+      <div class="col-xl-4 mb-3">
+        <a
+          class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
+          href="https://www.mozilla.org/firefox/new/"
+          rel="noopener"
+        >
+          <img
+            src="/static/img/browser/_generated/firefox.webp"
+            alt="{{ t('alt.logo', name='Firefox') }}"
+          />
+          Firefox
+        </a>
+      </div>
+      <div class="col-xl-4 mb-3">
+        <a
+          class="d-block browser-option btn btn-outline-primary fw-semibold py-3"
+          href="https://www.google.com/chrome/"
+          rel="noopener"
+        >
+          <img
+            src="/static/img/browser/_generated/chrome.webp"
+            alt="{{ t('alt.logo', name='Google Chrome') }}"
+          />
+          Google Chrome
+        </a>
+      </div>
+      <form
+        class="col-xl-4 mb-3"
+        method="POST"
+        action="/api/web/unsupported-browser/override"
+      >
+        <button
+          class="w-100 browser-option btn btn-soft fw-semibold py-3"
+          type="submit"
+        >
+          {{ t('unsupported_browser.proceed_anyway') }}
+        </button>
+      </form>
     </div>
-
-</body>
-
+  </body>
 </html>

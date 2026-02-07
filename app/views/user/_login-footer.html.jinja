@@ -1,9 +1,13 @@
 {% if ENV != 'prod' %}
-<div class="modal-footer">
+  <div class="modal-footer">
     {% for _login in ('user1', 'user2', 'moderator', 'admin') %}
-    <button class="btn btn-sm btn-secondary" data-login="{{ _login }}" data-password="x">
+      <button
+        class="btn btn-sm btn-secondary"
+        data-login="{{ _login }}"
+        data-password="x"
+      >
         {{- _login -}}
-    </button>
+      </button>
     {% endfor %}
-</div>
+  </div>
 {% endif %}

@@ -1,115 +1,169 @@
 {% extends '_base' %}
 
+
 {% set report_title_text %}
-{%- if report.reported_user -%}
-Reported {{ report.reported_user.display_name }}
-{%- elif report.type == 'anonymous_note' -%}
-Reported anonymous note {{ report.type_id }}
-{%- else -%}
-Reported {{ report.type | replace('_', ' ') }}
-{%- endif -%}
+  {%- if report.reported_user -%}
+    Reported {{ report.reported_user.display_name }}
+  {%- elif report.type == 'anonymous_note' -%}
+    Reported anonymous note {{ report.type_id }}
+  {%- else -%}
+    Reported {{ report.type | replace('_', ' ') }}
+  {%- endif -%}
 {% endset %}
+
 
 {% set report_title_html %}
-{%- if report.reported_user -%}
-Reported <a href="/user/{{ report.reported_user.display_name }}">{{ report.reported_user.display_name }}</a>
-{%- elif report.type == 'anonymous_note' -%}
-Reported anonymous <a href="/note/{{ report.type_id }}">note {{ report.type_id }}</a>
-{%- else -%}
-{{ report_title_text }}
-{%- endif -%}
+  {%- if report.reported_user -%}
+    Reported
+    <a href="/user/{{ report.reported_user.display_name }}"
+      >{{ report.reported_user.display_name }}</a
+    >
+  {%- elif report.type == 'anonymous_note' -%}
+    Reported anonymous
+    <a href="/note/{{ report.type_id }}">note {{ report.type_id }}</a>
+  {%- else -%}
+    {{ report_title_text }}
+  {%- endif -%}
 {% endset %}
 
-{% block title_prefix %}{{ report_title_text | trim }} | {% endblock %}
+{% block title_prefix %}{{ report_title_text | trim }} |{% endblock %}
 {% block body_class %}report-show-body{% endblock %}
 {% block body %}
-
-<div class="content-header">
+  <div class="content-header">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <a href="/reports" class="btn btn-sm btn-soft mb-3">
-            <i class="bi bi-arrow-left me-1-5"></i>Back to reports
-        </a>
-        <div class="row">
-            {% if report.reported_user %}
-            <div class="col-auto">
-                <a href="/user/{{ report.reported_user.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(report.reported_user) }}"
-                        alt="{{ t('alt.profile_picture') }}">
-                </a>
-            </div>
-            {% endif %}
-            <div class="col">
-                <h1 class="d-flex align-items-center gap-3">
-                    <span>
-                        {{ report_title_html | safe }}
-                    </span>
-                    <span class="badge {% if not report.closed_at %}bg-primary{% else %}bg-secondary{% endif %}">
-                        {% if not report.closed_at %}Open{% else %}Closed{% endif %}
-                    </span>
-                </h1>
-                <p class="text-body-secondary mb-0">
-                    <i class="bi bi-clock-history me-1"></i>
-                    Last updated at
-                    <time datetime="{{ report.updated_at.isoformat() }}" data-date="short" data-time="short"></time>
-                </p>
-            </div>
+      <a
+        href="/reports"
+        class="btn btn-sm btn-soft mb-3"
+      >
+        <i class="bi bi-arrow-left me-1-5"></i>Back to reports
+      </a>
+      <div class="row">
+        {% if report.reported_user %}
+          <div class="col-auto">
+            <a href="/user/{{ report.reported_user.display_name }}">
+              <img
+                class="avatar"
+                src="{{ user_avatar_url(report.reported_user) }}"
+                alt="{{ t('alt.profile_picture') }}"
+              />
+            </a>
+          </div>
+        {% endif %}
+        <div class="col">
+          <h1 class="d-flex align-items-center gap-3">
+            <span> {{ report_title_html | safe }} </span>
+            <span
+              class="badge {% if not report.closed_at %}bg-primary{% else %}bg-secondary{% endif %}"
+            >
+              {% if not report.closed_at %}Open{% else %}Closed{% endif %}
+            </span>
+          </h1>
+          <p class="text-body-secondary mb-0">
+            <i class="bi bi-clock-history me-1"></i>
+            Last updated at
+            <time
+              datetime="{{ report.updated_at.isoformat() }}"
+              data-date="short"
+              data-time="short"
+            ></time>
+          </p>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="content-body">
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        <div class="report-comments-pagination mb-4">
-            <nav aria-label="{{ t('alt.comments_page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2">
-                </ul>
-            </nav>
-            <ul class="social-list list-unstyled mb-2"></ul>
-            <nav aria-label="{{ t('alt.comments_page_navigation') }}">
-                <ul class="pagination pagination-sm justify-content-end mb-2"
-                    data-action="/api/web/reports/{{ report.id }}/comments">
-                </ul>
-            </nav>
+      <div class="report-comments-pagination mb-4">
+        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+          <ul class="pagination pagination-sm justify-content-end mb-2"></ul>
+        </nav>
+        <ul class="social-list list-unstyled mb-2"></ul>
+        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+          <ul
+            class="pagination pagination-sm justify-content-end mb-2"
+            data-action="/api/web/reports/{{ report.id }}/comments"
+          ></ul>
+        </nav>
+      </div>
+
+      <h3 class="mb-3">Moderation Actions</h3>
+      <form
+        class="comment-form"
+        method="POST"
+        action="/api/web/reports/{{ report.id }}/comment"
+      >
+        <textarea
+          class="form-control mb-3"
+          name="body"
+          rows="3"
+          placeholder="Enter your comment..."
+        ></textarea>
+        <div class="text-end">
+          {%- if report.closed_at -%}
+            <button
+              type="button"
+              class="btn btn-secondary reopen-btn d-none"
+            >
+              <i class="bi bi-arrow-counterclockwise me-1"></i>
+              Reopen
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary comment-reopen-btn d-none"
+            >
+              <i class="bi bi-arrow-counterclockwise me-1"></i>
+              Comment & Reopen
+            </button>
+          {%- else -%}
+            <button
+              type="button"
+              class="btn btn-success close-btn"
+            >
+              <i class="bi bi-check-circle me-1"></i>
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-success comment-close-btn d-none"
+            >
+              <i class="bi bi-check-circle me-1"></i>
+              Comment & Close
+            </button>
+          {%- endif -%}
+          <button
+            type="submit"
+            class="btn btn-primary comment-btn ms-1"
+          >
+            <i class="bi bi-chat-left-text me-1"></i>
+            Comment
+          </button>
         </div>
+      </form>
 
-        <h3 class="mb-3">Moderation Actions</h3>
-        <form class="comment-form" method="POST" action="/api/web/reports/{{ report.id }}/comment">
-            <textarea class="form-control mb-3" name="body" rows="3" placeholder="Enter your comment..."></textarea>
-            <div class="text-end">
-                {%- if report.closed_at -%}
-                <button type="button" class="btn btn-secondary reopen-btn d-none">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>
-                    Reopen
-                </button>
-                <button type="button" class="btn btn-secondary comment-reopen-btn d-none">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>
-                    Comment & Reopen
-                </button>
-                {%- else -%}
-                <button type="button" class="btn btn-success close-btn">
-                    <i class="bi bi-check-circle me-1"></i>
-                    Close
-                </button>
-                <button type="button" class="btn btn-success comment-close-btn d-none">
-                    <i class="bi bi-check-circle me-1"></i>
-                    Comment & Close
-                </button>
-                {%- endif -%}
-                <button type="submit" class="btn btn-primary comment-btn ms-1">
-                    <i class="bi bi-chat-left-text me-1"></i>
-                    Comment
-                </button>
-            </div>
-        </form>
-
-        {# Hidden forms for close/reopen #}
-        <form class="close-form d-none" method="POST" action="/api/web/reports/{{ report.id }}/close">
-            <input type="hidden" name="body" value="">
-        </form>
-        <form class="reopen-form d-none" method="POST" action="/api/web/reports/{{ report.id }}/reopen">
-            <input type="hidden" name="body" value="">
-        </form>
+      {# Hidden forms for close/reopen #}
+      <form
+        class="close-form d-none"
+        method="POST"
+        action="/api/web/reports/{{ report.id }}/close"
+      >
+        <input
+          type="hidden"
+          name="body"
+          value=""
+        />
+      </form>
+      <form
+        class="reopen-form d-none"
+        method="POST"
+        action="/api/web/reports/{{ report.id }}/reopen"
+      >
+        <input
+          type="hidden"
+          name="body"
+          value=""
+        />
+      </form>
     </div>
-</div>
-
+  </div>
 {% endblock %}

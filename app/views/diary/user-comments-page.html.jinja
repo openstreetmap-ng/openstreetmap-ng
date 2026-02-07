@@ -1,23 +1,33 @@
 {% if comments %}
-{% for comment in comments %}
-<li class="social-entry clickable">
-    <p class="header text-muted">
+  {% for comment in comments %}
+    <li class="social-entry clickable">
+      <p class="header text-muted">
         <a href="/user/{{ comment.user.display_name }}">
-            <img class="avatar" src="{{ user_avatar_url(comment.user) }}" alt="{{ t('alt.profile_picture') }}">
-            {{- comment.user.display_name -}}
+          <img
+            class="avatar"
+            src="{{ user_avatar_url(comment.user) }}"
+            alt="{{ t('alt.profile_picture') }}"
+          />
+          {{- comment.user.display_name -}}
         </a>
         {{ t('action.commented') }}
-        <time datetime="{{ comment.created_at.isoformat() }}" data-style="long"></time>
-        <a class="stretched-link" href="/diary/{{ comment.diary_id }}#comment{{ comment.id }}"></a>
-    </p>
-    <div class="rich-text body">
+        <time
+          datetime="{{ comment.created_at.isoformat() }}"
+          data-style="long"
+        ></time>
+        <a
+          class="stretched-link"
+          href="/diary/{{ comment.diary_id }}#comment{{ comment.id }}"
+        ></a>
+      </p>
+      <div class="rich-text body">
         <h5><a href="/diary/{{ comment.diary_id }}">{{ comment.diary.title }}</a></h5>
         {{ comment.body_rich | safe }}
-    </div>
-</li>
-{% endfor %}
+      </div>
+    </li>
+  {% endfor %}
 {% else %}
-<li>
+  <li>
     <h3>{{ t('traces.index.empty_title') }}</h3>
-</li>
+  </li>
 {% endif %}

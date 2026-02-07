@@ -1,21 +1,20 @@
 {% extends 'settings/_base' %}
-{% block title_prefix %}{{ t('settings.authorizations.title') }} | {% endblock %}
+{% block title_prefix %}{{ t('settings.authorizations.title') }} |{% endblock %}
 {% block body_class %}settings-applications-body{% endblock %}
 {% block settings_active_href %}/settings/applications{% endblock %}
 {% block settings_title %}{{ t('settings.applications') }}{% endblock %}
 {% block settings_body %}
 
-{% set nav_active_href = "/settings/applications" %}
-{% include 'settings/applications/_nav' %}
+  {% set nav_active_href = "/settings/applications" %}
+  {% include 'settings/applications/_nav' %}
 
-<p>{{ t('settings.authorizations.description') }}</p>
-<ul class="applications-list list-unstyled">
+  <p>{{ t('settings.authorizations.description') }}</p>
+  <ul class="applications-list list-unstyled">
     {% set application_entry_expanded = false %}
 
     {% for token in tokens | rejectattr('application.client_id', 'eq', 'SystemApp.pat') %}
-    {% set app = token.application %}
-    <li>{% include 'settings/applications/_application-entry' %}</li>
+      {% set app = token.application %}
+      <li>{% include 'settings/applications/_application-entry' %}</li>
     {% endfor %}
-</ul>
-
+  </ul>
 {% endblock %}

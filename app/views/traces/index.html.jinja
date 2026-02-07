@@ -1,63 +1,67 @@
 {% extends '_base' %}
 {% block heading %}
 
-{% if active_tab == 0 %}
-{% if tag is not none %}
-{{ t('traces.index.public_traces') + ' ' + t('traces.index.tagged_with', tags=tag) }}
-{% else %}
-{{ t('traces.index.public_traces') }}
-{% endif %}
-{% elif active_tab == 1 %}
-{% if tag is not none %}
-{{ t('traces.index.my_gps_traces') + ' ' + t('traces.index.tagged_with', tags=tag) }}
-{% else %}
-{{ t('traces.index.my_gps_traces') }}
-{% endif %}
-{% elif active_tab == 2 %}
-{% if tag is not none %}
-{{ t('traces.index.public_traces_from', user=profile.display_name) + ' ' + t('traces.index.tagged_with', tags=tag) }}
-{% else %}
-{{ t('traces.index.public_traces_from', user=profile.display_name) }}
-{% endif %}
-{% endif %}
-
+  {% if active_tab == 0 %}
+    {% if tag is not none %}
+      {{ t('traces.index.public_traces') + ' ' + t('traces.index.tagged_with', tags=tag) }}
+    {% else %}
+      {{ t('traces.index.public_traces') }}
+    {% endif %}
+  {% elif active_tab == 1 %}
+    {% if tag is not none %}
+      {{ t('traces.index.my_gps_traces') + ' ' + t('traces.index.tagged_with', tags=tag) }}
+    {% else %}
+      {{ t('traces.index.my_gps_traces') }}
+    {% endif %}
+  {% elif active_tab == 2 %}
+    {% if tag is not none %}
+      {{ t('traces.index.public_traces_from', user=profile.display_name) + ' ' + t('traces.index.tagged_with', tags=tag) }}
+    {% else %}
+      {{ t('traces.index.public_traces_from', user=profile.display_name) }}
+    {% endif %}
+  {% endif %}
 {% endblock %}
-{% block title_prefix %}{{ self.heading() | trim }} | {% endblock %}
+{% block title_prefix %}{{ self.heading() | trim }} |{% endblock %}
 {% block body_class %}traces-index-body{% endblock %}
 {% block body %}
-
-<div class="content-header pb-0">
+  <div class="content-header pb-0">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        {% set _avatar_in_header = profile is not none %}
-        <div class="row mb-3">
-            {% if _avatar_in_header %}
-            <div class="col-auto">
-                <a href="/user/{{ profile.display_name }}">
-                    <img class="avatar" src="{{ user_avatar_url(profile) }}" alt="{{ t('alt.profile_picture') }}">
-                </a>
-            </div>
+      {% set _avatar_in_header = profile is not none %}
+      <div class="row mb-3">
+        {% if _avatar_in_header %}
+          <div class="col-auto">
+            <a href="/user/{{ profile.display_name }}">
+              <img
+                class="avatar"
+                src="{{ user_avatar_url(profile) }}"
+                alt="{{ t('alt.profile_picture') }}"
+              />
+            </a>
+          </div>
+        {% endif %}
+        <div class="col">
+          <h1>{{ self.heading() }}</h1>
+          <p class="mb-0">
+            {{ t('traces.index.description') }}
+            {% if tag %}
+              <a
+                class="ms-2"
+                href="{{ base_url_notag }}"
+              >
+                <i class="bi bi-x me-1"></i>
+                {{- t('traces.index.remove_tag_filter') }}
+              </a>
             {% endif %}
-            <div class="col">
-                <h1>{{ self.heading() }}</h1>
-                <p class="mb-0">
-                    {{ t('traces.index.description') }}
-                    {% if tag %}
-                    <a class="ms-2" href="{{ base_url_notag }}">
-                        <i class="bi bi-x me-1"></i>
-                        {{- t('traces.index.remove_tag_filter') }}
-                    </a>
-                    {% endif %}
-                </p>
-            </div>
+          </p>
         </div>
+      </div>
 
-        {% include 'traces/_nav' %}
+      {% include 'traces/_nav' %}
     </div>
-</div>
-<div class="content-body">
+  </div>
+  <div class="content-body">
     <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
-        {% include 'traces/_list' %}
+      {% include 'traces/_list' %}
     </div>
-</div>
-
+  </div>
 {% endblock %}

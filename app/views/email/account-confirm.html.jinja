@@ -1,11 +1,11 @@
 {% extends 'email/_base' %}
 {% block body %}
-<p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
-<p>{{ t('user_mailer.signup_confirm.created', site_url=app_domain) }}</p>
-<p>{{ t('user_mailer.signup_confirm.confirm') }}</p>
-›
-<a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
+  <p>{{ t('notifications.hello_user', user=user.display_name) }}</p>
+  <p>{{ t('user_mailer.signup_confirm.created', site_url=app_domain) }}</p>
+  <p>{{ t('user_mailer.signup_confirm.confirm') }}</p>
+  ›
+  <a href="{{ APP_URL }}/api/web/user/account-confirm?token={{ token }}">
     {{ t('notifications.click_here_to_activate_your_account') }}
-</a>
-<p>{{ t('user_mailer.signup_confirm.welcome') }}</p>
+  </a>
+  <p>{{ t('user_mailer.signup_confirm.welcome') }}</p>
 {% endblock %}

@@ -1,9 +1,11 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ t('notes.index.heading', user=profile.display_name) }} | {% endblock %}
+{% block title_prefix %}{{ t('notes.index.heading', user=profile.display_name) }} |{% endblock %}
 {% block body_class %}notes-body{% endblock %}
 {% block body %}
-
-<div id="NotesIndex" data-user-id="{{ profile.id }}" data-display-name="{{ profile.display_name }}"
-    data-avatar-url="{{ user_avatar_url(profile) }}"></div>
-
+  <div
+    id="NotesIndex"
+    data-user-id="{{ profile.id }}"
+    data-display-name="{{ profile.display_name }}"
+    data-avatar-url="{{ user_avatar_url(profile) }}"
+  ></div>
 {% endblock %}

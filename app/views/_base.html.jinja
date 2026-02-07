@@ -1,62 +1,136 @@
 <!DOCTYPE html>
 {%- set _dir = t('html.dir') -%}
-<html lang="{{ lang }}" dir="{{ _dir }}" data-config="{{ WEB_CONFIG }}">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html
+  lang="{{ lang }}"
+  dir="{{ _dir }}"
+  data-config="{{ WEB_CONFIG }}"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
 
     {%- for file in I18NEXT_FILES -%}
-    <script src="/static-locale/{{ file }}" defer></script>
+      <script
+        src="/static-locale/{{ file }}"
+        defer
+      ></script>
     {%- endfor -%}
     {{ vite_render_asset('app/views/main.ts', rtl=_dir == 'rtl') | safe }}
 
-    {%- block head %}{% endblock -%}
+    {%- block head %}
+    {% endblock -%}
 
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{% block site_name %}{{ t('project_name') }}{% endblock %}">
-    <meta property="og:url" content="{{ request.url }}">
+    <meta
+      property="og:type"
+      content="website"
+    />
+    <meta
+      property="og:site_name"
+      content="{% block site_name %}{{ t('project_name') }}{% endblock %}"
+    />
+    <meta
+      property="og:url"
+      content="{{ request.url }}"
+    />
 
-    <title>{% block title %}{% block title_prefix %}{% endblock %}{{ self.site_name() }}{% endblock %}</title>
-    <meta property="og:title" content="{{ self.title() }}">
+    <title>
+      {% set _title_prefix = self.title_prefix() | trim %}
+      {% block title %}{{ _title_prefix }}{{ ' ' if _title_prefix else '' }}{{ self.site_name() }}{% endblock %}
+    </title>
+    <meta
+      property="og:title"
+      content="{{ self.title() }}"
+    />
 
-    <link rel="icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
-    <link rel="icon" sizes="512x512" type="image/webp" href="/static/img/favicon/512.webp">
-    <link rel="icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
-    <link rel="icon" sizes="256x256" type="image/webp" href="/static/img/favicon/256.webp">
-    <link rel="apple-touch-icon" sizes="512x512" type="image/png" href="/static/img/favicon/512.png">
-    <link rel="apple-touch-icon" sizes="256x256" type="image/png" href="/static/img/favicon/256.png">
+    <link
+      rel="icon"
+      sizes="512x512"
+      type="image/png"
+      href="/static/img/favicon/512.png"
+    />
+    <link
+      rel="icon"
+      sizes="512x512"
+      type="image/webp"
+      href="/static/img/favicon/512.webp"
+    />
+    <link
+      rel="icon"
+      sizes="256x256"
+      type="image/png"
+      href="/static/img/favicon/256.png"
+    />
+    <link
+      rel="icon"
+      sizes="256x256"
+      type="image/webp"
+      href="/static/img/favicon/256.webp"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="512x512"
+      type="image/png"
+      href="/static/img/favicon/512.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="256x256"
+      type="image/png"
+      href="/static/img/favicon/256.png"
+    />
 
     {# TODO: more og tags, dynamic head image, rel next #}
-    <meta property="og:image" content="{{ APP_URL }}/static/img/favicon/512.png">
-    <meta property="og:image:alt" content="{{ t('alt.logo', name=t('project_name')) }}">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
+    <meta
+      property="og:image"
+      content="{{ APP_URL }}/static/img/favicon/512.png"
+    />
+    <meta
+      property="og:image:alt"
+      content="{{ t('alt.logo', name=t('project_name')) }}"
+    />
+    <meta
+      property="og:image:type"
+      content="image/png"
+    />
+    <meta
+      property="og:image:width"
+      content="512"
+    />
+    <meta
+      property="og:image:height"
+      content="512"
+    />
 
-    <link rel="search" type="application/opensearchdescription+xml" title="OpenStreetMap Search"
-        href="/static/opensearch.xml">
-</head>
+    <link
+      rel="search"
+      type="application/opensearchdescription+xml"
+      title="OpenStreetMap Search"
+      href="/static/opensearch.xml"
+    />
+  </head>
 
-<body class="{% block body_class %}{% endblock %}">
+  <body class="{% block body_class %}{% endblock %}">
     {% include 'navbar/navbar' %}
 
-    {% block body %}{% endblock %}
+    {% block body %}
+    {% endblock %}
 
     {% if user is none and self.body_class() != 'login-body' %}
-    {% include 'user/login-modal' %}
+      {% include 'user/login-modal' %}
     {% endif %}
 
     {% if unsubscribe_target and unsubscribe_id %}
-    {% include '_unsubscribe-discussion' %}
+      {% include '_unsubscribe-discussion' %}
     {% endif %}
 
     {% if ENV == 'test' %}
-    <div class="test-site-watermark">
+      <div class="test-site-watermark">
         <p>TEST SITE</p>
         <p>Not an official product</p>
-    </div>
+      </div>
     {% endif %}
-</body>
-
+  </body>
 </html>

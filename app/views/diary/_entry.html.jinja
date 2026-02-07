@@ -1,254 +1,366 @@
-<article id="diary{{ diary.id }}" class="diary {% if entry_mode == 'details' %}show{% endif %}">
-    {% set _show_header = (entry_mode != 'details') %}
-    {% set _show_side_avatar = (entry_mode != 'details') and (profile is none) %}
-    <div class="row">
-        {% if _show_side_avatar %}
-        <div class="col-auto d-none d-md-block">
-            <a class="d-block" href="/user/{{ diary.user.display_name }}" rel="author">
-                <img class="side-avatar avatar" src="{{ user_avatar_url(diary.user) }}"
-                    alt="{{ t('alt.profile_picture') }}" loading="lazy">
+<article
+  id="diary{{ diary.id }}"
+  class="diary {% if entry_mode == 'details' %}show{% endif %}"
+>
+  {% set _show_header = (entry_mode != 'details') %}
+  {% set _show_side_avatar = (entry_mode != 'details') and (profile is none) %}
+  <div class="row">
+    {% if _show_side_avatar %}
+      <div class="col-auto d-none d-md-block">
+        <a
+          class="d-block"
+          href="/user/{{ diary.user.display_name }}"
+          rel="author"
+        >
+          <img
+            class="side-avatar avatar"
+            src="{{ user_avatar_url(diary.user) }}"
+            alt="{{ t('alt.profile_picture') }}"
+            loading="lazy"
+          />
+        </a>
+      </div>
+    {% endif %}
+    <div class="col align-content-center">
+      {# Header #}
+      {% if _show_header %}
+        <h3>
+          <a
+            class="diary-title-link"
+            href="/diary/{{ diary.id }}"
+            >{{ diary.title }}</a
+          >
+        </h3>
+        <p class="small mb-2">
+          {% set link_user -%}
+            <a
+              href="/user/{{ diary.user.display_name }}"
+              rel="author"
+            >
+              <img
+                class="avatar d-md-none"
+                src="{{ user_avatar_url(diary.user) }}"
+                alt="{{ t('alt.profile_picture') }}"
+                loading="lazy"
+              />
+              {{- diary.user.display_name -}}
             </a>
-        </div>
+          {%- endset %}
+          {% set created -%}
+            <time
+              datetime="{{ diary.created_at.isoformat() }}"
+              data-date="long"
+              data-time="short"
+            ></time>
+          {%- endset %}
+          {% set language_link -%}
+            <a href="/diary/{{ diary.language }}"
+              >{{ LOCALES_NAMES_MAP[diary.language].display_name }}</a
+            >
+          {%- endset %}
+          {{
+            t('diary_entries.diary_entry.posted_by_html',
+                link_user=link_user,
+                created=created,
+                language_link=language_link
+            ) | safe
+          }}
+        </p>
+        {% if diary.updated_at > diary.created_at %}
+          <p class="small text-muted fst-italic mb-3">
+            {% set updated -%}
+              <time
+                datetime="{{ diary.updated_at.isoformat() }}"
+                data-date="long"
+                data-time="short"
+              ></time>
+            {%- endset %}
+            {{ t('diary_entries.diary_entry.updated_at_html', updated=updated) | safe }}
+          </p>
         {% endif %}
-        <div class="col align-content-center">
+      {% endif %}
 
-            {# Header #}
-            {% if _show_header %}
-            <h3>
-                <a class="diary-title-link" href="/diary/{{ diary.id }}">{{ diary.title }}</a>
-            </h3>
-            <p class="small mb-2">
-                {% set link_user -%}
-                <a href="/user/{{ diary.user.display_name }}" rel="author">
-                    <img class="avatar d-md-none" src="{{ user_avatar_url(diary.user) }}"
-                        alt="{{ t('alt.profile_picture') }}" loading="lazy">
-                    {{- diary.user.display_name -}}
-                </a>
-                {%- endset %}
-                {% set created -%}
-                <time datetime="{{ diary.created_at.isoformat() }}" data-date="long" data-time="short"></time>
-                {%- endset %}
-                {% set language_link -%}
-                <a href="/diary/{{ diary.language }}">{{ LOCALES_NAMES_MAP[diary.language].display_name }}</a>
-                {%- endset %}
-                {{ t('diary_entries.diary_entry.posted_by_html',
-                    link_user=link_user,
-                    created=created,
-                    language_link=language_link
-                ) | safe }}
-            </p>
-            {% if diary.updated_at > diary.created_at %}
-            <p class="small text-muted fst-italic mb-3">
-                {% set updated -%}
-                <time datetime="{{ diary.updated_at.isoformat() }}" data-date="long" data-time="short"></time>
-                {%- endset %}
-                {{ t('diary_entries.diary_entry.updated_at_html', updated=updated) | safe }}
-            </p>
-            {% endif %}
-            {% endif %}
-
-            {# Body #}
-            <div class="diary-body">
-                <div class="rich-text mx-1{% if _show_header %} mt-3{% endif %}">{{ diary.body_rich | safe }}
-                </div>
-            </div>
-            {% if entry_mode != 'details' %}
-            <div class="text-center">
-                <button type="button" class="btn btn-link diary-read-more d-none">
-                    {{- t('action.continue_reading') -}}
-                    <i class="bi bi-chevron-down small ms-1-5"></i>
-                </button>
-            </div>
-            {% endif %}
-
-            {# Metadata: Location #}
-            {% if diary.point is not none %}
-            <p class="diary-location fw-medium mb-3">
-                <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
-                {% set _lon = round(diary.point.x, 5) %}
-                {% set _lat = round(diary.point.y, 5) %}
-                {% set _title = _lat ~ ', ' ~ _lon %}
-                <a href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14" target="_blank">
-                    {% if diary.location_name %}
-                    <abbr title="{{ _title }}">{{ diary.location_name }}</abbr>
-                    {% else %}
-                    {{ _title }}
-                    {% endif %}
-                </a>
-            </p>
-            {% endif %}
-
-            {# Buttons #}
-            <div class="text-end">
-                <div class="btn-group">
-
-                    <div class="share btn-group dropdown">
-                        <button class="btn btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="bi bi-share me-2"></i>{{ t('javascripts.share.title') }}
-                        </button>
-                        {% set _diary_link = APP_URL ~ '/diary/' ~ diary.id %}
-                        {% set _diary_title = diary.title %}
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="{{ _diary_link }}" data-action="copy-link">
-                                    <i class="bi bi-link-45deg"></i>{{ t('action.copy_link') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="mailto:?subject={{ _diary_title | urlencode }}&body={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-envelope-at-fill"></i>{{ t('activerecord.attributes.user.email') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://mastodonshare.com/?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-mastodon"></i>{{ t('service.mastodon.title') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://bsky.app/intent/compose?text={{ _diary_title | urlencode }}%20{{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-bluesky"></i>{{ t('service.bluesky.title') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://x.com/intent/post?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-twitter-x"></i>{{ t('service.x.title') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://www.linkedin.com/sharing/share-offsite/?url={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-linkedin"></i>{{ t('service.linkedin.title') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://www.facebook.com/sharer/sharer.php?t={{ _diary_title | urlencode }}&u={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-facebook"></i>{{ t('service.facebook.title') }}
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item"
-                                    href="https://t.me/share/url?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
-                                    target="_blank">
-                                    <i class="bi bi-telegram"></i>{{ t('service.telegram.title') }}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {% if entry_mode == 'details' %}
-                    <a class="btn btn-soft diary-comments-btn" href="/diary/{{ diary.id }}#comments">
-                        {{- t('diary.comments') -}}
-                        <span
-                            class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
-                            {{- diary.num_comments -}}
-                        </span>
-                    </a>
-                    {% else %}
-                    <button type="button" class="btn btn-soft diary-comments-btn dropdown-toggle collapsed"
-                        aria-expanded="false" aria-controls="diary-comments-{{ diary.id }}" data-bs-toggle="collapse"
-                        data-bs-target="#diary-comments-{{ diary.id }}">
-                        {{- t('diary.comments') -}}
-                        <span
-                            class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}">
-                            {{- diary.num_comments -}}
-                        </span>
-                    </button>
-                    {% endif %}
-
-                    {% if user is not none %}
-                    <button type="button" class="btn btn-soft dropdown-toggle dropdown-toggle-split"
-                        data-bs-toggle="dropdown" aria-expanded="false"
-                        aria-label="{{ t('action.show_more') }}"></button>
-                    <ul class="dropdown-menu">
-                        {% if diary.user_id != user.id %}
-                        <li>
-                            <a class="dropdown-item" href="/message/new?reply_diary={{ diary.id }}">
-                                {{- t('diary.send_author_a_message') -}}
-                            </a>
-                        </li>
-                        <li>
-                            <button class="dropdown-item" data-report-type="user"
-                                data-report-type-id="{{ diary.user_id }}" data-report-action="user_diary"
-                                data-report-action-id="{{ diary.id }}">
-                                {{- t('report.report_object', object=nt('diary.entry.count', 1)) -}}
-                            </button>
-                        </li>
-                        {% else %}
-                        <li>
-                            <a class="dropdown-item" href="/diary/{{ diary.id }}/edit">
-                                {{- t('diary_entries.diary_entry.edit_link') -}}
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                    {% endif %}
-
-                </div>
-            </div>
-
+      {# Body #}
+      <div class="diary-body">
+        <div class="rich-text mx-1 {% if _show_header %}mt-3{% endif %}">
+          {{ diary.body_rich | safe }}
         </div>
-    </div>
-
-    {% set _is_details = entry_mode == 'details' %}
-    <div id="{{ 'comments' if _is_details else 'diary-comments-' ~ diary.id }}"
-        class="diary-comments collapse {% if _is_details %}show{% endif %}">
-        <div class="row g-1 mb-1">
-            <div class="col">
-                <h4>{{ t('diary.comments') }}</h4>
-            </div>
-            {% if user is not none %}
-            <form class="col-auto subscription-form" method="POST"
-                action="/api/web/user-subscription/diary/{{ diary.id }}{% if diary.is_subscribed %}/unsubscribe{% else %}/subscribe{% endif %}">
-                <button class="btn btn-sm btn-soft" type="submit">
-                    {% if diary.is_subscribed %}
-                    <i class="bi bi-bookmark-check me-1"></i>
-                    {{ t('javascripts.changesets.show.unsubscribe') }}
-                    {% else %}
-                    {{ t('javascripts.changesets.show.subscribe') }}
-                    {% endif %}
-                </button>
-            </form>
-            {% endif %}
-        </div>
-
-        <ul class="social-list-sm list-unstyled mb-2"></ul>
-        <nav aria-label="{{ t('alt.comments_page_navigation') }}">
-            <ul class="pagination pagination-sm justify-content-end mb-0"
-                data-action="/api/web/diary/{{ diary.id }}/comments">
-            </ul>
-        </nav>
-
-        {% if user is not none %}
-        <form {% if _is_details %} id="newcomment" {% endif %} class="comment-form" method="POST"
-            action="/api/web/diary/{{ diary.id }}/comment">
-            <label class="form-label d-block">{{ t('diary_entries.show.leave_a_comment') }}</label>
-            <div class="mb-3">
-                <div class="RichTextControl" data-name="body" data-maxlength="{{ DIARY_COMMENT_BODY_MAX_LENGTH }}"
-                    data-required="true"></div>
-            </div>
-            <div class="text-end">
-                <button class="btn btn-primary" type="submit">{{ t('action.comment') }}</button>
-            </div>
-        </form>
-        {% else %}
+      </div>
+      {% if entry_mode != 'details' %}
         <div class="text-center">
-            <button class="btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">
-                {{ t('browse.changeset.join_discussion') }}
-            </button>
+          <button
+            type="button"
+            class="btn btn-link diary-read-more d-none"
+          >
+            {{- t('action.continue_reading') -}}
+            <i class="bi bi-chevron-down small ms-1-5"></i>
+          </button>
         </div>
-        {% endif %}
+      {% endif %}
+
+      {# Metadata: Location #}
+      {% if diary.point is not none %}
+        <p class="diary-location fw-medium mb-3">
+          <i class="bi bi-compass"></i>{{ t('diary_entries.form.location') }}:
+          {% set _lon = round(diary.point.x, 5) %}
+          {% set _lat = round(diary.point.y, 5) %}
+          {% set _title = _lat ~ ', ' ~ _lon %}
+          <a
+            href="/?mlat={{ _lat }}&mlon={{ _lon }}&zoom=14"
+            target="_blank"
+          >
+            {% if diary.location_name %}
+              <abbr title="{{ _title }}">{{ diary.location_name }}</abbr>
+            {% else %}
+              {{ _title }}
+            {% endif %}
+          </a>
+        </p>
+      {% endif %}
+
+      {# Buttons #}
+      <div class="text-end">
+        <div class="btn-group">
+          <div class="share btn-group dropdown">
+            <button
+              class="btn btn-soft dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-share me-2"></i>{{ t('javascripts.share.title') }}
+            </button>
+            {% set _diary_link = APP_URL ~ '/diary/' ~ diary.id %}
+            {% set _diary_title = diary.title %}
+            <ul class="dropdown-menu">
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="{{ _diary_link }}"
+                  data-action="copy-link"
+                >
+                  <i class="bi bi-link-45deg"></i>{{ t('action.copy_link') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="mailto:?subject={{ _diary_title | urlencode }}&body={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-envelope-at-fill"></i
+                  >{{ t('activerecord.attributes.user.email') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://mastodonshare.com/?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-mastodon"></i>{{ t('service.mastodon.title') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://bsky.app/intent/compose?text={{ _diary_title | urlencode }}%20{{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-bluesky"></i>{{ t('service.bluesky.title') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://x.com/intent/post?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-twitter-x"></i>{{ t('service.x.title') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://www.linkedin.com/sharing/share-offsite/?url={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-linkedin"></i>{{ t('service.linkedin.title') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://www.facebook.com/sharer/sharer.php?t={{ _diary_title | urlencode }}&u={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-facebook"></i>{{ t('service.facebook.title') }}
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="https://t.me/share/url?text={{ _diary_title | urlencode }}&url={{ _diary_link | urlencode }}"
+                  target="_blank"
+                >
+                  <i class="bi bi-telegram"></i>{{ t('service.telegram.title') }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {% if entry_mode == 'details' %}
+            <a
+              class="btn btn-soft diary-comments-btn"
+              href="/diary/{{ diary.id }}#comments"
+            >
+              {{- t('diary.comments') -}}
+              <span
+                class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}"
+              >
+                {{- diary.num_comments -}}
+              </span>
+            </a>
+          {% else %}
+            <button
+              type="button"
+              class="btn btn-soft diary-comments-btn dropdown-toggle collapsed"
+              aria-expanded="false"
+              aria-controls="diary-comments-{{ diary.id }}"
+              data-bs-toggle="collapse"
+              data-bs-target="#diary-comments-{{ diary.id }}"
+            >
+              {{- t('diary.comments') -}}
+              <span
+                class="badge ms-2 {% if diary.num_comments %}text-bg-green{% else %}text-bg-light{% endif %}"
+              >
+                {{- diary.num_comments -}}
+              </span>
+            </button>
+          {% endif %}
+
+          {% if user is not none %}
+            <button
+              type="button"
+              class="btn btn-soft dropdown-toggle dropdown-toggle-split"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              aria-label="{{ t('action.show_more') }}"
+            ></button>
+            <ul class="dropdown-menu">
+              {% if diary.user_id != user.id %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="/message/new?reply_diary={{ diary.id }}"
+                  >
+                    {{- t('diary.send_author_a_message') -}}
+                  </a>
+                </li>
+                <li>
+                  <button
+                    class="dropdown-item"
+                    data-report-type="user"
+                    data-report-type-id="{{ diary.user_id }}"
+                    data-report-action="user_diary"
+                    data-report-action-id="{{ diary.id }}"
+                  >
+                    {{- t('report.report_object', object=nt('diary.entry.count', 1)) -}}
+                  </button>
+                </li>
+              {% else %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="/diary/{{ diary.id }}/edit"
+                  >
+                    {{- t('diary_entries.diary_entry.edit_link') -}}
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% set _is_details = entry_mode == 'details' %}
+  <div
+    id="{{ 'comments' if _is_details else 'diary-comments-' ~ diary.id }}"
+    class="diary-comments collapse {% if _is_details %}show{% endif %}"
+  >
+    <div class="row g-1 mb-1">
+      <div class="col">
+        <h4>{{ t('diary.comments') }}</h4>
+      </div>
+      {% if user is not none %}
+        <form
+          class="col-auto subscription-form"
+          method="POST"
+          action="/api/web/user-subscription/diary/{{ diary.id }}{% if diary.is_subscribed %}/unsubscribe{% else %}/subscribe{% endif %}"
+        >
+          <button
+            class="btn btn-sm btn-soft"
+            type="submit"
+          >
+            {% if diary.is_subscribed %}
+              <i class="bi bi-bookmark-check me-1"></i>
+              {{ t('javascripts.changesets.show.unsubscribe') }}
+            {% else %}
+              {{ t('javascripts.changesets.show.subscribe') }}
+            {% endif %}
+          </button>
+        </form>
+      {% endif %}
     </div>
 
+    <ul class="social-list-sm list-unstyled mb-2"></ul>
+    <nav aria-label="{{ t('alt.comments_page_navigation') }}">
+      <ul
+        class="pagination pagination-sm justify-content-end mb-0"
+        data-action="/api/web/diary/{{ diary.id }}/comments"
+      ></ul>
+    </nav>
+
+    {% if user is not none %}
+      <form
+        {% if _is_details %}id="newcomment"{% endif %}
+        class="comment-form"
+        method="POST"
+        action="/api/web/diary/{{ diary.id }}/comment"
+      >
+        <label class="form-label d-block"
+          >{{ t('diary_entries.show.leave_a_comment') }}</label
+        >
+        <div class="mb-3">
+          <div
+            class="RichTextControl"
+            data-name="body"
+            data-maxlength="{{ DIARY_COMMENT_BODY_MAX_LENGTH }}"
+            data-required="true"
+          ></div>
+        </div>
+        <div class="text-end">
+          <button
+            class="btn btn-primary"
+            type="submit"
+          >
+            {{ t('action.comment') }}
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <div class="text-center">
+        <button
+          class="btn btn-link"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#loginModal"
+        >
+          {{ t('browse.changeset.join_discussion') }}
+        </button>
+      </div>
+    {% endif %}
+  </div>
 </article>

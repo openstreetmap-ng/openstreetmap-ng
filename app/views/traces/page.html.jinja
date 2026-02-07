@@ -1,25 +1,34 @@
-<li hidden class="traces-lines" data-lines="{{ traces_lines | safe }}"></li>
+<li
+  hidden
+  class="traces-lines"
+  data-lines="{{ traces_lines | safe }}"
+></li>
 {% if traces %}
-{% for trace in traces %}
-{% include 'traces/_list-entry' %}
-{% endfor %}
+  {% for trace in traces %}
+    {% include 'traces/_list-entry' %}
+  {% endfor %}
 {% else %}
-<li>
+  <li>
     <h3>{{ t('traces.index.empty_title') }}</h3>
     <p>
-        {% set _upload_link %}
+      {% set _upload_link %}
         <a href="/trace/upload">{{ t('traces.index.upload_new') }}</a>
-        {%- endset %}
-        {% set _wiki_link %}
-        <a href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2" rel="help">
-            {{- t('traces.index.wiki_page') -}}
+      {%- endset %}
+      {% set _wiki_link %}
+        <a
+          href="https://wiki.openstreetmap.org/wiki/Beginners_Guide_1.2"
+          rel="help"
+        >
+          {{- t('traces.index.wiki_page') -}}
         </a>
-        {%- endset %}
-        {{ t(
+      {%- endset %}
+      {{
+        t(
             'traces.index.empty_upload_html',
             upload_link=_upload_link,
             wiki_link=_wiki_link
-        ) | safe }}
+        ) | safe
+      }}
     </p>
-</li>
+  </li>
 {% endif %}

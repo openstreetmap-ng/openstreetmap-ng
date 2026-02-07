@@ -1,25 +1,20 @@
 {% extends '_base' %}
-{% block title_prefix %}{{ t('accounts.edit.my settings') | capitalize }} | {% endblock %}
-{% block settings_active_href %}{% endblock %}
+{% block title_prefix %}{{ t('accounts.edit.my settings') | capitalize }} |{% endblock %}
+{% block settings_active_href %}
+{% endblock %}
 {% block body %}
-
-<div class="content-header">
-    <h1 class="container">
-        {% block settings_title %}{% endblock %}
-    </h1>
-</div>
-<div class="content-body">
+  <div class="content-header">
+    <h1 class="container">{% block settings_title %}{% endblock %}</h1>
+  </div>
+  <div class="content-body">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-auto mb-4">
-                {% set nav_active_href = self.settings_active_href() %}
-                {% include 'settings/_nav' %}
-            </div>
-            <div class="col-lg">
-                {% block settings_body %}{% endblock %}
-            </div>
+      <div class="row">
+        <div class="col-lg-auto mb-4">
+          {% set nav_active_href = self.settings_active_href() %}
+          {% include 'settings/_nav' %}
         </div>
+        <div class="col-lg">{% block settings_body %}{% endblock %}</div>
+      </div>
     </div>
-</div>
-
+  </div>
 {% endblock %}
