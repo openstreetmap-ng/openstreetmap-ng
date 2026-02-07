@@ -196,16 +196,16 @@ export const MultiInput = ({
           }}
           onBlur={commitInput}
         />
-
-        {visibleTokens.map((value) => (
-          <input
-            key={`hidden-${value}`}
-            type="hidden"
-            name={name}
-            value={value}
-          />
-        ))}
       </div>
+
+      {visibleTokens.map((value) => (
+        <input
+          key={`hidden-${value}`}
+          type="hidden"
+          name={name}
+          value={value}
+        />
+      ))}
 
       {showLimitFeedback ? (
         <div class="form-text text-danger">{maxItemsFeedback!}</div>
