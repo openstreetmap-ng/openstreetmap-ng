@@ -19,5 +19,9 @@ class NoteExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
+    def note_null_island(self) -> NoReturn:
+        raise NotImplementedError
+
+    @abstractmethod
     def notes_query_area_too_big(self) -> NoReturn:
         raise NotImplementedError
