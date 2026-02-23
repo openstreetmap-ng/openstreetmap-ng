@@ -17,7 +17,7 @@ async def test_note_create_xml(client: AsyncClient):
 
     r = await client.post(
         '/api/0.6/notes',
-        params={'lon': 0, 'lat': 0, 'text': test_note_create_xml.__qualname__},
+        params={'lon': 1, 'lat': 1, 'text': test_note_create_xml.__qualname__},
     )
     assert r.is_success, r.text
     note: dict = XMLToDict.parse(r.content)['osm']['note'][0]  # type: ignore
@@ -26,8 +26,8 @@ async def test_note_create_xml(client: AsyncClient):
     assert_model(
         note,
         {
-            '@lat': 0.0,
-            '@lon': 0.0,
+            '@lat': 1.0,
+            '@lon': 1.0,
             'id': PositiveInt,
             'status': 'open',
             'url': str,
@@ -51,7 +51,7 @@ async def test_note_create_json(client: AsyncClient):
 
     r = await client.post(
         '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': test_note_create_json.__qualname__},
+        json={'lon': 1, 'lat': 1, 'text': test_note_create_json.__qualname__},
     )
     assert r.is_success, r.text
     props = r.json()['properties']
@@ -72,7 +72,7 @@ async def test_note_create_gpx(client: AsyncClient):
 
     r = await client.post(
         '/api/0.6/notes.gpx',
-        params={'lon': 0, 'lat': 0, 'text': test_note_create_gpx.__qualname__},
+        params={'lon': 1, 'lat': 1, 'text': test_note_create_gpx.__qualname__},
     )
     assert r.is_success, r.text
     waypoint: dict = XMLToDict.parse(r.content)['gpx']['wpt']  # type: ignore
@@ -80,8 +80,8 @@ async def test_note_create_gpx(client: AsyncClient):
     assert_model(
         waypoint,
         {
-            '@lat': 0.0,
-            '@lon': 0.0,
+            '@lat': 1.0,
+            '@lon': 1.0,
             'time': datetime,
             'name': str,
             'link': dict,
@@ -94,7 +94,7 @@ async def test_note_create_gpx(client: AsyncClient):
 async def test_note_create_anonymous(client: AsyncClient):
     r = await client.post(
         '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': test_note_create_anonymous.__qualname__},
+        json={'lon': 1, 'lat': 1, 'text': test_note_create_anonymous.__qualname__},
     )
     assert r.is_success, r.text
     props = r.json()['properties']
@@ -116,7 +116,7 @@ async def test_note_crud(client: AsyncClient):
     # Step 1: Create a note
     r = await client.post(
         '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': test_note_crud.__qualname__},
+        json={'lon': 1, 'lat': 1, 'text': test_note_crud.__qualname__},
     )
     assert r.is_success, r.text
     props = r.json()['properties']
@@ -224,7 +224,7 @@ async def test_note_crud(client: AsyncClient):
     [
         {'lon': 181, 'lat': 0, 'text': 'Invalid longitude'},
         {'lon': 0, 'lat': 91, 'text': 'Invalid latitude'},
-        {'lon': 0, 'lat': 0, 'text': ''},
+        {'lon': 1, 'lat': 1, 'text': ''},
     ],
 )
 async def test_note_bad_input(client: AsyncClient, input_data):
@@ -264,7 +264,7 @@ async def test_note_search(client: AsyncClient):
     text = f'{test_note_search.__qualname__} {search_text}'
     r = await client.post(
         '/api/0.6/notes.json',
-        json={'lon': 0, 'lat': 0, 'text': text},
+        json={'lon': 1, 'lat': 1, 'text': text},
     )
     assert r.is_success, r.text
 
