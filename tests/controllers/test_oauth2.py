@@ -369,7 +369,7 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope):
     # Attempt to create a note using the token in form data
     r = await client.post(
         '/api/0.6/notes',
-        params={'lon': 0, 'lat': 0, 'text': test_access_token_in_form.__qualname__},
+        params={'lon': 1, 'lat': 1, 'text': test_access_token_in_form.__qualname__},
         data={'access_token': access_token},
     )
 
