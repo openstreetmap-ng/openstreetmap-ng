@@ -1,8 +1,10 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 import cython
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -108,7 +110,12 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
+
+            # Schedule background recompression with heavy zstd
+            loop = get_running_loop()
+            loop.create_task(_recompress_task(trace_id, trace_init['file_id'], file_bytes))  # noqa: RUF006
+
+            return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -213,3 +220,31 @@ def _get_file_name(file: UploadFile) -> str:
     If not provided, use the current time as the file name.
     """
     return file.filename or f'{utcnow().isoformat(timespec="seconds")}.gpx'
+
+
+async def _recompress_task(trace_id: TraceId, old_file_id: StorageKey, file_bytes: bytes) -> None:
+    """Background task to recompress a trace file with heavy zstd compression."""
+    try:
+        result = await TraceFile.recompress(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+        logging.debug('Saved recompressed trace file %r for trace %d', new_file_id, trace_id)
+
+        async with db(True) as conn:
+            await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %(new_file_id)s
+                WHERE id = %(trace_id)s AND file_id = %(old_file_id)s
+                """,
+                {
+                    'trace_id': trace_id,
+                    'new_file_id': new_file_id,
+                    'old_file_id': old_file_id,
+                },
+            )
+
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.debug('Deleted old trace file %r for trace %d', old_file_id, trace_id)
+    except Exception:
+        capture_exception()
+        logging.warning('Failed to recompress trace file for trace %d', trace_id)
