@@ -23,8 +23,9 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -108,7 +109,7 @@ class ChangesetService:
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +122,8 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                tags: dict[str, str]
+                changeset_user_id, closed_at, tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -137,6 +139,8 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_notes_by_tags(tags)
 
     @staticmethod
     @asynccontextmanager
@@ -158,6 +162,38 @@ class ChangesetService:
         _PROCESS_REQUEST_EVENT.set()
         _PROCESS_DONE_EVENT.clear()
         await _PROCESS_DONE_EVENT.wait()
+
+
+async def _close_notes_by_tags(tags: dict[str, str]) -> None:
+    """Close notes referenced by changeset closes:note tags."""
+    note_ids_str = tags.get('closes:note')
+    if not note_ids_str:
+        return
+
+    # Parse note IDs (semicolon-separated)
+    note_ids: list[NoteId] = []
+    for part in note_ids_str.split(';'):
+        part = part.strip()
+        if part:
+            try:
+                note_ids.append(NoteId(int(part)))
+            except ValueError:
+                continue
+
+    if not note_ids:
+        return
+
+    # Determine default comment: per-tag override > changeset comment > empty
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+
+    for note_id in note_ids:
+        # Per-note comment override
+        comment = tags.get(f'closes:note:{note_id}:comment', default_comment)
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except Exception:
+            # Silently skip notes that are already closed or not found
+            continue
 
 
 @retry(None)
