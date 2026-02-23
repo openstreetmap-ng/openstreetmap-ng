@@ -23,7 +23,14 @@ mount("user-profile-body", (body) => {
         const avatarTypeInput = avatarForm.querySelector("input[name=avatar_type]")!
         const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")!
 
+        const avatarMaxFileSize = 10 * 1024 * 1024 // 10 MB
         avatarFileInput.addEventListener("change", () => {
+            const file = (avatarFileInput as HTMLInputElement).files?.[0]
+            if (file && file.size > avatarMaxFileSize) {
+                alert(i18next.t("validation.image_file_too_big"))
+                ;(avatarFileInput as HTMLInputElement).value = ""
+                return
+            }
             avatarTypeInput.value = "custom"
             avatarForm.requestSubmit()
         })
@@ -61,7 +68,14 @@ mount("user-profile-body", (body) => {
             "input[name=background_file]",
         )!
 
+        const backgroundMaxFileSize = 10 * 1024 * 1024 // 10 MB
         backgroundFileInput.addEventListener("change", () => {
+            const file = (backgroundFileInput as HTMLInputElement).files?.[0]
+            if (file && file.size > backgroundMaxFileSize) {
+                alert(i18next.t("validation.image_file_too_big"))
+                ;(backgroundFileInput as HTMLInputElement).value = ""
+                return
+            }
             backgroundForm.requestSubmit()
         })
 
