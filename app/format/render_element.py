@@ -7,7 +7,7 @@ from app.lib.elements_filter import ElementsFilter
 from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
-from app.models.proto.element_pb2 import RenderElementsData
+from app.models.proto.element_pb2 import RenderData
 from app.models.proto.shared_pb2 import LonLat
 from speedup import element_id, element_type, split_typed_element_id
 
@@ -38,7 +38,7 @@ class RenderElementMixin:
         render_nodes = _render_nodes(
             node_id_map=node_id_map, member_nodes=member_nodes, detailed=detailed
         )
-        return RenderElementsData(
+        return RenderData(
             nodes=render_nodes,
             ways=render_ways,
         )
@@ -46,7 +46,7 @@ class RenderElementMixin:
     @staticmethod
     def encode_query_features(results: list[QueryFeatureResult]):
         """Format query features results into a minimal structure, suitable for map rendering."""
-        encoded: list[RenderElementsData] = []
+        encoded: list[RenderData] = []
 
         for result in results:
             type, id = split_typed_element_id(result.element['typed_id'])
@@ -54,33 +54,29 @@ class RenderElementMixin:
 
             if type == 'node':
                 point = sequences[0][0]
-                render_node = RenderElementsData.Node(
+                render_node = RenderData.Node(
                     id=id, location=LonLat(lon=point[0], lat=point[1])
                 )
-                encoded.append(RenderElementsData(nodes=[render_node]))
+                encoded.append(RenderData(nodes=[render_node]))
 
             elif type == 'way':
-                render_way = RenderElementsData.Way(
-                    id=id, line=encode_lonlat(sequences[0], 6)
-                )
-                encoded.append(RenderElementsData(ways=[render_way]))
+                render_way = RenderData.Way(id=id, line=encode_lonlat(sequences[0], 6))
+                encoded.append(RenderData(ways=[render_way]))
 
             elif type == 'relation':
-                nodes: list[RenderElementsData.Node] = []
-                ways: list[RenderElementsData.Way] = []
+                nodes: list[RenderData.Node] = []
+                ways: list[RenderData.Way] = []
                 for seq in sequences:
                     if len(seq) == 1:
                         point = seq[0]
                         nodes.append(
-                            RenderElementsData.Node(
+                            RenderData.Node(
                                 id=id, location=LonLat(lon=point[0], lat=point[1])
                             )
                         )
                     else:
-                        ways.append(
-                            RenderElementsData.Way(id=id, line=encode_lonlat(seq, 6))
-                        )
-                encoded.append(RenderElementsData(nodes=nodes, ways=ways))
+                        ways.append(RenderData.Way(id=id, line=encode_lonlat(seq, 6)))
+                encoded.append(RenderData(nodes=nodes, ways=ways))
 
             else:
                 raise NotImplementedError(f'Unsupported element type {type!r}')
@@ -96,7 +92,7 @@ def _render_ways(
     areas: cython.bint,
     member_nodes: set[TypedElementId],
 ):
-    result: list[RenderElementsData.Way] = []
+    result: list[RenderData.Way] = []
 
     for way in ways:
         way_members = way['members']
@@ -131,7 +127,7 @@ def _render_ways(
         for segment in segments:
             geom: list[list[float]] = get_coordinates(segment).tolist()
             line = encode_lonlat(geom, 6)
-            result.append(RenderElementsData.Way(id=way_id, line=line, is_area=is_area))
+            result.append(RenderData.Way(id=way_id, line=line, is_area=is_area))
 
     return result
 
@@ -141,7 +137,7 @@ def _render_nodes(
     node_id_map: dict[TypedElementId, Element],
     member_nodes: set[TypedElementId],
     detailed: cython.bint,
-) -> list[RenderElementsData.Node]:
+) -> list[RenderData.Node]:
     nodes = ElementsFilter.filter_nodes_interesting(
         node_id_map.values(), member_nodes, detailed=detailed
     )
@@ -151,10 +147,8 @@ def _render_nodes(
     points = [node['point'] for node in nodes]
     geoms: list[list[float]] = get_coordinates(points).tolist()
     return [
-        RenderElementsData.Node(
-            id=node['typed_id'], location=LonLat(lon=geom[0], lat=geom[1])
-        )
-        for node, geom in zip(nodes, geoms, strict=True)
+        RenderData.Node(id=node['typed_id'], location=LonLat(lon=geom[0], lat=geom[1]))
+        for node, geom in zip(nodes, geoms)
     ]
 
 

@@ -1,6 +1,7 @@
 from base64 import urlsafe_b64encode
 from typing import Any
 
+from google.protobuf.message import Message
 from starlette.responses import HTMLResponse
 
 from app.lib.auth_context import auth_user
@@ -9,7 +10,7 @@ from app.lib.render_jinja import render_jinja
 from app.lib.translation import translation_locales
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.request_context_middleware import get_request
-from app.models.db.user import user_avatar_url
+from app.models.db.user import user_proto
 from app.models.proto.shared_pb2 import WebConfig
 
 _CONFIG_BASE = WebConfig()
@@ -32,10 +33,7 @@ async def render_response(
     user = auth_user()
     if user is not None:
         user_config = WebConfig.UserConfig(
-            id=user['id'],
-            display_name=user['display_name'],
-            email=user['email'],
-            avatar_url=user_avatar_url(user),
+            user=user_proto(user),
             activity_tracking=user['activity_tracking'],
             crash_reporting=user['crash_reporting'],
         )
@@ -43,7 +41,7 @@ async def render_response(
         # user_home_point = user['home_point']
         # if user_home_point is not None:
         #     x, y = get_coordinates(user_home_point)[0].tolist()
-        #     user_config.home_point = WebConfig.UserConfig.HomePoint(lon=x, lat=y)
+        #     user_config.home_point = LonLat(lon=x, lat=y)
 
         messages_count_unread = await ParallelTasksMiddleware.messages_count_unread()
         user_config.messages_count_unread = messages_count_unread or 0
@@ -62,3 +60,22 @@ async def render_response(
         data.update(template_data)
 
     return HTMLResponse(render_jinja(template_name, data), status_code=status)
+
+
+async def render_proto_page(
+    state: Message,
+    /,
+    *,
+    title_prefix: str,
+    status: int = 200,
+):
+    """Render a proto-backed page with a unified template contract."""
+    return await render_response(
+        'proto-page',
+        {
+            'PAGE_TYPE_NAME': state.DESCRIPTOR.full_name,
+            'PAGE_STATE_BYTES': state.SerializeToString(),
+            'PAGE_TITLE_PREFIX': f'{title_prefix} |',
+        },
+        status=status,
+    )
