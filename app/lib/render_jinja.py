@@ -1,28 +1,22 @@
 from base64 import urlsafe_b64encode
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address
 from typing import Any, override
 
 import cython
 from jinja2 import Environment, FileSystemLoader
 from jinja2_htmlmin import minify_loader
 
-from app.config import APP_URL, ENV, REPORT_COMMENT_BODY_MAX_LENGTH, VERSION
+from app.config import APP_URL, ENV, VERSION
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
-from app.lib.image import Image
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
-from app.models.db.audit import AUDIT_TYPE_VALUES
 from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
-from app.models.db.oauth2_application import oauth2_app_avatar_url, oauth2_app_is_system
+from app.models.db.oauth2_application import oauth2_app_avatar_url
 from app.models.db.user import (
     user_avatar_url,
     user_is_admin,
-    user_is_deleted,
-    user_is_moderator,
 )
-from speedup import split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -152,67 +146,22 @@ def stripspecial(value: str):
     return value.strip('!?:;., ')
 
 
-def mask_ip(ip: IPv4Address | IPv6Address):
-    """
-    Mask an IP address for privacy in user-facing displays.
-
-    IPv4: Masks last 16 bits (2 octets) per CNIL recommendation.
-    IPv6: Masks last 80 bits (preserves /48 prefix).
-    IPv4-mapped IPv6: Extracted and displayed as masked IPv4.
-    Loopback addresses are returned unmasked.
-
-    >>> mask_ip(IPv4Address('203.0.113.42'))
-    '203.0.*.*'
-    >>> mask_ip(IPv6Address('2001:db8:85a3::8a2e:370:7334'))
-    '2001:db8:85a3:*:*:*:*:*'
-    >>> mask_ip(IPv4Address('127.0.0.1'))
-    '127.0.0.1'
-    """
-    if not ip.is_global:
-        return str(ip)
-
-    # Handle IPv4-mapped IPv6 (::ffff:a.b.c.d)
-    if isinstance(ip, IPv6Address) and ip.ipv4_mapped:
-        ip = ip.ipv4_mapped
-
-    if isinstance(ip, IPv4Address):
-        # Mask last 16 bits (2 octets)
-        octets = ip.packed
-        return f'{octets[0]}.{octets[1]}.*.*'
-
-    # IPv6: preserve /48 prefix (first 3 groups), mask the rest
-    packed = ip.packed
-    groups = [(packed[i] << 8) | packed[i + 1] for i in range(0, 16, 2)]
-    return f'{groups[0]:x}:{groups[1]:x}:{groups[2]:x}:*:*:*:*:*'
-
-
 # configure template globals
 _J2.globals.update(
-    AUDIT_TYPE_SET=AUDIT_TYPE_VALUES,
     CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
-    REPORT_COMMENT_BODY_MAX_LENGTH=REPORT_COMMENT_BODY_MAX_LENGTH,
-    ceil=ceil,
     format_rfc2822_date=format_rfc2822_date,
-    get_avatar_url=Image.get_avatar_url,
     nt=nt,
     oauth2_app_avatar_url=oauth2_app_avatar_url,
-    oauth2_app_is_system=oauth2_app_is_system,
     round=round,
-    split_typed_element_id=split_typed_element_id,
-    str=str,
     t=t,
     timeago=timeago,
     user_avatar_url=user_avatar_url,
     user_is_admin=user_is_admin,
-    user_is_deleted=user_is_deleted,
-    user_is_moderator=user_is_moderator,
     vite_render_asset=vite_render_asset,
-    zip=zip,
 )
 
 # configure template filters
 _J2.filters.update(
     b64=b64,
-    mask_ip=mask_ip,
     stripspecial=stripspecial,
 )

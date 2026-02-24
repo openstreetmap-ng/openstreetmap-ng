@@ -49,8 +49,7 @@ class _Animation(NamedTuple):
     loop: int
 
 
-UserAvatarType = Literal['gravatar', 'custom'] | None
-AvatarType = Literal['anonymous_note', 'initials'] | UserAvatarType
+type UserAvatarType = Literal['gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
@@ -88,7 +87,7 @@ class Image:
     ) -> str: ...
     @staticmethod
     def get_avatar_url(
-        image_type: AvatarType,
+        image_type: Literal['anonymous_note', 'initials'] | UserAvatarType,
         image_id: UserId | NoteId | StorageKey | None = None,
         *,
         app: bool = False,
@@ -324,7 +323,7 @@ async def _normalize_image(
             if label in {'medium', 'high'}:
                 from app.services.audit_service import audit  # noqa: PLC0415
 
-                await audit('nsfw_image', extra=top)
+                audit('nsfw_image', extra=top).close()
                 raise_for.image_inappropriate()
 
     # optimize file size

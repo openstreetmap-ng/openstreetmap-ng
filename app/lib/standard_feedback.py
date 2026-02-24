@@ -7,8 +7,7 @@ from fastapi import HTTPException, status
 
 from app.middlewares.request_context_middleware import is_rpc_request
 from app.models.proto.shared_pb2 import StandardFeedbackDetail
-
-MessageSeverity = Literal['success', 'info', 'error']
+from app.models.proto.shared_types import StandardFeedbackDetail_Severity
 
 
 class StandardFeedback:
@@ -21,7 +20,9 @@ class StandardFeedback:
     __slots__ = ('_messages',)
 
     def __init__(self):
-        self._messages: defaultdict[str | None, list[tuple[MessageSeverity, str]]]
+        self._messages: defaultdict[
+            str | None, list[tuple[StandardFeedbackDetail_Severity, str]]
+        ]
         self._messages = defaultdict(list)
 
     def success(self, field: str | None, message: str):
