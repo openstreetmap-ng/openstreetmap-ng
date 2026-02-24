@@ -3,11 +3,11 @@ from hashlib import sha256
 from logging.config import dictConfig
 from os import chdir
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
-from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 from pydantic import (
     AliasChoices,
@@ -23,16 +23,18 @@ from pydantic import (
 
 from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.lib.pydantic_settings_integration import pydantic_settings_integration
-from app.models.proto.changeset_pb2 import AddChangesetCommentRequest
-from app.models.proto.message_pb2 import SendMessageRequest
-from app.models.proto.note_pb2 import AddNoteCommentRequest
-from app.models.proto.report_pb2 import CreateReportRequest
-from app.models.proto.search_pb2 import SearchRequest
-from app.models.proto.settings_security_pb2 import RenamePasskeyRequest
+from app.models.proto import (
+    audit_types,
+    changeset_pb2,
+    message_pb2,
+    note_pb2,
+    report_pb2,
+    search_pb2,
+    settings_applications_pb2,
+    settings_pb2,
+    settings_security_pb2,
+)
 from buf.validate import validate_pb2
-
-if TYPE_CHECKING:
-    from app.models.db.audit import AuditType
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -156,6 +158,7 @@ UNSUPPORTED_BROWSER_OVERRIDE_MAX_AGE = timedelta(days=365)
 
 # Account settings
 EMAIL_MIN_LENGTH = 5
+EMAIL_MAX_LENGTH = EMAIL_MAX_LENGTH_RFC
 PASSWORD_MIN_LENGTH = 6  # TODO: check pwned passwords
 DISPLAY_NAME_MAX_LENGTH = 255
 ACTIVE_SESSIONS_DISPLAY_LIMIT = 100
@@ -175,10 +178,8 @@ IMAGE_PROXY_IMAGE_MAX_SIDE = 2048
 IMAGE_PROXY_RECOMPRESS_QUALITY = 80
 USER_ACTIVITY_CHART_WEEKS = 26
 USER_BLOCK_BODY_MAX_LENGTH = 20_000  # NOTE: value TBD
-USER_DESCRIPTION_MAX_LENGTH = 20_000  # NOTE: value TBD
 USER_NEW_DAYS = 21
 USER_RECENT_ACTIVITY_ENTRIES = 6
-USER_MAX_SOCIALS = 3
 
 # User preferences
 USER_PREF_BULK_SET_LIMIT = 150
@@ -196,14 +197,10 @@ AUTH_PROVIDER_UID_MAX_LENGTH = 255
 AUTH_PROVIDER_STATE_MAX_AGE = timedelta(hours=2)
 AUTH_PROVIDER_VERIFICATION_MAX_AGE = timedelta(hours=2)
 OAUTH_APP_ADMIN_LIMIT = 100
-OAUTH_APP_NAME_MAX_LENGTH = 50
-OAUTH_APP_URI_LIMIT = 10
-OAUTH_APP_URI_MAX_LENGTH = 1000
 OAUTH_AUTH_USER_LIMIT = 500  # TODO: revoke oldest authorizations
 OAUTH_AUTHORIZATION_CODE_TIMEOUT = timedelta(minutes=3)
 OAUTH_CODE_CHALLENGE_MAX_LENGTH = 255
 OAUTH_PAT_LIMIT = 100
-OAUTH_PAT_NAME_MAX_LENGTH = 50
 OAUTH_SECRET_PREVIEW_LENGTH = 7
 OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT = 10
 OPENID_DISCOVERY_CACHE_EXPIRE = timedelta(hours=8)
@@ -415,7 +412,7 @@ class _AuditPolicies(BaseModel):
     view_admin_users: Policy = Policy(60, timedelta(hours=6))
     view_audit: Policy = Policy(60, timedelta(hours=6))
 
-    def __getitem__(self, item: 'AuditType') -> Policy:
+    def __getitem__(self, item: audit_types.Type) -> Policy:
         return getattr(self, item)
 
 
@@ -423,6 +420,7 @@ class _AuditPolicies(BaseModel):
 AUDIT_POLICY = _AuditPolicies()
 AUDIT_LIST_PAGE_SIZE = 50
 AUDIT_USER_AGENT_MAX_LENGTH = 200
+AUDIT_CLEANUP_PROBABILITY = 0.0001
 
 # Admin tasks
 ADMIN_TASK_HEARTBEAT_INTERVAL = timedelta(minutes=1)
@@ -530,36 +528,62 @@ if LOG_LEVEL is None:
 
 
 def _proto_validate(message_cls: type[Message], path: str):
-    field_name, type_name, rule_name = path.rsplit('.', 2)
-    field: FieldDescriptor = message_cls.DESCRIPTOR.fields_by_name[field_name]
-    rule: validate_pb2.FieldRules = field.GetOptions().Extensions[validate_pb2.field]  # type: ignore
-    out = getattr(getattr(rule, type_name), rule_name)
+    field_name, *rule_path = path.split('.')
+    out = (
+        message_cls.DESCRIPTOR
+        .fields_by_name[field_name]
+        .GetOptions()
+        .Extensions[validate_pb2.field]  # type: ignore
+    )
+    for part in rule_path:
+        out = getattr(out, part)
     assert out
     return out
 
 
 CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
-    AddChangesetCommentRequest, 'body.string.max_len'
+    changeset_pb2.AddCommentRequest, 'body.string.max_len'
 )
 MESSAGE_BODY_MAX_LENGTH: int = _proto_validate(
-    SendMessageRequest, 'body.string.max_len'
+    message_pb2.SendRequest, 'body.string.max_len'
 )
 MESSAGE_RECIPIENTS_LIMIT: int = _proto_validate(
-    SendMessageRequest, 'recipient.repeated.max_items'
+    message_pb2.SendRequest, 'recipient.repeated.max_items'
 )
 MESSAGE_SUBJECT_MAX_LENGTH: int = _proto_validate(
-    SendMessageRequest, 'subject.string.max_len'
+    message_pb2.SendRequest, 'subject.string.max_len'
 )
 NOTE_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
-    AddNoteCommentRequest, 'body.string.max_len'
+    note_pb2.AddCommentRequest, 'body.string.max_len'
+)
+OAUTH_APP_NAME_MAX_LENGTH = _proto_validate(
+    settings_applications_pb2.CreateRequest, 'name.string.max_len'
+)
+OAUTH_APP_URI_LIMIT = _proto_validate(
+    settings_applications_pb2.UpdateRequest, 'redirect_uris.repeated.max_items'
+)
+OAUTH_APP_URI_MAX_LENGTH = _proto_validate(
+    settings_applications_pb2.UpdateRequest,
+    'redirect_uris.repeated.items.string.max_len',
+)
+OAUTH_PAT_NAME_MAX_LENGTH = _proto_validate(
+    settings_applications_pb2.CreateTokenRequest, 'name.string.max_len'
 )
 PASSKEY_NAME_MAX_LENGTH: int = _proto_validate(
-    RenamePasskeyRequest, 'name.string.max_len'
+    settings_security_pb2.RenamePasskeyRequest, 'name.string.max_len'
 )
 REPORT_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
-    CreateReportRequest, 'body.string.max_len'
+    report_pb2.CreateRequest, 'body.string.max_len'
 )
-SEARCH_QUERY_MAX_LENGTH: int = _proto_validate(SearchRequest, 'query.string.max_len')
+SEARCH_QUERY_MAX_LENGTH: int = _proto_validate(
+    search_pb2.SearchRequest, 'query.string.max_len'
+)
+USER_DESCRIPTION_MAX_LENGTH: int = _proto_validate(
+    settings_pb2.UpdateDescriptionRequest, 'description.string.max_len'
+)
+USER_MAX_SOCIALS: int = _proto_validate(
+    settings_pb2.UpdateSocialsRequest, 'socials.repeated.max_items'
+)
 
 # -------------------- Logging configuration --------------------
 

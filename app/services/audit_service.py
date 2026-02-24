@@ -1,36 +1,37 @@
-import asyncio
 import logging
-from asyncio import Event, TaskGroup
+from asyncio import TaskGroup
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
-from random import random, uniform
+from random import random
 from typing import Any, Literal
 
 import cython
+from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 from psycopg import AsyncConnection
 from psycopg.sql import SQL
 from psycopg.types.json import Jsonb
-from sentry_sdk.api import start_transaction
 from zid import zid
 
-from app.config import AUDIT_POLICY, AUDIT_USER_AGENT_MAX_LENGTH, ENV
-from app.db import db, db_lock
-from app.lib.anonymizer import anonymize_ip
-from app.lib.auth_context import auth_oauth2, auth_user
-from app.lib.retry import retry
-from app.lib.sentry import (
-    SENTRY_AUDIT_MANAGEMENT_MONITOR,
-    SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG,
+from app.config import (
+    AUDIT_CLEANUP_PROBABILITY,
+    AUDIT_POLICY,
+    AUDIT_USER_AGENT_MAX_LENGTH,
+    ENV,
 )
-from app.lib.testmethod import testmethod
-from app.middlewares.request_context_middleware import get_request
-from app.models.db.audit import AUDIT_TYPE_VALUES, AuditEventInit, AuditType
+from app.db import db
+from app.lib.auth_context import auth_oauth2, auth_user
+from app.lib.ip import anonymize_ip
+from app.middlewares.request_context_middleware import (
+    get_request,
+    get_request_audit_tasks,
+)
+from app.models.db.audit import AUDIT_TYPE_VALUES, AuditEventInit
+from app.models.proto.audit_types import Type
 from app.models.types import ApplicationId, OAuth2TokenId, UserId
 
 _TG: TaskGroup
-_PROCESS_REQUEST_EVENT = Event()
-_PROCESS_DONE_EVENT = Event()
 
 
 class AuditService:
@@ -39,25 +40,11 @@ class AuditService:
     async def context():
         global _TG
         async with (_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
-            task = _TG.create_task(_process_task())
             yield
-            task.cancel()  # avoid "Task was destroyed" warning during tests
-
-    @staticmethod
-    @testmethod
-    async def force_process():
-        """
-        Force the audit processing loop to wake up early, and wait for it to finish.
-        This method is only available during testing, and is limited to the current process.
-        """
-        logging.debug('Requesting audit processing loop early wakeup')
-        _PROCESS_REQUEST_EVENT.set()
-        _PROCESS_DONE_EVENT.clear()
-        await _PROCESS_DONE_EVENT.wait()
 
 
 def audit(
-    type: AuditType,
+    type: Type,
     conn: AsyncConnection | None = None,
     /,
     *,
@@ -65,6 +52,7 @@ def audit(
     user_id: UserId | None | Literal['UNSET'] = 'UNSET',
     target_user_id: UserId | None = None,
     oauth2: tuple[ApplicationId, OAuth2TokenId] | None | Literal['UNSET'] = 'UNSET',
+    extra_proto: Message | None = None,
     extra: dict[str, Any] | None = None,
     # Event config overrides
     sample_rate: float | None = None,
@@ -117,6 +105,12 @@ def audit(
     if ENV == 'test':
         req_ip = anonymize_ip(req_ip)
 
+    if extra_proto is not None:
+        merged_extra = _proto_dict(extra_proto)
+        if extra is not None:
+            merged_extra.update(extra)
+        extra = merged_extra
+
     event_init: AuditEventInit = {
         'id': zid(),  # type: ignore
         'type': type,
@@ -135,6 +129,12 @@ def audit(
 
     task = _TG.create_task(_audit_task(conn, event_init, discard_repeated))
 
+    if random() < AUDIT_CLEANUP_PROBABILITY:
+        _TG.create_task(_cleanup_old_audit_logs())
+
+    request_audit_tasks = get_request_audit_tasks()
+    request_audit_tasks.add(task)
+
     if type not in {'auth_api', 'auth_web'} or extra:
         values: list[str] = []
         if user_id is not None:
@@ -146,6 +146,7 @@ def audit(
         logging.info('AUDIT: %s %s "%s": %s', req_ip, type, ' '.join(values), extra)
 
     async def _waiter():
+        request_audit_tasks.discard(task)
         await task
 
     return _waiter()
@@ -198,38 +199,6 @@ async def _audit_task(
         )
 
 
-@retry(None)
-async def _process_task():
-    async def sleep(delay: float):
-        if delay > 0:
-            try:
-                await asyncio.wait_for(_PROCESS_REQUEST_EVENT.wait(), timeout=delay)
-            except TimeoutError:
-                pass
-
-    while True:
-        async with db_lock(3968087525058357795) as acquired:
-            if acquired:
-                _PROCESS_REQUEST_EVENT.clear()
-
-                with (
-                    SENTRY_AUDIT_MANAGEMENT_MONITOR,
-                    start_transaction(
-                        op='task', name=SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG
-                    ),
-                ):
-                    await _cleanup_old_audit_logs()
-
-                if not _PROCESS_REQUEST_EVENT.is_set():
-                    _PROCESS_DONE_EVENT.set()
-
-                # on success, sleep 5min (handle burst)
-                await sleep(300)
-
-        # on success/failure, sleep ~24h
-        await sleep(uniform(23.5 * 3600, 24.5 * 3600))
-
-
 async def _cleanup_old_audit_logs():
     """Delete old audit logs based on configured retention periods."""
     async with db(True) as conn:
@@ -247,3 +216,33 @@ async def _cleanup_old_audit_logs():
                 logging.debug(
                     'Deleted %d old %r audit logs', result.rowcount, audit_type
                 )
+
+
+@cython.cfunc
+def _proto_dict(message: Message):
+    out: dict[str, Any] = {}
+
+    for field, value in message.ListFields():
+        if field.label == FieldDescriptor.LABEL_REPEATED:
+            entries = list(value)
+            if field.type == FieldDescriptor.TYPE_ENUM:
+                values_by_number = field.enum_type.values_by_number
+                entries = [
+                    (
+                        entry_def.name
+                        if (entry_def := values_by_number.get(entry))
+                        else entry
+                    )
+                    for entry in entries
+                ]
+            out[field.name] = entries
+            continue
+
+        if field.type == FieldDescriptor.TYPE_ENUM:
+            entry_def = field.enum_type.values_by_number.get(value)
+            out[field.name] = entry_def.name if entry_def is not None else value
+            continue
+
+        out[field.name] = value
+
+    return out
