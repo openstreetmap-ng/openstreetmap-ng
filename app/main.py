@@ -39,22 +39,16 @@ from app.db import psycopg_pool_open
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware
-from app.middlewares.auth_middleware import AuthMiddleware
-from app.middlewares.cache_control_middleware import CacheControlMiddleware
-from app.middlewares.default_headers_middleware import DefaultHeadersMiddleware
-from app.middlewares.exceptions_middleware import ExceptionsMiddleware
-from app.middlewares.format_style_middleware import FormatStyleMiddleware
+from app.middlewares.context_middleware import ContextMiddleware
+from app.middlewares.headers_middleware import HeadersMiddleware
 from app.middlewares.limit_url_size_middleware import LimitUrlSizeMiddleware
 from app.middlewares.localhost_redirect_middleware import LocalhostRedirectMiddleware
 from app.middlewares.parallel_tasks_middleware import ParallelTasksMiddleware
 from app.middlewares.profiler_middleware import ProfilerMiddleware
-from app.middlewares.rate_limit_middleware import RateLimitMiddleware
 from app.middlewares.request_body_middleware import RequestBodyMiddleware
 from app.middlewares.request_context_middleware import RequestContextMiddleware
-from app.middlewares.runtime_middleware import RuntimeMiddleware
 from app.middlewares.subdomain_middleware import SubdomainMiddleware
 from app.middlewares.test_site_middleware import TestSiteMiddleware
-from app.middlewares.translation_middleware import TranslationMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
 from app.responses.osm_response import setup_api_router_response
 from app.responses.precompressed_static_files import PrecompressedStaticFiles
@@ -146,15 +140,10 @@ app.add_middleware(
     # https://github.com/connectrpc/connect-python/issues/96
     remove_accept_encoding=True,
 )
-app.add_middleware(CacheControlMiddleware)
-app.add_middleware(RateLimitMiddleware)
-app.add_middleware(FormatStyleMiddleware)
-app.add_middleware(TranslationMiddleware)  # depends on: auth
-app.add_middleware(AuthMiddleware)
+app.add_middleware(ContextMiddleware)
 app.add_middleware(RequestBodyMiddleware)
 app.add_middleware(SubdomainMiddleware)
 app.add_middleware(LimitUrlSizeMiddleware)
-app.add_middleware(ExceptionsMiddleware)
 
 if ENV == 'dev':
     app.add_middleware(LocalhostRedirectMiddleware)
@@ -164,10 +153,7 @@ if ENV != 'prod':
 
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(APICorsMiddleware)
-app.add_middleware(DefaultHeadersMiddleware)
-
-if ENV != 'prod':
-    app.add_middleware(RuntimeMiddleware)
+app.add_middleware(HeadersMiddleware)
 
 from app.rpc.app import app as rpc_app  # noqa: E402
 
@@ -239,9 +225,10 @@ def _build_middleware_stack(self: Starlette) -> ASGIApp:
         *self.user_middleware,
         Middleware(AsyncExitStackMiddleware),
     ]
+    middleware.reverse()
 
     app = self.router
-    for cls, args, kwargs in reversed(middleware):
+    for cls, args, kwargs in middleware:
         app = cls(app, *args, **kwargs)
     return app
 

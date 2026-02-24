@@ -6,7 +6,7 @@ from osm_shortlink import shortlink_decode
 from starlette.responses import RedirectResponse
 
 from app.config import STATIC_CACHE_MAX_AGE, STATIC_CACHE_STALE
-from app.middlewares.cache_control_middleware import cache_control
+from app.middlewares.headers_middleware import cache_control
 
 router = APIRouter()
 
