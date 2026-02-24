@@ -13,7 +13,9 @@ _I18NEXT_MAP_PATH = _I18NEXT_DIR.joinpath('map.json')
 _INCLUDE_PREFIXES = [
     'javascripts.map.layers.title',
     'javascripts.share.title',
+    'service',
     'site.key.table.entry',
+    'socials.label',
 ]
 
 _INCLUDE_PREFIXES_DOT = tuple(f'{prefix}.' for prefix in _INCLUDE_PREFIXES)
