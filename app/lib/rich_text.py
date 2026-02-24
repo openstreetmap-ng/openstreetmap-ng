@@ -24,7 +24,7 @@ from app.models.types import ImageProxyId
 from app.services.cache_service import CacheContext, CacheService
 from app.services.image_proxy_service import ImageProxyService
 
-TextFormat = Literal['html', 'markdown', 'plain']
+type TextFormat = Literal['html', 'markdown', 'plain']
 
 
 async def process_rich_text_markdown(text: str):
@@ -100,9 +100,8 @@ def _iter_image_tokens(tokens: list[Token]) -> Generator[Token]:
 
 
 async def _prepare_image_proxies(tokens: list[Token]):
-    occurrences: list[tuple[Token, str]] = []
-    unique_urls: list[str] = []
-    seen: set[str] = set()
+    proxy_tokens: list[Token] = []
+    proxy_urls: list[str] = []
 
     for token in _iter_image_tokens(tokens):
         src = token.attrs.get('src')
@@ -113,24 +112,16 @@ async def _prepare_image_proxies(tokens: list[Token]):
         if parts.scheme.lower() not in {'http', 'https'}:
             continue
 
-        occurrences.append((token, src))
-        if src not in seen:
-            seen.add(src)
-            unique_urls.append(src)
+        proxy_tokens.append(token)
+        proxy_urls.append(src)
 
-    if not occurrences:
+    if not proxy_tokens:
         return None
 
-    entries = await ImageProxyService.ensure(unique_urls)
-
-    entry_map = {entry['url']: entry for entry in entries}
+    entries = await ImageProxyService.ensure(proxy_urls)
     ids: list[ImageProxyId] = []
 
-    for token, original in occurrences:
-        entry = entry_map.get(original)
-        if entry is None:
-            continue
-
+    for token, entry in zip(proxy_tokens, entries):
         proxy_id = ImageProxyId(entry['id'])
         attrs: dict[str, str | int | float] = token.attrs
         attrs['src'] = f'/api/web/img/proxy/{proxy_id}'
@@ -171,7 +162,7 @@ async def resolve_rich_text(
     params: list[Any] = []
     proxy_results: dict[Any, list[ImageProxyId]] = {}
 
-    for task, obj in zip(tasks, mapping.values(), strict=True):
+    for task, obj in zip(tasks, mapping.values()):
         processed, cache_id, proxy_result = task.result()
         obj[rich_field_name] = processed  # type: ignore
 

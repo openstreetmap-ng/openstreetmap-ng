@@ -23,7 +23,7 @@ class TraceExceptionsMixin:
     def trace_file_unsupported_format(self, content_type: str):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
-            detail=f'Unsupported trace file format {content_type!r}',
+            detail=f'Unsupported trace file format: {content_type!r}',
         )
 
     @abstractmethod
