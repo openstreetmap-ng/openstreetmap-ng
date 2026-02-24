@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package settings_connections;
+
+import "buf/validate/validate.proto";
+
+enum Provider {
+  google = 0;
+  facebook = 1;
+  microsoft = 2;
+  github = 3;
+  wikimedia = 4;
+}
+
+message Page {
+  message Entry {
+    Provider provider = 1;
+    bool connected = 2;
+  }
+
+  repeated Entry providers = 1;
+}
+
+service Service {
+  rpc Remove(RemoveRequest) returns (RemoveResponse) {}
+}
+
+message RemoveRequest {
+  Provider provider = 1 [(buf.validate.field).enum.defined_only = true];
+}
+
+message RemoveResponse {}

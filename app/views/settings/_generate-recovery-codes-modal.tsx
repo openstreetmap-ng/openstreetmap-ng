@@ -1,41 +1,41 @@
 import { config } from "@lib/config"
 import { CopyButton } from "@lib/copy-group"
-import { SettingsSecurityService } from "@lib/proto/settings_security_pb"
+import { useDisposeLayoutEffect } from "@lib/dispose-scope"
+import { type RecoveryStatusValid, Service } from "@lib/proto/settings_security_pb"
 import { StandardForm } from "@lib/standard-form"
-import { useSignal } from "@preact/signals"
-import { memoize } from "@std/cache/memoize"
-import { Modal } from "bootstrap"
+import { batch, type Signal, useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { render } from "preact"
-import { useId, useLayoutEffect, useRef } from "preact/hooks"
+import { useId, useRef } from "preact/hooks"
 
-const GenerateRecoveryCodesModal = () => {
+export const GENERATE_RECOVERY_CODES_MODAL_ID =
+  "SettingsSecurityGenerateRecoveryCodesModal"
+
+export const GenerateRecoveryCodesModal = ({
+  recoveryCodesStatus,
+}: {
+  recoveryCodesStatus: Signal<RecoveryStatusValid>
+}) => {
   const labelId = useId()
-  const codes = useSignal<readonly string[] | null>(null)
+  const codes = useSignal<readonly string[] | undefined>()
 
   const modalRef = useRef<HTMLDivElement>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
 
-  useLayoutEffect(() => {
+  useDisposeLayoutEffect((scope) => {
     const modal = modalRef.current!
-
-    modal.addEventListener("show.bs.modal", () => {
-      codes.value = null
+    scope.dom(modal, "show.bs.modal", () => {
+      codes.value = undefined
       passwordInputRef.current!.value = ""
     })
-
-    modal.addEventListener("shown.bs.modal", () => {
-      passwordInputRef.current?.focus()
-    })
-
-    modal.addEventListener("hide.bs.modal", () => {
-      if (codes.value) window.location.reload()
+    scope.dom(modal, "shown.bs.modal", () => {
+      passwordInputRef.current!.focus()
     })
   }, [])
 
   return (
     <div
       class="modal fade"
+      id={GENERATE_RECOVERY_CODES_MODAL_ID}
       data-bs-backdrop="static"
       tabIndex={-1}
       aria-labelledby={labelId}
@@ -97,19 +97,25 @@ const GenerateRecoveryCodesModal = () => {
             </>
           ) : (
             <StandardForm
-              method={SettingsSecurityService.method.generateRecoveryCodes}
+              method={Service.method.generateRecoveryCodes}
               buildRequest={({ passwords }) => ({
                 password: passwords.password,
               })}
-              onSuccess={(resp) => (codes.value = resp.codes)}
+              onSuccess={(resp) => {
+                batch(() => {
+                  codes.value = resp.codes
+                  recoveryCodesStatus.value = resp.status
+                })
+              }}
             >
               <div class="modal-body">
                 <input
                   type="text"
-                  class="d-none"
                   name="display_name"
-                  defaultValue={config.userConfig!.displayName}
+                  value={config.userConfig!.user.displayName}
                   autoComplete="username"
+                  readOnly
+                  hidden
                 />
 
                 <p>
@@ -153,12 +159,3 @@ const GenerateRecoveryCodesModal = () => {
     </div>
   )
 }
-
-export const getGenerateRecoveryCodesModal = memoize(() => {
-  const root = document.createElement("div")
-  render(<GenerateRecoveryCodesModal />, root)
-  document.body.append(root)
-
-  const modal = root.firstElementChild
-  return new Modal(modal!)
-})
