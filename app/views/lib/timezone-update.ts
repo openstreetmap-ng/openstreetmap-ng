@@ -1,7 +1,7 @@
 import { isLoggedIn } from "@lib/config"
 import { getTimezoneName } from "@lib/format"
 import { timezoneUpdateTimeStorage } from "@lib/local-storage"
-import { SettingsService } from "@lib/proto/settings_pb"
+import { Service } from "@lib/proto/settings_pb"
 import { rpcUnary } from "@lib/rpc"
 import { DAY, SECOND } from "@std/datetime/constants"
 
@@ -17,7 +17,7 @@ const timezoneUpdate = async () => {
   console.debug("TimezoneUpdate: Updating to", timezone)
 
   try {
-    await rpcUnary(SettingsService.method.updateTimezone)({ timezone })
+    await rpcUnary(Service.method.updateTimezone)({ timezone })
     console.debug("TimezoneUpdate: Success")
   } catch (error) {
     console.warn("TimezoneUpdate: Failed", error)

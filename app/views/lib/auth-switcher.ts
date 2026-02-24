@@ -9,13 +9,11 @@ for (const root of roots) {
 
   const updateCta = () => {
     const providersState = root.dataset.state === "providers"
-    toProviders.classList.toggle("d-none", providersState)
-    toEmail.classList.toggle("d-none", !providersState)
+    toProviders.hidden = providersState
+    toEmail.hidden = !providersState
   }
 
-  const onResize = () => {
-    root.scrollLeft = 999999
-  }
+  const onResize = () => (root.scrollLeft = 999999)
 
   toProviders.addEventListener("click", () => {
     root.dataset.state = "providers"

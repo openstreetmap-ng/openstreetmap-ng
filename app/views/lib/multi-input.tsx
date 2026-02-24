@@ -62,9 +62,7 @@ export const MultiInput = ({
   const maxItemsLimit = maxItems?.[0]
   const maxItemsFeedback = maxItems?.[1]
 
-  const tokens = useSignal<string[]>(
-    seedTokens(defaultValue, maxItemsLimit, maxItemLength),
-  )
+  const tokens = useSignal(seedTokens(defaultValue, maxItemsLimit, maxItemLength))
   const latestInsertBlocked = useSignal(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -204,7 +202,7 @@ export const MultiInput = ({
 
       {visibleTokens.map((value) => (
         <input
-          key={`hidden-${value}`}
+          key={value}
           type="hidden"
           name={name}
           value={value}
