@@ -3,23 +3,19 @@ import type { Theme } from "@lib/theme"
 import { useComputed } from "@preact/signals"
 import { t } from "i18next"
 
-type ThemeOption = {
+const THEME_OPTIONS: {
   value: Theme
   icon: string
   label: string
-}
-
-const themeOptions: ThemeOption[] = [
+}[] = [
   { value: "light", icon: "bi-sun-fill", label: t("theme.light") },
   { value: "dark", icon: "bi-moon-stars-fill", label: t("theme.dark") },
   { value: "auto", icon: "bi-circle-half", label: t("theme.auto") },
 ]
 
-const BUTTON_LABEL = t("theme.toggle_theme")
-
 export const ThemeSwitcher = () => {
   const buttonIcon = useComputed(
-    () => themeOptions.find((o) => o.value === themeStorage.value)!.icon,
+    () => THEME_OPTIONS.find((option) => option.value === themeStorage.value)!.icon,
   )
 
   return (
@@ -30,19 +26,19 @@ export const ThemeSwitcher = () => {
       <button
         class="btn btn-light text-navbar dropdown-toggle"
         type="button"
-        title={BUTTON_LABEL}
+        title={t("theme.toggle_theme")}
         aria-expanded="false"
         data-bs-toggle="dropdown"
       >
         <i class={`bi ${buttonIcon.value}`} />
-        <span class="d-lg-none ms-2">{BUTTON_LABEL}</span>
+        <span class="d-lg-none ms-2">{t("theme.toggle_theme")}</span>
       </button>
 
       <ul class="dropdown-menu dropdown-menu-end">
         <li>
-          <h6 class="dropdown-item-text">{BUTTON_LABEL}</h6>
+          <h6 class="dropdown-item-text">{t("theme.toggle_theme")}</h6>
         </li>
-        {themeOptions.map((option) => (
+        {THEME_OPTIONS.map((option) => (
           <li key={option.value}>
             <button
               class={`dropdown-item ${option.value === themeStorage.value ? "active" : ""}`}

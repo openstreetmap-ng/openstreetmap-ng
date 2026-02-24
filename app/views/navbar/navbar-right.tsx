@@ -105,25 +105,27 @@ const NavbarNav = () => (
   </>
 )
 
-const user = config.userConfig
-export const messagesCountUnread = signal(user?.messagesCountUnread ?? 0)
-const reportsCountModerator = user?.reportsCountModerator ?? 0
-const reportsCountAdministrator = user?.reportsCountAdministrator ?? 0
+const userConfig = config.userConfig
+const user = userConfig?.user
+export const messagesCountUnread = signal(userConfig?.messagesCountUnread ?? 0)
+const reportsCountModerator = userConfig?.reportsCountModerator ?? 0
+const reportsCountAdministrator = userConfig?.reportsCountAdministrator ?? 0
 
 const NavbarUser = () => {
+  assertExists(userConfig)
   assertExists(user)
   const showBadges = Boolean(
     messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator,
   )
   const showReports = Boolean(reportsCountModerator || reportsCountAdministrator)
-  const showFindHome = Boolean(mainMap.value && user.homePoint)
+  const showFindHome = Boolean(mainMap.value && userConfig.homePoint)
 
   const onFindHomeClick = () => {
-    assertExists(user.homePoint)
+    assertExists(userConfig.homePoint)
     location.hash = encodeMapState({
       ...getInitialMapState(),
-      lon: user.homePoint.lon,
-      lat: user.homePoint.lat,
+      lon: userConfig.homePoint.lon,
+      lat: userConfig.homePoint.lat,
     })
   }
 

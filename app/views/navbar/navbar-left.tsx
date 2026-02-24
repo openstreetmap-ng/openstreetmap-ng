@@ -36,6 +36,17 @@ const buildEditHref = (editor: Editor) => {
   return `/edit${qsEncode(params)}${currentHash.value}`
 }
 
+const getEditorImage = (editor: Editor) => {
+  switch (editor) {
+    case "id":
+      return { src: "/static/img/brand/id.webp", name: "iD", darkInvert: true }
+    case "rapid":
+      return { src: "/static/img/brand/rapid.webp", name: "Rapid", darkInvert: false }
+    case "remote":
+      return { src: "/static/img/brand/josm.webp", name: "JOSM", darkInvert: false }
+  }
+}
+
 const EditorImg = ({
   editor,
   variant,
@@ -45,24 +56,11 @@ const EditorImg = ({
   variant: "primary" | "dropdown"
   className?: string
 }) => {
-  let src: string
-  let name: string
-
-  if (editor === "id") {
-    src = "/static/img/brand/id.webp"
-    name = "iD"
-    className += " dark-filter-invert"
-  } else if (editor === "rapid") {
-    src = "/static/img/brand/rapid.webp"
-    name = "Rapid"
-  } else {
-    src = "/static/img/brand/josm.webp"
-    name = "JOSM"
-  }
+  const { src, name, darkInvert } = getEditorImage(editor)
 
   return (
     <img
-      class={className}
+      class={darkInvert ? `${className} dark-filter-invert` : className}
       src={src}
       alt={t("alt.logo", { name })}
       loading={variant === "dropdown" ? "lazy" : undefined}
