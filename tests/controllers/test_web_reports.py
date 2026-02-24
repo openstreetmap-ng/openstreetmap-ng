@@ -56,6 +56,6 @@ async def test_profile_report(client: AsyncClient):
     assert r.is_success, r.text
 
     # Verify the page contents
-    assert '/user/user1' in r.text
-    assert '/user/user2' in r.text
+    assert f'/user-id/{user1["id"]}' in r.text
+    assert f'/user-id/{user2["id"]}' in r.text
     assert test_message in r.text
