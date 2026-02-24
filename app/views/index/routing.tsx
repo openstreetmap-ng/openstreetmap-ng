@@ -12,8 +12,8 @@ import {
 } from "@lib/format"
 import { tRich } from "@lib/i18n"
 import {
-  ROUTING_ENGINE_KEYS,
-  type RoutingEngineKey,
+  ROUTING_ENGINES,
+  type RoutingEngine,
   routingEngineStorage,
 } from "@lib/local-storage"
 import { boundsToBounds, fitBoundsIfNeeded } from "@lib/map/bounds"
@@ -26,10 +26,10 @@ import {
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { polylineDecode } from "@lib/polyline"
 import {
-  GetRouteRequest_EndpointInputSchema,
-  type GetRouteRequest_EndpointInputValid,
-  GetRouteRequest_Engine,
-  RoutingService,
+  GetRequest_EndpointInputSchema,
+  type GetRequest_EndpointInputValid,
+  GetRequest_Engine,
+  Service,
 } from "@lib/proto/routing_pb"
 import type {
   RoutingResult_AttributionValid,
@@ -41,7 +41,6 @@ import { StandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import type { Bounds } from "@lib/types"
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
-import { memoize } from "@std/cache/memoize"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
 import {
@@ -55,7 +54,7 @@ import {
   Point,
   Popup,
 } from "maplibre-gl"
-import type { RefObject } from "preact"
+import type { RefObject, TargetedDragEvent } from "preact"
 import { useId, useRef } from "preact/hooks"
 
 const LAYER_ID = "routing" as LayerId
@@ -92,7 +91,7 @@ const DRAG_IMAGE_HEIGHT = 41
 const DRAG_IMAGE_OFFSET_X = 12
 const DRAG_IMAGE_OFFSET_Y = 21
 
-const routingEngineLabel = (engine: RoutingEngineKey) => {
+const routingEngineLabel = (engine: RoutingEngine) => {
   switch (engine) {
     case "graphhopper_car":
       return t("javascripts.directions.engines.graphhopper_car")
@@ -114,10 +113,6 @@ const routingEngineLabel = (engine: RoutingEngineKey) => {
       return t("javascripts.directions.engines.fossgis_valhalla_foot")
   }
 }
-
-const ROUTING_ENGINES = memoize(() =>
-  ROUTING_ENGINE_KEYS.map((engine) => [engine, routingEngineLabel(engine)] as const),
-)
 
 export const ROUTING_QUERY_PRECISION = zoomPrecision(19)
 
@@ -151,7 +146,7 @@ const isEndpointDir = (value: unknown): value is EndpointDir =>
 
 type EndpointState = {
   marker: Marker | null
-  loaded: GetRouteRequest_EndpointInputValid | null
+  loaded: GetRequest_EndpointInputValid | null
 }
 
 const findInstructionId = (features: MapGeoJSONFeature[] | undefined) => {
@@ -249,7 +244,7 @@ const RoutingAttribution = ({
 }) => (
   <div class="attribution">
     {tRich("javascripts.directions.instructions.courtesy", {
-      link: () => (
+      link: (
         <a
           href={attribution.href}
           target="_blank"
@@ -271,7 +266,7 @@ const RoutingSidebar = ({
 }: {
   map: MaplibreMap
   sidebarRef: RefObject<HTMLElement>
-  engine: Signal<RoutingEngineKey | undefined>
+  engine: Signal<RoutingEngine | undefined>
   from: Signal<string | undefined>
   to: Signal<string | undefined>
 }) => {
@@ -344,7 +339,7 @@ const RoutingSidebar = ({
     const display = formatPoint(lngLat, zoomPrecision(map.getZoom()))
     const urlValue = formatPoint(lngLat, ROUTING_QUERY_PRECISION)
     const endpoint = endpoints.current[dir]
-    endpoint.loaded = create(GetRouteRequest_EndpointInputSchema, {
+    endpoint.loaded = create(GetRequest_EndpointInputSchema, {
       query: urlValue,
       label: display,
       location: { lon: lngLat.lng, lat: lngLat.lat },
@@ -367,7 +362,7 @@ const RoutingSidebar = ({
     const query = dir === "start" ? (from.peek() ?? "") : (to.peek() ?? "")
     const label = name || query
 
-    endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
+    endpoints.current[dir].loaded = create(GetRequest_EndpointInputSchema, {
       query,
       label,
       location,
@@ -499,23 +494,23 @@ const RoutingSidebar = ({
     return popupContent.current
   }
 
-  const onInterfaceMarkerDragStart = (direction: EndpointDir) => (e: DragEvent) => {
-    const target = e.currentTarget
-    if (!(target instanceof HTMLImageElement)) return
-    console.debug("Routing: Interface marker drag start", direction)
+  const onInterfaceMarkerDragStart =
+    (direction: EndpointDir) => (e: TargetedDragEvent<HTMLImageElement>) => {
+      const target = e.currentTarget
+      console.debug("Routing: Interface marker drag start", direction)
 
-    const dt = e.dataTransfer
-    if (!dt) return
-    dt.effectAllowed = "move"
-    dt.setData("text/plain", "")
-    dt.setData(DRAG_DATA_TYPE, direction)
-    const canvas = document.createElement("canvas")
-    canvas.width = DRAG_IMAGE_WIDTH
-    canvas.height = DRAG_IMAGE_HEIGHT
-    const ctx = canvas.getContext("2d")!
-    ctx.drawImage(target, 0, 0, DRAG_IMAGE_WIDTH, DRAG_IMAGE_HEIGHT)
-    dt.setDragImage(canvas, DRAG_IMAGE_OFFSET_X, DRAG_IMAGE_OFFSET_Y)
-  }
+      const dt = e.dataTransfer
+      if (!dt) return
+      dt.effectAllowed = "move"
+      dt.setData("text/plain", "")
+      dt.setData(DRAG_DATA_TYPE, direction)
+      const canvas = document.createElement("canvas")
+      canvas.width = DRAG_IMAGE_WIDTH
+      canvas.height = DRAG_IMAGE_HEIGHT
+      const ctx = canvas.getContext("2d")!
+      ctx.drawImage(target, 0, 0, DRAG_IMAGE_WIDTH, DRAG_IMAGE_HEIGHT)
+      dt.setDragImage(canvas, DRAG_IMAGE_OFFSET_X, DRAG_IMAGE_OFFSET_Y)
+    }
 
   const onReverseClick = () => {
     console.debug("Routing: Reverse clicked")
@@ -564,7 +559,7 @@ const RoutingSidebar = ({
     const location = { lon, lat }
     const bounds = { minLon: lon, minLat: lat, maxLon: lon, maxLat: lat }
 
-    endpoints.current[dir].loaded = create(GetRouteRequest_EndpointInputSchema, {
+    endpoints.current[dir].loaded = create(GetRequest_EndpointInputSchema, {
       query: value,
       label: value,
       location,
@@ -648,7 +643,7 @@ const RoutingSidebar = ({
   useSignalEffect(() => {
     const stored = routingEngineStorage.value
 
-    if (engine.value === undefined) {
+    if (!engine.value) {
       engine.value = stored
       return
     }
@@ -675,8 +670,8 @@ const RoutingSidebar = ({
       <StandardForm
         class="section"
         formRef={formRef}
-        method={RoutingService.method.getRoute}
-        concurrency="restart"
+        method={Service.method.get}
+        restartOnResubmit
         buildRequest={() => {
           clearRouteResults()
           loading.value = true
@@ -692,7 +687,7 @@ const RoutingSidebar = ({
 
           return {
             bbox: { minLon, minLat, maxLon, maxLat },
-            engine: GetRouteRequest_Engine[engineValue],
+            engine: GetRequest_Engine[engineValue],
             start:
               startLoaded?.query === startValue ? startLoaded : { query: startValue },
             end: endLoaded?.query === endValue ? endLoaded : { query: endValue },
@@ -704,9 +699,7 @@ const RoutingSidebar = ({
           updateEndpoints(resp.route)
           updateRoute(resp.route)
         }}
-        onError={() => {
-          loading.value = false
-        }}
+        onError={() => (loading.value = false)}
       >
         <SidebarHeader
           class=""
@@ -793,17 +786,17 @@ const RoutingSidebar = ({
               required
               value={engine.value ?? routingEngineStorage.value}
               onInput={(e) => {
-                const value = ROUTING_ENGINE_KEYS[e.currentTarget.selectedIndex]
+                const value = ROUTING_ENGINES[e.currentTarget.selectedIndex]
                 engine.value = value
                 submitFormIfFilled()
               }}
             >
-              {ROUTING_ENGINES().map(([value, label]) => (
+              {ROUTING_ENGINES.map((value) => (
                 <option
                   key={value}
                   value={value}
                 >
-                  {label}
+                  {routingEngineLabel(value)}
                 </option>
               ))}
             </select>
@@ -917,9 +910,9 @@ export const RoutingRoute = defineRoute({
   id: "routing",
   path: "/directions",
   query: {
-    engine: queryParam.enum(ROUTING_ENGINE_KEYS),
-    from: queryParam.string(),
-    to: queryParam.string(),
+    engine: queryParam.enum(ROUTING_ENGINES),
+    from: queryParam.text(),
+    to: queryParam.text(),
   },
   Component: RoutingSidebar,
 })

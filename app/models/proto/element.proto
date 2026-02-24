@@ -1,33 +1,35 @@
 syntax = "proto3";
 
+package element;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service ElementService {
-  rpc GetMapElements(GetMapElementsRequest) returns (GetMapElementsResponse) {
+service Service {
+  rpc GetMap(GetMapRequest) returns (GetMapResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetElement(GetElementRequest) returns (GetElementResponse) {
+  rpc Get(GetRequest) returns (GetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetElementHistory(GetElementHistoryRequest) returns (GetElementHistoryResponse) {
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }
 
-message GetMapElementsRequest {
+message GetMapRequest {
   Bounds bbox = 1 [(buf.validate.field).required = true];
   uint32 limit = 2;
 }
 
-message GetMapElementsResponse {
-  RenderElementsData render = 1 [(buf.validate.field).required = true];
+message GetMapResponse {
+  RenderData render = 1 [(buf.validate.field).required = true];
   bool too_much_data = 2;
 }
 
-message GetElementRequest {
+message GetRequest {
   oneof ref {
     option (buf.validate.oneof).required = true;
     ElementRef element = 1;
@@ -35,33 +37,33 @@ message GetElementRequest {
   }
 }
 
-message GetElementResponse {
-  ElementData element = 1 [(buf.validate.field).required = true];
+message GetResponse {
+  Data element = 1 [(buf.validate.field).required = true];
 }
 
-message GetElementHistoryRequest {
-  StandardPaginationState state = 1;
+message GetHistoryRequest {
+  StandardPaginationRequest state = 1;
   ElementRef element = 2 [(buf.validate.field).required = true];
   bool tags_diff = 3;
 }
 
-message GetElementHistoryResponse {
+message GetHistoryResponse {
   StandardPaginationState state = 1 [(buf.validate.field).required = true];
-  repeated ElementData elements = 2;
+  repeated Data elements = 2;
 }
 
-message ElementData {
+message Data {
   message Context {
     message Entry {
       ElementRef ref = 1 [(buf.validate.field).required = true];
-      optional string role = 2;
+      repeated string roles = 2;
       optional string name = 3;
       optional ElementIcon icon = 4;
     }
 
     repeated Entry members = 1;
     repeated Entry parents = 2;
-    RenderElementsData render = 3 [(buf.validate.field).required = true];
+    RenderData render = 3 [(buf.validate.field).required = true];
   }
 
   message Changeset {
@@ -84,7 +86,7 @@ message ElementData {
   map<string, string> tags_old = 11;
 }
 
-message RenderElementsData {
+message RenderData {
   message Node {
     uint64 id = 1;
     LonLat location = 2 [(buf.validate.field).required = true];

@@ -2,8 +2,8 @@ import { useSidebar } from "@index/_action-sidebar"
 import { zoomPrecision } from "@lib/coords"
 import { boundsPadding } from "@lib/map/bounds"
 import type { LonLatZoom } from "@lib/map/state"
-import type { SearchDataValid } from "@lib/proto/search_pb"
-import { SearchService } from "@lib/proto/search_pb"
+import type { DataValid } from "@lib/proto/search_pb"
+import { Service } from "@lib/proto/search_pb"
 import { type ReadonlySignal, useComputed } from "@preact/signals"
 import { roundTo } from "@std/math/round-to"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -45,7 +45,7 @@ export const useSidebarSearchRpc = ({
       const query = q.value
       return query ? getSearchRequest(map, query, local.value) : null
     }),
-    SearchService.method.search,
+    Service.method.search,
     (r) => r.data,
   )
 
@@ -55,14 +55,14 @@ export const useSidebarSearchRpc = ({
       const p = at.value
       return p ? getReverseRequest(p) : null
     }),
-    SearchService.method.reverse,
+    Service.method.reverse,
     (r) => r.data,
   )
 
   const resource = useComputed(() =>
     q.value ? search.resource.value : reverse.resource.value,
   )
-  const data = useComputed<SearchDataValid | null>(() =>
+  const data = useComputed<DataValid | null>(() =>
     q.value ? search.data.value : reverse.data.value,
   )
   return { resource, data }

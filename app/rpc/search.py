@@ -13,12 +13,12 @@ from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MIN,
     TypedElementId,
 )
-from app.models.proto.element_pb2 import RenderElementsData
-from app.models.proto.search_connect import SearchService, SearchServiceASGIApplication
+from app.models.proto.element_pb2 import RenderData
+from app.models.proto.search_connect import Service, ServiceASGIApplication
 from app.models.proto.search_pb2 import (
+    Data,
     ReverseRequest,
     ReverseResponse,
-    SearchData,
     SearchRequest,
     SearchResponse,
 )
@@ -29,7 +29,7 @@ from app.queries.nominatim_query import NominatimQuery
 from speedup import split_typed_element_id
 
 
-class _Service(SearchService):
+class _Service(Service):
     @override
     async def search(self, request: SearchRequest, ctx: RequestContext):
         search_bounds = Search.get_search_bounds(
@@ -79,7 +79,7 @@ class _Service(SearchService):
 
 
 service = _Service()
-asgi_app_cls = SearchServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication
 
 
 async def _build_search_data(
@@ -108,7 +108,7 @@ async def _build_search_data(
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
-    response_results: list[SearchData.Result] = []
+    response_results: list[Data.Result] = []
     for result in results:
         x, y = get_coordinates(result.point)[0].tolist()
 
@@ -131,9 +131,7 @@ async def _build_search_data(
 
         # Ensure there is always a node. It's nice visually.
         if not render.nodes:
-            render.nodes.append(
-                RenderElementsData.Node(id=0, location=LonLat(lon=x, lat=y))
-            )
+            render.nodes.append(RenderData.Node(id=0, location=LonLat(lon=x, lat=y)))
 
         type, id = split_typed_element_id(result.element['typed_id'])
         icon = (
@@ -143,7 +141,7 @@ async def _build_search_data(
         )
 
         response_results.append(
-            SearchData.Result(
+            Data.Result(
                 type=type,
                 id=id,
                 prefix=result.prefix,
@@ -154,4 +152,4 @@ async def _build_search_data(
             )
         )
 
-    return SearchData(bounds=bounds, results=response_results)
+    return Data(bounds=bounds, results=response_results)

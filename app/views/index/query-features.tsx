@@ -12,10 +12,7 @@ import {
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import type { LonLat, LonLatZoom } from "@lib/map/state"
-import {
-  type NearbyResponse_ResultValid,
-  QueryFeaturesService,
-} from "@lib/proto/query_features_pb"
+import { type NearbyResponse_ResultValid, Service } from "@lib/proto/query_features_pb"
 import { setPageTitle } from "@lib/title"
 import { type ReadonlySignal, useComputed, useSignalEffect } from "@preact/signals"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
@@ -117,7 +114,7 @@ const QueryFeaturesSidebar = ({
       const p = queryAt.value
       return p ? { at: p } : null
     }),
-    QueryFeaturesService.method.nearby,
+    Service.method.nearby,
   )
 
   // Effect: Map layer lifecycle.

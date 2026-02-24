@@ -1,17 +1,19 @@
 syntax = "proto3";
 
+package rich_text;
+
 import "buf/validate/validate.proto";
 
-service RichTextService {
-  rpc RenderMarkdown(RenderMarkdownRequest) returns (RenderMarkdownResponse) {
+service Service {
+  rpc Render(RenderRequest) returns (RenderResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }
 
-message RenderMarkdownRequest {
+message RenderRequest {
   string text = 1 [(buf.validate.field).string = {max_len: 50000}];
 }
 
-message RenderMarkdownResponse {
+message RenderResponse {
   string html = 1;
 }

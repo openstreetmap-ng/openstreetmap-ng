@@ -15,9 +15,9 @@ from starlette.exceptions import HTTPException
 from starlette.routing import Route
 
 from app.config import REQUEST_BODY_MAX_SIZE
-from app.lib.standard_feedback import MessageSeverity
-from app.models.proto.query_features_connect import QueryFeaturesServiceASGIApplication
+from app.models.proto.query_features_connect import ServiceASGIApplication
 from app.models.proto.shared_pb2 import StandardFeedbackDetail
+from app.models.proto.shared_types import StandardFeedbackDetail_Severity
 from buf.validate import validate_pb2
 
 _HTTP_STATUS_CODE_TO_CONNECT_CODE = {
@@ -53,7 +53,7 @@ def _standard_feedback_detail(detail: Any):
         if not isinstance(item, dict):
             continue
 
-        type: MessageSeverity | None = item.get('type')
+        type: StandardFeedbackDetail_Severity | None = item.get('type')
         loc: Sequence[str] | None = item.get('loc')
         msg: str | None = item.get('msg')
         if type is None or loc is None or msg is None:
@@ -145,7 +145,7 @@ for p in sorted(Path('app/rpc').glob('*.py')):
     module_name = p.as_posix().replace('/', '.')[:-3]
     module = importlib.import_module(module_name)
     service = module.service
-    asgi_app_cls: type[QueryFeaturesServiceASGIApplication] = module.asgi_app_cls
+    asgi_app_cls: type[ServiceASGIApplication] = module.asgi_app_cls
     asgi_app = asgi_app_cls(
         service=service,
         interceptors=interceptors,

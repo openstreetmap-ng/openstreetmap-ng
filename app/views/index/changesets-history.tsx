@@ -1,7 +1,7 @@
 import { LoadingSpinner, SidebarHeader } from "@index/_action-sidebar"
 import { ChangesetRoute, ChangesetStats } from "@index/changeset"
 import { defineRoute, routerCtx, routerNavigate } from "@index/router"
-import { queryParam, routeParam } from "@lib/codecs"
+import { pathParam, queryParam } from "@lib/codecs"
 import { darkenColor } from "@lib/color"
 import { Time } from "@lib/datetime-inputs"
 import { type Scheduled, useDisposeEffect } from "@lib/dispose-scope"
@@ -27,9 +27,9 @@ import {
 } from "@lib/map/layers/layers"
 import { renderObjects } from "@lib/map/render-objects"
 import {
-  type GetMapChangesetsResponse_ChangesetValid as Changeset,
-  ChangesetService,
-  GetMapChangesetsRequest_Scope,
+  type GetMapResponse_ChangesetValid as Changeset,
+  Service,
+  GetMapRequest_Scope,
 } from "@lib/proto/changeset_pb"
 import { rpcClient } from "@lib/rpc"
 import { scrollElementIntoView } from "@lib/scroll"
@@ -53,7 +53,7 @@ import {
   type Map as MaplibreMap,
 } from "maplibre-gl"
 import type { ComponentChildren, RefObject } from "preact"
-import { useRef } from "preact/hooks"
+import { useMemo, useRef } from "preact/hooks"
 
 // Constants
 
@@ -173,6 +173,17 @@ const getElementScrollState = (
   return { state: "visible", distance: 0 }
 }
 
+const getScopeTitle = (scope: "nearby" | "friends" | undefined) => {
+  switch (scope) {
+    case "nearby":
+      return t("changesets.index.title_nearby")
+    case "friends":
+      return t("changesets.index.title_friend")
+    case undefined:
+      return t("changesets.index.title")
+  }
+}
+
 const ChangesetsHistorySidebar = ({
   map,
   sidebarRef,
@@ -195,7 +206,7 @@ const ChangesetsHistorySidebar = ({
   const showScrollTop = useSignal(false)
   const showScrollBottom = useSignal(false)
 
-  const fetchAbort = useRef(createKeyedAbort()).current
+  const fetchAbort = useMemo(() => createKeyedAbort(), [])
 
   const scrollIndicatorsEnabled = useComputed(
     () => !fetchAbort.pending.value && changesets.value.length > 0,
@@ -203,18 +214,14 @@ const ChangesetsHistorySidebar = ({
 
   const sidebarTitle = useComputed(() => {
     const dn = displayName.value
-    const sc = scope.value
     if (dn)
       return {
         html: tRich("changesets.index.title_user", {
-          user: () => <a href={`/user/${dn}`}>{dn}</a>,
+          user: <a href={`/user/${dn}`}>{dn}</a>,
         }),
         plain: t("changesets.index.title_user", { user: dn }),
       }
-    let title: string
-    if (sc === "nearby") title = t("changesets.index.title_nearby")
-    else if (sc === "friends") title = t("changesets.index.title_friend")
-    else title = t("changesets.index.title")
+    const title = getScopeTitle(scope.value)
     return { html: title, plain: title }
   })
 
@@ -228,7 +235,7 @@ const ChangesetsHistorySidebar = ({
 
   const hoverState = useRef<HoverState>(null)
 
-  const idFirstFeatureIdMap = useRef(new Map<string, number>())
+  const idFirstFeatureIdMap = useMemo(() => new Map<string, number>(), [])
 
   const activeFetch = useRef<ActiveFetch>(null)
   const fetchedContext = useRef<FetchContext>(EMPTY_CONTEXT)
@@ -249,7 +256,7 @@ const ChangesetsHistorySidebar = ({
     showScrollTop.value = false
     showScrollBottom.value = false
 
-    idFirstFeatureIdMap.current.clear()
+    idFirstFeatureIdMap.clear()
     layerState.current.visibleBounds = null
     layerState.current.hiddenBefore = 0
     layerState.current.hiddenAfter = 0
@@ -320,7 +327,7 @@ const ChangesetsHistorySidebar = ({
     state: "above" | "visible" | "below",
     distance: number,
   ) => {
-    const firstFeatureId = idFirstFeatureIdMap.current.get(changesetId)
+    const firstFeatureId = idFirstFeatureIdMap.get(changesetId)
     if (firstFeatureId === undefined) return
 
     let color: string
@@ -363,7 +370,7 @@ const ChangesetsHistorySidebar = ({
     for (let i = 0; i < layerState.current.hiddenBefore; i++)
       featureIdCounter += csList[i].bounds.length * 2
 
-    idFirstFeatureIdMap.current.clear()
+    idFirstFeatureIdMap.clear()
     const changesetsMinimumSize: OSMChangeset[] = []
     let aggregatedBounds: Bounds | undefined
 
@@ -375,7 +382,7 @@ const ChangesetsHistorySidebar = ({
 
     for (const cs of visibleChangesets) {
       const csId = cs.id.toString()
-      idFirstFeatureIdMap.current.set(csId, firstFeatureId)
+      idFirstFeatureIdMap.set(csId, firstFeatureId)
       firstFeatureId += cs.bounds.length * 2
 
       const resizedBounds: Bounds[] = []
@@ -565,7 +572,7 @@ const ChangesetsHistorySidebar = ({
       requestContext.scope ?? "",
       requestContext.displayName ?? "",
       beforeId?.toString() ?? "",
-    ].join(":")
+    ].join("\x1F")
 
     const token = fetchAbort.start(fetchKey)
     if (!token) return
@@ -582,11 +589,11 @@ const ChangesetsHistorySidebar = ({
     }
 
     try {
-      const resp = await rpcClient(ChangesetService).getMapChangesets(
+      const resp = await rpcClient(Service).getMap(
         {
           bbox,
           scope: requestContext.scope
-            ? GetMapChangesetsRequest_Scope[requestContext.scope]
+            ? GetMapRequest_Scope[requestContext.scope]
             : undefined,
           displayName: requestContext.displayName,
           date: requestContext.date,
@@ -637,7 +644,7 @@ const ChangesetsHistorySidebar = ({
   }
 
   const setHover = (id: string, numBounds: number, hover: boolean) => {
-    const firstFeatureId = idFirstFeatureIdMap.current.get(id)
+    const firstFeatureId = idFirstFeatureIdMap.get(id)
     if (firstFeatureId === undefined) return
     setFeatureStateRange(firstFeatureId, numBounds, { hover })
   }
@@ -701,7 +708,7 @@ const ChangesetsHistorySidebar = ({
         const h = hoverState.current
         if (h?.source !== "sidebar" || h.id !== changesetId) return
         if (
-          !idFirstFeatureIdMap.current.has(changesetId) ||
+          !idFirstFeatureIdMap.has(changesetId) ||
           changesetIsWithinView(cs) ||
           !layerState.current.visibleBounds
         )
@@ -903,9 +910,9 @@ export const ChangesetsHistoryRoute = defineRoute({
   id: "changesets-history",
   path: ["/history", "/history/:scope", "/user/:displayName/history"],
   params: {
-    scope: routeParam.optional(routeParam.enum(["nearby", "friends"])),
-    displayName: routeParam.optional(routeParam.segment()),
+    scope: pathParam.optional(pathParam.enum(["nearby", "friends"])),
+    displayName: pathParam.optional(pathParam.segment()),
   },
-  query: { date: queryParam.string() },
+  query: { date: queryParam.text() },
   Component: ChangesetsHistorySidebar,
 })

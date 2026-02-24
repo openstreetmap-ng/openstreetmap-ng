@@ -6,7 +6,7 @@ import {
   PasskeyRegistrationSchema,
   TransmitUserPasswordSchema,
 } from "@lib/proto/auth_pb"
-import { AuthService } from "@lib/proto/auth_pb"
+import { Service } from "@lib/proto/auth_pb"
 import { connectErrorToMessage, fromBinaryValid, rpcUnary } from "@lib/rpc"
 import { t } from "i18next"
 
@@ -16,7 +16,7 @@ const fetchPasskeyChallenge = async (
   passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
 ) => {
   try {
-    const response = await rpcUnary(AuthService.method.getPasskeyChallenge)(
+    const response = await rpcUnary(Service.method.getPasskeyChallenge)(
       await buildPasskeyChallengeRequest(formData, passwords),
     )
     return response.challenge

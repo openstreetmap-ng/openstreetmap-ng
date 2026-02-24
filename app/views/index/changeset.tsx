@@ -1,7 +1,7 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { defineRoute } from "@index/router"
-import { routeParam } from "@lib/codecs"
+import { pathParam } from "@lib/codecs"
 import {
   API_URL,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
@@ -13,12 +13,12 @@ import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
-  type AddChangesetCommentResponseValid,
-  type ChangesetDataValid,
-  ChangesetService,
-  type ChangesetData_Element as Element,
-  type GetChangesetCommentsResponse_CommentValid,
-  type GetChangesetCommentsResponseValid,
+  type AddCommentResponseValid,
+  type DataValid,
+  Service,
+  type Data_Element as Element,
+  type GetCommentsResponse_CommentValid,
+  type GetCommentsResponseValid,
 } from "@lib/proto/changeset_pb"
 import { ElementType } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
@@ -71,8 +71,8 @@ const getChangesetElementsTitle = (type: ElementType) => {
   return (count: string) => t("browse.changeset.relation", { count })
 }
 
-const ChangesetHeader = ({ data }: { data: ChangesetDataValid }) => {
-  const isOpen = data.closedAt === undefined
+const ChangesetHeader = ({ data }: { data: DataValid }) => {
+  const isOpen = !data.closedAt
   return (
     <div class="changesets-list social-list mb-3">
       <div class="social-entry">
@@ -136,7 +136,7 @@ const SubscriptionForm = ({
 }) => (
   <StandardForm
     class="col-auto subscription-form"
-    method={ChangesetService.method.setChangesetSubscription}
+    method={Service.method.updateSubscription}
     buildRequest={() => ({
       id: changesetId,
       isSubscribed: !isSubscribed.value,
@@ -160,11 +160,11 @@ const CommentForm = ({
   onSuccess,
 }: {
   changesetId: bigint
-  onSuccess: (result: AddChangesetCommentResponseValid) => void
+  onSuccess: (result: AddCommentResponseValid) => void
 }) => (
   <StandardForm
     class="comment-form mb-2"
-    method={ChangesetService.method.addChangesetComment}
+    method={Service.method.addComment}
     resetOnSuccess
     buildRequest={({ formData }) => ({
       id: changesetId,
@@ -195,7 +195,7 @@ const CommentForm = ({
 const ChangesetComment = ({
   comment,
 }: {
-  comment: GetChangesetCommentsResponse_CommentValid
+  comment: GetCommentsResponse_CommentValid
 }) => (
   <li class="social-entry">
     <p class="header text-muted">
@@ -221,13 +221,13 @@ const ChangesetComment = ({
   </li>
 )
 
-const ChangesetFooter = ({ data }: { data: ChangesetDataValid }) => {
+const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
     <div class="section text-center">
       {data.user && (
         <div class="mb-2">
-          {data.prevChangesetId !== undefined && (
+          {data.prevChangesetId && (
             <>
               <a
                 href={`/changeset/${data.prevChangesetId}`}
@@ -244,7 +244,7 @@ const ChangesetFooter = ({ data }: { data: ChangesetDataValid }) => {
           >
             {data.user.displayName}
           </a>
-          {data.nextChangesetId !== undefined && (
+          {data.nextChangesetId && (
             <>
               <span aria-hidden="true"> · </span>
               <a
@@ -307,11 +307,11 @@ const ChangesetSidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments = useSignal<GetChangesetCommentsResponseValid | null>(null)
+  const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
-    ChangesetService.method.getChangeset,
+    Service.method.get,
     (r) => r.changeset,
   )
 
@@ -372,7 +372,7 @@ const ChangesetSidebar = ({
             <Tags tags={d.tags} />
 
             {/* Report button */}
-            {isLoggedIn && d.user && config.userConfig!.id !== d.user.id && (
+            {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
               <div class="text-end mt-1 me-1">
                 <ReportButton
                   class="btn btn-link btn-sm text-muted p-0"
@@ -406,8 +406,7 @@ const ChangesetSidebar = ({
 
             {/* Comments pagination */}
             <StandardPagination
-              key={d.id}
-              method={ChangesetService.method.getChangesetComments}
+              method={Service.method.getComments}
               request={{ id: d.id }}
               ariaLabel={t("alt.comments_page_navigation")}
               pageOrder="desc"
@@ -480,6 +479,6 @@ const ChangesetSidebar = ({
 export const ChangesetRoute = defineRoute({
   id: "changeset",
   path: ["/changeset/:id", "/changeset/:id/unsubscribe"],
-  params: { id: routeParam.positive() },
+  params: { id: pathParam.positive() },
   Component: ChangesetSidebar,
 })

@@ -7,8 +7,8 @@ from app.format import FormatRender
 from app.lib.geo_utils import meters_to_degrees
 from app.lib.query_features import QueryFeatures
 from app.models.proto.query_features_connect import (
-    QueryFeaturesService,
-    QueryFeaturesServiceASGIApplication,
+    Service,
+    ServiceASGIApplication,
 )
 from app.models.proto.query_features_pb2 import NearbyRequest, NearbyResponse
 from app.models.proto.shared_pb2 import ElementIcon
@@ -16,7 +16,7 @@ from app.queries.element_spatial_query import ElementSpatialQuery
 from speedup import split_typed_element_id
 
 
-class _Service(QueryFeaturesService):
+class _Service(Service):
     @override
     async def nearby(self, request: NearbyRequest, ctx: RequestContext):
         radius_meters = 10 * 1.5 ** (19 - request.at.zoom)
@@ -28,7 +28,7 @@ class _Service(QueryFeaturesService):
         renders = FormatRender.encode_query_features(results)
 
         response_results: list[NearbyResponse.Result] = []
-        for result, render in zip(results, renders, strict=True):
+        for result, render in zip(results, renders):
             type, id = split_typed_element_id(result.element['typed_id'])
             icon = (
                 ElementIcon(icon=result.icon.filename, title=result.icon.title)
@@ -50,4 +50,4 @@ class _Service(QueryFeaturesService):
 
 
 service = _Service()
-asgi_app_cls = QueryFeaturesServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication

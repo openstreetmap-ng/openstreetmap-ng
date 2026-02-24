@@ -1,8 +1,10 @@
 syntax = "proto3";
 
+package auth;
+
 import "buf/validate/validate.proto";
 
-service AuthService {
+service Service {
   rpc GetPasskeyChallenge(GetPasskeyChallengeRequest) returns (GetPasskeyChallengeResponse) {}
 }
 
@@ -20,23 +22,23 @@ message GetPasskeyChallengeResponse {
 }
 
 message TransmitUserPassword {
-  optional string legacy = 1; // Unencrypted password (deprecated)
-  optional bytes v1 = 2; // Client-side PBKDF2 hash digest
+  optional string legacy = 1 [(buf.validate.field).string.min_len = 1]; // Unencrypted password (deprecated)
+  optional bytes v1 = 2 [(buf.validate.field).bytes.min_len = 1]; // Client-side PBKDF2 hash digest
 }
 
 // Passkey registration attestation from WebAuthn create()
 message PasskeyRegistration {
-  bytes client_data_json = 1;
-  bytes attestation_object = 2;
+  bytes client_data_json = 1 [(buf.validate.field).bytes.min_len = 1];
+  bytes attestation_object = 2 [(buf.validate.field).bytes.min_len = 1];
   repeated string transports = 3;
 }
 
 // Passkey login assertion from WebAuthn get()
 message PasskeyAssertion {
-  bytes credential_id = 1;
-  bytes client_data_json = 2;
-  bytes authenticator_data = 3;
-  bytes signature = 4;
+  bytes credential_id = 1 [(buf.validate.field).bytes.min_len = 1];
+  bytes client_data_json = 2 [(buf.validate.field).bytes.min_len = 1];
+  bytes authenticator_data = 3 [(buf.validate.field).bytes.min_len = 1];
+  bytes signature = 4 [(buf.validate.field).bytes.min_len = 1];
 }
 
 // Passkey credential for WebAuthn allow/exclude lists

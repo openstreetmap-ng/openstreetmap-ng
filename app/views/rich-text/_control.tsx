@@ -1,11 +1,10 @@
 import { ConnectError } from "@connectrpc/connect"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { RichTextService } from "@lib/proto/rich_text_pb"
+import { Service } from "@lib/proto/rich_text_pb"
 import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import { type Signal, useSignal } from "@preact/signals"
 import { t } from "i18next"
 import { type Ref, render } from "preact"
-import { memo } from "preact/compat"
 import { useRef } from "preact/hooks"
 
 type RichTextMode = "edit" | "preview" | "help"
@@ -38,7 +37,7 @@ export const RichTextControl = ({
 
     const fetchPreview = async () => {
       try {
-        const resp = await rpcUnary(RichTextService.method.renderMarkdown)(
+        const resp = await rpcUnary(Service.method.render)(
           { text: textAreaRef.current!.value },
           {
             signal: scope.signal,
@@ -144,7 +143,7 @@ const ModeButtons = ({
   </fieldset>
 )
 
-const RichTextHelp = memo(({ class: className = "" }: { class?: string }) => (
+const RichTextHelp = ({ class: className = "" }: { class?: string }) => (
   <div class={`RichTextHelp p-2 p-md-0 ${className}`}>
     <h5>
       <img
@@ -201,7 +200,7 @@ const RichTextHelp = memo(({ class: className = "" }: { class?: string }) => (
       </a>
     </p>
   </div>
-))
+)
 
 const roots = document.querySelectorAll<HTMLElement>(".RichTextControl")
 console.debug("RichTextControl: Initializing", roots.length, "containers")

@@ -24,18 +24,18 @@ from app.models.db.element import Element
 from app.models.db.user import user_proto
 from app.models.element import ElementId
 from app.models.proto.element_connect import (
-    ElementService,
-    ElementServiceASGIApplication,
+    Service,
+    ServiceASGIApplication,
 )
 from app.models.proto.element_pb2 import (
-    ElementData,
-    GetElementHistoryRequest,
-    GetElementHistoryResponse,
-    GetElementRequest,
-    GetElementResponse,
-    GetMapElementsRequest,
-    GetMapElementsResponse,
-    RenderElementsData,
+    Data,
+    GetHistoryRequest,
+    GetHistoryResponse,
+    GetMapRequest,
+    GetMapResponse,
+    GetRequest,
+    GetResponse,
+    RenderData,
 )
 from app.models.proto.shared_pb2 import ElementIcon, ElementVersionRef, LonLat
 from app.models.proto.shared_pb2 import ElementType as ProtoElementType
@@ -46,11 +46,9 @@ from app.queries.user_query import UserQuery
 from speedup import split_typed_element_id, typed_element_id
 
 
-class _Service(ElementService):
+class _Service(Service):
     @override
-    async def get_map_elements(
-        self, request: GetMapElementsRequest, ctx: RequestContext
-    ):
+    async def get_map(self, request: GetMapRequest, ctx: RequestContext):
         geometry = parse_bbox(request.bbox)
         if geometry.area > MAP_QUERY_AREA_MAX_SIZE:
             raise_for.map_query_area_too_big()
@@ -73,16 +71,14 @@ class _Service(ElementService):
         )
 
         if limit and len(elements) > limit:
-            return GetMapElementsResponse(
-                render=RenderElementsData(), too_much_data=True
-            )
+            return GetMapResponse(render=RenderData(), too_much_data=True)
 
-        return GetMapElementsResponse(
+        return GetMapResponse(
             render=FormatRender.encode_elements(elements, detailed=True, areas=False)
         )
 
     @override
-    async def get_element(self, request: GetElementRequest, ctx: RequestContext):
+    async def get(self, request: GetRequest, ctx: RequestContext):
         ref_kind = request.WhichOneof('ref')
         ref: ElementVersionRef = getattr(request, ref_kind)
         tid = typed_element_id(ProtoElementType.Name(ref.type), ElementId(ref.id))
@@ -103,7 +99,7 @@ class _Service(ElementService):
         if element is None:
             raise_for.element_not_found(tid)
 
-        return GetElementResponse(
+        return GetResponse(
             element=await _build_data(
                 element,
                 at_sequence_id,
@@ -112,17 +108,14 @@ class _Service(ElementService):
         )
 
     @override
-    async def get_element_history(
-        self, request: GetElementHistoryRequest, ctx: RequestContext
-    ):
+    async def get_history(self, request: GetHistoryRequest, ctx: RequestContext):
         type = ProtoElementType.Name(request.element.type)
         id = ElementId(request.element.id)
         tid = typed_element_id(type, id)
 
-        sp_state = request.state.SerializeToString()
         elements, state = await sp_paginate_query(
             Element,
-            sp_state,
+            request.state.SerializeToString(),
             select=SQL('*'),
             from_=Identifier('element'),
             where=SQL('typed_id = %s'),
@@ -140,14 +133,13 @@ class _Service(ElementService):
         at_sequence_id: SequenceId = state.u64.snapshot  # type: ignore
 
         num_items = state.snapshot_max_id
-        state.num_items = num_items
-        state.num_pages = sp_num_pages(
+        state.known_total.num_items = num_items
+        state.known_total.num_pages = sp_num_pages(
             num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
         )
-        state.max_known_page = state.num_pages
 
         if not elements:
-            return GetElementHistoryResponse(state=state)
+            return GetHistoryResponse(state=state)
 
         changeset_ids = list({e['changeset_id'] for e in elements})
 
@@ -195,20 +187,20 @@ class _Service(ElementService):
             else:
                 previous_tags = None
 
-            for element, element_data in zip(
-                reversed(elements),
-                reversed(elements_data),
-                strict=True,
-            ):
-                if previous_tags is not None:
-                    element_data.tags_old.update(previous_tags)
-                previous_tags = element['tags'] or {}
+            for index, element_data in enumerate(elements_data, 1):
+                older_tags = (
+                    elements[index]['tags'] or {}
+                    if index < len(elements)
+                    else previous_tags
+                )
+                if older_tags is not None:
+                    element_data.tags_old.update(older_tags)
 
-        return GetElementHistoryResponse(state=state, elements=elements_data)
+        return GetHistoryResponse(state=state, elements=elements_data)
 
 
 service = _Service()
-asgi_app_cls = ElementServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication
 
 
 async def _build_data(
@@ -250,7 +242,7 @@ async def _build_data(
     icon = features_icons([element])[0]
     name = features_names([element])[0]
 
-    return ElementData(
+    return Data(
         ref=ElementVersionRef(type=type, id=id, version=version),
         visible=element['visible'],
         name=name,
@@ -261,7 +253,7 @@ async def _build_data(
         ),
         tags=element['tags'] or {},
         context=context_t.result(),
-        changeset=ElementData.Changeset(
+        changeset=Data.Changeset(
             id=element['changeset_id'],
             user=user_proto(changeset.get('user')),
             created_at=int(changeset['created_at'].timestamp()),
@@ -285,7 +277,7 @@ async def _build_context(
     include_parents_entries: bool,
 ):
     if not element['visible']:
-        return ElementData.Context(render=RenderElementsData())
+        return Data.Context(render=RenderData())
 
     async def members_task():
         members = element['members']
@@ -321,4 +313,4 @@ async def _build_context(
         parents = await parents_task() if include_parents_entries else ()
 
     members, render = members_t.result()
-    return ElementData.Context(members=members, parents=parents, render=render)
+    return Data.Context(members=members, parents=parents, render=render)
