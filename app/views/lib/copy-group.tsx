@@ -1,3 +1,4 @@
+import { useDisposeEffect } from "@lib/dispose-scope"
 import { useSignal } from "@preact/signals"
 import { delay } from "@std/async/delay"
 import { SECOND } from "@std/datetime/constants"
@@ -45,6 +46,11 @@ const copyToClipboard = async (text: string) => {
   return true
 }
 
+const getCopyInput = (button: HTMLElement | null) =>
+  button
+    ?.closest(".input-group")
+    ?.querySelector("input.form-control, textarea.form-control")
+
 export const CopyButton = ({
   getText,
   class: className = "btn btn-primary",
@@ -59,9 +65,17 @@ export const CopyButton = ({
   children?: ComponentChildren
 }) => {
   const copied = useSignal(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const feedbackAbortRef = useRef<AbortController>(null)
 
+  useDisposeEffect((scope) => {
+    const input = getCopyInput(buttonRef.current)
+    if (input) scope.dom(input, "focus", () => input.select())
+  }, [])
+
   const onCopy = async () => {
+    getCopyInput(buttonRef.current)?.select()
+
     const ok = await copyToClipboard(getText())
     if (!ok) return
 
@@ -80,6 +94,7 @@ export const CopyButton = ({
 
   return (
     <button
+      ref={buttonRef}
       class={className}
       type="button"
       title={title}
