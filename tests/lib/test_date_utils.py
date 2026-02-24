@@ -4,9 +4,11 @@ import pytest
 from dateutil.tz import tzoffset
 
 from app.lib.date_utils import (
+    datetime_unix,
     format_rfc2822_date,
     format_sql_date,
     parse_date,
+    unix_datetime,
     utcnow,
 )
 from app.lib.translation import translation_context
@@ -52,6 +54,22 @@ def test_format_rfc2822_date(locale, expected):
 
 def test_utcnow_is_utc():
     assert utcnow().tzinfo is UTC
+
+
+@pytest.mark.parametrize(
+    ('input', 'expected'),
+    [
+        (1640964645, datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)),
+        (None, None),
+    ],
+)
+def test_unix_datetime(input, expected):
+    assert unix_datetime(input) == expected
+
+
+def test_datetime_unix_roundtrip():
+    dt = datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC)
+    assert unix_datetime(datetime_unix(dt)) == dt
 
 
 @pytest.mark.parametrize(
