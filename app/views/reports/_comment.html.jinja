@@ -4,7 +4,7 @@
 {# Show user who performed the action if requested #}
 {% set _has_user = show_user and comment.user %}
 {% if _has_user %}
-  <a href="/user/{{ comment.user.display_name }}">
+  <a href="/user-id/{{ comment.user.id }}">
     <img
       class="avatar"
       src="{{ user_avatar_url(comment.user) }}"

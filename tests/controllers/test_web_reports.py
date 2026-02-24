@@ -3,6 +3,7 @@ import sys
 import pytest
 from httpx import AsyncClient
 
+from app.models.proto.report_pb2 import CreateRequest
 from app.models.types import DisplayName
 from app.queries.user_query import UserQuery
 from speedup import buffered_rand_urlsafe
@@ -24,14 +25,15 @@ async def test_profile_report(client: AsyncClient):
 
     # Create a profile report on user2 by user1
     r = await client.post(
-        '/api/web/reports',
-        data={
-            'type': 'user',
-            'type_id': user2['id'],
-            'action': 'user_profile',
-            'body': test_message,
-            'category': 'spam',
-        },
+        '/rpc/report.Service/Create',
+        headers={'Content-Type': 'application/proto'},
+        content=CreateRequest(
+            type='user',
+            type_id=user2['id'],
+            action='user_profile',
+            body=test_message,
+            category='spam',
+        ).SerializeToString(),
     )
     assert r.is_success, r.text
 

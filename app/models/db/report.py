@@ -1,19 +1,19 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from app.models.db.user import UserDisplay
+from app.models.proto.report_types import CreateRequest_Type
 from app.models.types import NoteId, ReportId, UserId
 
 if TYPE_CHECKING:
     from app.models.db.report_comment import ReportComment
 
-ReportType = Literal['anonymous_note', 'user']
-ReportTypeId = NoteId | UserId
+type ReportTypeId = NoteId | UserId
 
 
 class ReportInit(TypedDict):
     id: ReportId
-    type: ReportType
+    type: CreateRequest_Type
     type_id: ReportTypeId
 
 

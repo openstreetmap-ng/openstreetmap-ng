@@ -15,7 +15,7 @@
 {% set report_title_html %}
   {%- if report.reported_user -%}
     Reported
-    <a href="/user/{{ report.reported_user.display_name }}"
+    <a href="/user-id/{{ report.reported_user.id }}"
       >{{ report.reported_user.display_name }}</a
     >
   {%- elif report.type == 'anonymous_note' -%}
@@ -40,7 +40,7 @@
       <div class="row">
         {% if report.reported_user %}
           <div class="col-auto">
-            <a href="/user/{{ report.reported_user.display_name }}">
+            <a href="/user-id/{{ report.reported_user.id }}">
               <img
                 class="avatar"
                 src="{{ user_avatar_url(report.reported_user) }}"
@@ -103,14 +103,16 @@
           {%- if report.closed_at -%}
             <button
               type="button"
-              class="btn btn-secondary reopen-btn d-none"
+              class="btn btn-secondary reopen-btn"
+              hidden
             >
               <i class="bi bi-arrow-counterclockwise me-1"></i>
               Reopen
             </button>
             <button
               type="button"
-              class="btn btn-secondary comment-reopen-btn d-none"
+              class="btn btn-secondary comment-reopen-btn"
+              hidden
             >
               <i class="bi bi-arrow-counterclockwise me-1"></i>
               Comment & Reopen
@@ -125,7 +127,8 @@
             </button>
             <button
               type="button"
-              class="btn btn-success comment-close-btn d-none"
+              class="btn btn-success comment-close-btn"
+              hidden
             >
               <i class="bi bi-check-circle me-1"></i>
               Comment & Close
@@ -143,9 +146,10 @@
 
       {# Hidden forms for close/reopen #}
       <form
-        class="close-form d-none"
+        class="close-form"
         method="POST"
         action="/api/web/reports/{{ report.id }}/close"
+        hidden
       >
         <input
           type="hidden"
@@ -154,9 +158,10 @@
         />
       </form>
       <form
-        class="reopen-form d-none"
+        class="reopen-form"
         method="POST"
         action="/api/web/reports/{{ report.id }}/reopen"
+        hidden
       >
         <input
           type="hidden"

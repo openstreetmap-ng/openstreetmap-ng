@@ -1,12 +1,14 @@
 from datetime import datetime
-from typing import Literal, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
 from app.models.db.diary import Diary
 from app.models.db.message import Message
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.trace import Trace
-from app.models.db.user import UserDisplay, UserRole
+from app.models.db.user import UserDisplay
+from app.models.proto.admin_users_types import Role
+from app.models.proto.report_types import CreateRequest_Action, CreateRequest_Category
 from app.models.types import (
     ApplicationId,
     ChangesetId,
@@ -19,42 +21,20 @@ from app.models.types import (
     UserId,
 )
 
-ReportAction = Literal[
-    'comment',
-    'close',
-    'reopen',
-    'generic',
-    'user_account',
-    'user_changeset',
-    'user_diary',
-    'user_message',
-    'user_note',
-    'user_oauth2_application',
-    'user_profile',
-    'user_trace',
-]
-ReportActionId = (
+type ReportActionId = (
     ChangesetId | DiaryId | MessageId | NoteId | ApplicationId | UserId | TraceId | None
 )
-
-ReportCategory = Literal[
-    'spam',
-    'vandalism',
-    'harassment',
-    'privacy',
-    'other',
-]
 
 
 class ReportCommentInit(TypedDict):
     id: ReportCommentId
     report_id: ReportId
     user_id: UserId
-    action: ReportAction
+    action: CreateRequest_Action
     action_id: ReportActionId
     body: str  # TODO: validate size
-    category: ReportCategory | None
-    visible_to: UserRole
+    category: CreateRequest_Category | None
+    visible_to: Role
 
 
 class ReportComment(ReportCommentInit):

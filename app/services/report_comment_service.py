@@ -2,7 +2,7 @@ import logging
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.models.db.user import UserRole
+from app.models.proto.admin_users_types import Role
 from app.models.types import ReportCommentId
 
 
@@ -10,7 +10,7 @@ class ReportCommentService:
     @staticmethod
     async def update_visibility(
         comment_id: ReportCommentId,
-        new_visibility: UserRole,
+        new_visibility: Role,
     ):
         user = auth_user(required=True)
         user_id = user['id']

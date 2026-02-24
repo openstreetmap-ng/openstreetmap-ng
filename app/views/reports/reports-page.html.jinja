@@ -5,7 +5,7 @@
       <p class="header text-muted d-flex justify-content-between">
         <span>
           {% if report.reported_user %}
-            <a href="/user/{{ report.reported_user.display_name }}">
+            <a href="/user-id/{{ report.reported_user.id }}">
               <img
                 class="avatar"
                 src="{{ user_avatar_url(report.reported_user) }}"
@@ -16,7 +16,7 @@
             <strong>Reported</strong>
             <a
               class="ms-1"
-              href="/user/{{ report.reported_user.display_name }}"
+              href="/user-id/{{ report.reported_user.id }}"
             >
               {{- report.reported_user.display_name -}}
             </a>
