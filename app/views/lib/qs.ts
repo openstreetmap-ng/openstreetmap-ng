@@ -65,7 +65,3 @@ export const qsEncode = (
   const str = params.toString()
   return str ? `${prefix}${str.replaceAll("%2F", "/")}` : ""
 }
-
-/** Read a single query parameter from the current page URL. */
-export const getSearchParam = (key: string) =>
-  new URLSearchParams(window.location.search).get(key)
