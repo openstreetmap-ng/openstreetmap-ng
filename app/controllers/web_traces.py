@@ -10,16 +10,13 @@ from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_scopes, auth_user, web_user
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.standard_pagination import (
-    StandardPaginationStateBody,
+    StandardPaginationRequestBody,
     sp_paginate_table,
     sp_render_response,
 )
-from app.models.db.trace import (
-    Trace,
-    TraceVisibility,
-    validate_trace_tags,
-)
+from app.models.db.trace import Trace, validate_trace_tags
 from app.models.db.user import User
+from app.models.proto.profile_types import Page_TraceSummary_Visibility
 from app.models.types import TraceId, UserId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
@@ -34,7 +31,7 @@ async def upload(
     _: Annotated[User, web_user()],
     file: Annotated[UploadFile, Form()],
     description: Annotated[str, Form()],
-    visibility: Annotated[TraceVisibility, Form()],
+    visibility: Annotated[Page_TraceSummary_Visibility, Form()],
     tags: Annotated[list[str] | None, Form()] = None,
 ):
     try:
@@ -55,7 +52,7 @@ async def update(
     trace_id: TraceId,
     name: Annotated[str, Form()],
     description: Annotated[str, Form()],
-    visibility: Annotated[TraceVisibility, Form()],
+    visibility: Annotated[Page_TraceSummary_Visibility, Form()],
     tags: Annotated[list[str] | None, Form()] = None,
 ):
     try:
@@ -93,7 +90,7 @@ async def delete(
 async def traces_page(
     user_id: Annotated[UserId | None, Query()] = None,
     tag: Annotated[str | None, Query(min_length=1)] = None,
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     """
     StandardPagination endpoint for trace listings.
@@ -124,7 +121,7 @@ async def traces_page(
         sp_state,
         table='trace',
         # TODO: support 3.14 Templates
-        where=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),  # type: ignore
+        where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
         params=tuple(params),
         page_size=TRACES_LIST_PAGE_SIZE,
         cursor_column='id',

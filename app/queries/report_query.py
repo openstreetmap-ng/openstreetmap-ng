@@ -1,12 +1,11 @@
 from typing import NamedTuple
 
-import cython
 from psycopg.rows import dict_row
 from psycopg.sql import SQL
 
 from app.db import db
 from app.models.db.report import Report
-from app.models.db.user import UserRole
+from app.models.proto.admin_users_types import Role
 from app.models.types import ReportId
 
 
@@ -41,13 +40,13 @@ class ReportQuery:
                     SELECT COUNT(*)
                     FROM report
                     WHERE {}
-                """).format(_where_open(open))
+                """).format(where_open(open))
             ) as r,
         ):
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod
-    async def count_requiring_attention(visible_to: UserRole):
+    async def count_requiring_attention(visible_to: Role):
         """Count reports requiring attention."""
         # Build query dynamically based on visibility level
         if visible_to == 'administrator':
@@ -88,8 +87,7 @@ class ReportQuery:
             return _ReportCountResult(*(await r.fetchone()))  # type: ignore
 
 
-@cython.cfunc
-def _where_open(open: bool | None):
+def where_open(open: bool | None):
     if open is True:
         return SQL('closed_at IS NULL')
     if open is False:
