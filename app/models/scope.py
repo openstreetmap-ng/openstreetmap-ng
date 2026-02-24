@@ -1,6 +1,9 @@
+from collections.abc import Iterable
 from typing import Literal, get_args
 
-PublicScope = Literal[
+from app.models.proto.shared_pb2 import Scope as ProtoScope
+
+type PublicScope = Literal[
     'read_prefs',
     'write_prefs',
     'write_api',
@@ -9,9 +12,9 @@ PublicScope = Literal[
     'write_notes',
 ]
 
-PUBLIC_SCOPES = frozenset[PublicScope](get_args(PublicScope))
+PUBLIC_SCOPES = frozenset[PublicScope](get_args(PublicScope.__value__))
 
-Scope = (
+type Scope = (
     PublicScope
     | Literal[
         # additional scopes
@@ -65,3 +68,15 @@ def scope_from_str(s: str):
     frozenset({'read_prefs', 'write_api'})
     """
     return scope_from_kwargs(**dict.fromkeys((s for s in s.split() if s), True))
+
+
+def scope_from_proto(scopes: Iterable[int]):
+    """
+    Get public scopes from a repeated proto enum field.
+
+    >>> scope_from_proto([ProtoScope.read_prefs, ProtoScope.write_api, ProtoScope.web_user])
+    frozenset({'read_prefs', 'write_api'})
+    """
+    return scope_from_kwargs(
+        **dict.fromkeys((ProtoScope.Name(scope) for scope in scopes), True)
+    )
