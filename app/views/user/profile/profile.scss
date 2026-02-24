@@ -1,4 +1,4 @@
-.user-profile-body {
+.profile\.Page {
   .content-header {
     position: relative;
     padding-top: min(calc(6.5rem + 5vw), 12.5rem);
@@ -153,7 +153,7 @@
   }
 }
 
-#profileSocialsModal {
+#ProfileSocialsModal {
   .social-row {
     @extend .mb-3;
 

@@ -94,7 +94,7 @@
 
   // Fix border on last visible method option (when others are hidden)
   [data-section="method-select"]
-    .list-group-item:not(.d-none, :has(~ .list-group-item:not(.d-none))) {
+    .list-group-item:not([hidden], :has(~ .list-group-item:not([hidden]))) {
     border-bottom: 0;
   }
 }

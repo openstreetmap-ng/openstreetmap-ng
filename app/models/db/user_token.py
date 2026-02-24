@@ -11,7 +11,7 @@ from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.types import Email, UserId, UserTokenId
 
-UserTokenType = Literal[
+type UserTokenType = Literal[
     'account_confirm', 'email_change', 'email_reply', 'reset_password'
 ]
 

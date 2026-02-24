@@ -194,11 +194,9 @@
             </div>
 
             {% if not display_name_value and not email_value %}
-              <div>
-                {% set providers_action = 'signup' %}
-                {% set providers_include_referer = false %}
-                {% include 'user/_providers' %}
-              </div>
+              {% set providers_action = 'signup' %}
+              {% set providers_include_referer = false %}
+              {% include 'user/_providers' %}
             {% endif %}
           </div>
 
@@ -216,8 +214,9 @@
                 </button>
                 <button
                   type="button"
-                  class="btn btn-link d-none"
+                  class="btn btn-link"
                   data-auth-switcher-target="email"
+                  hidden
                 >
                   <i class="bi bi-chevron-left small me-1"></i>
                   {{- t('action.go_back') -}}

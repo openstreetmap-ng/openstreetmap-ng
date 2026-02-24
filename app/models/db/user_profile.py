@@ -3,7 +3,7 @@ from typing import Literal, NamedTuple, NotRequired, TypedDict, get_args
 from app.lib.rich_text import resolve_rich_text
 from app.models.types import UserId
 
-UserSocialType = Literal[
+type UserSocialType = Literal[
     'bluesky',
     'discord',
     'facebook',
@@ -32,7 +32,7 @@ UserSocialType = Literal[
     'other',
 ]
 
-USER_SOCIAL_TYPES = frozenset[UserSocialType](get_args(UserSocialType))
+USER_SOCIAL_TYPES = frozenset[UserSocialType](get_args(UserSocialType.__value__))
 
 
 class UserSocial(NamedTuple):

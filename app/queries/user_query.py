@@ -14,7 +14,8 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
-from app.models.db.user import User, UserDisplay, UserRole
+from app.models.db.user import User, UserDisplay
+from app.models.proto.admin_users_types import Role
 from app.models.types import ApplicationId, ChangesetId, DisplayName, Email, UserId
 from app.validators.email import validate_email
 
@@ -315,7 +316,7 @@ class UserQuery:
         *,
         search: str | None = None,
         unverified: bool | None = None,
-        roles: list[UserRole] | None = None,
+        roles: list[Role] | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,
@@ -380,7 +381,7 @@ class UserQuery:
             )
             params.append(application_id)
 
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
         return where_clause, tuple(params)
 
     @staticmethod
@@ -389,7 +390,7 @@ class UserQuery:
         limit: int,
         search: str | None = None,
         unverified: bool | None = None,
-        roles: list[UserRole] | None = None,
+        roles: list[Role] | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,

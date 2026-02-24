@@ -13,8 +13,6 @@ from starlette.responses import RedirectResponse
 from app.config import (
     EMAIL_MIN_LENGTH,
     PASSWORD_MIN_LENGTH,
-    USER_DESCRIPTION_MAX_LENGTH,
-    USER_MAX_SOCIALS,
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
 )
@@ -22,11 +20,12 @@ from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.image import Image
-from app.lib.render_response import render_response
-from app.lib.socials import SOCIALS_CONFIG
+from app.lib.render_response import render_proto_page, render_response
 from app.lib.statistics import user_activity_summary
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.models.db.user import User
+from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
+from app.models.proto.profile_pb2 import Page
+from app.models.proto.shared_pb2 import UserSocial as ProtoUserSocial
 from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -231,14 +230,11 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
     changesets_comments_count = 0  # TODO: changesets_comments_count_t.result()
 
     traces = traces_t.result()
-    traces_lines = ';'.join(
-        encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore
-        for trace in traces
-    )
 
     # TODO: groups
     groups_count = 0
-    groups = ()
+
+    user_profile = user_profile_t.result()
 
     # Get follow status results
     if follow_status_t is not None:
@@ -249,34 +245,85 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         is_following = False
         is_followed_by = False
 
-    return await render_response(
-        'user/profile/profile',
-        {
-            'profile': user,
-            'user_profile': user_profile_t.result(),
-            'is_self': is_self,
-            'is_new_user': is_new_user,
-            'is_following': is_following,
-            'is_followed_by': is_followed_by,
-            'background_url': Image.get_background_url(user['background_id']),
-            'changesets_count': changesets_count_t.result(),
-            'changesets_comments_count': changesets_comments_count,
-            'changesets': changesets_t.result(),
-            'notes_count': notes_count_t.result(),
-            'notes_comments_count': notes_comments_count_t.result(),
-            'notes': notes_t.result(),
-            'traces_count': traces_count_t.result(),
-            'traces': traces,
-            'traces_lines': traces_lines,
-            'diaries_count': diaries_count_t.result(),
-            'diaries_comments_count': diaries_comments_count_t.result(),
-            'diaries': diaries_t.result(),
-            'groups_count': groups_count,
-            'groups': groups,
-            'SOCIALS_CONFIG': SOCIALS_CONFIG,
-            'USER_MAX_SOCIALS': USER_MAX_SOCIALS,
-            'USER_DESCRIPTION_MAX_LENGTH': USER_DESCRIPTION_MAX_LENGTH,
-            'USER_RECENT_ACTIVITY_ENTRIES': USER_RECENT_ACTIVITY_ENTRIES,
-            **activity_t.result(),
-        },
+    profile_page_state = Page(
+        user=user_proto(user),
+        is_self=is_self,
+        is_new_user=is_new_user,
+        is_administrator=user_is_admin(user),
+        is_moderator=user_is_moderator(user),
+        background_url=Image.get_background_url(user['background_id']),
+        created_at=int(user['created_at'].timestamp()),
+        chart=activity_t.result(),
+        follow=(
+            Page.FollowState(
+                target_user_id=user_id,
+                is_following=is_following,
+                is_followed_by=is_followed_by,
+            )
+            if follow_status_t is not None
+            else None
+        ),
+        description=user_profile['description'],
+        description_rich=user_profile['description_rich'],  # type: ignore
+        socials=[
+            ProtoUserSocial(service=s.service, value=s.value)
+            for s in user_profile['socials']
+        ],
+        changesets_count=changesets_count_t.result(),
+        changesets_comments_count=changesets_comments_count,
+        changesets=[
+            Page.ChangesetSummary(
+                id=changeset['id'],
+                created_at=int(changeset['created_at'].timestamp()),
+                comment=changeset['tags'].get('comment'),
+                num_comments=changeset.get('num_comments') or 0,
+                num_create=changeset['num_create'],
+                num_modify=changeset['num_modify'],
+                num_delete=changeset['num_delete'],
+            )
+            for changeset in changesets_t.result()
+        ],
+        notes_count=notes_count_t.result(),
+        notes_comments_count=notes_comments_count_t.result(),
+        notes=[
+            Page.NoteSummary(
+                id=note['id'],
+                created_at=int(note['created_at'].timestamp()),
+                updated_at=int(note['updated_at'].timestamp()),
+                is_closed=note['closed_at'] is not None,
+                body=note['comments'][0].get('body') or '',  # type: ignore
+                num_comments=note.get('num_comments') or 0,
+            )
+            for note in notes_t.result()
+        ],
+        traces_count=traces_count_t.result(),
+        traces=[
+            Page.TraceSummary(
+                id=trace['id'],
+                created_at=int(trace['created_at'].timestamp()),
+                description=trace['description'],
+                tags=trace['tags'],
+                visibility=trace['visibility'],
+                size=trace['size'],
+                line=encode_lonlat(trace['coords'].tolist(), 0),  # type: ignore
+            )
+            for trace in traces
+        ],
+        diaries_count=diaries_count_t.result(),
+        diaries_comments_count=diaries_comments_count_t.result(),
+        diaries=[
+            Page.DiarySummary(
+                id=diary['id'],
+                created_at=int(diary['created_at'].timestamp()),
+                title=diary['title'],
+                num_comments=diary.get('num_comments') or 0,
+            )
+            for diary in diaries_t.result()
+        ],
+        groups_count=groups_count,
+    )
+
+    return await render_proto_page(
+        profile_page_state,
+        title_prefix=user['display_name'],
     )

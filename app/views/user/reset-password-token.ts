@@ -7,7 +7,7 @@ mount("reset-password-token-body", (body) => {
     // On successful reset request, update the form state
     resetForm.reset()
     resetForm.querySelector(".before")!.remove()
-    resetForm.querySelector(".after")!.classList.remove("d-none")
+    resetForm.querySelector<HTMLElement>(".after")!.hidden = false
     console.debug("ResetPasswordToken: Password updated")
   })
 })

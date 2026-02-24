@@ -35,4 +35,7 @@ class UserProfileQuery:
         if resolve_rich_text:
             await user_profiles_resolve_rich_text([profile])
 
+            if 'description_rich' not in profile:
+                profile['description_rich'] = '<p></p>'
+
         return profile
