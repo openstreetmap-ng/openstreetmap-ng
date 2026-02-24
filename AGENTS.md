@@ -1,149 +1,649 @@
-# OpenStreetMap‑NG
+# OpenStreetMap-NG Contributor Guide
 
-This is the single set of ground rules for this repo. It orients new contributors, captures the most common patterns, and points to canonical examples to copy. The project is under active development; breaking changes are acceptable.
+This file is the project-level operating manual for contributors and coding agents.
+Keep it accurate. If your change invalidates any section, update this file in the same patch.
 
-## Project At A Glance
+## 1. Project Identity
 
-- Backend: Python 3.13, FastAPI, async Psycopg 3, PostgreSQL 18 (PostGIS, TimescaleDB). Optional acceleration via Cython (pure‑Python mode) and `speedup` Rust extension (PyO3).
-- Frontend: Jinja2 server‑rendered HTML; Vite‑bundled TypeScript (ES2023) and SCSS; Bootstrap 5 + Bootstrap Icons; MapLibre GL.
-- Tooling: Reproducible dev shell (`shell.nix`), Python deps via `uv`, TS/JS via `bun`.
+OpenStreetMap-NG is a full-stack OSM web platform with:
 
-## Repository Map
+- Python 3.13 backend (`fastapi`, async `psycopg`)
+- PostgreSQL 18 + PostGIS + TimescaleDB
+- Connect RPC (protobuf over HTTP) at `/rpc`
+- SSR HTML with Jinja + client-side TS/TSX (Preact + signals)
+- Nix-based reproducible dev/runtime tooling
 
-- `app/controllers/` — FastAPI routers; keep thin; orchestrate services/queries.
-- `app/lib/` — Cross‑cutting helpers (translation, rendering, auth context, HTTP, Vite, date/utils).
-- `app/middlewares/` — Request/translation contexts, CORS, cache‑control, profiling, unsupported browser.
-- `app/models/db/` — Row `TypedDict`s mirroring tables plus helpers.
-- `app/models/proto/` — Protobuf schemas + generated Python.
-- `app/rpc/` — Connect RPC services (protobuf over HTTP) mounted at `/rpc`.
-- `app/queries/` — Pure SELECT data access; compose dynamic SQL safely.
-- `app/responses/` — Response helpers including `PrecompressedStaticFiles` for `.zst`/`.br` assets.
-- `app/services/` — Mutations and workflows (write paths, audits, email, OAuth2). Use `db(write=True)`.
-- `app/static/` — Built assets; Vite outputs to `app/static/vite/`.
-- `app/views/` — Templates (`*.html.jinja`) + feature‑scoped TypeScript/SCSS; shared libs in `app/views/lib/`.
-- `config/locale/` — Locale sources and generated outputs.
-- `scripts/` — Pipelines (locale, proto, raster, replication).
-- `shellscripts/` — Dev shell commands (loaded by `shell.nix`); `*.sh` for plain bash, `*.nix` when Nix features are needed. Do not execute directly. Generated command name matches the filename.
-- `speedup/` — Optional Rust extension for hot paths (PyO3/maturin).
-- `tests/` — Pytest suite mirroring `app/` layout.
+Primary stack definitions:
 
-## Development Workflow
+- `pyproject.toml`
+- `package.json`
+- `tsconfig.json`
+- `vite.config.ts`
+- `shell.nix`
 
-Application Server:
+## 2. Architecture At A Glance
 
-```sh
-run
-# INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-# INFO: Started reloader process [...] using WatchFiles
-```
+### 2.1 Request Topology
 
-Code Quality:
+Main ASGI wiring is in `app/main.py`:
 
-```sh
-format                # Format/lint/non-Python type checks
-pyright               # Python type checks (BasedPyright)
-run-tests             # Standard pytest suite
-run-tests --extended  # Extended tests marked with @pytest.mark.extended
-```
+- FastAPI app boots with lifespan-managed services and DB pool
+- RPC app is mounted at `/rpc` (`app/rpc/app.py`)
+- Static roots are served through precompression-aware file server (`app/responses/precompressed_static_files.py`)
+- Routers are auto-imported from `app/controllers`
+- Surface areas currently coexist: web pages (`/`), legacy web form APIs (`/api/web/...`), OSM API controllers (`/api/0.6/...`, `/api/0.7/...`), and RPC (`/rpc/...`)
 
-Asset Pipelines:
+The middleware stack is intentionally curated (auth, translation, rate limit, compression, request context, etc). Do not reorder casually.
 
-```sh
-proto-pipeline        # Compile Protobuf → Python + TypeScript
-locale-pipeline       # Build GNU gettext + i18next bundles (with pruning)
-watch-locale          # Watch extra_en.yaml and rebuild locales on change
-watch-proto           # Watch .proto files and regenerate on change
-vite build            # Build TypeScript/SCSS (alternatively: vite-build helper)
-static-precompress    # Produce .zst/.br for large static assets
-```
+### 2.2 Layering Rules
 
-## Backend Conventions
+Use this separation consistently:
 
-- Layering: controller → service → query. Controllers validate and orchestrate; services mutate; queries are side‑effect‑free. Read‑only lookup methods (even complex ones combining multiple conditions) belong in queries, not services.
-- Database access: always use `app/db.py:db(write=False|True, ...)`. Default cursors are binary; use `conn.cursor(row_factory=dict_row)` for dict rows. Direct database access via `psql "$POSTGRES_URL"` is available for investigation and debugging.
-- SQL safety: never build SQL with f‑strings/concat. Use `psycopg.sql.SQL`/`Identifier` for dynamic pieces and pass parameters (`%s`/`%(name)s`). Examples: `app/services/note_service.py`, `app/queries/note_comment_query.py`.
-- Form feedback: return OpenAPI‑compatible `detail` using `StandardFeedback` (see Standard Components). StandardForm consumes this shape for field tooltips and form‑level alerts. Use `StandardFeedback.raise_error(field, message)` for validation failures.
-- Errors:
-  - `raise_for` (`app/lib/exceptions_context`): business/domain failures (not found, insufficient scopes). Often localized, maps to HTTP semantics.
-  - `HTTPException(status.HTTP_4XX, 'message')`: low‑level/technical errors not worth localizing (e.g., malformed cryptographic data).
-- Translation (server): work inside `translation_context(...)` (middleware sets this) and call `t()/nt()` from `app/lib/translation.py`.
-- Rendering: use `app/lib/render_response.py` to return HTML; it applies standard layout, config, and localization so the frontend can just call i18next.
-- Jinja loader: `render_jinja`/`include` auto‑append `.html.jinja`. Refer to templates without the suffix (e.g., `extends '_base'`).
-- HTTP clients: use `app/utils.py:HTTP` (SSRF‑protected) for external calls; `HTTP_INTERNAL` for trusted internal calls.
-- Context helpers: prefer `get_request()`, `auth_user()`, `auth_scopes()` instead of passing the Request or auth state through call chains.
-- Concurrency: use `TaskGroup` for fan‑out/fan‑in I/O; let unexpected states raise (don’t swallow). See usage in controllers and services.
-- Auditing & rate limits: record important actions via `audit(...)` (e.g., rate‑limit updates) and gate heavy endpoints with `@rate_limit` middleware hooks (`app/middlewares/rate_limit_middleware.py`).
-- Geometry writes: follow existing usage of `ST_QuantizeCoordinates(..., 7)` when inserting/updating geometries to keep storage and comparisons stable.
-- Auth dependencies: protect web pages with `web_user(...)` and API endpoints with `api_user(...)` (see `app/lib/auth_context.py`); use role scopes like `'role_moderator'`/`'role_administrator'` where needed. For data visibility in queries, reuse utilities like `user_is_moderator(user)`.
+- Controller (`app/controllers`): HTTP boundary and orchestration
+- RPC service (`app/rpc`): protobuf boundary and orchestration
+- Service (`app/services`): writes/workflows/business mutations
+- Query (`app/queries`): read-only data access
+- Model (`app/models/db`): table-shape `TypedDict` and helpers
 
-## Frontend Conventions
+Rule of thumb:
 
-- Single‑bundle strategy:
-  - JavaScript: `app/views/main.ts` is the single deferred entry that imports feature modules. Each module guards itself with a page/body marker so it only runs where applicable. Prefer adding new behavior here instead of creating new page‑specific entries.
-  - CSS: `app/views/main.scss` imports all Bootstrap, shared, and feature styles. Prefer adding partials and importing them into `main.scss` rather than per‑page styles. This improves cache efficiency and compression across the site.
-  - Exceptions: create a separate entry only for hard isolation (e.g., editor iframes like `id.ts`/`rapid.ts`, or `embed.ts`). Declare it in `vite.config.ts` and include it via `vite_render_asset` from a dedicated template.
-- Synchronous bootstrap: `app/views/main-sync.ts` is the only blocking script; keep it import‑free to avoid extra polyfills and ensure theme setup before paint.
-- TypeScript: `tsconfig.json` has `"strict": true`. Prefer fail‑fast crashes over silently continuing with unexpected states. Avoid defensive optional chaining (`?.`) or fallback operators (`??`) on values guaranteed by template or control flow—these hide bugs instead of surfacing them. Omit explicit return types when inferable; redundant annotations add noise and slow iteration.
-- DOM typing: rely on `typed-query-selector` inference for `querySelector/All`; avoid explicit generics (`querySelector<HTML...>`) and `as HTML...` casts.
-- Modern syntax: write ES2023/modern CSS. Polyfills and transforms are injected automatically (Vite legacy plugin in `vite.config.ts`, Babel preset‑env + `core-js` and `browserslist` in `package.json`, Autoprefixer in `vite.config.ts`).
-- Styling: SCSS with Bootstrap 5. Prefer semantic classes; avoid inline styles; use `rem`/`em` instead of `px` where sensible.
-- Router integration: for map/index pages, define `IndexRouteDef` routes and register them via `configureRouter([...])` (`app/views/index/router.ts`). Render the active route inside `IndexRouterOutlet` (`app/views/index/router-outlet.tsx`) mounted into `#ActionSidebar` (`app/views/lib/map/main-map.tsx`). Treat the URL as the source of truth: routes read reactive router signals like `routerCtx`, `routerParams`, and `routerQuery` so components can avoid `window.location.search` and ad‑hoc parsing boilerplate.
-- Forms: use `app/views/lib/standard-form.ts` for submissions and feedback (see Standard Components); avoid bespoke AJAX.
-- Jinja templates:
-  - General page templates extend `_base` (omit the `.html.jinja` suffix when referring to templates); shared markup lives either next to the feature under a leading-underscore filename (e.g. `traces/_list-entry`) or globally in `app/views/lib/`.
-  - Build reusable fragments as includes and avoid macros entirely.
-  - When an include needs parameters, set them immediately beforehand and prefix each variable with the component name to avoid collisions (e.g. `multi_input_name`, `entry_hide_preview`). Only add fallbacks inside the partial when the component truly benefits from a default; otherwise let missing data fail loudly.
-  - Locals created with `set` should start with an underscore (e.g. `{% set _is_deleted = ... %}`) to avoid clashing with request or component variables.
-  - Keep component contexts lean: pass in presentation-ready values.
-  - Asset naming: when a Jinja template has a `_` prefix (e.g., `_list-entry.html.jinja`), related TypeScript and SCSS files must use the same prefix (e.g., `_list-entry.ts`, `_list-entry.scss`). This enables IDE file folding to group related files together.
+- Reads belong in queries
+- Writes belong in services
+- Boundary validation belongs at HTTP/RPC boundary (Pydantic/Form/proto+protovalidate), not duplicated deeper without reason
+- Query-level enrichments are part of the query contract; keep call sites aligned with those guarantees (for example `UserPasskeyQuery.find_all_by_user_id(..., resolve_aaguid_db=True)` producing display-ready passkey names/icons)
 
-## Standard Components
+## 3. Repository Map
 
-- StandardForm (client): `configureStandardForm(form, onSuccess, options)` wires Bootstrap validation, handles pending state, posts via fetch, maps backend `detail` into field tooltips or a form alert, and integrates client‑side password hashing. Use it for all interactive forms (examples across `app/views/**`).
-- StandardFeedback (server): build JSON responses that StandardForm understands using `StandardFeedback`. For simple success/info messages, return `StandardFeedback.success_result(None, '...')`/`info_result(...)`; for validation failures, call `StandardFeedback.raise_error(field, '...')`.
-- StandardFeedbackDetail (RPC): the same feedback is available for Connect RPC calls as a typed protobuf error detail (`StandardFeedbackDetail` in `app/models/proto/shared.proto`).
-- Protovalidate (RPC): prefer `(buf.validate.field)...` rules in `.proto` request messages; the server validates and returns `StandardFeedbackDetail` (and raw `buf.validate.Violations`) on invalid arguments.
-- StandardPagination (client + server): use `configureStandardPagination(container, opts)` to drive list/table pagination.
-  - Markup: a render container (`ul.list-unstyled` or `tbody`) and a trailing `ul.pagination` with `data-action="/api/..."`.
-  - Target scoping: pass a container that includes any counters you want updated (e.g. header `[data-sp-num-items]`); `configureStandardPagination` scopes pagination UI + render area internally around the action pagination.
-  - Fragment metadata: if a paginated response needs to carry extra per-page data for JS, emit it as a hidden element inside the render container and consume/remove it in `loadCallback`. Select the meta node via class/hierarchy; store values in `data-*`.
-  - Requests: browser POSTs a raw `StandardPaginationState` protobuf body (`application/x-protobuf`) with `requested_page` set; the server loads that page using anchors from `current_page`, clears `requested_page`, and returns the updated state in the `X-StandardPagination` response header (base64url‑encoded).
-  - Backend helpers: `app/lib/standard_pagination.py` (common SQL, query planning, limited counting, header encoding). For the common “table + WHERE” case, use `sp_paginate_table(...)`.
-- Rule of thumb: for interactive form flows, prefer `StandardFeedback` for success/info/errors; reserve `raise_for` for exceptional conditions that should abort the flow entirely (e.g., unauthorized, not found).
+Top-level contributor-relevant locations:
 
-## Localization Workflow (frontend + backend)
+- `app/controllers` - HTTP routers (web/API)
+- `app/rpc` - Connect RPC service implementations
+- `app/models/proto` - source `.proto` plus generated Python artifacts
+- `app/views` - Jinja templates, TS/TSX, SCSS
+- `app/views/lib` - frontend shared runtime/components/macros
+- `app/services` - write paths and workflows
+- `app/queries` - read paths
+- `app/migrations` - database schema migrations (currently baseline in `app/migrations/0.sql`)
+- `scripts` - Python/bash operational pipelines
+- `shellscripts` - command definitions exposed through Nix shell
+- `config` - runtime configs (locale, socials, process-compose, postgres, Caddy)
+- `tests` - pytest suite
+- `speedup` - Rust extension (`pyo3`) for hot paths
 
-- Authoring: add English source strings in `config/locale/extra_en.yaml`. Keys must be slug‑like and highly descriptive so they read well at call sites. Example: `password_strength.suggestions.use_at_least_min_length_characters`.
-- Frontend usage: always call `i18next.t("literal.key")` (or `t("literal.key")`) with literal string keys next to the call. The i18next pipeline discovers keys via regex and prunes unused ones; dynamic construction is not detected and will be dropped.
-- Dynamic exceptions: if a dynamic family of keys is unavoidable, add a static prefix to `scripts/locale_make_i18next.py:_INCLUDE_PREFIXES`.
-- Pipeline: `locale-pipeline` runs post‑processing and emits both i18next hashed bundles (`config/locale/i18next`) and GNU gettext catalogs. Files are injected by `map_i18next_files(...)` and bootstrapped in the browser by `app/views/lib/i18n.ts`.
-- Backend translation: use `t()/nt()` inside the active translation context; templates get the locale via `render_jinja`/`render_response`.
-- Internal admin/moderation UIs: page‑specific admin text is intentionally not localized to speed up iteration and reduce maintenance. Where identical phrasing already exists elsewhere, prefer reusing those locale keys instead of duplicating strings. If an internal string becomes user‑facing later, migrate it to a locale key in the same change.
-- Locales hygiene: only add strings that are actually rendered; prefer reusing existing namespaces/keys over introducing near-duplicates.
+## 4. Dev Environment and Command Model
 
-## Code Generation & Assets
+## 4.1 Nix Shell Is The Control Plane
 
-- Protobuf: `proto-pipeline` generates Python stubs in `app/models/proto` and TypeScript clients in `app/views/lib/proto`. Never edit generated files.
-- Vite build: `vite-build` outputs hashed JS/CSS to `app/static/vite` and updates the manifest consumed by `vite_render_asset`.
-- Precompressed static files: large assets are served via `PrecompressedStaticFiles`; use `static-precompress` to create `.zst`/`.br` siblings instead of committing duplicates.
+Environment is assembled by `shell.nix`.
+Entering shell runs significant setup:
 
-## Tests & Fixtures
+- exports project env vars (`APP_URL`, `POSTGRES_URL`, etc)
+- loads `.env` if present
+- installs/syncs Python deps via `uv`
+- installs TS deps via `bun`
+- installs git commit hook
+- runs bootstrap pipelines like `static-img-pipeline` and `proto-pipeline`
 
-- Tests mirror the app layout (`tests/controllers`, `tests/services`, etc.).
-- Shared fixtures live in `tests/conftest.py` and `tests/data/`; prefer extending these over custom per‑test setups.
-- Tests rely on background services (Postgres, Mailpit). Starting services (`dev-start`) is a human‑only action unless explicitly allowed. If services aren't running and you don't have permission to start them, treat tests as temporarily unavailable and continue with other checks.
-- Test patterns: use AAA (Arrange, Act, Assert) for simple tests. Multi-stage tests use stage comments instead of repeated AAA blocks. Test names must be clear and descriptive; only use docstrings when complexity demands it. Uniformity and glance-through readability are paramount.
+Do not assume a "plain shell" workflow.
 
-## Handy References (copy patterns from these)
+## 4.2 Shellscripts Are Command Definitions, Not Ad-Hoc Scripts
 
-- DB helper and connection modes: `app/db.py:137`
-- SQL composition examples: `app/services/note_service.py`, `app/queries/note_comment_query.py`
-- HTML rendering glue: `app/lib/render_response.py`, `app/lib/render_jinja.py`
-- Frontend config and i18n bootstrap: `app/views/lib/config.ts`, `app/views/lib/i18n.ts`
-- Frontend entry points: `app/views/main.ts`, `app/views/main-sync.ts`
-- Build & polyfills: `vite.config.ts`, `package.json:babel`, `package.json:browserslist`, `tsconfig.json`
-- Localization tooling: `config/locale/extra_en.yaml`, `scripts/locale_postprocess.py`, `scripts/locale_make_i18next.py`
+`shellscripts/*.sh` and `shellscripts/*.nix` are converted into shell commands by `shell.nix`.
+Use command names (for example `run`, `format`, `proto-pipeline`) from inside nix shell.
+Do not execute `shellscripts/...` files directly.
+Nested script paths are flattened to command names by replacing `/` with `-`.
 
-When introducing new code, first search for an existing helper or pattern and extend it. Consistency keeps patches lean, predictable, and easy to review.
+Prefer invoking operational logic through these commands rather than calling files in `scripts/` directly.
+`scripts/` is implementation; shell commands are the supported interface.
 
-**Please treat the AGENTS.md guide as living documentation**: if a change in your patch invalidates any section, update the relevant text in the same patch. Likewise, fix anything you notice is incorrect, and add new recurring patterns or contributor-critical guidance as they emerge so newcomers always land on accurate, essential information.
+Notable commands:
+
+- `run` - app server (`uvicorn` in dev, gunicorn+uvicorn-worker in prod mode)
+- `dev-start` / `dev-stop` / `dev-restart` - process-compose services
+- `format` - formatting + linting + non-Python checks
+- `pyright` - Python type checking
+- `run-tests` - pytest wrapper with coverage
+- `proto-pipeline` - protobuf code generation
+- `locale-pipeline` - locale processing + i18next + gettext
+- `vite-build` - production frontend build (smart no-op when unchanged)
+- `static-precompress` - generate `.zst` and `.br` static assets
+
+`run-tests` requires process-compose socket/services; it will fail fast if services are down.
+
+## 4.3 Process-Compose Services
+
+Service graph is generated by `config/process-compose.nix` and includes (in dev):
+
+- postgres
+- mailpit
+- watch-proto
+- watch-locale
+- vite dev server
+
+Local defaults are in `shell.nix`; production/test service variants are in `config/services-test.nix`.
+
+## 5. Backend Conventions
+
+## 5.1 DB Access and SQL
+
+Use `app/db.py` helpers:
+
+- `db(write=False|True, ...)`
+- `psycopg_pool_open()` lifecycle
+- pagination and lock helpers
+
+Important behaviors:
+
+- default cursors are binary
+- request-scoped statement timeout is applied automatically
+- additional DB enums/composites are registered at startup
+
+SQL safety requirements:
+
+- never compose SQL with f-strings/concat for dynamic identifiers
+- use `psycopg.sql.SQL`, `Identifier`, parameters
+
+## 5.2 Auth and Request Context
+
+Use context helpers over passing request/auth manually:
+
+- `auth_user()`, `auth_scopes()`, `auth_oauth2()`
+- `web_user(...)`, `api_user(...)`, `require_web_user(...)`
+- `get_request()` for request object
+
+Central auth logic lives in `app/lib/auth_context.py` and middleware.
+
+## 5.3 Errors and Feedback
+
+Use the right mechanism:
+
+- `raise_for.*` (`app/lib/exceptions_context.py`) for domain failures
+- `StandardFeedback.raise_error` for form/RPC validation feedback
+- raw `HTTPException` for lower-level technical boundary errors
+
+`StandardFeedback` bridges both worlds:
+
+- HTTP: OpenAPI-compatible `detail`
+- RPC: `StandardFeedbackDetail` protobuf detail
+
+## 5.4 Rich Text and External Data
+
+Rich text pipeline is in `app/lib/rich_text.py`:
+
+- markdown/plain rendering
+- sanitization (`nh3`)
+- link handling with trusted-host policy
+- image proxy ID extraction and persistence
+
+External HTTP:
+
+- use `HTTP` (`app/utils.py`) for SSRF-protected outbound calls
+- use `HTTP_INTERNAL` only for trusted internal calls
+
+## 5.5 Datetime Conversion
+
+When mapping optional datetimes into proto `uint64` unix fields, prefer:
+
+- `datetime_unix(...)` from `app/lib/date_utils.py`
+- `unix_datetime(...)` from `app/lib/date_utils.py` for the reverse (`uint64`/`None` -> `datetime`/`None`)
+
+This keeps overload typing (`None -> None`, `datetime -> int`, `int -> datetime`) and avoids repeated inline conversion helpers in RPC/controllers.
+
+## 6. Data Model and Storage
+
+## 6.1 Schema Source of Truth
+
+Database schema is migration-driven (`app/migrations`).
+Current base schema is `app/migrations/0.sql`, including:
+
+- extensions (PostGIS, TimescaleDB, h3, trigram, etc)
+- enums/composites
+- hypertables and indexes
+
+Core domains include:
+
+- users/auth (`user`, `oauth2_*`, passkeys, totp, recovery codes)
+- map data (`element`, `changeset`, `changeset_bounds`, `element_spatial`)
+- social/content (`note`, `diary`, `message`, `trace`, `report`)
+- ops (`audit`, `rate_limit`, `admin_task`, `file`)
+
+## 6.2 Typed IDs and Model Shapes
+
+Typed IDs and aliases live in:
+
+- `app/models/types.py`
+- `app/models/element.py`
+
+DB row shapes live in `app/models/db/*.py` as `TypedDict` plus helper functions.
+Keep these in sync with schema and query/service expectations.
+
+## 7. Protobuf and RPC
+
+## 7.1 Proto Layout and Generation
+
+Proto sources:
+
+- `app/models/proto/*.proto`
+
+Generated outputs:
+
+- Python stubs: `app/models/proto/*_pb2.py`, `*_connect.py`
+- TS stubs: `app/views/lib/proto/*_pb.ts`, `*_connect.ts`
+
+Generation pipeline:
+
+- `proto-pipeline` (`shellscripts/proto-pipeline.sh`)
+- exports all `.proto` files under `app/models/proto` dynamically
+- uses `buf.gen.yaml` (python/connect-python) and `buf.gen.web.yaml` (protoc-gen-es)
+- flat proto file layout is intentional with per-file packages; all proto files under `app/models/proto` use `package <file_basename>` except `shared.proto` and `server.proto` (package-less by design)
+- packaged proto naming is intentionally minimal: service types are `Service`, page bootstrap messages are `Page` (or concise page variants), and RPC method/message names drop redundant file prefixes
+- buf lint exceptions in `buf.yaml` (`DIRECTORY_SAME_PACKAGE`, `PACKAGE_DIRECTORY_MATCH`, `RPC_REQUEST_STANDARD_NAME`, `RPC_RESPONSE_STANDARD_NAME`) are expected for this setup
+
+Never hand-edit generated files.
+
+## 7.2 RPC Boundary Rules
+
+RPC app wiring in `app/rpc/app.py`:
+
+- auto-loads all RPC services in `app/rpc`
+- validates requests with protovalidate interceptor
+- maps `HTTPException` into `ConnectError`
+- forwards structured feedback via `StandardFeedbackDetail`
+
+Design rules:
+
+- model request validity in `.proto` first (`buf.validate`)
+- for RPC methods whose primary intent is data fetch (for example `List`, `Get`, `ExportIds`), set `option idempotency_level = NO_SIDE_EFFECTS;` for consistency; auxiliary telemetry/logging writes do not change this intent-based decision
+- for optional string/bytes inputs where empty should fail but unset should pass, use `optional` fields with `string.min_len = 1` / `bytes.min_len = 1`; if presence is required, add `(buf.validate.field).required = true`
+- prefer `oneof` for mutually exclusive state
+- for mutation RPC naming, prefer `Update*` over `Set*` when both are semantically equivalent
+- in service proto files, keep top-level declarations in this order: global enums, page/bootstrap messages (`Page` variants), `service Service`, RPC request/response messages (in RPC method order), then local shared/non-RPC messages; rely on proto forward references instead of interleaving sections
+- in package-scoped RPC proto files, keep global enums near the top of the file (after imports); for nested enums, place them at the top of the parent message body before fields
+- avoid impossible internal states by construction
+- avoid redundant re-validation deeper in service layers unless boundary cannot guarantee it
+- if a value set is config-driven (for example socials from `config/socials.toml`), prefer generic proto fields (`string`) and validate/map at the boundary (`app/lib/socials.py`) rather than duplicating enums in proto
+- for enums shared across service boundaries and pages (for example OAuth scopes), define once in `shared.proto` and reuse directly in Python/TS instead of adding string remap layers
+- when boundary adapters already return domain types (for example `list[UserSocial]`), keep services focused on persistence/workflow and avoid re-normalizing the same data again
+- if a message type is only relevant to one parent message, nest it under that parent and use a short contextual name (`Session`, `Activity`) instead of repeating parent prefixes (`SecuritySession`, etc.)
+- in Python RPC modules, alias generated proto messages with a `Proto*` prefix (`AuditEvent as ProtoAuditEvent`) so protobuf types are visually distinct from domain/DB types
+- when a proto enum and a domain literal set are logically 1:1, prefer generated enum helpers (`Type.Name`/`Type.Value`) directly over manual lookup tables; keep any unavoidable typing bridge as narrow inline `type: ignore` at the conversion line only
+- Connect RPC method paths follow package-qualified services (for example `/rpc/settings.Service/UpdateEmail`); keep hard-coded route callers/tests synchronized with proto package or service/method renames
+- in generic backend modules (for example `app/config.py`), import generated proto modules via `from app.models.proto import <file>_pb2` and reference symbols as `<file>_pb2.Message`; reserve direct symbol imports/aliases for local feature contexts where they materially improve clarity
+
+## 7.3 Page Bootstrap State via Proto
+
+For SSR -> TSX bootstrapping, prefer one serialized proto blob per mount root (`data-state`) instead of many ad-hoc scalar `data-*` attributes.
+Avoid hidden DOM transport nodes that TS/TSX later scrapes; if UI needs structured state, include it in the proto state and render directly.
+
+Use global `WebConfig` only for cross-page/session-wide data.
+For page-local data, pass page-specific proto state on that page root only.
+Do not send values over page-state proto that are already available globally through `WebConfig` or build-time config macros (for example role flags and static limits).
+
+Current examples:
+
+- `app/models/proto/profile.proto` -> profile activity state
+- `app/models/proto/message.proto` -> messages index/new page state
+- `app/models/proto/note.proto` -> notes page state
+- `app/models/proto/settings.proto` -> settings page state
+- `app/models/proto/settings_applications.proto` -> settings applications pages state
+- `app/models/proto/settings_connections.proto` -> settings connections page state
+- `app/models/proto/settings_security.proto` -> security page state
+- `app/models/proto/admin_users.proto` -> admin users index/edit page state
+- `app/models/proto/admin_applications.proto` -> admin applications page state
+- `app/models/proto/admin_tasks.proto` -> admin tasks page bootstrap state
+
+Template pattern:
+
+- render `data-state="{{ state_bytes | b64 }}"`
+
+Client pattern:
+
+- decode base64 + `fromBinaryValid(...)`
+- for standardized proto pages, use `mountProtoPage(schema, Component)` from `app/views/lib/proto-page.ts`; it derives mount key from `schema.typeName`, decodes `[data-page-root][data-state]`, and renders `Component` with decoded proto state as props
+
+## 7.4 Config Constants Derived From Proto
+
+`app/config.py` derives selected limits from proto validation descriptors (`_proto_validate`), then frontend imports values through `app/views/lib/config.macro.ts`.
+
+When changing a proto limit, check whether corresponding config exports/macros should be updated.
+
+## 8. Frontend Architecture (SSR + TSX Hybrid)
+
+## 8.1 SSR Shell
+
+`app/views/_base.html.jinja` provides:
+
+- language + text direction
+- serialized `WebConfig` in `<html data-config>`
+- locale bundles (`/static-locale/...`)
+- vite asset injection via `vite_render_asset`
+
+This is server-rendered first, then TS/TSX modules progressively enhance by page body class.
+
+## 8.2 Entry Points and Mounting
+
+Primary entrypoint:
+
+- `app/views/main.ts` (single deferred bundle importing feature modules)
+
+Synchronous pre-paint script:
+
+- `app/views/main-sync.ts` (theme bootstrap only; no imports)
+
+Mount gating helper:
+
+- `app/views/lib/mount.ts` (body-class based)
+
+Guideline:
+
+- simple page: mount inline
+- complex page: split into focused setup functions (see `app/views/user/profile/profile.tsx`, `app/views/settings/security.tsx`)
+- modal-heavy pages: keep large modals in local `_*-modal.tsx` files and render them from a single page-level host
+- when multiple related pages share the same TSX subview (for example settings nav), extract a local feature component and reuse it
+
+## 8.3 TS/TSX Rules
+
+Project TS settings are strict (`tsconfig.json`):
+
+- `strict: true`
+- `exactOptionalPropertyTypes: true`
+
+Use:
+
+- Preact + `@preact/signals` primitives (`signal`, `computed`, `effect`, hooks wrappers)
+- `typed-query-selector` inference for DOM selectors
+- fail-fast assumptions over defensive optional chaining for invariant-controlled nodes
+- concise assignment callbacks for simple state writes (`() => (state.value = next)`); for `void`-typed callbacks (for example `useEffect`/`useSignalEffect`/ref callbacks), use `void (...)` when expression form is needed
+- treat `config` (`WebConfig`) as bootstrap snapshot data, not a reactive state container
+- for shared feature widgets rendered from many pages (for example settings navigation), derive globally available context (role, current pathname) inside the widget instead of threading pass-through props from each page root
+- for translated lookup tables in module scope, keep the constant name uppercase and read the map directly in render (for example `TAB_LABEL_BY_KEY[tab]`); avoid extra wrapper/memoize helpers unless they add clear value
+- for reused maps (for example scopes), colocate them in a shared helper (for example `app/views/lib/scope.ts`) and read the map directly instead of adding wrapper functions
+- for component prop typing, inline single-use prop object types directly in the component signature; keep named `*Props` aliases/interfaces only when reused
+- for hook generics (`useSignal`, `useRef`, `useState`), omit explicit `<T>` when the initializer already provides the desired type; keep explicit generics only when widening from literals/null/empty collections or when inference would otherwise become too narrow
+- for CSS class composition, prefer simple template strings (for example ``class={`accordion ${className}`}``) over conditional class helpers; avoid duplicated ternary class strings when only a suffix changes, and keep explicit spacing around interpolated segments for readability (for example ``class={`collapse ${isOpen ? "show" : ""}`}``)
+- for optional destructured props used in string interpolation, default them in the parameter list (for example `class: className = ""`) instead of adding `??` fallbacks at use sites
+- for DOM event listeners wired in `useEffect`, prefer straightforward dependency-based effects with explicit cleanup; use mutable refs for callback/state bridging only when there is a clear need to avoid stale closures without re-subscribing
+- for file-local TSX helpers (for example table/list `Row`/`Cell` components), use the shortest unambiguous names in that file (`Row`, `ProviderCell`, `StatusCell`) and avoid repeating page context prefixes already implied by the file path
+- for conditional JSX branches that render nothing, prefer `: null` over `: undefined` in ternaries for consistency and clearer intent
+- for JSX form submit handlers, prefer `SubmitEventHandler<HTMLFormElement>` so `currentTarget`/`submitter` stay precisely typed without extra casts
+- keep tiny general-purpose helpers in existing utility modules (`app/views/lib/utils.ts`, `app/views/lib/format.ts`) instead of creating new one-off files
+- for internal-only binary identity strings (for example component keys), prefer `encodeAscii(...)` from `app/views/lib/utils.ts` over readable hex/base64 encodings; never use this raw representation for protocol payloads, URLs, or logs
+
+Avoid:
+
+- unnecessary runtime guards for impossible states
+- duplicated data plumbing between Jinja and TSX when value is derivable on client
+- redundant runtime type checks where typed event handlers already define `currentTarget`
+
+## 8.4 UI/UX and DX Patterns
+
+- keep URL as source of truth for map/index routes (`app/views/index/router.ts`)
+- centralize query parse/encode/key-mapping logic in `app/views/lib/query-contract.ts`; router/non-router/query-signal flows should reuse that contract instead of duplicating alias/decode/encode loops
+- for proto-backed non-router filters, prefer `defineProtoQueryContract(schema, ...)` (`app/views/lib/query-contract.ts`) so URL/form keys stay canonical proto `snake_case` while TS uses generated `camelCase` fields automatically
+- for non-proto query-backed pages, prefer `defineQueryContract(...)` (`app/views/lib/query-contract.ts`) with `queryParam` codecs over manual `URLSearchParams`/ad-hoc parse+encode logic
+- when a page filter/query value maps to an existing proto enum, prefer `queryParam.enum(ProtoEnum, { default: ... })` with proto enum values in state/request code instead of duplicating string literal unions
+- for multi-field URL-backed page filters, prefer `useUrlQueryState(contract)` (`app/views/lib/url-signals.ts`) instead of manual `history.replaceState` + ad-hoc parse/encode loops
+- for pages that combine path-suffix tabs with query-contract state, prefer `usePathSuffixQueryState(variants, contract)` (`app/views/lib/url-signals.ts`) so typed `href(...)` generation stays coupled to the contract and avoids manual `contract.encode(...)` plumbing
+- keep normalization in codecs/contract (for example `queryParam.text()`, `queryParam.enum(..., { default: ... })`) to avoid per-page `nextFilters` fallback objects
+- `queryParam.text()` trims and omits empty strings; for form-built RPC requests, explicitly map optional empty strings to `undefined` when proto fields enforce `min_len` but remain optional
+- avoid query key aliases unless an explicit migration window requires them; keep one canonical URL key per field
+- prefer reusable standard primitives over bespoke form/pagination logic
+- keep mounts local and intention-revealing; do not create connector layers without clear value
+- remove dead classes/legacy attributes when migrating a feature
+- proto pages rendered through `render_proto_page(...)` use body class `schema.typeName` (for example `.AdminUsersPage`, `.SettingsConnectionsPage`); when migrating from legacy templates, update SCSS root selectors from old `*-body` names accordingly
+- `prompt(...)` cancellation (`null`) is a no-op; never mutate persisted state on cancel
+
+## 8.5 Jinja Component Conventions
+
+- templates refer to other templates without `.html.jinja` suffix
+- favor includes and partial files over macros
+- prefix local `set` values with `_`
+- pass explicit include context to avoid hidden coupling
+- for partial files prefixed with `_`, mirror naming in related TS/SCSS where applicable
+
+## 9. Standard Frontend/Backend Primitives
+
+## 9.1 StandardForm
+
+Source: `app/views/lib/standard-form.tsx`
+
+Available patterns:
+
+- legacy HTTP form helper: `configureStandardForm(...)`
+- declarative TSX component: `<StandardForm ...>`
+
+Prefer RPC form variants for new interactive flows.
+Use legacy `/api/web/...` form posting only where endpoint is intentionally kept as HTTP form API.
+`StandardForm` RPC `onSuccess` context includes request, submitter, abort signal, and response headers; use headers when mutation UI needs coarse server-aligned timing without extra response fields.
+For mutation success handling, keep visible state coherent:
+- for local page state, update signals/resources in `onSuccess`
+- for mutations that change global non-reactive bootstrap config used across the app, use explicit reload/redirect on success
+
+## 9.2 StandardPagination
+
+Backend helper: `app/lib/standard_pagination.py`
+Frontend component: `app/views/lib/standard-pagination.tsx`
+
+Protocol:
+
+- request body: protobuf `StandardPaginationRequest` (`application/x-protobuf`)
+- response header: `X-StandardPagination` with updated `StandardPaginationState`
+- state contract: `StandardPaginationState` uses required oneofs for `cursors` and `total_extent` (`known_total` or `max_discovered_page`)
+- when request input changes should reset pagination context, never rely on parent vnode `key` remounts or ad-hoc local version counters; `StandardPagination` derives request identity from method + request payload internally
+
+Use `sp_paginate_table(...)` for common single-table pagination cases.
+
+## 9.3 StandardFeedback
+
+Server helper: `app/lib/standard_feedback.py`
+Proto type: `StandardFeedbackDetail` in `app/models/proto/shared.proto`
+
+Use for user-facing validation/success/info messaging.
+
+## 10. Localization System
+
+Authoring and processing flow:
+
+- source additions: `config/locale/extra_en.yaml`
+- postprocess: `scripts/locale_postprocess.py`
+- i18next bundle generation + key pruning: `scripts/locale_make_i18next.py`
+- gettext `.po/.mo` generation: `scripts/locale_make_gnu.py`
+
+Client bootstrap:
+
+- `app/views/lib/i18n.ts`
+
+Important constraint:
+
+- translation key extraction is static-regex based; use literal keys in `t(...)`/`i18next.t(...)`/`tRich(...)`
+- if dynamic families are unavoidable, register prefixes in `_INCLUDE_PREFIXES` (`scripts/locale_make_i18next.py`)
+- internal/admin pages can use English copy, but prefer reusing existing keys for common low-effort labels/alt text (for example page navigation and image alt strings) before adding new literals
+
+## 11. Build, Assets, and Delivery
+
+## 11.1 Vite
+
+Build config: `vite.config.ts`
+
+Notable behaviors:
+
+- single main entry + selected specialized entries (`embed`, `id`, `rapid`, `test-site`)
+- PurgeCSS scanning Jinja+TS+TSX
+- RTL CSS generation
+- bootstrap-icons subset font generation
+- social icons safelist derived from `config/socials.toml`
+
+## 11.2 Static Compression
+
+Runtime serving:
+
+- `PrecompressedStaticFiles` serves `.zst`/`.br` variants based on `Accept-Encoding`
+
+Generation:
+
+- `static-precompress` command
+
+## 11.3 Rasterized SVG Assets
+
+Pipeline:
+
+- `static-img-pipeline` -> `scripts/rasterize.py`
+
+Generated raster outputs live in `_generated` subfolders under static image trees.
+
+## 12. Config and Macro Interconnect
+
+## 12.1 Frontend Config Macro
+
+`app/views/lib/config.macro.ts` executes python at build time to export selected backend constants to frontend TS.
+
+If a backend constant is consumed client-side, expose it there instead of duplicating numeric literals.
+
+## 12.2 Build-Time TS Macros
+
+Project uses `unplugin-macros` for compile-time data embedding.
+Common macro sources include:
+
+- `app/views/lib/locale.macro.ts`
+- `app/views/lib/shortlink.macro.ts`
+- `app/views/lib/tags.macro.ts`
+- `app/views/lib/user-agent-icons.macro.ts`
+- feature macros like `app/views/user/profile/_social-options.macro.ts`
+
+Use macros for stable build-time datasets instead of fragile runtime DOM data duplication.
+
+## 13. Testing and Quality Gates
+
+## 13.1 Test Layout and Runtime
+
+- tests mirror app structure under `tests/*`
+- shared fixtures in `tests/conftest.py` and `tests/data`
+- `--extended` marker controls heavier suites
+- for proto enum request fields in RPC tests, prefer enum-name literals (for example `'auth_web'`) when equivalent to enum constants, to keep test inputs concise and readable
+
+Most tests require app lifespan + DB services. Start services with `dev-start` before `run-tests`.
+
+## 13.2 Formatting/Lint/Type
+
+`format` performs multi-language checks and fixes:
+
+- python: ruff import/order + format + lint
+- ts/tsx/json: biome format
+- ts lint: oxlint
+- scss: stylelint
+- proto: buf format + buf lint
+- rust: clippy/fmt
+- nix/sh/sql/toml formatters
+
+Separate Python typing is done with `pyright`.
+
+Commit hook runs `format --staged`.
+
+## 13.3 CI
+
+GitHub workflows:
+
+- `.github/workflows/tests.yaml` - matrix tests (ubuntu/macos; python/cython)
+- `.github/workflows/auto-update.yaml` - scheduled data updates
+- `.github/workflows/deploy.yaml` - manual deployment trigger
+
+## 14. Deployment and Operations
+
+- NixOS service composition for hosted test instance: `config/services-test.nix`
+- reverse proxy/TLS config: `config/Caddyfile`
+- deploy script (worktree-based): `scripts/deploy.sh`
+
+Replication and preload pipelines are script-driven (`scripts/replication_*`, `scripts/db_load.py`) and integrated with shell commands (`replication-*`, `_db-load`, etc).
+
+## 15. Practical Implementation Rules
+
+When adding or refactoring features:
+
+1. Prefer existing helpers/patterns over introducing new frameworks.
+2. Keep boundaries thin and explicit.
+3. Validate at input boundary (HTTP/RPC/proto), avoid redundant downstream validation.
+4. Model impossible states out of the type/proto design (for example `oneof` instead of loosely coupled fields).
+5. Prefer one serialized proto `data-state` bootstrap per mount root over many hand-wired DOM data attributes.
+6. For complex TSX pages, decompose into setup functions with clear ownership; for simple pages, keep mounts inline.
+7. Remove obsolete legacy wiring while migrating (dead classes, unused attrs, stale endpoints).
+8. For every `StandardForm`/`configureStandard*Form` success path, explicitly ensure state propagation (local signal update, targeted refresh, or full reload/redirect where appropriate).
+9. Avoid explicit helper return annotations when the return type is obvious from parameters and implementation; prefer inference to reduce code surface and keep annotations focused on high-value boundaries.
+
+## 16. Generated and Derived Artifacts
+
+Do not hand-edit generated artifacts:
+
+- `app/models/proto/*_pb2.py`, `*_types.py`, `*_connect.py`
+- `app/views/lib/proto/*`
+- generated static `_generated` assets
+- locale generated bundles under `config/locale/i18next` and `config/locale/gnu`
+
+Regenerate using project commands.
+
+## 17. High-Signal File References
+
+Backend core:
+
+- `app/main.py`
+- `app/db.py`
+- `app/config.py`
+- `app/lib/auth_context.py`
+- `app/lib/standard_feedback.py`
+- `app/lib/standard_pagination.py`
+- `app/services/migration_service.py`
+
+RPC/proto:
+
+- `app/rpc/app.py`
+- `app/models/proto/shared.proto`
+- `app/models/proto/admin_users.proto`
+- `app/models/proto/admin_applications.proto`
+- `app/models/proto/admin_tasks.proto`
+- `app/models/proto/settings.proto`
+- `app/models/proto/settings_applications.proto`
+- `app/models/proto/settings_connections.proto`
+- `app/models/proto/settings_security.proto`
+- `app/models/proto/profile.proto`
+- `shellscripts/proto-pipeline.sh`
+- `buf.gen.yaml`
+- `buf.gen.web.yaml`
+
+Frontend core:
+
+- `app/views/_base.html.jinja`
+- `app/views/main.ts`
+- `app/views/main-sync.ts`
+- `app/views/main.scss`
+- `app/views/lib/mount.ts`
+- `app/views/lib/proto-page.ts`
+- `app/views/lib/scope.ts`
+- `app/views/lib/standard-form.tsx`
+- `app/views/lib/standard-pagination.tsx`
+- `app/views/lib/config.macro.ts`
+
+Feature examples:
+
+- `app/views/user/profile/profile.tsx`
+- `app/views/user/profile/_activity.tsx`
+- `app/views/settings/_nav.tsx`
+- `app/views/settings/settings.tsx`
+- `app/views/settings/applications/index.tsx`
+- `app/views/settings/applications/edit.tsx`
+- `app/views/settings/connections.tsx`
+- `app/views/settings/security.tsx`
+- `app/views/admin/tasks.tsx`
+- `app/views/admin/applications/index.tsx`
+- `app/views/admin/users/index.tsx`
+- `app/views/admin/users/edit.tsx`
+- `app/views/messages/index.tsx`
+- `app/views/notes/index.tsx`
+
+Environment/tooling:
+
+- `shell.nix`
+- `config/process-compose.nix`
+- `config/postgres.nix`
+- `shellscripts/format.sh`
+- `shellscripts/run-tests.sh`
+
+Keep this guide concrete and current. If code changes the real workflow, update this file immediately.

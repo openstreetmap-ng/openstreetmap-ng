@@ -1,0 +1,93 @@
+# .ckignore - Default patterns for ck semantic search
+# Created automatically during first index
+# Syntax: same as .gitignore (glob patterns, ! for negation)
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+*.ico
+*.webp
+*.tiff
+
+# Video
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.m4a
+
+# Binary/Compiled
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.obj
+*.o
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bz2
+*.gz
+
+# Data files
+*.db
+*.sqlite
+*.sqlite3
+*.parquet
+*.arrow
+
+# Config formats (issue #27)
+# *.json
+# *.yaml
+# *.yml
+
+# Add your custom patterns below this line
+
+*.br
+*.gpx
+*.lock
+*.xcf
+*.zst
+
+/.github/FUNDING.yml
+/*.md
+/app/**/*.c
+/app/**/*.html
+/app/static/vite
+/config/aaguid.json
+/config/locale/download
+/config/locale/gnu
+/config/locale/i18next
+/config/locale/names.json
+/config/locale/postprocess
+/config/wiki_pages.json
+/data
+/LICENSE
+/node_modules
+/scripts/**/*.c
+/scripts/**/*.html
+/spec
+/speedup/target
+/test*.py
+/vendor
