@@ -9,8 +9,7 @@ import { t } from "i18next"
 import { createRef, type RefObject, render } from "preact"
 import { useRef } from "preact/hooks"
 
-const GUIDE_HREF =
-  "https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
+const LANGUAGE_SWITCHER_MODAL_ID = "LanguageSwitcherModal"
 
 const NON_ALPHA_SPACE_RE = /[^a-z\s]/g
 const MULTISPACE_RE = /\s+/g
@@ -32,7 +31,7 @@ const normalizeSearch = (value: string) =>
     .replace(MULTISPACE_RE, " ")
     .trim()
 
-const LOCALES = memoize(() => {
+const LOCALES = (() => {
   const entries = LOCALE_OPTIONS.map((locale) => {
     const [code, english, native, flag] = locale
     const search = normalizeSearch([code, english, native].filter(Boolean).join(" "))
@@ -50,7 +49,7 @@ const LOCALES = memoize(() => {
 
   const primary = entries.find((e) => e.isPrimary)
   return primary ? [primary, ...entries.filter((e) => !e.isPrimary)] : entries
-})
+})()
 
 const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> }) => {
   const modalRef = useRef<HTMLDivElement>(null)
@@ -61,8 +60,8 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
 
   const localesFiltered = useComputed(() =>
     searchNormalized.value
-      ? LOCALES().filter((locale) => locale.search.includes(searchNormalized.value))
-      : LOCALES(),
+      ? LOCALES.filter((locale) => locale.search.includes(searchNormalized.value))
+      : LOCALES,
   )
 
   // Effect: Focus search on modal open
@@ -84,7 +83,7 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
 
   return (
     <div
-      id="LanguageSwitcherModal"
+      id={LANGUAGE_SWITCHER_MODAL_ID}
       class="modal fade"
       tabIndex={-1}
       aria-hidden="true"
@@ -139,9 +138,9 @@ const LanguageSwitcherModal = ({ instanceRef }: { instanceRef: RefObject<Modal> 
 
             <p class="form-text mb-0">
               {tRich("internalization.get_started", {
-                this_guide: () => (
+                this_guide: (
                   <a
-                    href={GUIDE_HREF}
+                    href="https://wiki.openstreetmap.org/wiki/Website_internationalization#How_to_translate"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
