@@ -18,9 +18,9 @@ from app.models.db.trace import (
     TraceInitValidator,
     TraceMetaInit,
     TraceMetaInitValidator,
-    TraceVisibility,
     validate_trace_tags,
 )
+from app.models.proto.profile_types import Page_TraceSummary_Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 from app.services.audit_service import audit
@@ -33,7 +33,7 @@ class TraceService:
         *,
         description: str,
         tags: str | list[str] | None,
-        visibility: TraceVisibility,
+        visibility: Page_TraceSummary_Visibility,
     ) -> TraceId:
         """Process upload of a trace file. Returns the created trace id."""
         tags = validate_trace_tags(tags)
@@ -122,7 +122,7 @@ class TraceService:
         name: str,
         description: str,
         tags: list[str],
-        visibility: TraceVisibility,
+        visibility: Page_TraceSummary_Visibility,
     ):
         """Update a trace."""
         user_id = auth_user(required=True)['id']
