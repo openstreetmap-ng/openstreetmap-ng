@@ -6,8 +6,8 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
 from app.db import db
-from app.models.db.audit import AuditType
 from app.models.db.oauth2_token import OAuth2Token
+from app.models.proto.audit_types import Type
 from app.models.types import ApplicationId, DisplayName, OAuth2TokenId, UserId
 from app.queries.user_query import UserQuery
 
@@ -19,6 +19,7 @@ class AuditQuery:
         *,
         since: timedelta,
         ignore_app_events: bool = False,
+        limit: int | None = None,
     ) -> dict[UserId, list[tuple[IPv4Address | IPv6Address, int]]]:
         """
         Get IP addresses with counts for each user.
@@ -30,32 +31,51 @@ class AuditQuery:
         if not user_ids:
             return {}
 
-        ignore_app_sql = SQL('AND application_id IS NULL' if ignore_app_events else '')
-
         async with (
             db() as conn,
             await conn.execute(
                 SQL(
                     """
-                    SELECT
-                        ui.user_id, ip,
-                        COUNT(DISTINCT audit.user_id) as shared_count
-                    FROM (
+                    WITH seed AS (
                         SELECT DISTINCT user_id, ip
                         FROM audit
                         WHERE user_id = ANY(%(user_ids)s)
                         AND created_at >= statement_timestamp() - %(since)s
-                        {}
-                    ) ui
-                    JOIN audit USING (ip)
-                    WHERE audit.user_id IS NOT NULL
-                    AND created_at >= statement_timestamp() - %(since)s
-                    {}
-                    GROUP BY ui.user_id, ip
-                    ORDER BY ui.user_id, shared_count DESC
+                        AND (NOT %(ignore_app_events)s OR application_id IS NULL)
+                    ),
+                    counts AS (
+                        SELECT ip, COUNT(DISTINCT user_id) AS shared_count
+                        FROM audit
+                        JOIN (SELECT DISTINCT ip FROM seed) seed_ips USING (ip)
+                        WHERE user_id IS NOT NULL
+                        AND created_at >= statement_timestamp() - %(since)s
+                        AND (NOT %(ignore_app_events)s OR application_id IS NULL)
+                        GROUP BY ip
+                    ),
+                    ranked AS (
+                        SELECT
+                            user_id,
+                            ip,
+                            shared_count,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY user_id
+                                ORDER BY shared_count DESC, ip
+                            ) AS rank_num
+                        FROM seed
+                        JOIN counts USING (ip)
+                    )
+                    SELECT user_id, ip, shared_count
+                    FROM ranked
+                    WHERE rank_num <= COALESCE(%(limit)s, rank_num)
+                    ORDER BY user_id, shared_count DESC, ip
                     """
-                ).format(ignore_app_sql, ignore_app_sql),
-                {'user_ids': user_ids, 'since': since},
+                ),
+                {
+                    'user_ids': user_ids,
+                    'since': since,
+                    'ignore_app_events': ignore_app_events,
+                    'limit': limit,
+                },
             ) as r,
         ):
             rows: list[tuple[UserId, IPv4Address | IPv6Address, int]]
@@ -78,6 +98,7 @@ class AuditQuery:
         application_ids: list[ApplicationId],
         *,
         since: timedelta,
+        limit: int | None = None,
     ) -> dict[ApplicationId, list[tuple[IPv4Address | IPv6Address, int]]]:
         """
         Get IP addresses with counts for each application.
@@ -94,25 +115,42 @@ class AuditQuery:
             await conn.execute(
                 SQL(
                     """
-                    SELECT
-                        ai.application_id, ai.ip,
-                        COUNT(DISTINCT audit.application_id) AS shared_count
-                    FROM (
+                    WITH seed AS (
                         SELECT DISTINCT application_id, ip
                         FROM audit
                         WHERE application_id = ANY(%(application_ids)s)
                         AND created_at >= statement_timestamp() - %(since)s
-                    ) ai
-                    JOIN audit USING (ip)
-                    WHERE audit.application_id IS NOT NULL
-                    AND created_at >= statement_timestamp() - %(since)s
-                    GROUP BY ai.application_id, ai.ip
-                    ORDER BY ai.application_id, shared_count DESC
+                    ),
+                    counts AS (
+                        SELECT ip, COUNT(DISTINCT application_id) AS shared_count
+                        FROM audit
+                        JOIN (SELECT DISTINCT ip FROM seed) seed_ips USING (ip)
+                        WHERE application_id IS NOT NULL
+                        AND created_at >= statement_timestamp() - %(since)s
+                        GROUP BY ip
+                    ),
+                    ranked AS (
+                        SELECT
+                            application_id,
+                            ip,
+                            shared_count,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY application_id
+                                ORDER BY shared_count DESC, ip
+                            ) AS rank_num
+                        FROM seed
+                        JOIN counts USING (ip)
+                    )
+                    SELECT application_id, ip, shared_count
+                    FROM ranked
+                    WHERE rank_num <= COALESCE(%(limit)s, rank_num)
+                    ORDER BY application_id, shared_count DESC, ip
                     """
                 ),
                 {
                     'application_ids': application_ids,
                     'since': since,
+                    'limit': limit,
                 },
             ) as r,
         ):
@@ -137,7 +175,7 @@ class AuditQuery:
         ip: IPv4Address | IPv6Address | IPv4Network | IPv6Network | None = None,
         user: str | None = None,
         application_id: ApplicationId | None = None,
-        type: AuditType | None = None,
+        type: Type | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
     ):
@@ -147,7 +185,7 @@ class AuditQuery:
 
         if ip is not None:
             if isinstance(ip, IPv4Network | IPv6Network):
-                conditions.append(SQL('ip >= %s AND ip <= %s'))
+                conditions.append(SQL('ip BETWEEN %s AND %s'))
                 params.append(ip.network_address)
                 params.append(ip.broadcast_address)
             else:
@@ -191,7 +229,7 @@ class AuditQuery:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
         return where_clause, tuple(params)
 
     @staticmethod

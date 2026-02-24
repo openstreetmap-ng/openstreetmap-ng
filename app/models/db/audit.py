@@ -1,65 +1,14 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any, Literal, NotRequired, TypedDict, get_args
+from typing import Any, NotRequired, TypedDict, get_args
 
 from app.config import AUDIT_POLICY
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.user import UserDisplay
+from app.models.proto.audit_types import Type
 from app.models.types import ApplicationId, AuditId, OAuth2TokenId, UserId
 
-AuditType = Literal[
-    'add_connected_account',
-    'add_passkey',
-    'add_totp',
-    'admin_task',
-    'auth_api',
-    'auth_fail',
-    'auth_web',
-    'authorize_app',
-    'change_app_settings',
-    'change_display_name',
-    'change_email',
-    'change_password',
-    'change_roles',
-    'close_changeset',
-    'create_app',
-    'create_changeset',
-    'create_changeset_comment',
-    'create_diary',
-    'create_diary_comment',
-    'create_note',
-    'create_note_comment',
-    'create_pat',
-    'create_trace',
-    'delete_diary',
-    'delete_prefs',
-    'delete_trace',
-    'edit_map',
-    'generate_recovery_codes',
-    'impersonate',
-    'nsfw_image',
-    'rate_limit',
-    'remove_connected_account',
-    'remove_passkey',
-    'remove_totp',
-    'request_change_email',
-    'request_reset_password',
-    'revoke_app',
-    'revoke_app_all_users',
-    'send_message',
-    'update_changeset',
-    'update_diary',
-    'update_note_status',
-    'update_prefs',
-    'update_trace',
-    'use_recovery_code',
-    'view_admin_applications',
-    'view_admin_users',
-    'view_audit',
-    # TODO: 'schedule_user_delete',
-]
-
-AUDIT_TYPE_VALUES = list[AuditType](get_args(AuditType))
+AUDIT_TYPE_VALUES = list[Type](get_args(Type.__value__))
 
 for t in AUDIT_TYPE_VALUES:
     assert hasattr(AUDIT_POLICY, t), f'AUDIT_POLICY is missing policy for {t!r}'
@@ -67,7 +16,7 @@ for t in AUDIT_TYPE_VALUES:
 
 class AuditEventInit(TypedDict):
     id: AuditId
-    type: AuditType
+    type: Type
     ip: IPv4Address | IPv6Address
     user_agent: str | None
     user_id: UserId | None
