@@ -40,7 +40,7 @@ import { withoutAll } from "@std/collections/without-all"
 import { t } from "i18next"
 import type { LngLatBounds, MapLibreEvent } from "maplibre-gl"
 import type { ComponentChildren, RefCallback } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import { useEffect, useMemo, useRef } from "preact/hooks"
 import { MinimapPool } from "./minimap-pool"
 
 const BASE_LAYERS = new Set([
@@ -207,7 +207,7 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
     }
     return initialOverlayState
   }
-  const enabledOverlays = useSignal<ReadonlySet<LayerId>>(getInitialEnabledOverlays())
+  const enabledOverlays = useSignal(getInitialEnabledOverlays())
 
   const aerialOpacity = overlayOpacityStorage(AERIAL_LAYER_ID)
 
@@ -217,16 +217,16 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
   const dataDisabled = useSignal(false)
   const dataRestoreOnEnableRef = useRef(false)
 
-  const minimapRefs = useRef(new Map<LayerId, RefCallback<HTMLDivElement>>())
+  const minimapRefs = useMemo(() => new Map<LayerId, RefCallback<HTMLDivElement>>(), [])
   const getMinimapRef = (layerId: LayerId) => {
-    const existing = minimapRefs.current.get(layerId)
+    const existing = minimapRefs.get(layerId)
     if (existing) return existing
 
     const next: RefCallback<HTMLDivElement> = (el) => {
       if (el) MinimapPool.attach(layerId, el, map)
       else MinimapPool.detach(layerId)
     }
-    minimapRefs.current.set(layerId, next)
+    minimapRefs.set(layerId, next)
     return next
   }
 

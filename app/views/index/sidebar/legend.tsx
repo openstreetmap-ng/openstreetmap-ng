@@ -108,9 +108,7 @@ export const LegendSidebar = ({ close }: { close: () => void }) => {
   const currentZoom = useSignal(getZoom())
 
   useDisposeEffect((scope) => {
-    const onZoomEnd = () => {
-      currentZoom.value = getZoom()
-    }
+    const onZoomEnd = () => (currentZoom.value = getZoom())
     scope.map(map, "zoomend", onZoomEnd)
     onZoomEnd()
   }, [])
@@ -139,7 +137,7 @@ export const LegendSidebar = ({ close }: { close: () => void }) => {
           {visibleEntries.map((entry: LegendEntry) => {
             const [, icon, translationKey = icon] = entry
             return (
-              <tr key={`${baseLayerId}:${icon}`}>
+              <tr key={icon}>
                 <td>
                   <img
                     draggable={false}

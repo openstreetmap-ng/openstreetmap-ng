@@ -3,7 +3,7 @@ import { IndexRouterOutlet } from "@index/router-outlet"
 import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar/sidebar-outlet"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { MapAlerts } from "@lib/map/alerts"
+import { MapAlertPanel, MapAlerts, pushMapAlert } from "@lib/map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@lib/map/main-map"
 import { qsParseAll } from "@lib/qs"
 import { openRemoteEdit, parseRemoteEditTargetFromQueryParams } from "@lib/remote-edit"
@@ -12,7 +12,7 @@ import { useEffect, useRef } from "preact/hooks"
 import { collapseNavbar } from "../navbar/navbar"
 import { updateNavbarAndHash } from "../navbar/navbar-left"
 
-const IndexApp = () => {
+const IndexPage = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -33,11 +33,20 @@ const IndexApp = () => {
       window.history.replaceState(null, "", `${pathname}${location.hash}`)
     }
 
-    initMainMap(mapContainerRef.current!, updateNavbarAndHash)
+    initMainMap(mapContainerRef.current!, updateNavbarAndHash, ({ heading, details }) =>
+      pushMapAlert(
+        <MapAlertPanel variant="danger">
+          <h4 class="alert-heading">{heading}</h4>
+          {details && <pre class="mb-0">{details}</pre>}
+        </MapAlertPanel>,
+      ),
+    )
+    const map = mainMap.value
+    if (!map) return
 
     if (remoteEdit) {
-      const { lng, lat } = mainMap.value!.getCenter().wrap()
-      const zoom = mainMap.value!.getZoom()
+      const { lng, lat } = map.getCenter().wrap()
+      const zoom = map.getZoom()
       void openRemoteEdit({
         state: { lon: lng, lat, zoom },
         target: remoteEditTarget,
@@ -80,5 +89,5 @@ const IndexApp = () => {
   )
 }
 
-const container = document.getElementById("IndexApp")
-if (container) render(<IndexApp />, container)
+const container = document.getElementById("IndexRoot")
+if (container) render(<IndexPage />, container)
