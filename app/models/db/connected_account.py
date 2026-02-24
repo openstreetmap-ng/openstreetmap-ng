@@ -8,15 +8,15 @@ from app.config import (
     MICROSOFT_OAUTH_PUBLIC,
     WIKIMEDIA_OAUTH_PUBLIC,
 )
+from app.models.proto.settings_connections_types import Provider
 from app.models.types import UserId
 
-AuthProvider = Literal['google', 'facebook', 'microsoft', 'github', 'wikimedia']
 # TODO: openid
 # TODO: migration wikimedia, old value: wikipedia
 
-AUTH_PROVIDERS = frozenset[AuthProvider](get_args(AuthProvider))
+AUTH_PROVIDERS = frozenset[Provider](get_args(Provider.__value__))
 
-_provider_mapping: dict[AuthProvider, str] = {
+_provider_mapping: dict[Provider, str] = {
     'google': GOOGLE_OAUTH_PUBLIC,
     'facebook': FACEBOOK_OAUTH_PUBLIC,
     'microsoft': MICROSOFT_OAUTH_PUBLIC,
@@ -24,19 +24,19 @@ _provider_mapping: dict[AuthProvider, str] = {
     'wikimedia': WIKIMEDIA_OAUTH_PUBLIC,
 }
 
-CONFIGURED_AUTH_PROVIDERS = tuple[AuthProvider, ...](
+CONFIGURED_AUTH_PROVIDERS = tuple[Provider, ...](
     provider
-    for provider in get_args(AuthProvider)  #
+    for provider in get_args(Provider.__value__)  #
     if _provider_mapping.get(provider)
 )
 
 del _provider_mapping
 
-AuthProviderAction = Literal['login', 'signup', 'settings']
+type AuthProviderAction = Literal['login', 'signup', 'settings']
 
 
 class ConnectedAccountInit(TypedDict):
-    provider: AuthProvider
+    provider: Provider
     uid: str
     user_id: UserId
 

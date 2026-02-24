@@ -1,13 +1,14 @@
 from app.config import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.models.db.connected_account import AuthProvider, ConnectedAccountInit
+from app.models.db.connected_account import ConnectedAccountInit
+from app.models.proto.settings_connections_types import Provider
 from app.services.audit_service import audit
 
 
 class ConnectedAccountService:
     @staticmethod
-    async def add_connection(provider: AuthProvider, uid: str):
+    async def add_connection(provider: Provider, uid: str):
         """
         Add an external account connection to the current user.
         Returns the user_id.
@@ -42,7 +43,7 @@ class ConnectedAccountService:
             )
 
     @staticmethod
-    async def remove_connection(provider: AuthProvider):
+    async def remove_connection(provider: Provider):
         """Remove an external account connection from the current user."""
         user_id = auth_user(required=True)['id']
 
