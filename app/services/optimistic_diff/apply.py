@@ -7,7 +7,8 @@ from psycopg import AsyncConnection
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.compressible_geometry import compressible_geometry
 from app.models.db.element import Element, ElementInit
-from app.models.element import ElementId, ElementType, TypedElementId
+from app.models.element import ElementId, TypedElementId
+from app.models.proto.shared_types import ElementType
 from app.queries.element_query import ElementQuery
 from app.services.audit_service import audit
 from app.services.optimistic_diff.prepare import (

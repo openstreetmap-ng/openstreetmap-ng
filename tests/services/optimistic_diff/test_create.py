@@ -3,7 +3,8 @@ from shapely import Point
 
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.element import ElementInit, validate_elements
-from app.models.element import ElementId, ElementType
+from app.models.element import ElementId
+from app.models.proto.shared_types import ElementType
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
