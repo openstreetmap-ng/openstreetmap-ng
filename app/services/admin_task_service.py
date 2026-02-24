@@ -1,6 +1,6 @@
 import logging
 from asyncio import TaskGroup, sleep
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from contextlib import asynccontextmanager
 from functools import cache
 from inspect import Parameter, _empty, signature
@@ -11,6 +11,7 @@ from typing import (
     ForwardRef,
     NewType,
     ParamSpec,
+    TypeAliasType,
     TypedDict,
     TypeVar,
     Union,
@@ -131,7 +132,7 @@ class AdminTaskService:
         return result
 
     @staticmethod
-    def start_task(task_id: TaskId, args: dict[str, str]):
+    def start_task(task_id: TaskId, args: Mapping[str, str]):
         definition = _REGISTRY.get(task_id)
         if definition is None:
             raise ValueError(f'Task with {task_id=!r} not found')
@@ -139,8 +140,8 @@ class AdminTaskService:
         # Validate and convert arguments
         validated_args = _func_args_model(definition['func'])(**args).model_dump()
 
-        _TG.create_task(_start_task(definition, validated_args))
         audit('admin_task', extra={'id': task_id, 'args': validated_args}).close()
+        _TG.create_task(_start_task(definition, validated_args))
 
 
 async def _start_task(definition: TaskDefinition, args: dict[str, Any]):
@@ -234,6 +235,8 @@ async def _heartbeat_loop(task_id: TaskId):
 
 def _format_annotation(annotation: Any) -> str:
     # Simple cases
+    if isinstance(annotation, TypeAliasType):
+        annotation = annotation.__value__
     if annotation is _empty:  # missing
         return 'Any'
     if annotation is None:  # None
@@ -260,6 +263,8 @@ def _format_annotation(annotation: Any) -> str:
 
 def _is_numeric(annotation: Any) -> bool:
     # Simple cases
+    if isinstance(annotation, TypeAliasType):
+        annotation = annotation.__value__
     if annotation is _empty:  # missing
         return False
     if annotation is None:  # None
