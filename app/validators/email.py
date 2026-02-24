@@ -137,7 +137,7 @@ EmailValidator = BeforeValidator(validate_email)
 
 # ideally, should be defined in app/models/types.py
 # but this causes circular import
-EmailValidating = Annotated[
+type EmailValidating = Annotated[
     Email,
     MinLen(EMAIL_MIN_LENGTH),
     MaxLen(EMAIL_MAX_LENGTH),

@@ -8,10 +8,8 @@ import re2
 
 from app.lib.crypto import hmac_bytes
 
-_AvatarStyle = Literal['initials', 'shapes']
 
-
-def generate_avatar(style: _AvatarStyle, text: str, /):
+def generate_avatar(style: Literal['initials', 'shapes'], text: str, /):
     """Generate a random avatar SVG."""
     if style == 'initials':
         svg = _generate_initials(text)

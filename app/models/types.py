@@ -11,9 +11,9 @@ LocaleCode = NewType('LocaleCode', str)
 Password = bytes
 StorageKey = NewType('StorageKey', str)
 
-Longitude = Annotated[float, Interval(ge=-180, le=180)]
-Latitude = Annotated[float, Interval(ge=-90, le=90)]
-Zoom = Annotated[int, Interval(ge=0, le=25)]
+type Longitude = Annotated[float, Interval(ge=-180, le=180)]
+type Latitude = Annotated[float, Interval(ge=-90, le=90)]
+type Zoom = Annotated[int, Interval(ge=0, le=25)]
 
 AuditId = NewType('AuditId', int)
 ApplicationId = NewType('ApplicationId', int)
@@ -34,5 +34,5 @@ TraceId = NewType('TraceId', int)
 UserId = NewType('UserId', int)
 UserPrefKey = NewType('UserPrefKey', str)
 UserPrefVal = NewType('UserPrefVal', str)
-UserSubscriptionTargetId = ChangesetId | DiaryId | NoteId | UserId
+type UserSubscriptionTargetId = ChangesetId | DiaryId | NoteId | UserId
 UserTokenId = NewType('UserTokenId', int)

@@ -34,7 +34,7 @@ def _validate_tags(
     return v
 
 
-TagsValidating = Annotated[
+type TagsValidating = Annotated[
     dict[
         Annotated[
             str,

@@ -22,7 +22,7 @@ from app.config import APP_URL
 from app.models.db.user_passkey import AAGUIDInfo, UserPasskey
 from app.models.proto.auth_pb2 import PasskeyAssertion
 
-_ClientDataType = Literal['webauthn.create', 'webauthn.get']
+type _ClientDataType = Literal['webauthn.create', 'webauthn.get']
 
 
 class _ClientData(TypedDict):

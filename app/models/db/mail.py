@@ -3,7 +3,9 @@ from typing import Literal, TypedDict
 
 from app.models.types import MailId, UserId
 
-MailSource = Literal['message', 'diary_comment'] | None  # None: for system/no source
+type MailSource = (
+    Literal['message', 'diary_comment'] | None
+)  # None: for system/no source
 
 
 class MailInit(TypedDict):

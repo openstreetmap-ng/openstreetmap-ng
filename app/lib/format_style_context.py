@@ -6,7 +6,7 @@ import cython
 
 from app.middlewares.request_context_middleware import get_request
 
-FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
+type FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
 
 _LEGACY_EXTENSION_FORMATS: dict[str, FormatStyle] = {
     'json': 'json',
