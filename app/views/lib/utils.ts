@@ -1,7 +1,7 @@
 import { SECOND } from "@std/datetime/constants"
 
 export const isHrefCurrentPage = (href: string) => {
-  const hrefPathname = new URL(href).pathname
+  const hrefPathname = new URL(href, window.location.href).pathname
   const locationPathname = window.location.pathname
   return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
 }
@@ -58,4 +58,93 @@ export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(
     if (idleCallbackId !== undefined) cancelIdleCallback(idleCallbackId)
     idleCallbackId = requestIdleCallback(() => fn(...args), { timeout })
   }) as T
+}
+
+export const headersDate = (headers: Headers | null) => {
+  const ms = Date.parse(headers?.get("date") ?? "")
+  return BigInt(Math.trunc((Number.isNaN(ms) ? Date.now() : ms) / SECOND))
+}
+
+const LATIN1_DECODER = new TextDecoder("latin1")
+
+export const encodeAscii = (bytes: Uint8Array) => LATIN1_DECODER.decode(bytes)
+
+export const throwAbortError = (message = "Operation cancelled by user"): never => {
+  throw new DOMException(message, "AbortError")
+}
+
+const IPV4_MAPPED_IPV6_PREFIX = Uint8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff)
+
+const startsWithBytes = (bytes: Uint8Array, prefix: Uint8Array) => {
+  for (let i = 0; i < prefix.length; i++) {
+    if (bytes[i] !== prefix[i]) return false
+  }
+  return true
+}
+
+const formatIpv4 = (bytes: Uint8Array, offset = 0) =>
+  `${bytes[offset]}.${bytes[offset + 1]}.${bytes[offset + 2]}.${bytes[offset + 3]}`
+
+export const formatPackedIp = (packedIp: Uint8Array) => {
+  if (packedIp.length === 2) return `${packedIp[0]}.${packedIp[1]}.*.*`
+
+  if (packedIp.length === 3) {
+    if (packedIp[0] !== 0xff)
+      throw new Error(`Unexpected packed IP length: ${packedIp.length}`)
+    return `::ffff:${packedIp[1]}.${packedIp[2]}.*.*`
+  }
+
+  if (packedIp.length === 4) return formatIpv4(packedIp)
+
+  if (packedIp.length === 6) {
+    const groups = Array.from(
+      { length: 3 },
+      (_, i) => (packedIp[i * 2] << 8) | packedIp[i * 2 + 1],
+    )
+    return `${groups[0].toString(16)}:${groups[1].toString(16)}:${groups[2].toString(16)}:*:*:*:*:*`
+  }
+
+  if (packedIp.length !== 16)
+    throw new Error(`Unexpected packed IP length: ${packedIp.length}`)
+
+  if (startsWithBytes(packedIp, IPV4_MAPPED_IPV6_PREFIX))
+    return `::ffff:${formatIpv4(packedIp, 12)}`
+
+  const groups = Array.from(
+    { length: 8 },
+    (_, i) => (packedIp[i * 2] << 8) | packedIp[i * 2 + 1],
+  )
+  let bestStart = -1
+  let bestLen = 0
+  let currentStart = -1
+  let currentLen = 0
+
+  for (let i = 0; i <= groups.length; i++) {
+    if (i < groups.length && groups[i] === 0) {
+      if (currentStart === -1) currentStart = i
+      currentLen += 1
+      continue
+    }
+    if (currentLen >= 2 && currentLen > bestLen) {
+      bestStart = currentStart
+      bestLen = currentLen
+    }
+    currentStart = -1
+    currentLen = 0
+  }
+
+  if (bestStart === -1) return groups.map((group) => group.toString(16)).join(":")
+
+  const head = groups
+    .slice(0, bestStart)
+    .map((group) => group.toString(16))
+    .join(":")
+  const tail = groups
+    .slice(bestStart + bestLen)
+    .map((group) => group.toString(16))
+    .join(":")
+  if (!head && !tail) return "::"
+  if (!head) return `::${tail}`
+  if (!tail) return `${head}::`
+  return `${head}::${tail}`
 }

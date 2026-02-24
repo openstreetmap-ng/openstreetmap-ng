@@ -2,6 +2,7 @@ import { primaryLanguage } from "@lib/config"
 import { mapEntries } from "@std/collections/map-entries"
 import { init, type Resource, t } from "i18next"
 import type { ComponentChild } from "preact"
+import { isValidElement } from "preact/compat"
 
 const resources: Resource = (window as any).locales
 console.debug("I18n: Discovered locales", Object.keys(resources))
@@ -14,20 +15,9 @@ void init({
   resources: resources,
 })
 
-const SPLIT_TOKEN = "__I18N_RICH_"
-
-type RichReplacement = ComponentChild | (() => ComponentChild)
-
-const isRichReplacement = (value: unknown): value is RichReplacement => {
-  if (typeof value === "function") return true
-  if (Array.isArray(value)) return true
-  if (value === null || typeof value !== "object") return false
-  return "type" in value && "props" in value
-}
-
 const interleaveTokens = (
   content: string,
-  replacements: Map<string, RichReplacement>,
+  replacements: Map<string, ComponentChild>,
 ) => {
   const tokens = [...replacements.keys()]
   if (!tokens.length) return content
@@ -56,9 +46,7 @@ const interleaveTokens = (
     if (nextIndex > 0) result.push(remaining.slice(0, nextIndex))
 
     const replacement = replacements.get(nextToken)
-    if (typeof replacement === "function") {
-      result.push(replacement())
-    } else if (replacement !== undefined) {
+    if (replacement !== undefined) {
       result.push(replacement)
     } else {
       result.push(nextToken)
@@ -73,13 +61,13 @@ const interleaveTokens = (
 export const tRich = (key: string, options?: Record<string, unknown>) => {
   if (!options) return t(key)
 
-  const replacements = new Map<string, RichReplacement>()
+  const replacements = new Map<string, ComponentChild>()
   let tokenIndex = 0
 
   const tokenized = mapEntries(options, ([name, value]) => {
-    if (!isRichReplacement(value)) return [name, value]
-    const token = `${SPLIT_TOKEN}${tokenIndex++}__`
-    replacements.set(token, value)
+    if (!isValidElement(value)) return [name, value]
+    const token = `\x1FI18N_RICH_${tokenIndex++}\x1F`
+    replacements.set(token, value as ComponentChild)
     return [name, token]
   })
 
