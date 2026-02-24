@@ -1,18 +1,17 @@
-.admin-applications-body {
-  .filters-form {
-    select[multiple] {
-      height: 2.5rem;
-      overflow-y: auto;
-    }
-  }
-
+.admin_applications\.Page {
   .popover {
-    --bs-popover-max-width: "auto";
+    --bs-popover-max-width: auto;
     --bs-popover-body-padding-x: 0.75rem;
     --bs-popover-body-padding-y: 0.375rem;
 
     .popover-body a {
       display: block;
+    }
+  }
+
+  table {
+    .btn-link.btn-sm {
+      line-height: 1.1;
     }
   }
 }
