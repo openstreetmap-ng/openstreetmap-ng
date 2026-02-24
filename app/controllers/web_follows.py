@@ -8,7 +8,7 @@ from starlette import status
 from app.config import FOLLOWS_LIST_PAGE_SIZE
 from app.lib.auth_context import web_user
 from app.lib.standard_pagination import (
-    StandardPaginationStateBody,
+    StandardPaginationRequestBody,
     sp_paginate_query,
     sp_render_response,
 )
@@ -69,7 +69,7 @@ async def _follows_page(
 @router.post('/followers')
 async def followers_page(
     user: Annotated[User, web_user()],
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     """Get a paginated list of followers."""
     return await _follows_page(user=user, followers=True, sp_state=sp_state)
@@ -78,7 +78,7 @@ async def followers_page(
 @router.post('/following')
 async def following_page(
     user: Annotated[User, web_user()],
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     """Get a paginated list of following."""
     return await _follows_page(user=user, followers=False, sp_state=sp_state)

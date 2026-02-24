@@ -84,7 +84,7 @@ class UserPasswordService:
         if await check():
             return True
         if audit_failure is not None:
-            await audit('auth_fail', user_id=user_id, extra={'reason': audit_failure})
+            audit('auth_fail', user_id=user_id, extra={'reason': audit_failure}).close()
         if error_message == 'ignore':
             return False
         if error_message is None:

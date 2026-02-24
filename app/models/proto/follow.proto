@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package follow;
+
+import "buf/validate/validate.proto";
+
+service Service {
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+}
+
+message UpdateRequest {
+  uint64 target_user_id = 1 [(buf.validate.field).uint64.gt = 0];
+  bool is_following = 2;
+}
+
+message UpdateResponse {}

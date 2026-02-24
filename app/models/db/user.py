@@ -1,17 +1,16 @@
 from datetime import datetime
-from typing import Literal, TypedDict, get_args, overload
+from typing import TypedDict, get_args, overload
 
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
 from app.lib.image import Image, UserAvatarType
+from app.models.proto.admin_users_types import Role
 from app.models.proto.shared_pb2 import User as ProtoUser
 from app.models.scope import Scope
 from app.models.types import DisplayName, Email, LocaleCode, StorageKey, UserId
 
-UserRole = Literal['moderator', 'administrator']
-
-USER_ROLES = frozenset[UserRole](get_args(UserRole))
+USER_ROLES = frozenset[Role](get_args(Role.__value__))
 
 
 class UserInit(TypedDict):
@@ -25,7 +24,7 @@ class UserInit(TypedDict):
 
 class User(UserInit):
     id: UserId
-    roles: list[UserRole]
+    roles: list[Role]
     timezone: str | None
     home_point: Point | None
     avatar_type: UserAvatarType

@@ -2,9 +2,8 @@ import logging
 from asyncio import TaskGroup
 from collections.abc import Awaitable, Callable
 from random import random
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import UploadFile
 from psycopg import AsyncConnection
 from psycopg.sql import SQL, Composable
 
@@ -18,11 +17,13 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.image import Image, UserAvatarType
 from app.lib.locale import is_installed_locale
+from app.lib.password_hash import PasswordLike
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 from app.lib.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
-from app.models.db.user import User, UserRole, user_avatar_url, user_is_test
+from app.models.db.user import User, user_avatar_url, user_is_test
+from app.models.proto.admin_users_types import Role
 from app.models.proto.auth_pb2 import LoginResponse, PasskeyAssertion
 from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
@@ -78,10 +79,6 @@ class UserService:
             SYSTEM_APP_WEB_CLIENT_ID, user_id=result
         )
 
-        # probabilistic cleanup of expired user tokens
-        if random() < USER_TOKEN_CLEANUP_PROBABILITY:
-            await UserTokenService.delete_expired()
-
         extra: dict[str, Any] = {'login': True}
         if passkey is not None:
             extra['2fa'] = 'passkey'
@@ -92,29 +89,39 @@ class UserService:
         if display_name_or_email is None:
             extra['passwordless'] = True
 
-        await audit(
+        audit(
             'auth_web',
             user_id=result,
             oauth2=(access_token.app_id, access_token.token_id),
             extra=extra,
             sample_rate=1,
             discard_repeated=None,
-        )
+        ).close()
+
+        # probabilistic cleanup of expired user tokens
+        if random() < USER_TOKEN_CLEANUP_PROBABILITY:
+            await UserTokenService.delete_expired()
+
         return access_token.token
 
     @staticmethod
-    async def update_avatar(avatar_type: UserAvatarType, avatar_file: UploadFile):
+    async def update_avatar(
+        *,
+        preset: Literal['gravatar'] | None = None,
+        avatar_file: bytes | None = None,
+    ):
         """Update user's avatar. Returns the new avatar URL."""
         user = auth_user(required=True)
         user_id = user['id']
         old_avatar_id = user['avatar_id']
 
-        data = await avatar_file.read()
-        avatar_id = (
-            await ImageService.upload_avatar(data)
-            if data and avatar_type == 'custom'
-            else None
-        )
+        avatar_type: UserAvatarType
+        avatar_id = None
+        if avatar_file is not None:
+            avatar_type = 'custom'
+            avatar_id = await ImageService.upload_avatar(avatar_file)
+        else:
+            avatar_type = preset
 
         async with db(True) as conn:
             await conn.execute(
@@ -140,14 +147,17 @@ class UserService:
         return user_avatar_url(user)
 
     @staticmethod
-    async def update_background(background_file: UploadFile):
+    async def update_background(background_data: bytes):
         """Update user's background. Returns the new background URL."""
         user = auth_user(required=True)
         user_id = user['id']
         old_background_id = user['background_id']
 
-        data = await background_file.read()
-        background_id = await ImageService.upload_background(data) if data else None
+        background_id = (
+            await ImageService.upload_background(background_data)
+            if background_data
+            else None
+        )
 
         async with db(True) as conn:
             await conn.execute(
@@ -207,7 +217,7 @@ class UserService:
     async def update_email(
         *,
         new_email: Email,
-        password: Password,
+        password: PasswordLike,
     ):
         """Update user email. Sends a confirmation email for the email change."""
         user = auth_user(required=True)
@@ -306,8 +316,8 @@ class UserService:
         display_name: DisplayName | None,
         email: Email | None,
         email_verified: bool,
-        new_password: Password | None,
-        roles: list[UserRole],
+        roles: list[Role],
+        new_password: PasswordLike | None,
     ):
         roles.sort()
         if 'administrator' in roles and 'moderator' in roles:

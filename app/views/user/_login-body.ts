@@ -54,7 +54,7 @@ if (loginForm) {
             (action === "method-totp" && loginResponse.totp) ||
             (action === "method-recovery" && loginResponse.recovery) ||
             action === "method-bypass"
-          option.classList.toggle("d-none", !isAvailable)
+          option.hidden = !isAvailable
         }
         break
     }
