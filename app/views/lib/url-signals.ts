@@ -1,24 +1,22 @@
-import type { QuerySchema } from "@lib/codecs"
-import { qsEncode, qsParseAll } from "@lib/qs"
+import type {
+  QueryContract,
+  QueryContractEncodeInput,
+  QueryContractState,
+} from "@lib/query-contract"
 import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
 
 type UpdateMode = "replace" | "push"
 
-type QuerySignalOptions = {
-  mode?: UpdateMode
-  defaultValue?: never
-}
-
-type QuerySignalDefaultOptions<TDefault> = {
-  mode?: UpdateMode
-  defaultValue: TDefault
-}
+export type QueryContractSignal<C extends QueryContract<any>> = Signal<
+  QueryContractState<C>
+>
 
 const currentUrl = signal(new URL(window.location.href))
 
-window.addEventListener("popstate", () => {
-  currentUrl.value = new URL(window.location.href)
-})
+window.addEventListener(
+  "popstate",
+  () => (currentUrl.value = new URL(window.location.href)),
+)
 
 const updateUrl = (update: (url: URL) => void, mode: UpdateMode) => {
   const prev = currentUrl.peek()
@@ -31,78 +29,71 @@ const updateUrl = (update: (url: URL) => void, mode: UpdateMode) => {
   currentUrl.value = url
 }
 
-export function useQuerySignal<TSchema>(
-  key: string,
-  schema: QuerySchema<TSchema>,
-  options?: QuerySignalOptions,
-): Signal<TSchema | undefined>
-export function useQuerySignal<TSchema, const TDefault>(
-  key: string,
-  schema: QuerySchema<TSchema>,
-  options: QuerySignalDefaultOptions<TDefault>,
-): Signal<Exclude<TSchema, undefined> | TDefault>
-export function useQuerySignal<TSchema, TDefault>(
-  key: string,
-  schema: QuerySchema<TSchema>,
-  options?: QuerySignalOptions | QuerySignalDefaultOptions<TDefault>,
-) {
-  const { mode = "replace", defaultValue } = options ?? {}
-
-  const getValue = () => {
-    const raw = qsParseAll(currentUrl.value.search)[key]
-    if (raw === undefined) return defaultValue
-    const decoded = schema.safeDecode(raw)
-    return decoded.success && decoded.data !== undefined ? decoded.data : defaultValue
-  }
+export const useUrlQueryState = <C extends QueryContract<any>>(
+  contract: C,
+  options?: { mode?: UpdateMode },
+) => {
+  const mode = options?.mode ?? "replace"
+  const getValue = () => contract.parseSearch(currentUrl.value.search)
   const value = useSignal(getValue())
 
   // Effect: URL -> signal
-  useSignalEffect(() => {
-    value.value = getValue()
-  })
+  useSignalEffect(() => void (value.value = getValue()))
 
   // Effect: signal -> URL
   useSignalEffect(() => {
     updateUrl((url) => {
-      const next = value.value
-      const nextDefault =
-        defaultValue !== undefined && next === defaultValue
-          ? undefined
-          : (next as Exclude<typeof next, TDefault>)
-
-      const params: Record<string, string[] | undefined> = qsParseAll(url.search)
-      params[key] = nextDefault !== undefined ? schema.encode(nextDefault) : undefined
-      url.search = qsEncode(params)
+      url.search = contract.encode(value.value)
     }, mode)
   })
 
-  return value
+  return value as QueryContractSignal<C>
 }
 
 type PathSuffix = "" | `/${string}`
-type EmptySuffixKey<T extends Readonly<Record<string, PathSuffix>>> = {
-  [K in keyof T & string]: T[K] extends "" ? K : never
-}[keyof T & string]
-type PathSuffixSwitchArgs<T extends Readonly<Record<string, PathSuffix>>> =
-  EmptySuffixKey<T> extends never
-    ? [options: { mode?: UpdateMode; defaultKey: keyof T & string }]
-    : [options?: { mode?: UpdateMode }]
+type PathSuffixSwitchOptions<TKey extends string> = {
+  mode?: UpdateMode
+  defaultKey?: TKey
+}
 
-export const usePathSuffixSwitch = <
+type PathSuffixQueryStateOptions<TKey extends string> = {
+  pathMode?: UpdateMode
+  queryMode?: UpdateMode
+  defaultKey?: TKey
+}
+
+type PathSuffixSwitchState<T extends Readonly<Record<string, PathSuffix>>> = Signal<
+  keyof T & string
+> & {
+  href: (
+    nextKey: keyof T & string,
+    hrefOptions?: { search?: string; hash?: string },
+  ) => string
+}
+
+type PathSuffixQueryState<
+  TVariants extends Readonly<Record<string, PathSuffix>>,
+  C extends QueryContract<any>,
+> = Omit<PathSuffixSwitchState<TVariants>, "href"> & {
+  query: QueryContractSignal<C>
+  href: (
+    nextKey: keyof TVariants & string,
+    hrefOptions?: { query?: QueryContractEncodeInput<C>; hash?: string },
+  ) => string
+}
+
+const usePathSuffixSwitch = <
   const TVariants extends Readonly<Record<string, PathSuffix>>,
 >(
   variants: TVariants,
-  ...[options]: PathSuffixSwitchArgs<TVariants>
-) => {
+  options?: PathSuffixSwitchOptions<keyof TVariants & string>,
+): PathSuffixSwitchState<TVariants> => {
   type TKey = keyof TVariants & string
 
   const mode = options?.mode ?? "push"
 
   const entries = Object.entries(variants) as [TKey, PathSuffix][]
-  const fallbackKey =
-    options && "defaultKey" in options
-      ? options.defaultKey
-      : entries.find(([, suffix]) => !suffix)![0]
+  const fallbackKey = options?.defaultKey ?? entries.find(([, suffix]) => !suffix)![0]
 
   entries.sort((a, b) => b[1].length - a[1].length)
 
@@ -116,7 +107,7 @@ export const usePathSuffixSwitch = <
   }
 
   const getKeyFromUrl = () => parsePathname(currentUrl.value.pathname).key
-  const key = useSignal<TKey>(getKeyFromUrl())
+  const key = useSignal(getKeyFromUrl())
 
   // Effect: URL -> signals
   useSignalEffect(() => {
@@ -143,4 +134,40 @@ export const usePathSuffixSwitch = <
   })
 
   return Object.assign(key, { href })
+}
+
+export const usePathSuffixQueryState = <
+  const TVariants extends Readonly<Record<string, PathSuffix>>,
+  C extends QueryContract<any>,
+>(
+  variants: TVariants,
+  contract: C,
+  options?: PathSuffixQueryStateOptions<keyof TVariants & string>,
+): PathSuffixQueryState<TVariants, C> => {
+  const pathOptions: PathSuffixSwitchOptions<keyof TVariants & string> = {}
+  if (options?.pathMode !== undefined) pathOptions.mode = options.pathMode
+  if (options?.defaultKey !== undefined) pathOptions.defaultKey = options.defaultKey
+  const path = usePathSuffixSwitch(variants, pathOptions)
+
+  const query = useUrlQueryState(
+    contract,
+    options?.queryMode === undefined ? undefined : { mode: options.queryMode },
+  )
+
+  const href = (
+    nextKey: keyof TVariants & string,
+    hrefOptions?: { query?: QueryContractEncodeInput<C>; hash?: string },
+  ) => {
+    const nextQuery =
+      hrefOptions?.query === undefined
+        ? query.value
+        : ({ ...query.value, ...hrefOptions.query } as QueryContractEncodeInput<C>)
+    const search = contract.encode(nextQuery)
+    return path.href(
+      nextKey,
+      hrefOptions?.hash === undefined ? { search } : { search, hash: hrefOptions.hash },
+    )
+  }
+
+  return Object.assign(path as Omit<typeof path, "href">, { query, href })
 }
