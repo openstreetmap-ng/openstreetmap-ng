@@ -7,11 +7,13 @@ from app.models.db.user import User
 from app.models.scope import PublicScope
 from app.models.types import ApplicationId, OAuth2TokenId, UserId
 
-OAuth2ResponseType = Literal['code']
-OAuth2ResponseMode = Literal['query', 'fragment', 'form_post']
-OAuth2GrantType = Literal['authorization_code']
-OAuth2CodeChallengeMethod = Literal['plain', 'S256']
-OAuth2TokenEndpointAuthMethod = Literal['client_secret_post', 'client_secret_basic']
+type OAuth2ResponseType = Literal['code']
+type OAuth2ResponseMode = Literal['query', 'fragment', 'form_post']
+type OAuth2GrantType = Literal['authorization_code']
+type OAuth2CodeChallengeMethod = Literal['plain', 'S256']
+type OAuth2TokenEndpointAuthMethod = Literal[
+    'client_secret_post', 'client_secret_basic'
+]
 
 
 class OAuth2TokenInit(TypedDict):

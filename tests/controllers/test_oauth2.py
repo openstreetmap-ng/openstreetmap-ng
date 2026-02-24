@@ -53,7 +53,7 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
     # Perform authorization
     r = await client.post(authorization_url)
     assert r.status_code == status.HTTP_401_UNAUTHORIZED, r.text
-    assert r.json()['detail'] == 'Invalid client id'
+    assert r.json()['detail'] == 'invalid_client'
 
 
 async def test_authorize_invalid_extra_scopes(client: AsyncClient):
@@ -70,14 +70,15 @@ async def test_authorize_invalid_extra_scopes(client: AsyncClient):
     # Perform authorization
     r = await client.post(authorization_url)
     assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
-    assert r.json()['detail'] == 'Invalid authorization scopes'
+    assert r.json()['detail'] == 'invalid_scope'
 
 
 @pytest.mark.parametrize(
     ('code_challenge_method', 'token_endpoint_auth_method'),
     list(
         product(
-            get_args(OAuth2CodeChallengeMethod), get_args(OAuth2TokenEndpointAuthMethod)
+            get_args(OAuth2CodeChallengeMethod.__value__),
+            get_args(OAuth2TokenEndpointAuthMethod.__value__),
         )
     ),
 )
