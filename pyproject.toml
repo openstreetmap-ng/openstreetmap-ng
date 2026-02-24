@@ -166,6 +166,7 @@ ignore = [
   "B006",  # mutable-argument-default
   "B008",  # function-call-in-default-argument
   "B017",  # assert-raises-exception
+  "B905",  # zip-without-explicit-strict
   "COM812",  # missing-trailing-comma
   "COM819",  # prohibited-trailing-comma
   "D206",  # indent-with-spaces
