@@ -1,10 +1,33 @@
 syntax = "proto3";
 
+package settings_security;
+
 import "app/models/proto/auth.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service SettingsSecurityService {
+message Page {
+  message Session {
+    message Activity {
+      uint64 created_at = 1;
+      bytes ip = 2;
+      optional string user_agent = 3;
+    }
+
+    uint64 id = 1;
+    uint64 authorized_at = 2;
+    optional Activity last_activity = 3;
+    bool current = 4;
+  }
+
+  string email = 1;
+  repeated Passkey passkeys = 2;
+  optional uint64 totp_created_at = 3;
+  RecoveryStatus recovery_codes_status = 4 [(buf.validate.field).required = true];
+  repeated Session active_sessions = 5;
+}
+
+service Service {
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
   rpc SetupTotp(SetupTotpRequest) returns (SetupTotpResponse) {}
   rpc DisableTotp(DisableTotpRequest) returns (DisableTotpResponse) {}
@@ -36,7 +59,9 @@ message SetupTotpRequest {
   string totp_code = 3 [(buf.validate.field).string.pattern = "^(?:[0-9]{6}|[0-9]{8})$"];
 }
 
-message SetupTotpResponse {}
+message SetupTotpResponse {
+  uint64 created_at = 1;
+}
 
 message DisableTotpRequest {
   TransmitUserPassword password = 1 [(buf.validate.field).required = true];
@@ -48,10 +73,12 @@ message RegisterPasskeyRequest {
   PasskeyRegistration registration = 1 [(buf.validate.field).required = true];
 }
 
-message RegisterPasskeyResponse {}
+message RegisterPasskeyResponse {
+  repeated Passkey passkeys = 1;
+}
 
 message RenamePasskeyRequest {
-  bytes credential_id = 1;
+  bytes credential_id = 1 [(buf.validate.field).bytes.min_len = 1];
   string name = 2 [(buf.validate.field).string.max_len = 50];
 }
 
@@ -61,10 +88,12 @@ message RenamePasskeyResponse {
 
 message RemovePasskeyRequest {
   TransmitUserPassword password = 1 [(buf.validate.field).required = true];
-  bytes credential_id = 2;
+  bytes credential_id = 2 [(buf.validate.field).bytes.min_len = 1];
 }
 
-message RemovePasskeyResponse {}
+message RemovePasskeyResponse {
+  repeated Passkey passkeys = 1;
+}
 
 message GenerateRecoveryCodesRequest {
   TransmitUserPassword password = 1 [(buf.validate.field).required = true];
@@ -72,6 +101,7 @@ message GenerateRecoveryCodesRequest {
 
 message GenerateRecoveryCodesResponse {
   repeated string codes = 1;
+  RecoveryStatus status = 2 [(buf.validate.field).required = true];
 }
 
 message RevokeTokenRequest {
@@ -79,3 +109,15 @@ message RevokeTokenRequest {
 }
 
 message RevokeTokenResponse {}
+
+message Passkey {
+  bytes credential_id = 1;
+  string name = 2;
+  repeated string icons = 3;
+  uint64 created_at = 4;
+}
+
+message RecoveryStatus {
+  uint32 num_remaining = 1;
+  optional uint64 created_at = 2;
+}

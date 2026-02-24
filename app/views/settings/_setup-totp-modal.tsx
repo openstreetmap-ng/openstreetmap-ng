@@ -1,16 +1,17 @@
 import { config } from "@lib/config"
-import { SettingsSecurityService } from "@lib/proto/settings_security_pb"
+import { useDisposeLayoutEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
+import { Service } from "@lib/proto/settings_security_pb"
 import { StandardForm } from "@lib/standard-form"
-import { batch, useSignal, useSignalEffect } from "@preact/signals"
-import { memoize } from "@std/cache/memoize"
+import { batch, type Signal, useSignal } from "@preact/signals"
 import { encodeBase32 } from "@std/encoding/base32"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
-import { render } from "preact"
-import { useId, useLayoutEffect, useRef } from "preact/hooks"
+import { useId, useRef } from "preact/hooks"
+
+export const SETUP_TOTP_MODAL_ID = "SettingsSecuritySetupTotpModal"
 
 const generateTOTPSecret = () => {
-  const buffer = new Uint8Array(16) // 128 bits
+  const buffer = new Uint8Array(16)
   crypto.getRandomValues(buffer)
   return encodeBase32(buffer).replaceAll("=", "")
 }
@@ -31,7 +32,13 @@ const generateTOTPQRCode = async (
   return qr.createSvgTag(3)
 }
 
-const SetupTotpModal = () => {
+export const SetupTotpModal = ({
+  email,
+  totpCreatedAt,
+}: {
+  email: string
+  totpCreatedAt: Signal<bigint | undefined>
+}) => {
   const labelId = useId()
   const secret = useSignal("")
   const digits = useSignal<6 | 8>(8)
@@ -40,10 +47,11 @@ const SetupTotpModal = () => {
   const modalRef = useRef<HTMLDivElement>(null)
   const codeInputRef = useRef<HTMLInputElement>(null)
 
-  useLayoutEffect(() => {
-    const modal = modalRef.current!
+  const accountName = `${config.userConfig!.user.displayName} (${email})`
 
-    modal.addEventListener("show.bs.modal", () => {
+  useDisposeLayoutEffect((scope) => {
+    const modal = modalRef.current!
+    scope.dom(modal, "show.bs.modal", () => {
       batch(() => {
         digits.value = 8
         secret.value = generateTOTPSecret()
@@ -51,12 +59,10 @@ const SetupTotpModal = () => {
       })
       codeInputRef.current!.value = ""
     })
-
-    modal.addEventListener("shown.bs.modal", () => {
+    scope.dom(modal, "shown.bs.modal", () => {
       codeInputRef.current!.focus()
     })
-
-    modal.addEventListener("hidden.bs.modal", () => {
+    scope.dom(modal, "hidden.bs.modal", () => {
       batch(() => {
         secret.value = ""
         qrSvg.value = ""
@@ -65,31 +71,23 @@ const SetupTotpModal = () => {
     })
   }, [])
 
-  useSignalEffect(() => {
+  useDisposeSignalEffect((scope) => {
     const secretValue = secret.value
     if (!secretValue) return
 
     const digitsValue = digits.value
-    const abortController = new AbortController()
 
     void (async () => {
-      const nextSvg = await generateTOTPQRCode(
-        secretValue,
-        digitsValue,
-        `${config.userConfig!.displayName} (${config.userConfig!.email})`,
-      )
-      abortController.signal.throwIfAborted()
+      const nextSvg = await generateTOTPQRCode(secretValue, digitsValue, accountName)
+      if (scope.signal.aborted) return
       qrSvg.value = nextSvg
     })()
-
-    return () => {
-      abortController.abort()
-    }
   })
 
   return (
     <div
       class="modal fade"
+      id={SETUP_TOTP_MODAL_ID}
       data-bs-backdrop="static"
       tabIndex={-1}
       aria-labelledby={labelId}
@@ -114,13 +112,16 @@ const SetupTotpModal = () => {
           </div>
 
           <StandardForm
-            method={SettingsSecurityService.method.setupTotp}
+            method={Service.method.setupTotp}
             buildRequest={({ formData }) => ({
               secret: secret.value,
               digits: digits.value,
               totpCode: formData.get("totp_code") as string,
             })}
-            onSuccess={() => window.location.reload()}
+            onSuccess={(resp) => {
+              totpCreatedAt.value = resp.createdAt
+              Modal.getOrCreateInstance(modalRef.current!).hide()
+            }}
           >
             <div class="modal-body">
               <h6>{t("two_fa.step_1_choose_code_length")}</h6>
@@ -215,12 +216,3 @@ const SetupTotpModal = () => {
     </div>
   )
 }
-
-export const getSetupTotpModal = memoize(() => {
-  const root = document.createElement("div")
-  render(<SetupTotpModal />, root)
-  document.body.append(root)
-
-  const modal = root.firstElementChild
-  return new Modal(modal!)
-})

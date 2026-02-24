@@ -1,9 +1,97 @@
 syntax = "proto3";
 
+package settings;
+
+import "app/models/proto/auth.proto";
+import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service SettingsService {
+message Page {
+  string email = 1;
+  string language = 2;
+  uint64 password_updated_at = 3;
+}
+
+message EmailPage {
+  string email = 1;
+}
+
+service Service {
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse) {}
+  rpc UpdateBackground(UpdateBackgroundRequest) returns (UpdateBackgroundResponse) {}
+  rpc UpdateDescription(UpdateDescriptionRequest) returns (UpdateDescriptionResponse) {}
+  rpc UpdateSocials(UpdateSocialsRequest) returns (UpdateSocialsResponse) {}
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse) {}
+  rpc UpdateEmail(UpdateEmailRequest) returns (UpdateEmailResponse) {}
   rpc UpdateTimezone(UpdateTimezoneRequest) returns (UpdateTimezoneResponse) {}
+}
+
+message UpdateAvatarRequest {
+  enum Preset {
+    default = 0;
+    gravatar = 1;
+  }
+
+  oneof avatar {
+    option (buf.validate.oneof).required = true;
+    Preset preset = 1 [(buf.validate.field).enum.defined_only = true];
+    bytes avatar_file = 2 [(buf.validate.field).bytes.min_len = 1];
+  }
+}
+
+message UpdateAvatarResponse {
+  string avatar_url = 1;
+}
+
+message UpdateBackgroundRequest {
+  bytes background_file = 1 [(buf.validate.field).bytes.min_len = 1];
+}
+
+message UpdateBackgroundResponse {
+  optional string background_url = 1;
+}
+
+message UpdateDescriptionRequest {
+  string description = 1 [(buf.validate.field).string.max_len = 20000];
+}
+
+message UpdateDescriptionResponse {
+  optional string description = 1;
+  string description_rich = 2;
+}
+
+message UpdateSocialsRequest {
+  repeated UserSocial socials = 1 [(buf.validate.field).repeated.max_items = 3];
+}
+
+message UpdateSocialsResponse {
+  repeated UserSocial socials = 1;
+}
+
+message UpdateSettingsRequest {
+  string display_name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string language = 2 [(buf.validate.field).string.max_len = 15];
+  bool activity_tracking = 3;
+  bool crash_reporting = 4;
+}
+
+message UpdateSettingsResponse {
+  StandardFeedbackDetail feedback = 1;
+}
+
+message UpdateEmailRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    max_len: 254
+  }];
+  TransmitUserPassword password = 2 [(buf.validate.field).required = true];
+}
+
+message UpdateEmailResponse {
+  StandardFeedbackDetail feedback = 1;
 }
 
 message UpdateTimezoneRequest {
