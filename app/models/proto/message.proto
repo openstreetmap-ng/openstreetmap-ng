@@ -1,24 +1,36 @@
 syntax = "proto3";
 
+package message;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service MessageService {
-  rpc GetMessagesPage(GetMessagesPageRequest) returns (GetMessagesPageResponse) {
-    option idempotency_level = NO_SIDE_EFFECTS;
-  }
-  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse) {}
-  rpc SetMessageReadState(SetMessageReadStateRequest) returns (SetMessageReadStateResponse) {}
-  rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse) {}
-  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+message IndexPage {
+  bool inbox = 1;
 }
 
-message GetMessagesPageRequest {
-  StandardPaginationState state = 1;
+message NewPage {
+  string recipients = 1;
+  string subject = 2;
+  string body = 3;
+}
+
+service Service {
+  rpc GetPage(GetPageRequest) returns (GetPageResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc UpdateReadState(UpdateReadStateRequest) returns (UpdateReadStateResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc Send(SendRequest) returns (SendResponse) {}
+}
+
+message GetPageRequest {
+  StandardPaginationRequest state = 1;
   bool inbox = 2;
 }
 
-message GetMessagesPageResponse {
+message GetPageResponse {
   message Summary {
     uint64 id = 1;
     optional User sender = 2;
@@ -34,11 +46,11 @@ message GetMessagesPageResponse {
   repeated Summary messages = 2;
 }
 
-message GetMessageRequest {
+message GetRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetMessageResponse {
+message GetResponse {
   bool was_unread = 1;
   User sender = 2 [(buf.validate.field).required = true];
   repeated User recipients = 3;
@@ -48,22 +60,22 @@ message GetMessageResponse {
   string body_rich = 7;
 }
 
-message SetMessageReadStateRequest {
+message UpdateReadStateRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   bool read = 2;
 }
 
-message SetMessageReadStateResponse {
+message UpdateReadStateResponse {
   bool updated = 1;
 }
 
-message DeleteMessageRequest {
+message DeleteRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message DeleteMessageResponse {}
+message DeleteResponse {}
 
-message SendMessageRequest {
+message SendRequest {
   string subject = 1 [(buf.validate.field).string = {
     min_len: 1
     max_len: 100
@@ -73,6 +85,7 @@ message SendMessageRequest {
     max_len: 50000
   }];
   repeated string recipient = 3 [(buf.validate.field).repeated = {
+    unique: true
     min_items: 1
     max_items: 5
     items: {
@@ -84,6 +97,6 @@ message SendMessageRequest {
   }];
 }
 
-message SendMessageResponse {
+message SendResponse {
   string redirect_url = 1;
 }

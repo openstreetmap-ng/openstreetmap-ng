@@ -4,23 +4,17 @@ import {
   MESSAGE_RECIPIENTS_LIMIT,
   MESSAGE_SUBJECT_MAX_LENGTH,
 } from "@lib/config"
-import { mount } from "@lib/mount"
+import { mountProtoPage } from "@lib/proto-page"
 import { MultiInput } from "@lib/multi-input"
-import { MessageService } from "@lib/proto/message_pb"
+import { Service, NewPageSchema } from "@lib/proto/message_pb"
 import { StandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { render } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import { useEffect, useId, useRef } from "preact/hooks"
 import { RichTextControl } from "../rich-text/_control"
 
-type MessagesNewProps = {
-  recipients: string
-  subject: string
-  body: string
-}
-
-const MessagesNew = ({ recipients, subject, body }: MessagesNewProps) => {
+mountProtoPage(NewPageSchema, ({ recipients, subject, body }) => {
   const messageBodyRef = useRef<HTMLTextAreaElement>(null)
+  const recipientId = useId()
 
   useEffect(() => {
     const messageBody = messageBodyRef.current!
@@ -43,7 +37,7 @@ const MessagesNew = ({ recipients, subject, body }: MessagesNewProps) => {
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
           <StandardForm
             class="message-form"
-            method={MessageService.method.sendMessage}
+            method={Service.method.send}
             buildRequest={({ formData }) => ({
               subject: formData.get("subject") as string,
               body: formData.get("body") as string,
@@ -56,13 +50,13 @@ const MessagesNew = ({ recipients, subject, body }: MessagesNewProps) => {
           >
             <label
               class="form-label d-block mb-3"
-              for="multi-input-recipient"
+              for={recipientId}
             >
               <span class="required">{t("messages.compose.recipients")}</span>
               <div class="mt-2">
                 <MultiInput
                   name="recipient"
-                  id="multi-input-recipient"
+                  id={recipientId}
                   placeholder={t("messages.compose.recipient_placeholder")}
                   defaultValue={recipients}
                   required
@@ -114,18 +108,5 @@ const MessagesNew = ({ recipients, subject, body }: MessagesNewProps) => {
         </div>
       </div>
     </>
-  )
-}
-
-mount("messages-new-body", () => {
-  const root = document.getElementById("MessagesNewRoot")!
-  const { recipients, subject, body } = root.dataset
-  render(
-    <MessagesNew
-      recipients={recipients!}
-      subject={subject!}
-      body={body!}
-    />,
-    root,
   )
 })

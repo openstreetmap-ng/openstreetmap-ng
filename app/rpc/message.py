@@ -11,22 +11,20 @@ from app.lib.standard_pagination import sp_paginate_table
 from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import user_proto
 from app.models.proto.message_connect import (
-    MessageService as MessageServiceConnect,
+    Service as MessageServiceConnect,
 )
-from app.models.proto.message_connect import (
-    MessageServiceASGIApplication,
-)
+from app.models.proto.message_connect import ServiceASGIApplication
 from app.models.proto.message_pb2 import (
-    DeleteMessageRequest,
-    DeleteMessageResponse,
-    GetMessageRequest,
-    GetMessageResponse,
-    GetMessagesPageRequest,
-    GetMessagesPageResponse,
-    SendMessageRequest,
-    SendMessageResponse,
-    SetMessageReadStateRequest,
-    SetMessageReadStateResponse,
+    DeleteRequest,
+    DeleteResponse,
+    GetPageRequest,
+    GetPageResponse,
+    GetRequest,
+    GetResponse,
+    SendRequest,
+    SendResponse,
+    UpdateReadStateRequest,
+    UpdateReadStateResponse,
 )
 from app.models.types import MessageId
 from app.queries.message_query import MessageQuery
@@ -37,9 +35,7 @@ from app.validators.unicode import normalize_display_name
 
 class _Service(MessageServiceConnect):
     @override
-    async def get_messages_page(
-        self, request: GetMessagesPageRequest, ctx: RequestContext
-    ):
+    async def get_page(self, request: GetPageRequest, ctx: RequestContext):
         user_id = require_web_user()['id']
 
         inbox = request.inbox
@@ -95,10 +91,10 @@ class _Service(MessageServiceConnect):
         summaries = [
             _build_message_summary(message, inbox=inbox) for message in messages
         ]
-        return GetMessagesPageResponse(state=state, messages=summaries)
+        return GetPageResponse(state=state, messages=summaries)
 
     @override
-    async def get_message(self, request: GetMessageRequest, ctx: RequestContext):
+    async def get(self, request: GetRequest, ctx: RequestContext):
         require_web_user()
         message_id = MessageId(request.id)
 
@@ -123,7 +119,7 @@ class _Service(MessageServiceConnect):
                 else None
             )
 
-        return GetMessageResponse(
+        return GetResponse(
             was_unread=mark_read_t.result() if mark_read_t else False,
             sender=user_proto(message['from_user']),  # type: ignore
             recipients=[
@@ -137,24 +133,24 @@ class _Service(MessageServiceConnect):
         )
 
     @override
-    async def set_message_read_state(
-        self, request: SetMessageReadStateRequest, ctx: RequestContext
+    async def update_read_state(
+        self, request: UpdateReadStateRequest, ctx: RequestContext
     ):
         require_web_user()
         updated = await MessageService.set_state(
             MessageId(request.id),
             read=request.read,
         )
-        return SetMessageReadStateResponse(updated=updated)
+        return UpdateReadStateResponse(updated=updated)
 
     @override
-    async def delete_message(self, request: DeleteMessageRequest, ctx: RequestContext):
+    async def delete(self, request: DeleteRequest, ctx: RequestContext):
         require_web_user()
         await MessageService.delete_message(MessageId(request.id))
-        return DeleteMessageResponse()
+        return DeleteResponse()
 
     @override
-    async def send_message(self, request: SendMessageRequest, ctx: RequestContext):
+    async def send(self, request: SendRequest, ctx: RequestContext):
         require_web_user()
         recipients = list(
             dict.fromkeys(normalize_display_name(value) for value in request.recipient)
@@ -164,7 +160,7 @@ class _Service(MessageServiceConnect):
             subject=request.subject,
             body=request.body,
         )
-        return SendMessageResponse(redirect_url=f'/messages/outbox?show={message_id}')
+        return SendResponse(redirect_url=f'/messages/outbox?show={message_id}')
 
 
 def _build_message_summary(
@@ -173,7 +169,7 @@ def _build_message_summary(
     inbox: bool,
 ):
     if inbox:
-        return GetMessagesPageResponse.Summary(
+        return GetPageResponse.Summary(
             id=message['id'],
             sender=user_proto(message['from_user']),  # type: ignore
             recipients_count=0,
@@ -184,12 +180,8 @@ def _build_message_summary(
         )
 
     recipients = message['recipients']  # type: ignore
-    recipients_users = [
-        user_proto(r_user)
-        for r in recipients[:3]
-        if (r_user := r.get('user')) is not None
-    ]
-    return GetMessagesPageResponse.Summary(
+    recipients_users = [user_proto(r['user']) for r in recipients[:3]]  # type: ignore
+    return GetPageResponse.Summary(
         id=message['id'],
         sender=None,
         recipients=recipients_users,
@@ -209,4 +201,4 @@ def _message_body_preview(value: str, *, _PREVIEW_SIZE: cython.size_t = 250):
 
 
 service = _Service()
-asgi_app_cls = MessageServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication

@@ -1,10 +1,10 @@
 from httpx import AsyncClient
 
 from app.models.proto.message_pb2 import (
-    GetMessagesPageRequest,
-    GetMessagesPageResponse,
-    SendMessageRequest,
-    SendMessageResponse,
+    GetPageRequest,
+    GetPageResponse,
+    SendRequest,
+    SendResponse,
 )
 
 
@@ -13,9 +13,9 @@ async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
 
     subject = test_messages_inbox_page_standard_pagination.__qualname__
     r = await client.post(
-        '/rpc/MessageService/SendMessage',
+        '/rpc/message.Service/Send',
         headers={'Content-Type': 'application/proto'},
-        content=SendMessageRequest(
+        content=SendRequest(
             subject=subject,
             body='Hello from a test message.',
             recipient=['user2'],
@@ -24,19 +24,19 @@ async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
     assert r.is_success, r.text
 
     # Sanity check: ensure redirect looks like /messages/outbox?show=...
-    assert SendMessageResponse.FromString(r.content).redirect_url.startswith(
+    assert SendResponse.FromString(r.content).redirect_url.startswith(
         '/messages/outbox?show='
     )
 
     client.headers['Authorization'] = 'User user2'
 
     r = await client.post(
-        '/rpc/MessageService/GetMessagesPage',
+        '/rpc/message.Service/GetPage',
         headers={'Content-Type': 'application/proto'},
-        content=GetMessagesPageRequest(inbox=True).SerializeToString(),
+        content=GetPageRequest(inbox=True).SerializeToString(),
     )
     assert r.is_success, r.text
-    page = GetMessagesPageResponse.FromString(r.content)
+    page = GetPageResponse.FromString(r.content)
     assert page.state.current_page == 1
     assert any(m.subject == subject for m in page.messages)
 
@@ -46,9 +46,9 @@ async def test_messages_outbox_page_standard_pagination(client: AsyncClient):
 
     subject = test_messages_outbox_page_standard_pagination.__qualname__
     r = await client.post(
-        '/rpc/MessageService/SendMessage',
+        '/rpc/message.Service/Send',
         headers={'Content-Type': 'application/proto'},
-        content=SendMessageRequest(
+        content=SendRequest(
             subject=subject,
             body='Hello from a test message.',
             recipient=['user2'],
@@ -57,11 +57,11 @@ async def test_messages_outbox_page_standard_pagination(client: AsyncClient):
     assert r.is_success, r.text
 
     r = await client.post(
-        '/rpc/MessageService/GetMessagesPage',
+        '/rpc/message.Service/GetPage',
         headers={'Content-Type': 'application/proto'},
-        content=GetMessagesPageRequest(inbox=False).SerializeToString(),
+        content=GetPageRequest(inbox=False).SerializeToString(),
     )
     assert r.is_success, r.text
-    page = GetMessagesPageResponse.FromString(r.content)
+    page = GetPageResponse.FromString(r.content)
     assert page.state.current_page == 1
     assert any(m.subject == subject for m in page.messages)

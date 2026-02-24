@@ -2,29 +2,32 @@ import { ConnectError } from "@connectrpc/connect"
 import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { mount } from "@lib/mount"
 import {
-  type GetMessageResponseValid,
-  type GetMessagesPageResponse_SummaryValid,
-  MessageService,
+  type GetResponseValid,
+  type GetPageResponse_SummaryValid,
+  Service,
+  IndexPageSchema,
 } from "@lib/proto/message_pb"
 import type { UserValid } from "@lib/proto/shared_pb"
+import { mountProtoPage } from "@lib/proto-page"
+import { defineQueryContract } from "@lib/query-contract"
 import { ReportButton } from "@lib/report"
 import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
-import { useQuerySignal } from "@lib/url-signals"
+import { type QueryContractSignal, useUrlQueryState } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
-import { batch, type ReadonlySignal, type Signal, useSignal } from "@preact/signals"
+import { batch, type ReadonlySignal, useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { render } from "preact"
-import { memo } from "preact/compat"
 import { useEffect, useRef } from "preact/hooks"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 type PreviewState =
   | { status: "loading" }
-  | { status: "ready"; message: GetMessageResponseValid }
+  | { status: "ready"; message: GetResponseValid }
   | { status: "error"; error: string }
+
+const MESSAGE_QUERY = defineQueryContract({ show: queryParam.positive() })
+type MessageQuery = QueryContractSignal<typeof MESSAGE_QUERY>
 
 const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
   <img
@@ -43,11 +46,7 @@ const SummaryUserLink = ({ user }: { user: UserValid }) => (
   </a>
 )
 
-const SummaryRecipients = ({
-  message,
-}: {
-  message: GetMessagesPageResponse_SummaryValid
-}) => {
+const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid }) => {
   if (message.recipientsCount <= 1) {
     return <SummaryUserLink user={message.recipients[0]} />
   }
@@ -56,7 +55,7 @@ const SummaryRecipients = ({
     <span class="recipients-group">
       {message.recipients.map((recipient) => (
         <UserAvatarImg
-          key={recipient.displayName}
+          key={recipient.id}
           user={recipient}
           title={recipient.displayName}
         />
@@ -70,30 +69,30 @@ const SummaryRecipients = ({
   )
 }
 
-const MessagesEmpty = memo(() => (
+const MessagesEmpty = () => (
   <li class="text-center text-muted py-5">
     <h3>{t("traces.index.empty_title")}</h3>
   </li>
-))
+)
 
 const MessagesListItem = ({
   message,
   inbox,
-  openMessageId,
+  query,
 }: {
-  message: GetMessagesPageResponse_SummaryValid
+  message: GetPageResponse_SummaryValid
   inbox: boolean
-  openMessageId: Signal<bigint | undefined>
+  query: MessageQuery
 }) => {
   const messageId = message.id
   const isUnread = inbox && message.unread
-  const isActive = openMessageId.value === messageId
+  const isActive = query.value.show === messageId
 
-  const handleOpen = (event: MouseEvent) => {
+  const handleOpen = (event: MouseEvent & { currentTarget: HTMLAnchorElement }) => {
     if (!isUnmodifiedLeftClick(event)) return
     event.preventDefault()
-    if (event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
-    openMessageId.value = messageId
+    event.currentTarget.blur()
+    query.value = { show: messageId }
   }
 
   return (
@@ -123,7 +122,7 @@ const MessagesListItem = ({
         <span>
           <a
             class="stretched-link"
-            href={`?show=${messageId}`}
+            href={MESSAGE_QUERY.encode({ show: messageId })}
             onClick={handleOpen}
             aria-label={message.subject}
           />
@@ -150,7 +149,7 @@ const MessageActionsToolbar = ({
 }: {
   inbox: boolean
   messageId: bigint
-  message: GetMessageResponseValid
+  message: GetResponseValid
   onUnread: () => void
   onDelete: () => void
 }) => {
@@ -205,17 +204,17 @@ const MessageActionsToolbar = ({
 const MessagePreview = ({
   inbox,
   previewState,
-  openMessageId,
+  query,
   onUnread,
   onDelete,
 }: {
   inbox: boolean
   previewState: ReadonlySignal<PreviewState>
-  openMessageId: Signal<bigint | undefined>
+  query: MessageQuery
   onUnread: () => void
   onDelete: () => void
 }) => {
-  const messageId = openMessageId.value!
+  const messageId = query.value.show!
   const preview = previewState.value
   const message = preview.status === "ready" ? preview.message : null
   const sender = message?.sender
@@ -263,7 +262,7 @@ const MessagePreview = ({
                   <span class="small text-muted me-2">{t("messages.to_prefix")}:</span>
                   <div class="message-recipients">
                     {message.recipients.map((recipient) => (
-                      <span key={recipient.displayName}>
+                      <span key={recipient.id}>
                         <SummaryUserLink user={recipient} />
                       </span>
                     ))}
@@ -284,7 +283,7 @@ const MessagePreview = ({
               class="btn-close"
               aria-label={t("javascripts.close")}
               type="button"
-              onClick={() => (openMessageId.value = undefined)}
+              onClick={() => (query.value = {})}
             />
           </div>
         </div>
@@ -338,32 +337,30 @@ const MessagePreview = ({
   )
 }
 
-const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
-  const messages = useSignal<GetMessagesPageResponse_SummaryValid[]>([])
-  const openMessageId = useQuerySignal("show", queryParam.positive())
+mountProtoPage(IndexPageSchema, ({ inbox }) => {
+  const messages = useSignal<GetPageResponse_SummaryValid[]>([])
+  const query = useUrlQueryState(MESSAGE_QUERY)
   const previewState = useSignal<PreviewState>({ status: "loading" })
 
-  const updateMessageUnread = (messageId: bigint, unread: boolean) => {
-    messages.value = messages.value.map((message) =>
+  const updateMessageUnread = (messageId: bigint, unread: boolean) =>
+    (messages.value = messages.value.map((message) =>
       message.id === messageId && message.unread !== unread
-        ? { ...message, unread }
+        ? ((message.unread = unread), message)
         : message,
-    )
-  }
+    ))
 
-  const removeMessage = (messageId: bigint) => {
-    messages.value = messages.value.filter((message) => message.id !== messageId)
-  }
+  const removeMessage = (messageId: bigint) =>
+    (messages.value = messages.value.filter((message) => message.id !== messageId))
 
   const markMessageUnread = async () => {
-    const messageId = openMessageId.value
+    const messageId = query.value.show
     if (!messageId) return
 
     const preview = previewState.peek()
     if (!(inbox && preview.status === "ready" && preview.message.isRecipient)) return
 
     try {
-      const response = await rpcUnary(MessageService.method.setMessageReadState)({
+      const response = await rpcUnary(Service.method.updateReadState)({
         id: messageId,
         read: false,
       })
@@ -373,7 +370,7 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
           updateMessageUnread(messageId, true)
           changeUnreadMessagesBadge(1)
         }
-        openMessageId.value = undefined
+        query.value = {}
       })
     } catch (error) {
       console.error("Messages: Failed to mark unread", messageId, error)
@@ -382,14 +379,14 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
   }
 
   const deleteMessage = async () => {
-    const messageId = openMessageId.value
+    const messageId = query.value.show
     if (!(messageId && confirm(t("messages.delete_confirmation")))) return
     try {
-      await rpcUnary(MessageService.method.deleteMessage)({ id: messageId })
+      await rpcUnary(Service.method.delete)({ id: messageId })
 
       batch(() => {
         removeMessage(messageId)
-        openMessageId.value = undefined
+        query.value = {}
       })
     } catch (error) {
       console.error("Messages: Failed to delete", messageId, error)
@@ -399,13 +396,13 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
 
   // Effect: Fetch open message details
   useDisposeSignalEffect((scope) => {
-    const messageId = openMessageId.value
+    const messageId = query.value.show
     previewState.value = { status: "loading" }
     if (!messageId) return
 
     const fetchMessage = async () => {
       try {
-        const message = await rpcUnary(MessageService.method.getMessage)(
+        const message = await rpcUnary(Service.method.get)(
           { id: messageId },
           { signal: scope.signal },
         )
@@ -431,49 +428,88 @@ const MessagesIndex = ({ inbox }: { inbox: boolean }) => {
   })
 
   return (
-    <div class="row flex-wrap-reverse">
-      <div class="col-lg">
-        <StandardPagination
-          method={MessageService.method.getMessagesPage}
-          request={{ inbox }}
-          onLoad={(data) => (messages.value = data.messages)}
-        >
-          {() => (
-            <ul class="messages-list social-list list-unstyled mb-2">
-              {messages.value.length ? (
-                messages.value.map((message) => (
-                  <MessagesListItem
-                    key={message.id}
-                    message={message}
-                    inbox={inbox}
-                    openMessageId={openMessageId}
-                  />
-                ))
-              ) : (
-                <MessagesEmpty />
-              )}
-            </ul>
-          )}
-        </StandardPagination>
-      </div>
-      {openMessageId.value && (
-        <div class="col-lg mb-3">
-          <MessagePreview
-            key={openMessageId.value.toString()}
-            inbox={inbox}
-            previewState={previewState}
-            openMessageId={openMessageId}
-            onUnread={markMessageUnread}
-            onDelete={deleteMessage}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
+    <>
+      <div class="content-header pb-0">
+        <div class="container">
+          <h1>{t("users.show.my messages")}</h1>
+          <p>{t("messages.description")}</p>
 
-mount("messages-index-body", () => {
-  const root = document.getElementById("MessagesIndex")!
-  const { inbox } = root.dataset
-  render(<MessagesIndex inbox={inbox === "True"} />, root)
+          <nav>
+            <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
+              <li class="nav-item">
+                <a
+                  href="/messages/inbox"
+                  class={`nav-link ${inbox ? "active" : ""}`}
+                  aria-current={inbox ? "page" : undefined}
+                >
+                  {t("messages.heading.my_inbox")}
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  href="/messages/outbox"
+                  class={`nav-link ${inbox ? "" : "active"}`}
+                  aria-current={inbox ? undefined : "page"}
+                >
+                  {t("messages.heading.my_outbox")}
+                </a>
+              </li>
+              <li class="nav-item ms-auto">
+                <a
+                  class="btn btn-soft"
+                  href="/message/new"
+                >
+                  <i class="bi bi-envelope-plus me-2" />
+                  {t("action.send_a_message")}
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div class="container">
+          <div class="row flex-wrap-reverse">
+            <div class="col-lg">
+              <StandardPagination
+                method={Service.method.getPage}
+                request={{ inbox }}
+                onLoad={(data) => (messages.value = data.messages)}
+              >
+                {() => (
+                  <ul class="messages-list social-list list-unstyled mb-2">
+                    {messages.value.length ? (
+                      messages.value.map((message) => (
+                        <MessagesListItem
+                          key={message.id}
+                          message={message}
+                          inbox={inbox}
+                          query={query}
+                        />
+                      ))
+                    ) : (
+                      <MessagesEmpty />
+                    )}
+                  </ul>
+                )}
+              </StandardPagination>
+            </div>
+            {query.value.show && (
+              <div class="col-lg mb-3">
+                <MessagePreview
+                  key={query.value.show}
+                  inbox={inbox}
+                  previewState={previewState}
+                  query={query}
+                  onUnread={markMessageUnread}
+                  onDelete={deleteMessage}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
 })
