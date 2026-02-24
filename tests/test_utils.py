@@ -1,6 +1,6 @@
 import pytest
 
-from app.utils import extend_query_params, splitlines_trim
+from app.utils import extend_query_params
 
 
 @pytest.mark.parametrize(
@@ -53,15 +53,3 @@ from app.utils import extend_query_params, splitlines_trim
 def test_extend_query_params(uri, params, expected, expected_fragment):
     assert extend_query_params(uri, params) == expected
     assert extend_query_params(uri, params, fragment=True) == expected_fragment
-
-
-@pytest.mark.parametrize(
-    ('s', 'expected'),
-    [
-        ('', []),
-        ('foo\n\nbar\n', ['foo', 'bar']),
-        ('foo \n bar', ['foo', 'bar']),
-    ],
-)
-def test_splitlines_trim(s, expected):
-    assert splitlines_trim(s) == expected
