@@ -32,11 +32,13 @@ from app.utils import extend_query_params
 router = APIRouter()
 
 _SCOPES_SUPPORTED = list[str](PUBLIC_SCOPES)
-_RESPONSE_TYPES_SUPPORTED = list(get_args(OAuth2ResponseType))
-_RESPONSE_MODES_SUPPORTED = list(get_args(OAuth2ResponseMode))
-_GRANT_TYPES_SUPPORTED = list(get_args(OAuth2GrantType))
-_CODE_CHALLENGE_METHODS_SUPPORTED = list(get_args(OAuth2CodeChallengeMethod))
-_TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = list(get_args(OAuth2TokenEndpointAuthMethod))
+_RESPONSE_TYPES_SUPPORTED = list(get_args(OAuth2ResponseType.__value__))
+_RESPONSE_MODES_SUPPORTED = list(get_args(OAuth2ResponseMode.__value__))
+_GRANT_TYPES_SUPPORTED = list(get_args(OAuth2GrantType.__value__))
+_CODE_CHALLENGE_METHODS_SUPPORTED = list(get_args(OAuth2CodeChallengeMethod.__value__))
+_TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = list(
+    get_args(OAuth2TokenEndpointAuthMethod.__value__)
+)
 
 
 @router.get('/.well-known/openid-configuration')
