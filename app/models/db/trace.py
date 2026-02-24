@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal, NotRequired, TypedDict
+from typing import Annotated, NotRequired, TypedDict
 
 import numpy as np
 from annotated_types import MaxLen, MinLen
@@ -10,13 +10,12 @@ from shapely import MultiLineString
 from app.config import PYDANTIC_CONFIG, TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
 from app.lib.auth_context import auth_scopes, auth_user
 from app.models.db.user import UserDisplay, user_is_moderator
+from app.models.proto.profile_types import Page_TraceSummary_Visibility
 from app.models.types import StorageKey, TraceId, UserId
 from app.validators.filename import FileNameValidator
 from app.validators.geometry import GeometryValidator
 from app.validators.url import UrlSafeValidator
 from app.validators.xml import XMLSafeValidator
-
-TraceVisibility = Literal['identifiable', 'public', 'trackable', 'private']
 
 
 class TraceMetaInit(TypedDict):
@@ -44,7 +43,7 @@ class TraceMetaInit(TypedDict):
             UrlSafeValidator,
         ]
     ]  # TODO: validate size
-    visibility: TraceVisibility
+    visibility: Page_TraceSummary_Visibility
 
 
 class TraceInit(TraceMetaInit):
@@ -83,16 +82,11 @@ def validate_trace_tags(tags: str | list[str] | None) -> list[str]:
     if len(tags) > TRACE_TAGS_LIMIT:
         raise ValueError(f'Too many trace tags, current limit is {TRACE_TAGS_LIMIT}')
 
-    seen = set[str]()
-    result = []
-
-    for tag in tags:
-        tag = tag.strip()[:TRACE_TAG_MAX_LENGTH].strip()
-        if tag and (tag not in seen):
-            seen.add(tag)
-            result.append(tag)
-
-    return result
+    return list(
+        dict.fromkeys(
+            tag_ for tag in tags if (tag_ := tag.strip()[:TRACE_TAG_MAX_LENGTH].strip())
+        )
+    )
 
 
 def trace_is_linked_to_user_in_api(trace: Trace):
