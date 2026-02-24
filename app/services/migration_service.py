@@ -352,7 +352,8 @@ def _find_migrations(
     # This is useful for quick iteration during development.
     allow_reapply = ENV == 'dev'
 
-    for migration in reversed(migrations):
+    migrations.reverse()
+    for migration in migrations:
         if allow_reapply:
             if migration[0] < current_version:
                 break
