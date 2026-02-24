@@ -10,8 +10,8 @@ from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
 from app.utils import HTTP
 
-ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
-ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile))
+type ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
+ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile.__value__))
 
 
 class ValhallaQuery:
