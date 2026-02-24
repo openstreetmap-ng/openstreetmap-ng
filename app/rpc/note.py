@@ -23,23 +23,23 @@ from app.lib.standard_pagination import sp_paginate_table
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import user_proto
-from app.models.proto.note_connect import NoteService as NoteServiceConnect
-from app.models.proto.note_connect import NoteServiceASGIApplication
+from app.models.proto.note_connect import Service as NoteServiceConnect
+from app.models.proto.note_connect import ServiceASGIApplication
 from app.models.proto.note_pb2 import (
-    AddNoteCommentRequest,
-    AddNoteCommentResponse,
-    CreateNoteRequest,
-    CreateNoteResponse,
-    GetMapNotesRequest,
-    GetNoteCommentsRequest,
-    GetNoteCommentsResponse,
-    GetNoteRequest,
-    GetNoteResponse,
-    GetUserNotesPageRequest,
-    GetUserNotesPageResponse,
-    NoteData,
-    SetNoteSubscriptionRequest,
-    SetNoteSubscriptionResponse,
+    AddCommentRequest,
+    AddCommentResponse,
+    CreateRequest,
+    CreateResponse,
+    Data,
+    GetCommentsRequest,
+    GetCommentsResponse,
+    GetMapRequest,
+    GetRequest,
+    GetResponse,
+    GetUserPageRequest,
+    GetUserPageResponse,
+    UpdateSubscriptionRequest,
+    UpdateSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import LonLat
 from app.models.types import NoteId, UserId
@@ -53,7 +53,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 
 class _Service(NoteServiceConnect):
     @override
-    async def get_map_notes(self, request: GetMapNotesRequest, ctx: RequestContext):
+    async def get_map(self, request: GetMapRequest, ctx: RequestContext):
         geometry = parse_bbox(request.bbox)
         if geometry.area > NOTE_QUERY_AREA_MAX_SIZE:
             raise_for.notes_query_area_too_big()
@@ -73,33 +73,28 @@ class _Service(NoteServiceConnect):
         return FormatRender.encode_notes(notes)
 
     @override
-    async def get_note(self, request: GetNoteRequest, ctx: RequestContext):
+    async def get(self, request: GetRequest, ctx: RequestContext):
         id = NoteId(request.id)
-        return GetNoteResponse(note=await _build_data(id))
+        return GetResponse(note=await _build_data(id))
 
     @override
-    async def get_note_comments(
-        self, request: GetNoteCommentsRequest, ctx: RequestContext
-    ):
+    async def get_comments(self, request: GetCommentsRequest, ctx: RequestContext):
         id = NoteId(request.id)
         if not await NoteQuery.find(note_ids=[id], limit=1):
             raise_for.note_not_found(id)
 
-        sp_state = request.state.SerializeToString()
-        return await _build_comments(id, sp_state)
+        return await _build_comments(id, request.state.SerializeToString())
 
     @override
-    async def get_user_notes_page(
-        self, request: GetUserNotesPageRequest, ctx: RequestContext
-    ):
+    async def get_user_page(self, request: GetUserPageRequest, ctx: RequestContext):
         user_id = UserId(request.user_id)
         if await UserQuery.find_by_id(user_id) is None:
             raise_for.user_not_found(user_id)
 
         open: bool | None
-        if request.status == GetUserNotesPageRequest.StatusFilter.open:
+        if request.status == GetUserPageRequest.StatusFilter.open:
             open = True
-        elif request.status == GetUserNotesPageRequest.StatusFilter.closed:
+        elif request.status == GetUserPageRequest.StatusFilter.closed:
             open = False
         else:
             open = None
@@ -110,10 +105,9 @@ class _Service(NoteServiceConnect):
             open=open,
         )
 
-        sp_state = request.state.SerializeToString()
         notes, state = await sp_paginate_table(
             Note,
-            sp_state,
+            request.state.SerializeToString(),
             table='note',
             where=where_clause,
             params=params,
@@ -131,11 +125,11 @@ class _Service(NoteServiceConnect):
             tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
             tg.create_task(UserQuery.resolve_users(comments))
 
-        summaries: list[GetUserNotesPageResponse.Summary] = []
+        summaries: list[GetUserPageResponse.Summary] = []
         for note in notes:
             header = note['comments'][0]  # type: ignore[reportTypedDictNotRequiredAccess]
             summaries.append(
-                GetUserNotesPageResponse.Summary(
+                GetUserPageResponse.Summary(
                     id=note['id'],
                     status=note_status(note),
                     created_at=int(header['created_at'].timestamp()),
@@ -146,36 +140,32 @@ class _Service(NoteServiceConnect):
                 )
             )
 
-        return GetUserNotesPageResponse(state=state, notes=summaries)
+        return GetUserPageResponse(state=state, notes=summaries)
 
     @override
-    async def create_note(self, request: CreateNoteRequest, ctx: RequestContext):
+    async def create(self, request: CreateRequest, ctx: RequestContext):
         note_id = await NoteService.create(
             request.location.lon, request.location.lat, request.body
         )
-        return CreateNoteResponse(id=note_id)
+        return CreateResponse(id=note_id)
 
     @override
-    async def add_note_comment(
-        self, request: AddNoteCommentRequest, ctx: RequestContext
-    ):
+    async def add_comment(self, request: AddCommentRequest, ctx: RequestContext):
         require_web_user()
 
         id = NoteId(request.id)
-        event = GetNoteCommentsResponse.Comment.Event.Name(request.event)
+        event = GetCommentsResponse.Comment.Event.Name(request.event)
         await NoteService.comment(id, request.body, event)
 
         async with TaskGroup() as tg:
             note_t = tg.create_task(_build_data(id))
             comments_t = tg.create_task(_build_comments(id))
 
-        return AddNoteCommentResponse(
-            note=note_t.result(), comments=comments_t.result()
-        )
+        return AddCommentResponse(note=note_t.result(), comments=comments_t.result())
 
     @override
-    async def set_note_subscription(
-        self, request: SetNoteSubscriptionRequest, ctx: RequestContext
+    async def update_subscription(
+        self, request: UpdateSubscriptionRequest, ctx: RequestContext
     ):
         require_web_user()
 
@@ -185,11 +175,11 @@ class _Service(NoteServiceConnect):
         else:
             await UserSubscriptionService.unsubscribe('note', id)
 
-        return SetNoteSubscriptionResponse(is_subscribed=request.is_subscribed)
+        return UpdateSubscriptionResponse(is_subscribed=request.is_subscribed)
 
 
 service = _Service()
-asgi_app_cls = NoteServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication
 
 
 async def _build_data(note_id: NoteId):
@@ -221,11 +211,11 @@ async def _build_data(note_id: NoteId):
     else:
         disappear_days = None
 
-    return NoteData(
+    return Data(
         id=note_id,
         location=LonLat(lon=x, lat=y),
         status=status,
-        header=NoteData.Header(
+        header=Data.Header(
             user=user_proto(header_user),
             created_at=int(header['created_at'].timestamp()),
             body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
@@ -251,10 +241,10 @@ async def _build_comments(note_id: NoteId, sp_state: bytes = b''):
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
-    page = GetNoteCommentsResponse(
+    page = GetCommentsResponse(
         state=state,
         comments=[
-            GetNoteCommentsResponse.Comment(
+            GetCommentsResponse.Comment(
                 user=user_proto(c.get('user')),
                 event=c['event'],
                 created_at=int(c['created_at'].timestamp()),

@@ -1,32 +1,37 @@
 import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
-import { mount } from "@lib/mount"
 import {
-  GetUserNotesPageRequest_StatusFilter,
-  type GetUserNotesPageResponse_SummaryValid,
-  NoteService,
-  NoteStatus,
+  GetUserPageRequest_StatusFilter,
+  type GetUserPageResponse_SummaryValid,
+  Service,
+  Status,
+  UserPageSchema,
 } from "@lib/proto/note_pb"
+import { mountProtoPage } from "@lib/proto-page"
+import { defineQueryContract } from "@lib/query-contract"
 import { StandardPagination } from "@lib/standard-pagination"
-import { usePathSuffixSwitch, useQuerySignal } from "@lib/url-signals"
+import { usePathSuffixQueryState } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
 import { t } from "i18next"
-import { render } from "preact"
 import { useId } from "preact/hooks"
 
-type StatusKey = keyof typeof GetUserNotesPageRequest_StatusFilter
+const STATUS_QUERY = defineQueryContract({
+  status: queryParam.enum(GetUserPageRequest_StatusFilter, {
+    default: GetUserPageRequest_StatusFilter.any,
+  }),
+})
 
 const NoteStatusMarker = ({
   status,
   className = "",
 }: {
-  status: NoteStatus
+  status: Status
   className?: string
 }) => {
   const marker =
-    status === NoteStatus.open
+    status === Status.open
       ? { src: "/static/img/marker/open.webp", alt: t("state.unresolved") }
-      : status === NoteStatus.closed
+      : status === Status.closed
         ? { src: "/static/img/marker/closed.webp", alt: t("state.resolved") }
         : { src: "/static/img/marker/hidden.webp", alt: t("state.hidden") }
 
@@ -40,7 +45,7 @@ const NoteStatusMarker = ({
   )
 }
 
-const NoteListItem = ({ note }: { note: GetUserNotesPageResponse_SummaryValid }) => {
+const NoteListItem = ({ note }: { note: GetUserPageResponse_SummaryValid }) => {
   const wasUpdated = note.updatedAt > note.createdAt
   const numOtherComments = Math.max(0, note.numComments - 1)
 
@@ -116,30 +121,21 @@ const NoteListItem = ({ note }: { note: GetUserNotesPageResponse_SummaryValid })
   )
 }
 
-const NotesIndex = ({
-  userId,
-  displayName,
-  avatarUrl,
-}: {
-  userId: bigint
-  displayName: string
-  avatarUrl: string
-}) => {
-  const tab = usePathSuffixSwitch({ created: "", commented: "/commented" })
-  const status = useQuerySignal("status", queryParam.enum(["open", "closed"]), {
-    defaultValue: "any",
-  })
+mountProtoPage(UserPageSchema, ({ user: { id: userId, displayName, avatarUrl } }) => {
+  const route = usePathSuffixQueryState(
+    { created: "", commented: "/commented" },
+    STATUS_QUERY,
+  )
 
   const statusFilterId = useId()
-  const search = status.value === "any" ? "" : `?status=${status.value}`
 
-  const onTabClick = (nextTab: typeof tab.value) => (e: MouseEvent) => {
+  const onTabClick = (nextTab: typeof route.value) => (e: MouseEvent) => {
     if (!isUnmodifiedLeftClick(e)) return
     e.preventDefault()
-    tab.value = nextTab
+    route.value = nextTab
   }
 
-  const commented = tab.value === "commented"
+  const commented = route.value === "commented"
 
   return (
     <>
@@ -167,7 +163,7 @@ const NotesIndex = ({
             <ul class="nav nav-tabs nav-tabs-md flex-column flex-md-row">
               <li class="nav-item">
                 <a
-                  href={tab.href("created", { search })}
+                  href={route.href("created")}
                   class={`nav-link ${commented ? "" : "active"}`}
                   aria-current={commented ? undefined : "page"}
                   onClick={onTabClick("created")}
@@ -177,7 +173,7 @@ const NotesIndex = ({
               </li>
               <li class="nav-item">
                 <a
-                  href={tab.href("commented", { search })}
+                  href={route.href("commented")}
                   class={`nav-link ${commented ? "active" : ""}`}
                   aria-current={commented ? "page" : undefined}
                   onClick={onTabClick("commented")}
@@ -197,14 +193,24 @@ const NotesIndex = ({
                     id={statusFilterId}
                     class="form-select"
                     autocomplete="off"
-                    value={status.value}
+                    value={route.query.value.status}
                     onChange={(e) =>
-                      (status.value = e.currentTarget.value as StatusKey)
+                      (route.query.value = {
+                        status: Number(
+                          e.currentTarget.value,
+                        ) as GetUserPageRequest_StatusFilter,
+                      })
                     }
                   >
-                    <option value="any">{t("state.any")}</option>
-                    <option value="open">{t("state.unresolved")}</option>
-                    <option value="closed">{t("state.resolved")}</option>
+                    <option value={GetUserPageRequest_StatusFilter.any}>
+                      {t("state.any")}
+                    </option>
+                    <option value={GetUserPageRequest_StatusFilter.open}>
+                      {t("state.unresolved")}
+                    </option>
+                    <option value={GetUserPageRequest_StatusFilter.closed}>
+                      {t("state.resolved")}
+                    </option>
                   </select>
                 </div>
               </li>
@@ -217,12 +223,11 @@ const NotesIndex = ({
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
           <div class="notes-pagination">
             <StandardPagination
-              key={`${tab.value}:${status.value}`}
-              method={NoteService.method.getUserNotesPage}
+              method={Service.method.getUserPage}
               request={{
                 userId,
                 commented,
-                status: GetUserNotesPageRequest_StatusFilter[status.value],
+                status: route.query.value.status,
               }}
               small
               navTop
@@ -249,19 +254,5 @@ const NotesIndex = ({
         </div>
       </div>
     </>
-  )
-}
-
-mount("notes-body", () => {
-  const root = document.getElementById("NotesIndex")!
-  const { userId, displayName, avatarUrl } = root.dataset
-
-  render(
-    <NotesIndex
-      userId={BigInt(userId!)}
-      displayName={displayName!}
-      avatarUrl={avatarUrl!}
-    />,
-    root,
   )
 })

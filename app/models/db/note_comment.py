@@ -1,20 +1,19 @@
 from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Literal, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 
 from app.lib.rich_text import resolve_rich_text
 from app.models.db.note import Note
 from app.models.db.user import UserDisplay
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import NoteCommentId, NoteId, UserId
-
-NoteEvent = Literal['opened', 'closed', 'reopened', 'commented', 'hidden']
 
 
 class NoteCommentInit(TypedDict):
     user_id: UserId | None
     user_ip: IPv4Address | IPv6Address | None
     note_id: NoteId
-    event: NoteEvent
+    event: GetCommentsResponse_Comment_Event
     body: str  # TODO: validate size
 
 

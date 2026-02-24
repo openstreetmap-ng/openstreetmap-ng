@@ -2,7 +2,7 @@ import { NoteRoute } from "@index/note"
 import { routerNavigate } from "@index/router"
 import { NOTE_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { createKeyedAbort } from "@lib/keyed-abort"
-import { NoteService } from "@lib/proto/note_pb"
+import { Service } from "@lib/proto/note_pb"
 import { rpcClient } from "@lib/rpc"
 import { delay } from "@std/async/delay"
 import { SECOND } from "@std/datetime/constants"
@@ -142,7 +142,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
     if (!token) return
 
     try {
-      const render = await rpcClient(NoteService).getMapNotes(
+      const render = await rpcClient(Service).getMap(
         {
           bbox: boundsToProto(fetchBounds),
         },

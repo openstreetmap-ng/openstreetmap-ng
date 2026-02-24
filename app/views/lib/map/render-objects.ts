@@ -1,15 +1,7 @@
 import { polylineDecode } from "@lib/polyline"
-import type { GetMapChangesetsResponse_ChangesetValid } from "@lib/proto/changeset_pb"
-import type { RenderElementsDataValid } from "@lib/proto/element_pb"
-import type { GetMapNotesResponseValid } from "@lib/proto/note_pb"
-import type {
-  Bounds,
-  OSMChangeset,
-  OSMNode,
-  OSMNote,
-  OSMObject,
-  OSMWay,
-} from "@lib/types"
+import type { RenderDataValid } from "@lib/proto/element_pb"
+import type { GetMapResponseValid } from "@lib/proto/note_pb"
+import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "@lib/types"
 import type { Feature, FeatureCollection } from "geojson"
 import { NOTE_STATUS_MARKERS } from "./image"
 
@@ -146,27 +138,7 @@ export const renderObjects = (
   return { type: "FeatureCollection", features }
 }
 
-export const convertRenderChangesetsData = (
-  changesets: GetMapChangesetsResponse_ChangesetValid[],
-) => {
-  const result: OSMChangeset[] = []
-  for (const changeset of changesets) {
-    const bounds: Bounds[] = []
-    for (const { minLon, minLat, maxLon, maxLat } of changeset.bounds) {
-      bounds.push([minLon, minLat, maxLon, maxLat])
-    }
-    result.push({
-      type: "changeset",
-      id: changeset.id,
-      bounds: bounds,
-    })
-  }
-  return result
-}
-
-export const convertRenderElementsData = (
-  render: RenderElementsDataValid | undefined,
-) => {
+export const convertRenderElementsData = (render: RenderDataValid | undefined) => {
   const result: (OSMNode | OSMWay)[] = []
   if (!render) return result
   for (const way of render.ways) {
@@ -187,7 +159,7 @@ export const convertRenderElementsData = (
   return result
 }
 
-export const convertRenderNotesData = (render: GetMapNotesResponseValid) => {
+export const convertRenderNotesData = (render: GetMapResponseValid) => {
   const result: OSMNote[] = []
   for (const note of render.notes) {
     result.push({

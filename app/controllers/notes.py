@@ -3,7 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Path
 
 from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_response
+from app.lib.render_response import render_proto_page
+from app.lib.translation import t
+from app.models.db.user import user_proto
+from app.models.proto.note_pb2 import UserPage
 from app.queries.user_query import UserQuery
 from app.validators.display_name import DisplayNameNormalizing
 
@@ -19,4 +22,7 @@ async def index(
     if user is None:
         raise_for.user_not_found(display_name)
 
-    return await render_response('notes/index', {'profile': user})
+    return await render_proto_page(
+        UserPage(user=user_proto(user)),
+        title_prefix=t('notes.index.heading', user=user['display_name']),
+    )

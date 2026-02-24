@@ -73,16 +73,10 @@ async def _encode_note(fe: FeedEntry, note: Note):
 
     if len(comments) == 1:
         fe.title(t('api.notes.rss.opened', place=place))
+    elif note['closed_at'] is not None:
+        fe.title(t('api.notes.rss.closed', place=place))
     else:
-        for comment in reversed(comments):
-            comment_event = comment['event']
-            if comment_event == 'hidden':
-                continue  # skip hide events
-            if comment_event == 'closed':
-                fe.title(t('api.notes.rss.closed', place=place))
-            else:
-                fe.title(t('api.notes.rss.commented', place=place))
-            break
+        fe.title(t('api.notes.rss.commented', place=place))
 
 
 async def _encode_note_comment(fe: FeedEntry, comment: NoteComment):

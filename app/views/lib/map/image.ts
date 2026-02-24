@@ -1,4 +1,4 @@
-import { NoteStatus } from "@lib/proto/note_pb"
+import { Status } from "@lib/proto/note_pb"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 const MARKER_IMAGES = {
@@ -12,10 +12,10 @@ const MARKER_IMAGES = {
 type MarkerImageName = keyof typeof MARKER_IMAGES
 
 export const NOTE_STATUS_MARKERS = {
-  [NoteStatus.open]: "marker-open",
-  [NoteStatus.closed]: "marker-closed",
-  [NoteStatus.hidden]: "marker-hidden",
-} as const satisfies Record<NoteStatus, MarkerImageName>
+  [Status.open]: "marker-open",
+  [Status.closed]: "marker-closed",
+  [Status.hidden]: "marker-hidden",
+} as const satisfies Record<Status, MarkerImageName>
 
 const images = new Map<MarkerImageName, HTMLImageElement>()
 

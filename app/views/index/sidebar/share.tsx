@@ -25,7 +25,7 @@ import { format as formatDate } from "@std/datetime/format"
 import { t } from "i18next"
 import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"
-import type { TargetedSubmitEvent } from "preact"
+import type { SubmitEventHandler } from "preact"
 import { useRef } from "preact/hooks"
 
 const SHARE_FORMATS = [
@@ -127,13 +127,9 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
     })
   }
 
-  const updateMarkerLngLat = () => {
-    shareMarkerLngLat.value = getMarkerLngLat()
-  }
+  const updateMarkerLngLat = () => (shareMarkerLngLat.value = getMarkerLngLat())
 
-  const updateLayersCode = () => {
-    shareLayersCode.value = getMapLayersCode(map)
-  }
+  const updateLayersCode = () => (shareLayersCode.value = getMapLayersCode(map))
 
   useDisposeEffect((scope) => {
     scope.map(map, "moveend", updateView)
@@ -142,7 +138,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
     scope.defer(addLayerEventHandler(updateLayersCode))
     updateLayersCode()
 
-    return () => () => {
+    return () => {
       shareMarkerRef.current?.remove()
       locationFilterRef.current?.remove()
     }
@@ -187,7 +183,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
     locationFilter.addTo(map, boundsPadding(map.getBounds(), -0.2))
   })
 
-  const onExportSubmit = async (e: TargetedSubmitEvent<HTMLFormElement>) => {
+  const onExportSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     if (exporting.value) return
     exporting.value = true
@@ -300,9 +296,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
           <select
             class="form-select format-select mt-2"
             value={shareExportFormatStorage.value}
-            onChange={(e) => {
-              shareExportFormatStorage.value = e.currentTarget.value
-            }}
+            onChange={(e) => (shareExportFormatStorage.value = e.currentTarget.value)}
           >
             {SHARE_FORMATS.map(({ mimeType, label }) => (
               <option

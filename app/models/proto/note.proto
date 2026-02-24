@@ -1,56 +1,62 @@
 syntax = "proto3";
 
+package note;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-enum NoteStatus {
+enum Status {
   open = 0;
   closed = 1;
   hidden = 2;
 }
 
-service NoteService {
-  rpc GetMapNotes(GetMapNotesRequest) returns (GetMapNotesResponse) {
+message UserPage {
+  User user = 1 [(buf.validate.field).required = true];
+}
+
+service Service {
+  rpc GetMap(GetMapRequest) returns (GetMapResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {
+  rpc Get(GetRequest) returns (GetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetNoteComments(GetNoteCommentsRequest) returns (GetNoteCommentsResponse) {
+  rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetUserNotesPage(GetUserNotesPageRequest) returns (GetUserNotesPageResponse) {
+  rpc GetUserPage(GetUserPageRequest) returns (GetUserPageResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc CreateNote(CreateNoteRequest) returns (CreateNoteResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
 
-  rpc AddNoteComment(AddNoteCommentRequest) returns (AddNoteCommentResponse) {}
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
 
-  rpc SetNoteSubscription(SetNoteSubscriptionRequest) returns (SetNoteSubscriptionResponse) {
+  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
     option idempotency_level = IDEMPOTENT;
   }
 }
 
-message GetMapNotesRequest {
+message GetMapRequest {
   Bounds bbox = 1 [(buf.validate.field).required = true];
 }
 
-message GetMapNotesResponse {
+message GetMapResponse {
   message Note {
     uint64 id = 1;
     LonLat location = 2 [(buf.validate.field).required = true];
     string body = 3;
-    NoteStatus status = 4;
+    Status status = 4;
   }
 
   repeated Note notes = 1;
 }
 
-message CreateNoteRequest {
+message CreateRequest {
   LonLat location = 1 [(buf.validate.field).required = true];
   string body = 2 [(buf.validate.field).string = {
     min_len: 1
@@ -58,40 +64,40 @@ message CreateNoteRequest {
   }];
 }
 
-message CreateNoteResponse {
+message CreateResponse {
   uint64 id = 1;
 }
 
-message GetNoteRequest {
+message GetRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetNoteResponse {
-  NoteData note = 1 [(buf.validate.field).required = true];
+message GetResponse {
+  Data note = 1 [(buf.validate.field).required = true];
 }
 
-message GetNoteCommentsRequest {
-  StandardPaginationState state = 1;
+message GetCommentsRequest {
+  StandardPaginationRequest state = 1;
   uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetUserNotesPageRequest {
+message GetUserPageRequest {
   enum StatusFilter {
     any = 0;
     open = 1;
     closed = 2;
   }
 
-  StandardPaginationState state = 1;
+  StandardPaginationRequest state = 1;
   uint64 user_id = 2 [(buf.validate.field).uint64.gt = 0];
   bool commented = 3;
   StatusFilter status = 4 [(buf.validate.field).enum.defined_only = true];
 }
 
-message GetUserNotesPageResponse {
+message GetUserPageResponse {
   message Summary {
     uint64 id = 1;
-    NoteStatus status = 2;
+    Status status = 2;
     uint64 created_at = 3;
     optional User created_by = 4;
     string body = 5;
@@ -103,7 +109,7 @@ message GetUserNotesPageResponse {
   repeated Summary notes = 2;
 }
 
-message GetNoteCommentsResponse {
+message GetCommentsResponse {
   message Comment {
     enum Event {
       opened = 0;
@@ -123,29 +129,30 @@ message GetNoteCommentsResponse {
   repeated Comment comments = 2;
 }
 
-message AddNoteCommentRequest {
-  option (buf.validate.message).cel_expression = "this.event != 0";
-
+message AddCommentRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
-  GetNoteCommentsResponse.Comment.Event event = 2 [(buf.validate.field).enum.defined_only = true];
+  GetCommentsResponse.Comment.Event event = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
   string body = 3 [(buf.validate.field).string.max_len = 2000];
 }
 
-message AddNoteCommentResponse {
-  NoteData note = 1 [(buf.validate.field).required = true];
-  GetNoteCommentsResponse comments = 2 [(buf.validate.field).required = true];
+message AddCommentResponse {
+  Data note = 1 [(buf.validate.field).required = true];
+  GetCommentsResponse comments = 2 [(buf.validate.field).required = true];
 }
 
-message SetNoteSubscriptionRequest {
+message UpdateSubscriptionRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   bool is_subscribed = 2;
 }
 
-message SetNoteSubscriptionResponse {
+message UpdateSubscriptionResponse {
   bool is_subscribed = 1;
 }
 
-message NoteData {
+message Data {
   message Header {
     optional User user = 1;
     uint64 created_at = 2;
@@ -154,7 +161,7 @@ message NoteData {
 
   uint64 id = 1;
   LonLat location = 2 [(buf.validate.field).required = true];
-  NoteStatus status = 3;
+  Status status = 3;
   Header header = 4 [(buf.validate.field).required = true];
   bool is_subscribed = 5;
   optional uint32 disappear_days = 6;

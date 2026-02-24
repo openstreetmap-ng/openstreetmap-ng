@@ -45,7 +45,7 @@ class NoteCommentQuery:
             ORDER BY id DESC
             {limit}
         """).format(
-            conditions=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            conditions=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
             limit=limit_clause,
         )
 

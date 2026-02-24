@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from shapely import Point
 
+from app.models.proto.note_types import Status
 from app.models.types import NoteId
 
 if TYPE_CHECKING:
@@ -11,8 +12,6 @@ if TYPE_CHECKING:
 
 # TODO: ensure updated at on members
 # TODO: pruner
-
-NoteStatus = Literal['open', 'closed', 'hidden']
 
 
 class NoteInit(TypedDict):
@@ -31,7 +30,7 @@ class Note(NoteInit):
     comments: NotRequired[list['NoteComment']]
 
 
-def note_status(note: Note) -> NoteStatus:
+def note_status(note: Note) -> Status:
     """Get the note's status."""
     if note['hidden_at'] is not None:
         return 'hidden'

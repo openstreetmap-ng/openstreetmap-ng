@@ -16,7 +16,7 @@ import { render } from "preact"
 export const configureContextMenu = (map: MaplibreMap) => {
   const mapContainer = map.getContainer()
 
-  const ctx = signal<LonLatZoom>({ lon: 0, lat: 0, zoom: 0 })
+  const ctx = signal({ lon: 0, lat: 0, zoom: 0 } satisfies LonLatZoom)
 
   const ctxCoordText = computed(() => {
     const { lon, lat, zoom } = ctx.value

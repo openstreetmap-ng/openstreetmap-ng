@@ -8,7 +8,7 @@ import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { addMapLayer, hasMapLayer, NOTES_LAYER_ID } from "@lib/map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
-import { NoteService, NoteStatus } from "@lib/proto/note_pb"
+import { Service, Status } from "@lib/proto/note_pb"
 import { StandardForm } from "@lib/standard-form"
 import { setPageTitle } from "@lib/title"
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
@@ -45,9 +45,8 @@ const NewNoteSidebar = ({
   const markerRef = useRef<Marker>(null)
   const text = useSignal("")
 
-  const setAt = ({ lng, lat }: LngLat) => {
-    at.value = { lon: lng, lat, zoom: map.getZoom() }
-  }
+  const setAt = ({ lng, lat }: LngLat) =>
+    (at.value = { lon: lng, lat, zoom: map.getZoom() })
 
   const focusAt = (lngLat: LngLat) => {
     focusObjects(
@@ -57,7 +56,7 @@ const NewNoteSidebar = ({
           type: "note",
           id: null,
           geom: [lngLat.lng, lngLat.lat],
-          status: NoteStatus.open,
+          status: Status.open,
           body: "",
         },
       ],
@@ -129,7 +128,7 @@ const NewNoteSidebar = ({
       <StandardForm
         formRef={formRef}
         class="section"
-        method={NoteService.method.createNote}
+        method={Service.method.create}
         buildRequest={({ formData }) => ({
           location: at.peek()!,
           body: formData.get("body") as string,

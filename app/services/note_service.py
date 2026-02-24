@@ -17,10 +17,10 @@ from app.models.db.note import Note, NoteInit
 from app.models.db.note_comment import (
     NoteComment,
     NoteCommentInit,
-    NoteEvent,
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -101,7 +101,9 @@ class NoteService:
         return note_id
 
     @staticmethod
-    async def comment(note_id: NoteId, text: str, event: NoteEvent):
+    async def comment(
+        note_id: NoteId, text: str, event: GetCommentsResponse_Comment_Event
+    ):
         """Comment on a note."""
         user = auth_user(required=True)
         user_id = user['id']
@@ -298,7 +300,7 @@ async def _send_activity_email(note: Note, comment: NoteComment):
 @cython.cfunc
 def _get_activity_email_subject(
     comment_user_name: DisplayName,
-    event: NoteEvent,
+    event: GetCommentsResponse_Comment_Event,
     is_note_owner: cython.bint,
 ):
     if event == 'commented':
