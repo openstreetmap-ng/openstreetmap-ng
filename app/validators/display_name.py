@@ -9,12 +9,12 @@ from app.validators.url import UrlSafeValidator
 from app.validators.whitespace import BoundaryWhitespaceValidator
 from app.validators.xml import XMLSafeValidator
 
-DisplayNameNormalizing = Annotated[
+type DisplayNameNormalizing = Annotated[
     DisplayName,
     UnicodeValidator,
 ]
 
-DisplayNameValidating = Annotated[
+type DisplayNameValidating = Annotated[
     DisplayNameNormalizing,
     MinLen(3),
     MaxLen(DISPLAY_NAME_MAX_LENGTH),

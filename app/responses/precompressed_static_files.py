@@ -17,8 +17,8 @@ from starlette_compress._utils import parse_accept_encoding
 
 from app.config import ENV, STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES
 
-_CacheKey = tuple[str, str | None]
-_CacheValue = tuple[str, StatResultType, str | None]
+type _CacheKey = tuple[str, str | None]
+type _CacheValue = tuple[str, StatResultType, str | None]
 
 
 class PrecompressedStaticFiles(StaticFiles):

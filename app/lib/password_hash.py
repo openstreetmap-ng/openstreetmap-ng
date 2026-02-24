@@ -12,14 +12,13 @@ from app.models.proto.auth_pb2 import TransmitUserPassword
 from app.models.proto.server_pb2 import UserPassword
 from app.models.types import Password
 
-PasswordSchema = Literal['legacy', 'v1']
-PasswordLike = Password | TransmitUserPassword
+type PasswordLike = Password | TransmitUserPassword
 
 
 class VerifyResult(NamedTuple):
     success: bool
     rehash_needed: bool
-    schema_needed: PasswordSchema | None = None
+    schema_needed: Literal['legacy', 'v1'] | None = None
 
 
 _HASHER_V1 = PasswordHasher(

@@ -62,5 +62,7 @@ class OverpassRelation(_OverpassElement):
     members: list['OverpassElementMember']
 
 
-OverpassElement = OverpassNode | OverpassWay | OverpassRelation
-OverpassElementMember = OverpassNodeMember | OverpassWayMember | OverpassRelationMember
+type OverpassElement = OverpassNode | OverpassWay | OverpassRelation
+type OverpassElementMember = (
+    OverpassNodeMember | OverpassWayMember | OverpassRelationMember
+)
