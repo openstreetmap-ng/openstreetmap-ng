@@ -1,0 +1,9 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ PAGE_TITLE_PREFIX }}{% endblock %}
+{% block body_class %}{{ PAGE_TYPE_NAME }}{% endblock %}
+{% block body %}
+  <div
+    data-page-root
+    data-state="{{ PAGE_STATE_BYTES | b64 }}"
+  ></div>
+{% endblock %}
