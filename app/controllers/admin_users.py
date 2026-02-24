@@ -1,16 +1,31 @@
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import Annotated, Literal
-from urllib.parse import urlencode
+from typing import Annotated
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, Response
 from starlette import status
 
-from app.config import DISPLAY_NAME_MAX_LENGTH, PASSWORD_MIN_LENGTH
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
-from app.models.db.user import USER_ROLES, User, UserRole
-from app.models.types import ApplicationId, UserId
+from app.lib.date_utils import datetime_unix
+from app.lib.render_response import render_proto_page
+from app.models.db.oauth2_application import (
+    SYSTEM_APP_PAT_CLIENT_ID,
+    OAuth2Application,
+    oauth2_app_avatar_url,
+)
+from app.models.db.user import (
+    User,
+    user_avatar_url,
+    user_is_deleted,
+    user_proto,
+)
+from app.models.proto.admin_users_pb2 import (
+    Account,
+    EditPage,
+    Page,
+    TwoFactorStatus,
+)
+from app.models.types import UserId
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -21,53 +36,11 @@ router = APIRouter()
 
 
 @router.get('/admin/users')
-async def users_index(
-    request: Request,
-    _: Annotated[User, web_user('role_administrator')],
-    search: Annotated[str | None, Query()] = None,
-    unverified: Annotated[bool | None, Query()] = None,
-    roles: Annotated[list[UserRole] | None, Query()] = None,
-    created_after: Annotated[datetime | None, Query()] = None,
-    created_before: Annotated[datetime | None, Query()] = None,
-    application_id: Annotated[ApplicationId | None, Query()] = None,
-    sort: Annotated[
-        Literal['created_asc', 'created_desc', 'name_asc', 'name_desc'], Query()
-    ] = 'created_desc',
-):
-    async with TaskGroup() as tg:
-        tg.create_task(audit('view_admin_users', extra={'query': request.url.query}))
-
-        # Build pagination action URL with current filters
-        pagination_params: dict[str, str | list] = {'sort': sort}
-        if search:
-            pagination_params['search'] = search
-        if unverified:
-            pagination_params['unverified'] = '1'
-        if roles:
-            pagination_params['roles'] = roles
-        if created_after:
-            pagination_params['created_after'] = created_after.isoformat()
-        if created_before:
-            pagination_params['created_before'] = created_before.isoformat()
-        if application_id:
-            pagination_params['application_id'] = str(application_id)
-        pagination_action = (
-            f'/api/web/admin/users?{urlencode(pagination_params, doseq=True)}'
-        )
-
-        return await render_response(
-            'admin/users/index',
-            {
-                'pagination_action': pagination_action,
-                'search': search or '',
-                'unverified': unverified,
-                'roles': roles or (),
-                'created_after': created_after.isoformat() if created_after else '',
-                'created_before': created_before.isoformat() if created_before else '',
-                'application_id': application_id or '',
-                'sort': sort,
-            },
-        )
+async def users_index(_: Annotated[User, web_user('role_administrator')]):
+    return await render_proto_page(
+        Page(),
+        title_prefix='Users',
+    )
 
 
 @router.get('/admin/users/{user_id:int}')
@@ -79,28 +52,95 @@ async def user_edit(
     if edit_user is None:
         return Response(None, status.HTTP_404_NOT_FOUND)
 
-    async with TaskGroup() as tg:
-        tg.create_task(audit('view_admin_users', target_user_id=user_id))
-        two_fa_status_t = tg.create_task(UserQuery.get_2fa_status([user_id]))
-        connected_accounts_t = tg.create_task(
-            ConnectedAccountQuery.find_by_user(user_id)
-        )
-        applications_t = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
-        tokens_t = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
-        authorizations = await OAuth2TokenQuery.find_unique_per_app_by_user(user_id)
-        tg.create_task(OAuth2ApplicationQuery.resolve_applications(authorizations))
+    audit('view_admin_users', target_user_id=user_id).close()
 
-    return await render_response(
-        'admin/users/edit',
-        {
-            'edit_user': edit_user,
-            'two_fa_status': two_fa_status_t.result()[user_id],
-            'connected_accounts': connected_accounts_t.result(),
-            'authorizations': authorizations,
-            'applications': applications_t.result(),
-            'tokens': tokens_t.result(),
-            'DISPLAY_NAME_MAX_LENGTH': DISPLAY_NAME_MAX_LENGTH,
-            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-            'USER_ROLES': USER_ROLES,
-        },
+    async with TaskGroup() as tg:
+        tfa_status_t = tg.create_task(UserQuery.get_2fa_status([user_id]))
+        accounts_t = tg.create_task(ConnectedAccountQuery.find_by_user(user_id))
+        apps_t = tg.create_task(OAuth2ApplicationQuery.find_by_user(user_id))
+        tokens_t = tg.create_task(OAuth2TokenQuery.find_pats_by_user(user_id))
+        auths = await OAuth2TokenQuery.find_unique_per_app_by_user(user_id)
+        auths_apps = await OAuth2ApplicationQuery.resolve_applications(auths)
+        tg.create_task(UserQuery.resolve_users(auths_apps))
+
+    tfa_status = tfa_status_t.result()[user_id]
+
+    return await render_proto_page(
+        EditPage(
+            account=Account(
+                id=edit_user['id'],
+                display_name=edit_user['display_name'],
+                avatar_url=user_avatar_url(edit_user),
+                email=edit_user['email'],
+                email_verified=edit_user['email_verified'],
+                roles=edit_user['roles'],
+                created_at=int(edit_user['created_at'].timestamp()),
+                scheduled_delete_at=datetime_unix(edit_user['scheduled_delete_at']),
+                deleted=user_is_deleted(edit_user),
+            ),
+            two_factor_status=TwoFactorStatus(
+                has_passkeys=tfa_status['has_passkeys'],
+                has_totp=tfa_status['has_totp'],
+                has_recovery=tfa_status['has_recovery'],
+            ),
+            connected_accounts=[
+                EditPage.ConnectedAccount(
+                    provider=account['provider'],
+                    uid=account['uid'],
+                    created_at=int(account['created_at'].timestamp()),
+                )
+                for account in accounts_t.result()
+            ],
+            authorizations=[
+                _application_proto(
+                    app,
+                    edit_user=edit_user,
+                    authorized_at=token['authorized_at'],
+                )
+                for token in auths
+                if (app := token.get('application')) is not None
+                and app['client_id'] != SYSTEM_APP_PAT_CLIENT_ID
+            ],
+            applications=[
+                _application_proto(
+                    app,
+                    edit_user=edit_user,
+                    created_at=app['created_at'],
+                )
+                for app in apps_t.result()
+            ],
+            tokens=[
+                EditPage.Token(
+                    id=token['id'],
+                    name=token['name'],
+                    scopes=token['scopes'],
+                    token_preview=token['token_preview'],
+                    created_at=int(token['created_at'].timestamp()),
+                    authorized_at=datetime_unix(token['authorized_at']),
+                )
+                for token in tokens_t.result()
+            ],
+        ),
+        title_prefix=f'Users | {edit_user["display_name"]}',
+    )
+
+
+def _application_proto(
+    app: OAuth2Application,
+    *,
+    edit_user: User,
+    created_at: datetime | None = None,
+    authorized_at: datetime | None = None,
+):
+    return EditPage.Application(
+        id=app['id'],
+        name=app['name'],
+        avatar_url=oauth2_app_avatar_url(app),
+        client_id=app['client_id'],
+        scopes=app['scopes'],
+        owner=user_proto(
+            edit_user if app['user_id'] == edit_user['id'] else app.get('user')
+        ),
+        created_at=datetime_unix(created_at),
+        authorized_at=datetime_unix(authorized_at),
     )
