@@ -27,16 +27,15 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
 )
-from app.queries.element_query import ElementQuery
 from app.services.migration_service import MigrationService
 from app.utils import calc_num_workers
 from scripts.preload_convert import CHANGESETS_PARQUET_PATH, NOTES_PARQUET_PATH
 from scripts.replication_download import replication_lock
 
-_Mode = Literal['preload', 'replication']
+type _Mode = Literal['preload', 'replication']
 
 # Sorted from heaviest to lightest tables
-_Table = Literal[
+type _Table = Literal[
     'element',
     'element_spatial',
     'changeset',
@@ -191,7 +190,7 @@ async def _load_table(mode: _Mode, table: _Table):
 
 
 async def _load_tables(mode: _Mode):
-    all_tables: tuple[_Table, ...] = get_args(_Table)
+    all_tables: tuple[_Table, ...] = get_args(_Table.__value__)
 
     settings = await _detect_settings()
     maintenance_parallelism = (
@@ -358,13 +357,6 @@ async def main(mode: _Mode):
             logging.error('Aborted')
             return
 
-    exists = await ElementQuery.get_current_sequence_id() > 0
-    if exists and input(
-        'Database is not empty. Continue? (y/N): '
-    ).strip().lower() not in {'y', 'yes'}:
-        logging.error('Aborted')
-        return
-
     with replication_lock() if mode == 'replication' else nullcontext():
         await _load_tables(mode)
 
@@ -389,7 +381,7 @@ def main_cli():
     parser.add_argument(
         '-m',
         '--mode',
-        choices=get_args(_Mode),
+        choices=get_args(_Mode.__value__),
         required=True,
     )
     args = parser.parse_args()
