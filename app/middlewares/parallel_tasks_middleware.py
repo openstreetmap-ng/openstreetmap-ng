@@ -69,8 +69,11 @@ class ParallelTasksMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
+        path: str = scope['path']
+        if path.startswith(('/api/', '/rpc/', '/static')):
+            return await self.app(scope, receive, send)
+
         async with TaskGroup() as tg:
-            path: str = scope['path']
             with (
                 _messages_count_unread(tg, path),
                 _reports_count_attention(tg, path),

@@ -1,3 +1,4 @@
+from asyncio import Task, gather
 from contextvars import ContextVar
 from ipaddress import IPv4Address, IPv6Address, ip_address
 
@@ -5,9 +6,10 @@ from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import ENV
-from app.lib.anonymizer import anonymize_ip
+from app.lib.ip import anonymize_ip
 
 _CTX = ContextVar[Request]('Request')
+_AUDIT_CTX = ContextVar[set[Task[None]]]('RequestAuditTasks')
 
 
 def is_request():
@@ -32,6 +34,10 @@ def get_request_ip() -> IPv4Address | IPv6Address:
     return anonymize_ip(ip) if ENV == 'test' else ip
 
 
+def get_request_audit_tasks():
+    return _AUDIT_CTX.get()
+
+
 class RequestContextMiddleware:
     """Wrap HTTP requests in request context."""
 
@@ -45,7 +51,11 @@ class RequestContextMiddleware:
             return await self.app(scope, receive, send)
 
         token = _CTX.set(Request(scope, receive))
+        audit_tasks: set[Task[None]] = set()
+        audit_tasks_token = _AUDIT_CTX.set(audit_tasks)
         try:
             return await self.app(scope, receive, send)
         finally:
+            await gather(*audit_tasks, return_exceptions=True)
             _CTX.reset(token)
+            _AUDIT_CTX.reset(audit_tasks_token)

@@ -5,10 +5,8 @@ from fastapi import APIRouter
 from app.config import ID_URL, RAPID_URL
 from app.lib.auth_context import web_user
 from app.lib.render_response import render_response
-from app.middlewares.default_headers_middleware import CSP_HEADER
+from app.middlewares.headers_middleware import CSP_HEADER
 from app.models.db.user import User
-
-Editor = Literal['id', 'rapid', 'remote']
 
 router = APIRouter()
 
@@ -16,7 +14,7 @@ router = APIRouter()
 @router.get('/edit')
 async def edit(
     _: Annotated[User, web_user()],
-    editor: Editor | None = None,
+    editor: Literal['id', 'rapid', 'remote'] | None = None,
 ):
     if editor is None:
         return await render_response('edit/redirect')

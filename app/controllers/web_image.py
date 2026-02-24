@@ -12,7 +12,7 @@ from app.config import (
     STATIC_CACHE_STALE,
 )
 from app.lib.avatar import generate_avatar
-from app.middlewares.cache_control_middleware import cache_control
+from app.middlewares.headers_middleware import cache_control
 from app.models.types import ImageProxyId, NoteId, StorageKey, UserId
 from app.queries.image_query import ImageQuery
 from app.queries.note_comment_query import NoteCommentQuery

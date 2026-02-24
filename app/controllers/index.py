@@ -13,7 +13,7 @@ from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.middlewares.default_headers_middleware import CSP_HEADER
+from app.middlewares.headers_middleware import CSP_HEADER
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
