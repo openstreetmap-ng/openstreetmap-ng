@@ -9,7 +9,8 @@ from app.lib.exceptions_context import raise_for
 from app.lib.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
-from app.models.element import ElementId, ElementType, TypedElementId
+from app.models.element import ElementId, TypedElementId
+from app.models.proto.shared_types import ElementType
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.services.optimistic_diff import OptimisticDiff
@@ -123,21 +124,15 @@ async def get_many(
             status.HTTP_400_BAD_REQUEST,
         )
 
-    # Remove duplicates and preserve order
-    parsed_query_set = set[str]()
-    parsed_query: list[TypedElementId | tuple[TypedElementId, int]] = []
-
     try:
-        for q in query.split(','):
-            q = q.strip()
-            if not q or q in parsed_query_set:
-                continue
-            parsed_query_set.add(q)
-            parsed_query.append(
-                versioned_typed_element_id(type, q)
-                if 'v' in q
-                else typed_element_id(type, int(q))  # type: ignore
-            )
+        parsed_query: list[TypedElementId | tuple[TypedElementId, int]]
+        parsed_query = [
+            versioned_typed_element_id(type, q)
+            if 'v' in q
+            else typed_element_id(type, int(q))  # type: ignore
+            for raw in query.split(',')
+            if (q := raw.strip())
+        ]
     except ValueError:
         # Return not found on parsing errors, why?, IDK
         return Response(None, status.HTTP_404_NOT_FOUND)

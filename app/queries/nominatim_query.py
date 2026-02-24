@@ -19,7 +19,8 @@ from app.lib.feature_prefix import features_prefixes
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
 from app.models.db.element import Element
-from app.models.element import ElementId, ElementType, TypedElementId
+from app.models.element import ElementId, TypedElementId
+from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
@@ -191,7 +192,6 @@ async def _get_search_result(
         elements,
         features_icons(elements),
         features_prefixes(elements),
-        strict=True,
     ):
         if (
             element is None  #

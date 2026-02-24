@@ -16,9 +16,9 @@ from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
     ElementId,
-    ElementType,
     TypedElementId,
 )
+from app.models.proto.shared_types import ElementType
 from app.models.types import ChangesetId, SequenceId
 from speedup import element_id
 

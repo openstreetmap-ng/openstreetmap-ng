@@ -19,16 +19,16 @@ from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MIN,
     TYPED_ELEMENT_ID_RELATION_MAX,
     TYPED_ELEMENT_ID_RELATION_MIN,
-    ElementType,
     TypedElementId,
 )
+from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from speedup import element_id, element_type, split_typed_element_id
 
-OSMChangeAction = Literal['create', 'modify', 'delete']
+type OSMChangeAction = Literal['create', 'modify', 'delete']
 
 
 @dataclass(kw_only=True, slots=True)

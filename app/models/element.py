@@ -1,8 +1,7 @@
-from typing import Literal, NewType
+from typing import NewType
 
 from speedup import typed_element_id
 
-ElementType = Literal['node', 'way', 'relation']
 ElementId = NewType('ElementId', int)
 TypedElementId = NewType('TypedElementId', int)
 """TypedElementId allocates top 4 bits for ElementType, and bottom 60 bits for ElementId."""

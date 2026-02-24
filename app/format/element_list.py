@@ -3,10 +3,11 @@ import cython
 from app.lib.feature_icon import FeatureIcon, features_icons
 from app.lib.feature_name import features_names
 from app.models.db.element import Element
-from app.models.element import ElementType, TypedElementId
-from app.models.proto.changeset_pb2 import ChangesetData
-from app.models.proto.element_pb2 import ElementData
+from app.models.element import TypedElementId
+from app.models.proto.changeset_pb2 import Data as ProtoChangesetData
+from app.models.proto.element_pb2 import Data as ProtoElementData
 from app.models.proto.shared_pb2 import ElementIcon, ElementRef
+from app.models.proto.shared_types import ElementType
 from app.queries.element_query import ElementQuery
 from speedup import split_typed_element_id
 
@@ -15,7 +16,7 @@ class FormatElementList:
     @staticmethod
     async def changeset_elements(
         elements: list[Element],
-    ) -> dict[ElementType, list[ChangesetData.Element]]:
+    ) -> dict[ElementType, list[ProtoChangesetData.Element]]:
         """Format elements for displaying on the website (icons, strikethrough, sort)."""
         if not elements:
             return {'node': [], 'way': [], 'relation': []}
@@ -73,7 +74,7 @@ class FormatElementList:
         members: list[TypedElementId] | None,
         members_roles: list[str] | None,
         members_elements: list[Element],
-    ) -> list[ElementData.Context.Entry]:
+    ) -> list[ProtoElementData.Context.Entry]:
         if not members:
             return []
 
@@ -84,7 +85,6 @@ class FormatElementList:
                 members_elements,
                 features_names(members_elements),
                 features_icons(members_elements),
-                strict=True,
             )
         }
         return _encode_members(type_id_map, members, members_roles)
@@ -96,12 +96,12 @@ def _encode_elements(
     names: list[str | None],
     feature_icons: list[FeatureIcon | None],
 ):
-    result: dict[ElementType, list[ChangesetData.Element]] = {
+    result: dict[ElementType, list[ProtoChangesetData.Element]] = {
         'node': [],
         'way': [],
         'relation': [],
     }
-    for element, name, feature_icon in zip(elements, names, feature_icons, strict=True):
+    for element, name, feature_icon in zip(elements, names, feature_icons):
         type, id = split_typed_element_id(element['typed_id'])
         icon = (
             ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
@@ -109,7 +109,7 @@ def _encode_elements(
             else None
         )
         result[type].append(
-            ChangesetData.Element(
+            ProtoChangesetData.Element(
                 id=id,
                 version=element['version'],
                 visible=element['visible'],
@@ -127,21 +127,17 @@ def _encode_parents(
     names: list[str | None],
     feature_icons: list[FeatureIcon | None],
 ):
-    result: list[ElementData.Context.Entry] = []
-    for parent, name, feature_icon in zip(parents, names, feature_icons, strict=True):
+    result: list[ProtoElementData.Context.Entry] = []
+    for parent, name, feature_icon in zip(parents, names, feature_icons):
         type, id = split_typed_element_id(parent['typed_id'])
-        role = (
-            ', '.join(
-                sorted({
-                    role
-                    for member, role in zip(
-                        parent['members'] or (),
-                        parent['members_roles'] or (),
-                        strict=True,
-                    )
-                    if role and member == ref
-                })
-            )
+        roles = (
+            sorted({
+                role
+                for member, role in zip(
+                    parent['members'] or (), parent['members_roles'] or ()
+                )
+                if role and member == ref
+            })
             if type == 'relation'
             else None
         )
@@ -151,9 +147,9 @@ def _encode_parents(
             else None
         )
         result.append(
-            ElementData.Context.Entry(
+            ProtoElementData.Context.Entry(
                 ref=ElementRef(type=type, id=id),
-                role=role,
+                roles=roles,
                 name=name,
                 icon=icon,
             )
@@ -170,8 +166,8 @@ def _encode_members(
     if members_roles is None:
         members_roles = [None] * len(members)
 
-    result: list[ElementData.Context.Entry] = []
-    for member, role in zip(members, members_roles, strict=True):
+    result: list[ProtoElementData.Context.Entry] = []
+    for member, role in zip(members, members_roles):
         type, id = split_typed_element_id(member)
         data = type_id_map.get(member)
         name, feature_icon = data or (None, None)
@@ -181,9 +177,9 @@ def _encode_members(
             else None
         )
         result.append(
-            ElementData.Context.Entry(
+            ProtoElementData.Context.Entry(
                 ref=ElementRef(type=type, id=id),
-                role=role,
+                roles=(role,) if role is not None else None,
                 name=name,
                 icon=icon,
             )
@@ -192,5 +188,5 @@ def _encode_members(
 
 
 @cython.cfunc
-def _sort_key(element: ChangesetData.Element):
+def _sort_key(element: ProtoChangesetData.Element):
     return not element.visible, element.id, element.version

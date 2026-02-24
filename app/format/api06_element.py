@@ -8,7 +8,8 @@ from app.lib.date_utils import legacy_date
 from app.lib.exceptions_context import raise_for
 from app.lib.format_style_context import format_is_json
 from app.models.db.element import Element, ElementInit, validate_elements
-from app.models.element import ElementType, TypedElementId
+from app.models.element import TypedElementId
+from app.models.proto.shared_types import ElementType
 from app.models.types import ChangesetId
 from app.services.optimistic_diff.prepare import OSMChangeAction
 from speedup import (
@@ -223,11 +224,7 @@ def _encode_members_json(members: list[TypedElementId], members_roles: list[str]
     """
     return [
         {'type': type, 'ref': id, 'role': role}
-        for (type, id), role in zip(
-            split_typed_element_ids(members),
-            members_roles,
-            strict=True,
-        )
+        for (type, id), role in zip(split_typed_element_ids(members), members_roles)
     ]
 
 
@@ -245,11 +242,7 @@ def _encode_members_xml(members: list[TypedElementId], members_roles: list[str])
     """
     return [
         {'@type': type, '@ref': id, '@role': role}
-        for (type, id), role in zip(
-            split_typed_element_ids(members),
-            members_roles,
-            strict=True,
-        )
+        for (type, id), role in zip(split_typed_element_ids(members), members_roles)
     ]
 
 
