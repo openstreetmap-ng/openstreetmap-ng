@@ -285,7 +285,7 @@ class OAuth2TokenService:
 
     @staticmethod
     async def create_pat(*, name: str, scopes: frozenset[PublicScope]):
-        """Create a new Personal Access Token with the given name and scopes. Returns the token id."""
+        """Create a new Personal Access Token with the given name and scopes."""
         app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
         user_id = auth_user(required=True)['id']
 

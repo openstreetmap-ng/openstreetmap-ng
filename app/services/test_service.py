@@ -12,7 +12,8 @@ from app.lib.crypto import hash_bytes
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.testmethod import testmethod
 from app.models.db.oauth2_application import OAuth2ApplicationInit, OAuth2Uri
-from app.models.db.user import UserInit, UserRole, user_is_test
+from app.models.db.user import UserInit, user_is_test
+from app.models.proto.admin_users_types import Role
 from app.models.scope import PUBLIC_SCOPES, PublicScope
 from app.models.types import ClientId, DisplayName, Email, LocaleCode, UserId
 
@@ -70,7 +71,7 @@ class TestService:
         email_verified: bool = True,
         language: LocaleCode = DEFAULT_LOCALE,
         created_at: datetime | None = None,
-        roles: list[UserRole] | None = None,
+        roles: list[Role] | None = None,
     ):
         """Create a test user."""
         user_init: UserInit = {
