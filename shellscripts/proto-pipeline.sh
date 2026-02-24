@@ -1,17 +1,19 @@
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-mapfile -t service_protos < <(rg -l '^service ' app/models/proto --glob '*.proto' | sort)
+buf export \
+  . \
+  -o "$tmp/export" \
+  --path app/models/proto
 
-buf_export_args=(. -o "$tmp/export" --path app/models/proto/shared.proto)
-for p in "${service_protos[@]}"; do
-  buf_export_args+=(--path "$p")
-done
+proto_files=(
+  "$tmp/export"/app/models/proto/*.proto
+  "$tmp/export"/buf/validate/*.proto
+)
 
-buf export "${buf_export_args[@]}"
-
-for src in "$tmp/export"/**/*.proto; do
-  sed -E 's@^import "(app/models/proto|buf/validate)/([^"]+)";@import "\2";@' "$src" >"$tmp/${src##*/}"
+for src in "${proto_files[@]}"; do
+  sed -E 's@^import "(app/models/proto|buf/validate)/([^"]+)";@import "\2";@' \
+    "$src" >"$tmp/${src##*/}"
 done
 rm -rf "$tmp/export"
 
