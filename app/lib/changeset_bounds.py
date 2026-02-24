@@ -16,7 +16,7 @@ from app.config import (
     CHANGESET_NEW_BBOX_MIN_RATIO,
 )
 
-_BBox = list[float]
+type _BBox = list[float]
 
 _FIXED_K_MAX_CANDIDATE_EDGES = 5_000_000
 
@@ -230,7 +230,7 @@ def _agglomerative_clustering(
         del distances
 
         # Union all close pairs - no sorting needed (single-linkage transitivity)
-        for i, j in zip(src_idx, dst_idx, strict=True):
+        for i, j in zip(src_idx, dst_idx):
             # Find roots with path halving
             while parent[i] != i:
                 parent[i] = parent[parent[i]]
@@ -312,7 +312,7 @@ def _agglomerative_clustering(
 
         # Union until n_clusters
         num_components: cython.size_t = num_points
-        for i, j in zip(src_idx, dst_idx, strict=True):
+        for i, j in zip(src_idx, dst_idx):
             # Find roots with path halving
             while parent[i] != i:
                 parent[i] = parent[parent[i]]

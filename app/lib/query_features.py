@@ -66,6 +66,5 @@ class QueryFeatures:
                 features_icons(elements),
                 features_names(elements),
                 features_prefixes(elements),
-                strict=True,
             )
         ]
