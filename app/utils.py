@@ -50,16 +50,6 @@ def extend_query_params(uri: str, params: dict[str, str], *, fragment: bool = Fa
     return urlunsplit(uri_)
 
 
-def splitlines_trim(s: str):
-    """
-    Split a string by lines, trim whitespace from each line, and ignore empty lines.
-
-    >>> splitlines_trim('foo\\n\\nbar\\n')
-    ['foo', 'bar']
-    """
-    return [strip for line in s.splitlines() if (strip := line.strip())]
-
-
 def calc_num_workers(target: int | float = 1.0, *, min: int = 1, max: int = 1024):
     """
     Calculate the number of workers to use based on the target value.
