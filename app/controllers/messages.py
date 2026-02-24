@@ -10,9 +10,10 @@ from app.config import APP_URL
 from app.lib.auth_context import web_user
 from app.lib.date_utils import format_sql_date
 from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_response
+from app.lib.render_response import render_proto_page
 from app.lib.translation import t
 from app.models.db.user import User
+from app.models.proto.message_pb2 import IndexPage, NewPage
 from app.models.types import DiaryCommentId, DiaryId, MessageId, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
@@ -27,14 +28,20 @@ router = APIRouter()
 async def get_inbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_response('messages/index', {'inbox': True})
+    return await render_proto_page(
+        IndexPage(inbox=True),
+        title_prefix=t('messages.inbox.title'),
+    )
 
 
 @router.get('/messages/outbox')
 async def get_outbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_response('messages/index', {'inbox': False})
+    return await render_proto_page(
+        IndexPage(inbox=False),
+        title_prefix=t('messages.outbox.title'),
+    )
 
 
 @router.get('/message/new')
@@ -127,13 +134,13 @@ async def new_message(
             raise_for.user_not_found(to)
         recipients = to
 
-    return await render_response(
-        'messages/new',
-        {
-            'recipients': recipients,
-            'subject': subject,
-            'body': body,
-        },
+    return await render_proto_page(
+        NewPage(
+            recipients=recipients,
+            subject=subject,
+            body=body,
+        ),
+        title_prefix=t('action.send_a_message'),
     )
 
 
