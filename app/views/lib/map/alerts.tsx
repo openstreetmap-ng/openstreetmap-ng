@@ -11,9 +11,7 @@ const alerts = signal<
 export const pushMapAlert = (node: ComponentChild) => {
   const id = Symbol("map-alert")
   alerts.value = [...alerts.peek(), { id, node }]
-  return () => {
-    alerts.value = alerts.peek().filter((a) => a.id !== id)
-  }
+  return () => (alerts.value = alerts.peek().filter((a) => a.id !== id))
 }
 
 export const MapAlerts = () => (

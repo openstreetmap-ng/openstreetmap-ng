@@ -1,6 +1,6 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { routeParam } from "@lib/codecs"
+import { pathParam } from "@lib/codecs"
 import {
   config,
   isLoggedIn,
@@ -15,13 +15,13 @@ import {
   focusObjects,
 } from "@lib/map/layers/focus-layer"
 import {
-  type AddNoteCommentResponseValid,
-  GetNoteCommentsResponse_Comment_Event as Event,
-  type GetNoteCommentsResponse_CommentValid,
-  type GetNoteCommentsResponseValid,
-  type NoteDataValid,
-  NoteService,
-  NoteStatus,
+  type AddCommentResponseValid,
+  GetCommentsResponse_Comment_Event as Event,
+  type GetCommentsResponse_CommentValid,
+  type GetCommentsResponseValid,
+  type DataValid,
+  Service,
+  Status,
 } from "@lib/proto/note_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
@@ -34,7 +34,6 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
@@ -53,7 +52,7 @@ const focusLayout: FocusLayerLayout = {
   "icon-anchor": "bottom",
 }
 
-const getEventLabel = memoize((event: Event) => {
+const getEventLabel = (event: Event) => {
   switch (event) {
     case Event.opened:
       return t("action.created")
@@ -66,13 +65,9 @@ const getEventLabel = memoize((event: Event) => {
     case Event.hidden:
       return t("action.hidden")
   }
-})
+}
 
-const NoteComment = ({
-  comment,
-}: {
-  comment: GetNoteCommentsResponse_CommentValid
-}) => (
+const NoteComment = ({ comment }: { comment: GetCommentsResponse_CommentValid }) => (
   <li class="social-entry">
     <p class="header text-muted">
       {comment.user ? (
@@ -105,7 +100,7 @@ const NoteComment = ({
   </li>
 )
 
-const NoteHeader = ({ data }: { data: NoteDataValid }) => {
+const NoteHeader = ({ data }: { data: DataValid }) => {
   const header = data.header
   const avatarUrl =
     header.user?.avatarUrl ?? `/api/web/img/avatar/anonymous_note/${data.id}`
@@ -162,7 +157,7 @@ const NoteHeader = ({ data }: { data: NoteDataValid }) => {
 }
 
 type CommentResult = {
-  result: AddNoteCommentResponseValid
+  result: AddCommentResponseValid
   reloadnoteslayer: boolean
 }
 
@@ -172,7 +167,7 @@ const CommentForm = ({
   onSuccess,
 }: {
   noteId: bigint
-  status: NoteStatus
+  status: Status
   onSuccess: (result: CommentResult) => void
 }) => {
   const commentText = useSignal("")
@@ -185,10 +180,10 @@ const CommentForm = ({
     body: (formData.get("body") ?? "") as string,
   })
 
-  if (status === NoteStatus.open) {
+  if (status === Status.open) {
     return (
       <StandardForm
-        method={NoteService.method.addNoteComment}
+        method={Service.method.addComment}
         buildRequest={buildRequest}
         resetOnSuccess
         onSuccess={(result, ctx) => {
@@ -243,10 +238,10 @@ const CommentForm = ({
     )
   }
 
-  if (status === NoteStatus.closed) {
+  if (status === Status.closed) {
     return (
       <StandardForm
-        method={NoteService.method.addNoteComment}
+        method={Service.method.addComment}
         buildRequest={buildRequest}
         resetOnSuccess
         onSuccess={(result, ctx) => {
@@ -287,7 +282,7 @@ const CommentForm = ({
   // hidden status
   return (
     <StandardForm
-      method={NoteService.method.addNoteComment}
+      method={Service.method.addComment}
       buildRequest={buildRequest}
       resetOnSuccess
       onSuccess={(result, ctx) => {
@@ -320,7 +315,7 @@ const SubscriptionForm = ({
 }) => (
   <StandardForm
     class="col-auto subscription-form"
-    method={NoteService.method.setNoteSubscription}
+    method={Service.method.updateSubscription}
     buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
     onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
   >
@@ -338,11 +333,11 @@ const SubscriptionForm = ({
 
 const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint> }) => {
   const isSubscribed = useSignal(false)
-  const preloadedComments = useSignal<GetNoteCommentsResponseValid | null>(null)
+  const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
-    NoteService.method.getNote,
+    Service.method.get,
     (r) => r.note,
   )
 
@@ -402,11 +397,11 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
                 {t("note.title")}: {d.id}
               </span>
               <span
-                class={`status-badge badge ${d.status === NoteStatus.closed ? "text-bg-green" : "text-muted bg-body-secondary"}`}
+                class={`status-badge badge ${d.status === Status.closed ? "text-bg-green" : "text-muted bg-body-secondary"}`}
               >
-                {d.status === NoteStatus.open && t("state.unresolved")}
-                {d.status === NoteStatus.closed && t("state.resolved")}
-                {d.status === NoteStatus.hidden && (
+                {d.status === Status.open && t("state.unresolved")}
+                {d.status === Status.closed && t("state.resolved")}
+                {d.status === Status.hidden && (
                   <>
                     <i class="bi bi-eye-slash-fill me-1-5" />
                     {t("state.hidden")}
@@ -436,7 +431,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           </p>
 
           {/* Report button */}
-          {isLoggedIn && config.userConfig!.id !== d.header.user?.id && (
+          {isLoggedIn && config.userConfig!.user.id !== d.header.user?.id && (
             <div class="text-end mt-1 me-1">
               {d.header.user ? (
                 <ReportButton
@@ -484,8 +479,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
 
           {/* Comments pagination */}
           <StandardPagination
-            key={d.id}
-            method={NoteService.method.getNoteComments}
+            method={Service.method.getComments}
             request={{ id: d.id }}
             ariaLabel={t("alt.comments_page_navigation")}
             pageOrder="desc"
@@ -502,7 +496,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           </StandardPagination>
 
           {/* Disappear warning */}
-          {d.disappearDays !== undefined && (
+          {d.disappearDays && (
             <p class="text-center fst-italic mx-4">
               {t("notes.show.disappear_date_html", {
                 disappear_in: t("user_blocks.helper.block_duration.days", {
@@ -544,6 +538,6 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
 export const NoteRoute = defineRoute({
   id: "note",
   path: ["/note/:id", "/note/:id/unsubscribe"],
-  params: { id: routeParam.positive() },
+  params: { id: pathParam.positive() },
   Component: NoteSidebar,
 })

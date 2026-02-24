@@ -1,5 +1,6 @@
-import { getRouteParamSpecificity, type QuerySchema } from "@lib/codecs"
-import { qsEncode, qsParseAll } from "@lib/qs"
+import { getPathParamSpecificity, type QuerySchema } from "@lib/codecs"
+import { qsParseAll } from "@lib/qs"
+import { defineQueryContract, type QueryContract } from "@lib/query-contract"
 import type { RemoteEditTarget } from "@lib/remote-edit"
 import { isUnmodifiedLeftClick, unquotePlus } from "@lib/utils"
 import type { ReadonlySignal, Signal } from "@preact/signals"
@@ -25,19 +26,19 @@ export type RouteContext = Readonly<{
 type EmptyParams = Record<never, never>
 type EmptyQuery = Record<never, never>
 
-type ParamSignals<P extends object> = {
+type ParamSignals<P extends Record<string, unknown>> = {
   [K in keyof P]-?: ReadonlySignal<P[K]>
 }
 
-type QuerySignals<Q extends object> = {
+type QuerySignals<Q extends Record<string, unknown>> = {
   [K in keyof Q]-?: Signal<Q[K]>
 }
 
 type AnyRouteComponent = (props: any) => ComponentChildren
 
 export type RouteComponent<
-  P extends object = EmptyParams,
-  Q extends object = EmptyQuery,
+  P extends Record<string, unknown> = EmptyParams,
+  Q extends Record<string, unknown> = EmptyQuery,
 > = (
   props: {
     map: MaplibreMap
@@ -49,12 +50,22 @@ export type RouteComponent<
 type PathParamSchema<T = unknown> = z.ZodType<T, string>
 type PathParamSpec = Record<string, PathParamSchema<any>>
 
-type QuerySpec = Record<string, QuerySchema<any>>
+type QuerySpec = Readonly<Record<string, QuerySchema<any>>>
+type EmptyQuerySpec = Readonly<Record<never, QuerySchema<any>>>
+type QuerySpecOrEmpty<Q extends QuerySpec | undefined> = Q extends QuerySpec
+  ? Q
+  : EmptyQuerySpec
+type QueryOutput<Spec extends QuerySpec> = {
+  [K in keyof Spec]: z.output<Spec[K]>
+}
 
 type AliasMap = Readonly<Record<string, string>>
-type RouteAliases = Readonly<{
+type QueryAliasMap<Q extends QuerySpec | undefined> = Readonly<
+  Record<string, keyof QuerySpecOrEmpty<Q> & string>
+>
+type RouteAliases<Q extends QuerySpec | undefined = undefined> = Readonly<{
   params?: AliasMap
-  query?: AliasMap
+  query?: QueryAliasMap<Q>
 }>
 
 type PathToken =
@@ -76,16 +87,14 @@ export type RouteDef = Readonly<{
 }>
 
 export type CompiledRouteDef<
-  P extends object = EmptyParams,
-  Q extends object = EmptyQuery,
+  P extends Record<string, unknown> = EmptyParams,
+  Q extends Record<string, unknown> = EmptyQuery,
 > = RouteDef &
   Readonly<{
     _pathVariants: readonly Readonly<{ path: string; tokens: readonly PathToken[] }>[]
     _paramKeys: readonly string[]
     _queryKeys: readonly string[]
-    _queryAliases: AliasMap | undefined
-    _querySchema: z.ZodType<Q, Record<string, string[] | undefined>>
-    _queryEncodeSchema: z.ZodType<any, Record<string, string[] | undefined>>
+    _queryContract: QueryContract<Q>
     _buildPathname: (params: P) => string
   }>
 
@@ -176,7 +185,7 @@ const computeSpecificity = (
 ): Specificity => ({
   literalCount: sumOf(tokens, (t) => (t.kind === "lit" ? 1 : 0)),
   paramSpecificity: sumOf(tokens, (t) =>
-    t.kind === "param" ? getRouteParamSpecificity(t.schema) : 0,
+    t.kind === "param" ? getPathParamSpecificity(t.schema) : 0,
   ),
   registrationIndex,
   variantIndex,
@@ -191,7 +200,7 @@ const compareSpecificity = (a: Specificity, b: Specificity) => {
   return a.variantIndex - b.variantIndex
 }
 
-const matchTokens = <P extends object>(
+const matchTokens = <P extends Record<string, unknown>>(
   tokens: readonly PathToken[],
   segments: readonly string[],
 ) => {
@@ -226,9 +235,12 @@ const matchTokens = <P extends object>(
   return out as P
 }
 
-const buildPathname = <P extends object>(tokens: readonly PathToken[], params: P) => {
+const buildPathname = <P extends Record<string, unknown>>(
+  tokens: readonly PathToken[],
+  params: P,
+) => {
   if (!tokens.length) return "/"
-  const obj = params as Record<string, unknown>
+  const obj = params
   const segments = tokens.map((t) => {
     if (t.kind === "lit") return t.value
     const value = obj[t.name]
@@ -245,9 +257,7 @@ type DecodeParams<S extends PathParamSpec | undefined> = S extends PathParamSpec
   ? DecodeSpec<S>
   : EmptyParams
 
-type DecodeQuery<S extends QuerySpec | undefined> = S extends QuerySpec
-  ? DecodeSpec<S>
-  : EmptyQuery
+type DecodeQuery<S extends QuerySpec | undefined> = QueryOutput<QuerySpecOrEmpty<S>>
 
 export const defineRoute = <
   Params extends PathParamSpec | undefined = undefined,
@@ -257,7 +267,7 @@ export const defineRoute = <
   path: string | readonly string[]
   params?: Params
   query?: Q
-  aliases?: RouteAliases
+  aliases?: RouteAliases<Q>
   Component: RouteComponent<DecodeParams<Params>, DecodeQuery<Q>>
   sidebarOverlay?: boolean
 }): CompiledRouteDef<DecodeParams<Params>, DecodeQuery<Q>> => {
@@ -272,11 +282,15 @@ export const defineRoute = <
   }))
 
   const paramKeys = Object.keys(matchSpec)
-  const querySpec = def.query ?? {}
+  const querySpec = (def.query ?? {}) as QuerySpecOrEmpty<Q>
   const queryKeys = Object.keys(querySpec)
-  const queryAliases = normalizeQueryAliases(def.aliases?.query, queryKeys)
-  const querySchema = z.object(querySpec).strip()
-  const queryEncodeSchema = querySchema.partial()
+  const queryContractOptions = def.aliases?.query
+    ? { aliases: def.aliases.query }
+    : undefined
+  const queryContract = defineQueryContract(
+    querySpec,
+    queryContractOptions,
+  ) as unknown as QueryContract<DecodeQuery<Q>>
   for (const key of queryKeys) {
     if (paramKeys.includes(key))
       throw new Error(`Query param conflicts with route param '${key}' in: ${paths[0]}`)
@@ -290,7 +304,7 @@ export const defineRoute = <
     }))
     .sort((a, b) => compareSpecificity(a.specificity, b.specificity))
 
-  const out = {
+  const out: CompiledRouteDef<DecodeParams<Params>, DecodeQuery<Q>> = {
     id: def.id,
     path: paths[0],
     Component: def.Component,
@@ -298,10 +312,8 @@ export const defineRoute = <
     _pathVariants: pathVariants,
     _paramKeys: paramKeys,
     _queryKeys: queryKeys,
-    _queryAliases: queryAliases,
-    _querySchema: querySchema,
-    _queryEncodeSchema: queryEncodeSchema,
-    _buildPathname: (params: any) => {
+    _queryContract: queryContract,
+    _buildPathname: (params) => {
       const obj = params as Record<string, unknown>
       for (const c of buildCandidates) {
         if (c.requiredKeys.every((k) => obj[k] !== undefined && obj[k] !== null)) {
@@ -311,7 +323,7 @@ export const defineRoute = <
 
       return buildPathname(pathVariants[0].tokens, params)
     },
-  } as unknown as CompiledRouteDef<DecodeParams<Params>, DecodeQuery<Q>>
+  }
   return out
 }
 
@@ -321,11 +333,11 @@ type RouteParams<R extends CompiledRouteDef<any, any>> =
 type RouteQuery<R extends CompiledRouteDef<any, any>> =
   R extends CompiledRouteDef<any, infer Q> ? Q : never
 
-type QueryInput<Q extends object> = Partial<{
+type QueryInput<Q extends Record<string, unknown>> = Partial<{
   [K in keyof Q]: Exclude<Q[K], undefined>
 }>
 
-type OptionalizeUndefined<T extends object> = {
+type OptionalizeUndefined<T extends Record<string, unknown>> = {
   [K in keyof T as undefined extends T[K] ? never : K]: T[K]
 } & {
   [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>
@@ -333,8 +345,7 @@ type OptionalizeUndefined<T extends object> = {
 
 const buildSearch = (route: AnyRouteDef, query: object) => {
   if (!route._queryKeys.length) return ""
-  const encoded = route._queryEncodeSchema.encode(query)
-  return qsEncode(encoded)
+  return route._queryContract.encode(query as Record<string, unknown>)
 }
 
 type RouteHrefInput<R extends CompiledRouteDef<any, any>> = OptionalizeUndefined<
@@ -384,12 +395,12 @@ type CompiledRouteVariant = Readonly<{
 let compiledRouteVariants: CompiledRouteVariant[] = []
 let loadReason: RouteLoadReason = "navigation"
 
-const currentPath = signal<string>(getCurrentPath())
+const currentPath = signal(getCurrentPath())
 
 const activeRoute = signal<AnyRouteDef | null>(null)
 export const routerRoute: ReadonlySignal<AnyRouteDef | null> = activeRoute
 
-const activeCtx = signal<RouteContext>(parseContext(currentPath.value, loadReason))
+const activeCtx = signal(parseContext(currentPath.value, loadReason))
 export const routerCtx: ReadonlySignal<RouteContext> = activeCtx
 
 const activeParamSignals = signal<Record<string, Signal<unknown>>>({})
@@ -459,44 +470,6 @@ const reconcileSignalBag = (
       bag[key].value = getNextValue(key)
     }
   })
-}
-
-const normalizeQueryAliases = (aliases: AliasMap | undefined, queryKeys: string[]) => {
-  if (!aliases) return
-  const keySet = new Set(queryKeys)
-
-  const out: Record<string, string> = {}
-  for (const [aliasKey, targetKey] of Object.entries(aliases)) {
-    if (aliasKey === targetKey) continue
-    if (!keySet.has(targetKey))
-      throw new Error(`Query alias target '${targetKey}' is not a declared query param`)
-    if (keySet.has(aliasKey))
-      throw new Error(
-        `Query alias '${aliasKey}' conflicts with a declared query param key`,
-      )
-    out[aliasKey] = targetKey
-  }
-
-  return Object.keys(out).length ? out : undefined
-}
-
-const applyQueryAliases = (
-  route: AnyRouteDef,
-  queryParams: Readonly<Record<string, string[]>>,
-) => {
-  const aliases = route._queryAliases
-  if (!aliases) return queryParams
-
-  let out: Record<string, string[] | undefined> | null = null
-  for (const [aliasKey, targetKey] of Object.entries(aliases)) {
-    if (queryParams[targetKey]?.length) continue
-    const values = queryParams[aliasKey]
-    if (!values?.length) continue
-    if (!out) out = { ...queryParams }
-    out[targetKey] = values
-  }
-
-  return out ?? queryParams
 }
 
 const setPath = (
@@ -611,20 +584,7 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
       return
     }
 
-    const decoded = route._querySchema.safeDecode(applyQueryAliases(route, queryParams))
-    if (!decoded.success) {
-      const firstIssue = decoded.error.issues[0]
-      console.warn(
-        "IndexRouter: Bad query",
-        route.id,
-        ctx.path,
-        firstIssue.path.join("."),
-        firstIssue.message,
-      )
-    }
-    const decodedQuery = decoded.success
-      ? (decoded.data as Record<string, unknown>)
-      : {}
+    const decodedQuery = route._queryContract.parseQueryParams(queryParams)
 
     reconcileSignalBag(activeQuerySignals, route._queryKeys, (key) => decodedQuery[key])
   }
@@ -678,16 +638,14 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
       queryObj[key] = querySignals[key].value
     }
 
-    const encoded = route._queryEncodeSchema.encode(queryObj)
-
     const paramSignals = activeParamSignals.peek()
     const params: Record<string, unknown> = {}
     for (const key of route._paramKeys) {
       params[key] = paramSignals[key].peek()
     }
 
-    const pathname = route._buildPathname(params as any)
-    const desired = pathname + qsEncode(encoded)
+    const pathname = route._buildPathname(params)
+    const desired = pathname + route._queryContract.encode(queryObj)
     if (desired === currentPath.peek()) return
     assert(
       setPath("replace", desired, { reason: "sync" }),

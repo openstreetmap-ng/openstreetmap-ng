@@ -1,4 +1,4 @@
-import type { NoteStatus } from "@lib/proto/note_pb"
+import type { Status } from "@lib/proto/note_pb"
 
 export interface OSMNode {
   type: "node"
@@ -26,7 +26,7 @@ export interface OSMNote {
   id: bigint | null
   geom: [number, number]
   body: string
-  status: NoteStatus
+  status: Status
 }
 
 /** [minLon, minLat, maxLon, maxLat] */

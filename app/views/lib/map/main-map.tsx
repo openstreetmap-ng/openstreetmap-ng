@@ -20,6 +20,7 @@ import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
 import { wrapIdleCallbackStatic } from "@lib/utils"
 import { effect, signal } from "@preact/signals"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
+import { configureMap, type MapInitErrorContext } from "./configure-map"
 import { CustomGeolocateControl } from "./controls/geolocate"
 import { addControlGroup } from "./controls/group"
 import { NewNoteControl } from "./controls/new-note"
@@ -40,17 +41,23 @@ export const rightSidebar = signal<RightSidebarKind | null>(null)
 const createMainMap = (
   container: HTMLElement,
   onMapStateChange: (state: MapState) => void,
+  onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
   console.debug("MainMap: Initializing")
-  const map = new MaplibreMap({
-    container,
-    minZoom: 1,
-    maxZoom: 19,
-    attributionControl: { compact: true, customAttribution: "" },
-    refreshExpiredTiles: false,
-    canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
-    fadeDuration: 0,
-  })
+  const map = configureMap(
+    {
+      container,
+      minZoom: 1,
+      maxZoom: 19,
+      attributionControl: { compact: true, customAttribution: "" },
+      refreshExpiredTiles: false,
+      canvasContextAttributes: { alpha: false, preserveDrawingBuffer: true },
+      fadeDuration: 0,
+    },
+    { onInitError },
+  )
+  if (!map) return null
+
   void map.once("style.load", () => {
     // Disable transitions after loading the style
     map.style.stylesheet.transition = { duration: 0 }
@@ -114,8 +121,11 @@ const createMainMap = (
 export const initMainMap = (
   container: HTMLElement,
   onMapStateChange: (state: MapState) => void,
+  onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
-  const map = createMainMap(container, onMapStateChange)
+  const map = createMainMap(container, onMapStateChange, onInitError)
+  if (!map) return
+
   mainMap.value = map
 
   configureRouter([

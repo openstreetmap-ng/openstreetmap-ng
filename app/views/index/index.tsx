@@ -36,14 +36,12 @@ const WelcomeBanner = () => {
 
       <p class="fw-light">
         {tRich("layouts.hosting_partners_html", {
-          ucl: () => <a href="https://www.ucl.ac.uk">{t("layouts.partners_ucl")}</a>,
-          fastly: () => (
-            <a href="https://www.fastly.com">{t("layouts.partners_fastly")}</a>
-          ),
-          bytemark: () => (
+          ucl: <a href="https://www.ucl.ac.uk">{t("layouts.partners_ucl")}</a>,
+          fastly: <a href="https://www.fastly.com">{t("layouts.partners_fastly")}</a>,
+          bytemark: (
             <a href="https://www.bytemark.co.uk">{t("layouts.partners_bytemark")}</a>
           ),
-          partners: () => (
+          partners: (
             <a href="https://hardware.openstreetmap.org/thanks/">
               {t("layouts.partners_partners")}
             </a>

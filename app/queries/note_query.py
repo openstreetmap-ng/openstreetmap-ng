@@ -10,8 +10,9 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.models.db.note import Note
-from app.models.db.note_comment import NoteComment, NoteEvent
+from app.models.db.note_comment import NoteComment
 from app.models.db.user import user_is_moderator
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import NoteId, UserId
 
 
@@ -67,12 +68,10 @@ class NoteQuery:
         if not user_is_moderator(auth_user()):
             conditions.append(SQL('hidden_at IS NULL'))
 
-        if open is not None:
-            conditions.append(
-                SQL('closed_at IS NULL' if open else 'closed_at IS NOT NULL')
-            )
+        conditions.append(SQL('(%s::bool IS NULL OR (closed_at IS NULL) = %s)'))
+        params.extend((open, open))
 
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
         return where_clause, tuple(params)
 
     @staticmethod
@@ -101,7 +100,7 @@ class NoteQuery:
         *,
         phrase: str | None = None,
         user_id: UserId | None = None,
-        event: NoteEvent | None = None,
+        event: GetCommentsResponse_Comment_Event | None = None,
         note_ids: list[NoteId] | None = None,
         max_closed_days: float | None = None,
         geometry: BaseGeometry | None = None,
@@ -198,7 +197,7 @@ class NoteQuery:
             ORDER BY {order_by} {order_dir}
             {limit}
         """).format(
-            condition=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            condition=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
             order_by=sort_by_identifier,
             order_dir=SQL(sort_dir),
             limit=limit_clause,

@@ -7,11 +7,23 @@
   flex-direction: column;
   gap: 0.75rem;
   align-items: center;
+  padding-inline: 1rem;
   font-size: 1rem;
 }
 
 .map-alert {
   @extend .shadow;
+  @extend .text-break;
 
+  width: 100%;
+  max-width: 48rem;
   margin-bottom: 0;
+  overflow-wrap: anywhere;
+
+  pre {
+    max-height: min(40vh, 18rem);
+    overflow: auto;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
 }
