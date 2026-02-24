@@ -1,9 +1,9 @@
 import { REPORT_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
 import {
-  CreateReportRequest_Action,
-  CreateReportRequest_Category,
-  CreateReportRequest_Type,
-  ReportService,
+  CreateRequest_Action,
+  CreateRequest_Category,
+  CreateRequest_Type,
+  Service,
 } from "@lib/proto/report_pb"
 import { StandardForm } from "@lib/standard-form"
 import { computed, signal, useSignalEffect } from "@preact/signals"
@@ -14,9 +14,9 @@ import type { HTMLAttributes, TargetedMouseEvent } from "preact"
 import { render } from "preact"
 import { useId, useRef } from "preact/hooks"
 
-type ReportType = keyof typeof CreateReportRequest_Type
-type ReportAction = keyof typeof CreateReportRequest_Action
-type ReportCategory = keyof typeof CreateReportRequest_Category
+type ReportType = keyof typeof CreateRequest_Type
+type ReportAction = keyof typeof CreateRequest_Action
+type ReportCategory = keyof typeof CreateRequest_Category
 
 interface ReportData {
   type: ReportType
@@ -67,19 +67,17 @@ const ReportModal = () => {
           <StandardForm
             formRef={formRef}
             feedbackRootSelector=".modal-body"
-            method={ReportService.method.createReport}
+            method={Service.method.create}
             resetOnSuccess
             buildRequest={({ formData }) => {
               const { type, typeId, action, actionId } = reportData.value!
               return {
-                type: CreateReportRequest_Type[type],
+                type: CreateRequest_Type[type],
                 typeId,
-                action: CreateReportRequest_Action[action],
+                action: CreateRequest_Action[action],
                 actionId,
                 category:
-                  CreateReportRequest_Category[
-                    formData.get("category") as ReportCategory
-                  ],
+                  CreateRequest_Category[formData.get("category") as ReportCategory],
                 body: formData.get("body") as string,
               }
             }}

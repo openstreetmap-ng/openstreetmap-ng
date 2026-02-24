@@ -67,13 +67,13 @@ mount("report-show-body", () => {
     const hasComment = commentTextarea.value.trim().length > 0
 
     if (closeButton && commentCloseButton) {
-      closeButton.classList.toggle("d-none", hasComment)
-      commentCloseButton.classList.toggle("d-none", !hasComment)
+      closeButton.hidden = hasComment
+      commentCloseButton.hidden = !hasComment
     }
 
     if (reopenButton && commentReopenButton) {
-      reopenButton.classList.toggle("d-none", hasComment)
-      commentReopenButton.classList.toggle("d-none", !hasComment)
+      reopenButton.hidden = hasComment
+      commentReopenButton.hidden = !hasComment
     }
 
     // Disable comment button if no text

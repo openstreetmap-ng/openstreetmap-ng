@@ -1,13 +1,15 @@
 syntax = "proto3";
 
+package report;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service ReportService {
-  rpc CreateReport(CreateReportRequest) returns (CreateReportResponse) {}
+service Service {
+  rpc Create(CreateRequest) returns (CreateResponse) {}
 }
 
-message CreateReportRequest {
+message CreateRequest {
   enum Type {
     anonymous_note = 0;
     user = 1;
@@ -47,6 +49,6 @@ message CreateReportRequest {
   }];
 }
 
-message CreateReportResponse {
+message CreateResponse {
   StandardFeedbackDetail feedback = 1;
 }

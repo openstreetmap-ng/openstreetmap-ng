@@ -11,13 +11,17 @@ from app.db import db
 from app.lib.auth_context import auth_user
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import nt, t
-from app.models.db.report import ReportInit, ReportType, ReportTypeId
+from app.models.db.report import ReportInit, ReportTypeId
 from app.models.db.report_comment import (
-    ReportAction,
     ReportActionId,
-    ReportCategory,
     ReportCommentInit,
     report_comments_resolve_rich_text,
+)
+from app.models.proto.admin_users_types import Role
+from app.models.proto.report_types import (
+    CreateRequest_Action,
+    CreateRequest_Category,
+    CreateRequest_Type,
 )
 from app.models.types import ReportId
 from app.queries.changeset_query import ChangesetQuery
@@ -36,12 +40,12 @@ class ReportService:
     @staticmethod
     async def create_report(
         *,
-        type: ReportType,
+        type: CreateRequest_Type,
         type_id: ReportTypeId,
-        action: ReportAction,
+        action: CreateRequest_Action,
         action_id: ReportActionId,
         body: str,
-        category: ReportCategory,
+        category: CreateRequest_Category,
     ) -> ReportId:
         if action == 'comment' and not body:
             raise ValueError('Comment body cannot be empty')
@@ -312,7 +316,7 @@ class ReportService:
 
 
 @cython.cfunc
-def _category_to_visibility(category: ReportCategory):
+def _category_to_visibility(category: CreateRequest_Category) -> Role:
     if category == 'privacy':
         return 'administrator'
 
@@ -321,9 +325,9 @@ def _category_to_visibility(category: ReportCategory):
 
 
 async def _validate_integrity(
-    type: ReportType,
+    type: CreateRequest_Type,
     type_id: ReportTypeId,
-    action: ReportAction,
+    action: CreateRequest_Action,
     action_id: ReportActionId,
 ):
     if type == 'user':

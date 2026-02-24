@@ -2,8 +2,9 @@ from contextlib import nullcontext
 
 import pytest
 
-from app.models.db.report import ReportType, ReportTypeId
-from app.models.db.report_comment import ReportAction, ReportActionId
+from app.models.db.report import ReportTypeId
+from app.models.db.report_comment import ReportActionId
+from app.models.proto.report_types import CreateRequest_Action, CreateRequest_Type
 from app.services.report_service import _validate_integrity
 
 
@@ -33,9 +34,9 @@ from app.services.report_service import _validate_integrity
     ],
 )
 async def test_validate_integrity(
-    type: ReportType,
+    type: CreateRequest_Type,
     type_id: ReportTypeId,
-    action: ReportAction,
+    action: CreateRequest_Action,
     action_id: ReportActionId,
     should_pass: bool,
 ):

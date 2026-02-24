@@ -3,7 +3,7 @@
     <div class="header text-muted d-flex justify-content-between align-items-center">
       <span>
         {% if comment.user %}
-          <a href="/user/{{ comment.user.display_name }}">
+          <a href="/user-id/{{ comment.user.id }}">
             <img
               class="avatar"
               src="{{ user_avatar_url(comment.user) }}"
