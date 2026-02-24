@@ -1,7 +1,7 @@
 import { addMapLayer, type LayerId, removeMapLayer } from "@lib/map/layers/layers"
 import { effect as createSignalEffect, useSignalEffect } from "@preact/signals"
 import type { MapEventType, MapLayerEventType, Map as MaplibreMap } from "maplibre-gl"
-import { useEffect } from "preact/hooks"
+import { useEffect, useLayoutEffect } from "preact/hooks"
 
 type Disposer = (() => void) | void
 type DeferDisposer = Disposer | null | undefined
@@ -338,6 +338,17 @@ export const useDisposeEffect = (
   deps?: Parameters<typeof useEffect>[1],
 ) => {
   useEffect(() => {
+    const scope = createDisposeScope()
+    scope.defer(setup(scope))
+    return scope.dispose
+  }, deps)
+}
+
+export const useDisposeLayoutEffect = (
+  setup: (scope: DisposeScope) => DeferDisposer,
+  deps?: Parameters<typeof useLayoutEffect>[1],
+) => {
+  useLayoutEffect(() => {
     const scope = createDisposeScope()
     scope.defer(setup(scope))
     return scope.dispose
