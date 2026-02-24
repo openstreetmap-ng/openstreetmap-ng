@@ -18,7 +18,7 @@ from app.lib.auth_context import web_user
 from app.lib.locale import LOCALES_NAMES_MAP, normalize_locale
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.standard_pagination import (
-    StandardPaginationStateBody,
+    StandardPaginationRequestBody,
     sp_paginate_table,
     sp_render_response,
 )
@@ -89,7 +89,7 @@ async def delete(
 @router.post('/{diary_id:int}/comments')
 async def comments_page(
     diary_id: DiaryId,
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     comments, state = await sp_paginate_table(
         DiaryComment,
@@ -128,7 +128,7 @@ async def create_comment(
 async def diaries_page(
     user_id: Annotated[UserId | None, Query()] = None,
     language: Annotated[LocaleCode | None, Query()] = None,
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     language = normalize_locale(language)
     if user_id is not None and language is not None:
@@ -180,7 +180,7 @@ async def diaries_page(
 @router.post('/user/{user_id:int}/comments')
 async def user_comments_page(
     user_id: UserId,
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     comments, state = await sp_paginate_table(
         DiaryComment,

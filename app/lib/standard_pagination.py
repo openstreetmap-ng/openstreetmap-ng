@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal, LiteralString, NamedTuple, TypeVar
 
 import cython
 from fastapi import Body
+from protovalidate import collect_violations
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
@@ -19,7 +20,10 @@ from app.config import (
 )
 from app.db import db
 from app.lib.render_response import render_response
-from app.models.proto.shared_pb2 import StandardPaginationState
+from app.models.proto.shared_pb2 import (
+    StandardPaginationRequest,
+    StandardPaginationState,
+)
 
 
 class _SpCursorCodec(NamedTuple):
@@ -37,12 +41,12 @@ class _StandardPaginationQueryPlan(NamedTuple):
     anchor_op: Literal['<', '>'] | None = None
 
 
-StandardPaginationStateBody = Annotated[
+type StandardPaginationRequestBody = Annotated[
     bytes, Body(media_type='application/x-protobuf')
 ]
 
-_OrderDir = Literal['asc', 'desc']
-_CursorKind = Literal['id', 'datetime', 'text']
+type _OrderDir = Literal['asc', 'desc']
+type _CursorKind = Literal['id', 'datetime', 'text']
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
@@ -165,16 +169,20 @@ async def sp_paginate_query(
         id_sql = Identifier(id_key)
 
     if sp_state:
-        state = StandardPaginationState.FromString(sp_state)
-        if state.WhichOneof('cursors') is None:
-            state = None
+        req = StandardPaginationRequest.FromString(sp_state)
+        violations = collect_violations(req)
+        assert not violations, violations[0].proto.message
+
+        state = req.state if req.HasField('state') else None
+        requested_page = req.requested_page if req.HasField('requested_page') else None
     else:
         state = None
+        requested_page = None
 
     cursor_codec = _cursor_codec(cursor_kind)
     expected_variant = cursor_codec.storage
     assert state is None or state.WhichOneof('cursors') == expected_variant, (
-        f'StandardPagination: Expected cursor variant {expected_variant!r}, got {state.WhichOneof("cursors")!r}'
+        'Invalid state cursor type'
     )
 
     async with db() as conn:
@@ -198,7 +206,7 @@ async def sp_paginate_query(
                 current_page=1,
                 page_size=page_size,
                 snapshot_max_id=snapshot_max_id,
-                max_known_page=1,
+                max_discovered_page=1,
             )
             if cursor_codec.storage == 'u64':
                 state.u64.snapshot = encoded_snapshot_cursor  # type: ignore
@@ -219,28 +227,16 @@ async def sp_paginate_query(
 
             if num_items_limited < count_limit:
                 # Dataset is small enough to know total pages/items
-                state.num_items = num_items_limited
-                state.num_pages = sp_num_pages(
+                state.known_total.num_items = num_items_limited
+                state.known_total.num_pages = sp_num_pages(
                     num_items=num_items_limited, page_size=page_size
                 )
-                state.max_known_page = state.num_pages
 
         else:
-            assert 1 <= state.current_page <= state.max_known_page
-            assert state.page_size == page_size
+            assert state.page_size == page_size, 'Invalid state page size'
 
-            if state.HasField('num_pages'):
-                assert state.num_pages == state.max_known_page
-                assert state.HasField('num_items')
-            else:
-                assert not state.HasField('num_items')
-
-        if state.HasField('requested_page'):
-            requested_page = state.requested_page
-            state.ClearField('requested_page')
-        else:
+        if requested_page is None:
             requested_page = state.current_page
-        assert 1 <= requested_page <= (state.num_pages or state.max_known_page)
 
         snapshot_max_id = state.snapshot_max_id
         snapshot_cursor_value = cursor_codec.decode(
@@ -287,21 +283,24 @@ async def sp_paginate_query(
                 state.text.page_first = encoded_first  # type: ignore
                 state.text.page_last = encoded_last  # type: ignore
         else:
-            state.page_first_id = 0
-            state.page_last_id = 0
+            state.ClearField('page_first_id')
+            state.ClearField('page_last_id')
             if cursor_codec.storage == 'u64':
-                state.u64.page_first = 0
-                state.u64.page_last = 0
+                state.u64.ClearField('page_first')
+                state.u64.ClearField('page_last')
             else:
-                state.text.page_first = ''
-                state.text.page_last = ''
+                state.text.ClearField('page_first')
+                state.text.ClearField('page_last')
 
-        if not state.num_pages and items:
-            boundary_cursor_encoded = (
-                state.u64.page_last
-                if cursor_codec.storage == 'u64'
-                else state.text.page_last
-            )
+        if not state.HasField('known_total') and items:
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_last')
+                boundary_cursor_encoded = state.u64.page_last
+            else:
+                assert state.text.HasField('page_last')
+                boundary_cursor_encoded = state.text.page_last
+
+            assert state.HasField('page_last_id')
             remaining_items_limited = await _count_beyond_limited(
                 conn,
                 from_=from_,
@@ -320,7 +319,7 @@ async def sp_paginate_query(
             _update_discovery(
                 state,
                 current_page_items=len(items),
-                remaining_items_limited=remaining_items_limited,
+                remaining=remaining_items_limited,
                 distance=distance,
             )
 
@@ -413,28 +412,31 @@ def _plan(
         # Jump to first page directly
         return _StandardPaginationQueryPlan(order_dir=order_dir, limit=page_size)
 
-    num_pages = state.num_pages
+    known_total = state.known_total if state.HasField('known_total') else None
+    num_pages = known_total.num_pages if known_total else None
 
     if page == num_pages:
         # Jump to last page directly
-        limit = (state.num_items % page_size) or page_size
+        assert known_total is not None
+        limit = (known_total.num_items % page_size) or page_size
         return _StandardPaginationQueryPlan(order_dir=reverse_dir, limit=limit)
 
     current_page = state.current_page
-    page_first_id = state.page_first_id
-    page_last_id = state.page_last_id
+    page_first_id = state.page_first_id if state.HasField('page_first_id') else None
+    page_last_id = state.page_last_id if state.HasField('page_last_id') else None
 
-    if page_first_id and page_last_id:
+    if page_first_id is not None and page_last_id is not None:
         # Cheap nearby navigation (<= distance) using cursor anchors + small OFFSET
         delta = page - current_page
 
         if delta > 0 and delta <= distance:
             anchor_id = page_last_id
-            anchor_cursor = cursor_codec.decode(
-                state.u64.page_last
-                if cursor_codec.storage == 'u64'
-                else state.text.page_last
-            )
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_last')
+                anchor_cursor = cursor_codec.decode(state.u64.page_last)
+            else:
+                assert state.text.HasField('page_last')
+                anchor_cursor = cursor_codec.decode(state.text.page_last)
             return _StandardPaginationQueryPlan(
                 order_dir=order_dir,
                 limit=page_size,
@@ -445,11 +447,12 @@ def _plan(
 
         if delta < 0 and -delta <= distance:
             anchor_id = page_first_id
-            anchor_cursor = cursor_codec.decode(
-                state.u64.page_first
-                if cursor_codec.storage == 'u64'
-                else state.text.page_first
-            )
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_first')
+                anchor_cursor = cursor_codec.decode(state.u64.page_first)
+            else:
+                assert state.text.HasField('page_first')
+                anchor_cursor = cursor_codec.decode(state.text.page_first)
             return _StandardPaginationQueryPlan(
                 order_dir=reverse_dir,
                 limit=page_size,
@@ -458,18 +461,31 @@ def _plan(
                 anchor_op='>' if order_dir == 'desc' else '<',
             )
 
+    if known_total is None:
+        # Total is still unknown, so we can only offset from the start.
+        return _StandardPaginationQueryPlan(
+            order_dir=order_dir,
+            limit=page_size,
+            offset=(page - 1) * page_size,
+        )
+
     # Use OFFSET from one of the ends
+    assert num_pages is not None
     assert 1 <= num_pages <= STANDARD_PAGINATION_MAX_FULL_PAGES
     offset_from_start = (page - 1) * page_size
-    offset_from_end = max(0, state.num_items - page * page_size)
+    offset_from_end = max(0, known_total.num_items - page * page_size)
 
     return (
         _StandardPaginationQueryPlan(
-            order_dir=order_dir, limit=page_size, offset=offset_from_start
+            order_dir=order_dir,
+            limit=page_size,
+            offset=offset_from_start,
         )
         if offset_from_start <= offset_from_end
         else _StandardPaginationQueryPlan(
-            order_dir=reverse_dir, limit=page_size, offset=offset_from_end
+            order_dir=reverse_dir,
+            limit=page_size,
+            offset=offset_from_end,
         )
     )
 
@@ -629,25 +645,24 @@ def _update_discovery(
     /,
     *,
     current_page_items: int,
-    remaining_items_limited: int,
+    remaining: int,
     distance: cython.size_t = STANDARD_PAGINATION_DISTANCE,
 ):
     """
-    Update discovery fields (`max_known_page`, and optionally `num_pages`/`num_items`)
+    Update discovery fields (`max_discovered_page`, and optionally exact totals)
     based on a limited count of remaining items beyond the current page.
     """
-    if state.HasField('num_pages'):
+    if state.HasField('known_total'):
         return
 
     page_size = state.page_size
     current_page = state.current_page
-    remaining = remaining_items_limited
-
     # End is at current page
     if remaining == 0:
-        state.num_pages = current_page
-        state.num_items = (current_page - 1) * page_size + current_page_items
-        state.max_known_page = current_page
+        state.known_total.num_pages = current_page
+        state.known_total.num_items = (
+            current_page - 1
+        ) * page_size + current_page_items
         return
 
     # End is within lookahead distance (exact)
@@ -656,13 +671,12 @@ def _update_discovery(
         last_page = current_page + additional_pages
         last_page_size = (remaining % page_size) or page_size
 
-        state.num_pages = last_page
-        state.num_items = (last_page - 1) * page_size + last_page_size
-        state.max_known_page = last_page
+        state.known_total.num_pages = last_page
+        state.known_total.num_items = (last_page - 1) * page_size + last_page_size
         return
 
     # End is beyond lookahead distance
-    state.max_known_page = max(state.max_known_page, current_page + distance)
+    state.max_discovered_page = max(state.max_discovered_page, current_page + distance)
 
 
 @cython.cfunc

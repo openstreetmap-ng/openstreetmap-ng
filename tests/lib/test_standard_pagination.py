@@ -43,7 +43,7 @@ def test_sp_plan_prefers_cursor_anchors_for_nearby_pages(
         # Boundaries of the current page in primary order (desc).
         page_first_id=50,
         page_last_id=41,
-        max_known_page=7,
+        max_discovered_page=7,
     )
     state.u64.page_first = 50
     state.u64.page_last = 41
@@ -74,9 +74,7 @@ def test_sp_plan_uses_reverse_shortcut_when_last_page_known():
         current_page=1,
         page_size=15,
         snapshot_max_id=100,
-        max_known_page=7,
-        num_pages=7,
-        num_items=100,
+        known_total=StandardPaginationState.KnownTotal(num_pages=7, num_items=100),
     )
 
     # Act
@@ -100,9 +98,7 @@ def test_sp_plan_falls_back_to_closest_end_when_last_page_known():
         current_page=1,
         page_size=15,
         snapshot_max_id=100,
-        max_known_page=7,
-        num_pages=7,
-        num_items=100,
+        known_total=StandardPaginationState.KnownTotal(num_pages=7, num_items=100),
     )
 
     # Act
@@ -122,54 +118,70 @@ def test_sp_plan_falls_back_to_closest_end_when_last_page_known():
 
 def test_sp_update_discovery_sets_exact_end_when_no_more_items():
     # Arrange
-    state = StandardPaginationState(current_page=1, page_size=10, max_known_page=1)
+    state = StandardPaginationState(
+        current_page=1,
+        page_size=10,
+        max_discovered_page=1,
+    )
 
     # Act
-    _update_discovery(state, current_page_items=7, remaining_items_limited=0)
+    _update_discovery(state, current_page_items=7, remaining=0)
 
     # Assert
-    assert state.num_pages == 1
-    assert state.num_items == 7
-    assert state.max_known_page == 1
+    assert state.known_total.num_pages == 1
+    assert state.known_total.num_items == 7
+    assert not state.HasField('max_discovered_page')
 
 
 def test_sp_update_discovery_discovers_last_page_within_lookahead_window():
     # Arrange
-    state = StandardPaginationState(current_page=3, page_size=10, max_known_page=3)
+    state = StandardPaginationState(
+        current_page=3,
+        page_size=10,
+        max_discovered_page=3,
+    )
 
     # Act
-    _update_discovery(state, current_page_items=10, remaining_items_limited=11)
+    _update_discovery(state, current_page_items=10, remaining=11)
 
     # Assert
-    assert state.num_pages == 5
-    assert state.num_items == 41
-    assert state.max_known_page == 5
+    assert state.known_total.num_pages == 5
+    assert state.known_total.num_items == 41
+    assert not state.HasField('max_discovered_page')
 
 
-def test_sp_update_discovery_extends_max_known_page_when_end_not_within_lookahead():
+def test_sp_update_discovery_extends_max_discovered_page_when_end_not_within_lookahead():
     # Arrange
-    state = StandardPaginationState(current_page=4, page_size=10, max_known_page=4)
+    state = StandardPaginationState(
+        current_page=4,
+        page_size=10,
+        max_discovered_page=4,
+    )
 
     # Act
-    _update_discovery(state, current_page_items=10, remaining_items_limited=21)
+    _update_discovery(state, current_page_items=10, remaining=21)
 
     # Assert
-    assert not state.HasField('num_pages')
-    assert state.max_known_page == 4 + STANDARD_PAGINATION_DISTANCE
+    assert not state.HasField('known_total')
+    assert state.max_discovered_page == 4 + STANDARD_PAGINATION_DISTANCE
 
 
-def test_sp_update_discovery_does_not_shrink_max_known_page():
+def test_sp_update_discovery_does_not_shrink_max_discovered_page():
     # Arrange
-    state = StandardPaginationState(current_page=1, page_size=10, max_known_page=8)
+    state = StandardPaginationState(
+        current_page=1,
+        page_size=10,
+        max_discovered_page=8,
+    )
 
     # Act
     _update_discovery(
         state,
         current_page_items=10,
-        remaining_items_limited=10_000,
+        remaining=10_000,
         distance=STANDARD_PAGINATION_DISTANCE,
     )
 
     # Assert
-    assert not state.HasField('num_pages')
-    assert state.max_known_page == 8
+    assert not state.HasField('known_total')
+    assert state.max_discovered_page == 8

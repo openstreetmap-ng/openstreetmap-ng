@@ -12,7 +12,7 @@ from app.config import (
 )
 from app.lib.auth_context import auth_user, web_user
 from app.lib.standard_pagination import (
-    StandardPaginationStateBody,
+    StandardPaginationRequestBody,
     sp_paginate_table,
     sp_render_response,
 )
@@ -21,10 +21,11 @@ from app.models.db.report_comment import (
     ReportComment,
     report_comments_resolve_rich_text,
 )
-from app.models.db.user import User, UserRole, user_is_admin, user_is_moderator
+from app.models.db.user import User, user_is_admin, user_is_moderator
+from app.models.proto.admin_users_types import Role
 from app.models.types import ReportCommentId, ReportId
 from app.queries.report_comment_query import ReportCommentQuery
-from app.queries.report_query import ReportQuery
+from app.queries.report_query import ReportQuery, where_open
 from app.queries.user_query import UserQuery
 from app.services.report_comment_service import ReportCommentService
 from app.services.report_service import ReportService
@@ -67,7 +68,7 @@ async def change_comment_visibility(
     _: Annotated[User, web_user('role_administrator')],
     __: ReportId,
     comment_id: ReportCommentId,
-    visible_to: Annotated[UserRole, Form()],
+    visible_to: Annotated[Role, Form()],
 ):
     await ReportCommentService.update_visibility(comment_id, visible_to)
     return Response(None, status.HTTP_204_NO_CONTENT)
@@ -77,24 +78,17 @@ async def change_comment_visibility(
 async def reports_page(
     _: Annotated[User, web_user('role_moderator')],
     status: Annotated[Literal['', 'open', 'closed'], Query()],
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     """Get a page of reports for the moderation interface."""
     # Convert status to boolean for query
     open = None if not status else status == 'open'
 
-    if open is True:
-        where = SQL('closed_at IS NULL')
-    elif open is False:
-        where = SQL('closed_at IS NOT NULL')
-    else:
-        where = SQL('TRUE')
-
     reports, state = await sp_paginate_table(
         Report,
         sp_state,
         table='report',
-        where=where,
+        where=where_open(open),
         page_size=REPORT_LIST_PAGE_SIZE,
         cursor_column='updated_at',
         cursor_kind='datetime',
@@ -134,7 +128,7 @@ async def reports_page(
 async def comments_page(
     _: Annotated[User, web_user('role_moderator')],
     report_id: ReportId,
-    sp_state: StandardPaginationStateBody = b'',
+    sp_state: StandardPaginationRequestBody = b'',
 ):
     """Get a page of comments for a specific report."""
     async with TaskGroup() as tg:

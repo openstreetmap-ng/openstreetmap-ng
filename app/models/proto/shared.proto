@@ -10,10 +10,30 @@ message IdResponse {
   uint64 id = 1;
 }
 
+message IpCount {
+  bytes ip = 1;
+  uint32 count = 2;
+}
+
 message User {
   uint64 id = 1;
   string display_name = 2;
   string avatar_url = 3;
+}
+
+message UserSocial {
+  string service = 1 [(buf.validate.field).string.max_len = 32];
+  string value = 2 [(buf.validate.field).string.max_len = 500];
+}
+
+enum Scope {
+  read_prefs = 0;
+  write_prefs = 1;
+  write_api = 2;
+  read_gpx = 3;
+  write_gpx = 4;
+  write_notes = 5;
+  web_user = 6;
 }
 
 message LonLat {
@@ -75,39 +95,54 @@ message StandardFeedbackDetail {
 // Pagination
 // =============================================
 
+message StandardPaginationRequest {
+  option (buf.validate.message).cel_expression = "!has(this.requested_page) || !has(this.state) || this.requested_page <= (has(this.state.known_total) ? this.state.known_total.num_pages : this.state.max_discovered_page)";
+
+  optional StandardPaginationState state = 1;
+  optional uint32 requested_page = 2 [(buf.validate.field).uint32.gt = 0];
+}
+
 message StandardPaginationState {
+  option (buf.validate.message).cel_expression = "this.current_page <= (has(this.known_total) ? this.known_total.num_pages : this.max_discovered_page)";
+
   message U64Cursors {
     uint64 snapshot = 1;
-    uint64 page_first = 2;
-    uint64 page_last = 3;
+    optional uint64 page_first = 2;
+    optional uint64 page_last = 3;
   }
 
   message TextCursors {
     string snapshot = 1;
-    string page_first = 2;
-    string page_last = 3;
+    optional string page_first = 2;
+    optional string page_last = 3;
+  }
+
+  message KnownTotal {
+    uint32 num_pages = 1 [(buf.validate.field).uint32.gt = 0];
+    uint32 num_items = 2;
   }
 
   // Cursor anchors for the stable snapshot and the current page boundaries.
   // - `u64`: id- and datetime-based cursors
   // - `text`: string cursors (e.g. display_name)
   oneof cursors {
+    option (buf.validate.oneof).required = true;
     U64Cursors u64 = 1;
     TextCursors text = 2;
   }
 
-  uint32 page_size = 3;
-  uint32 current_page = 4;
-  optional uint32 requested_page = 5;
-
-  optional uint32 num_pages = 6;
-  optional uint32 num_items = 7;
-  uint32 max_known_page = 8;
+  uint32 page_size = 3 [(buf.validate.field).uint32.gt = 0];
+  uint32 current_page = 4 [(buf.validate.field).uint32.gt = 0];
+  oneof total_extent {
+    option (buf.validate.oneof).required = true;
+    KnownTotal known_total = 5;
+    uint32 max_discovered_page = 6 [(buf.validate.field).uint32.gt = 0];
+  }
 
   // Maximum id in the stable snapshot (used to exclude newly inserted rows).
-  uint64 snapshot_max_id = 9;
-  uint64 page_first_id = 10;
-  uint64 page_last_id = 11;
+  uint64 snapshot_max_id = 7;
+  optional uint64 page_first_id = 8;
+  optional uint64 page_last_id = 9;
 }
 
 // =============================================
@@ -118,16 +153,13 @@ message StandardPaginationState {
 message WebConfig {
   // User-specific preferences
   message UserConfig {
-    uint64 id = 1; // User ID
-    string display_name = 2; // User display name
-    string email = 3; // User email
-    string avatar_url = 4; // User avatar URL
-    optional LonLat home_point = 5; // User's home point
-    bool activity_tracking = 6; // Enable usage analytics
-    bool crash_reporting = 7; // Enable automatic error reports
-    uint32 messages_count_unread = 8; // Unread messages count
-    optional uint32 reports_count_moderator = 9; // Reports requiring moderator attention
-    optional uint32 reports_count_administrator = 10; // Reports requiring admin attention
+    User user = 1 [(buf.validate.field).required = true]; // User identity (id/display name/avatar URL)
+    optional LonLat home_point = 2; // User's home point
+    bool activity_tracking = 3; // Enable usage analytics
+    bool crash_reporting = 4; // Enable automatic error reports
+    uint32 messages_count_unread = 5; // Unread messages count
+    optional uint32 reports_count_moderator = 6; // Reports requiring moderator attention
+    optional uint32 reports_count_administrator = 7; // Reports requiring admin attention
   }
 
   optional UserConfig user_config = 1; // User preferences override
@@ -201,11 +233,4 @@ message ElementVersionRef {
 message ElementIcon {
   string icon = 1; // Icon URL
   string title = 2; // Accessible tooltip text
-}
-
-// Encoded user activity heatmap data
-message UserActivityChart {
-  string start_date = 1; // ISO date (YYYY-MM-DD) of the first cell (UTC)
-  repeated uint32 values = 2; // Raw activity count per day, chronological
-  bytes levels = 3; // Intensity levels per day (0-19) aligned with values
 }

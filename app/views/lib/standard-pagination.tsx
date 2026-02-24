@@ -1,5 +1,5 @@
 import type { DescMessage, DescMethodUnary, MessageInitShape } from "@bufbuild/protobuf"
-import { type MessageValidType, toBinary } from "@bufbuild/protobuf"
+import { create, type MessageValidType, toBinary } from "@bufbuild/protobuf"
 import { base64Decode } from "@bufbuild/protobuf/wire"
 import { ConnectError } from "@connectrpc/connect"
 import {
@@ -9,6 +9,8 @@ import {
 import { resolveDatetimeLazy } from "@lib/datetime-inputs"
 import { createDisposeScope, useDisposeSignalEffect } from "@lib/dispose-scope"
 import {
+  type StandardPaginationRequest,
+  StandardPaginationRequestSchema,
   type StandardPaginationState,
   StandardPaginationStateSchema,
 } from "@lib/proto/shared_pb"
@@ -18,7 +20,7 @@ import {
   type LooseMessageInitShape,
   rpcUnary,
 } from "@lib/rpc"
-import { range } from "@lib/utils"
+import { encodeAscii, range } from "@lib/utils"
 import {
   batch,
   type ReadonlySignal,
@@ -28,11 +30,10 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assert, assertExists } from "@std/assert"
+import { assert } from "@std/assert"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { render } from "preact"
-import { memo } from "preact/compat"
 
 const SP_HEADER = "X-StandardPagination"
 
@@ -40,7 +41,6 @@ type PageOrder = "asc" | "asc-range" | "desc" | "desc-range"
 
 type StandardPaginationOptions = {
   initialPage?: number
-  customLoader?: (renderContainer: HTMLElement, page: number) => void
   loadCallback?: (renderContainer: HTMLElement, page: number) => void
   pageOrder?: PageOrder
 }
@@ -69,7 +69,29 @@ type PaginationResource<TData> =
   | { tag: "ready"; data: TData }
   | { tag: "error"; error: string; prev: TData | null }
 
-const PaginationSpinner = memo(({ class: className = "" }: { class?: string }) => (
+const paginationKnownTotal = (state: StandardPaginationState | null | undefined) =>
+  state?.totalExtent.case === "knownTotal" ? state.totalExtent.value : undefined
+
+const paginationNumPages = (state: StandardPaginationState | null | undefined) =>
+  paginationKnownTotal(state)?.numPages
+
+const paginationNumItems = (state: StandardPaginationState | null | undefined) =>
+  paginationKnownTotal(state)?.numItems
+
+const paginationMaxPage = (state: StandardPaginationState | null | undefined) =>
+  paginationKnownTotal(state)?.numPages ??
+  (state?.totalExtent.case === "maxDiscoveredPage" ? state.totalExtent.value : 1)
+
+const paginationStateToRequest = (
+  state: StandardPaginationState,
+  requestedPage: number,
+): StandardPaginationRequest => ({
+  $typeName: "StandardPaginationRequest",
+  state,
+  requestedPage,
+})
+
+const PaginationSpinner = ({ class: className = "" }: { class?: string }) => (
   <div class={`sp-spinner ${className}`}>
     <output
       class="spinner-border text-body-secondary"
@@ -78,7 +100,7 @@ const PaginationSpinner = memo(({ class: className = "" }: { class?: string }) =
       <span class="visually-hidden">{t("browse.start_rjs.loading")}</span>
     </output>
   </div>
-))
+)
 
 const PaginationError = ({ error }: { error: string }) => (
   <div
@@ -137,7 +159,7 @@ const PaginationItems = ({
   currentPage,
   targetPage,
   pageOrder,
-  maxKnownPage,
+  maxPage,
   numPages,
   numItems,
   pageSize,
@@ -146,7 +168,7 @@ const PaginationItems = ({
   currentPage: ReadonlySignal<number>
   targetPage: Signal<number>
   pageOrder: PageOrder
-  maxKnownPage: number
+  maxPage: number
   numPages: number | undefined
   numItems: number | undefined
   pageSize: number | undefined
@@ -154,8 +176,7 @@ const PaginationItems = ({
 }) => {
   const actualPage = currentPage.value
 
-  const resolvedMaxPage = numPages ?? maxKnownPage
-  if (resolvedMaxPage <= 1) return null
+  if ((numPages ?? maxPage) <= 1) return null
 
   // For desc mode, invert page numbers: display = numPages - actual + 1
   const isDesc = pageOrder.startsWith("desc")
@@ -169,7 +190,7 @@ const PaginationItems = ({
 
   const pagesToRender = computePagesToRender(
     displayPage,
-    isDesc ? toDisplay(1) : maxKnownPage,
+    isDesc ? toDisplay(1) : maxPage,
     numPages,
   )
   const tokens: (number | "gap")[] = []
@@ -238,7 +259,7 @@ export const StandardPaginationNav = ({
   currentPage,
   targetPage,
   pageOrder,
-  maxKnownPage,
+  maxPage,
   numPages,
   numItems,
   pageSize,
@@ -250,7 +271,7 @@ export const StandardPaginationNav = ({
   currentPage: ReadonlySignal<number>
   targetPage: Signal<number>
   pageOrder: PageOrder
-  maxKnownPage: number
+  maxPage: number
   numPages: number | undefined
   numItems?: number | undefined
   pageSize?: number | undefined
@@ -258,8 +279,7 @@ export const StandardPaginationNav = ({
   small?: boolean
   class?: string
 }) => {
-  const resolvedMaxPage = numPages ?? maxKnownPage
-  if (resolvedMaxPage <= 1) return null
+  if ((numPages ?? maxPage) <= 1) return null
 
   const paginationClass =
     `pagination justify-content-end ${small ? "pagination-sm" : ""} ${className}`.trim()
@@ -270,7 +290,7 @@ export const StandardPaginationNav = ({
           currentPage={currentPage}
           targetPage={targetPage}
           pageOrder={pageOrder}
-          maxKnownPage={maxKnownPage}
+          maxPage={maxPage}
           numPages={numPages}
           numItems={numItems}
           pageSize={pageSize}
@@ -341,7 +361,7 @@ const useStandardPagination = <TData extends PaginationResponse>({
 
         // Handle initial jump: if we're booting and target differs from what server returned
         if (current.tag === "boot" && initialPage !== 1) {
-          const maxPage = responseState.numPages ?? responseState.maxKnownPage
+          const maxPage = paginationMaxPage(responseState)
           const resolvedPage = Math.min(initialPage, maxPage)
           if (resolvedPage !== responseState.currentPage) {
             batch(() => {
@@ -377,22 +397,7 @@ type PaginatedRequestInit<I extends DescMessage> =
 type PaginatedResponse<O extends DescMessage> =
   MessageValidType<O> extends PaginationResponse ? MessageValidType<O> : never
 
-export const StandardPagination = <I extends DescMessage, O extends DescMessage>({
-  method,
-  request,
-  ariaLabel = t("alt.page_navigation"),
-  pageOrder = "asc",
-  initialPage = 1,
-  responseSignal,
-  onLoad,
-  small = false,
-  navTop = false,
-  navClassTop = "mb-2",
-  navBottom = true,
-  navClassBottom = "",
-  spinnerClass = "",
-  children,
-}: {
+type StandardPaginationProps<I extends DescMessage, O extends DescMessage> = {
   method: DescMethodUnary<I, O>
   request: Omit<PaginatedRequestInit<I>, "state">
   ariaLabel?: string
@@ -407,7 +412,24 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
   navClassBottom?: string
   spinnerClass?: string
   children: (data: PaginatedResponse<O>) => ComponentChildren
-}) => {
+}
+
+const StandardPaginationInstance = <I extends DescMessage, O extends DescMessage>({
+  method,
+  request,
+  ariaLabel = t("alt.page_navigation"),
+  pageOrder = "asc",
+  initialPage = 1,
+  responseSignal,
+  onLoad,
+  small = false,
+  navTop = false,
+  navClassTop = "mb-2",
+  navBottom = true,
+  navClassBottom = "",
+  spinnerClass = "",
+  children,
+}: StandardPaginationProps<I, O>) => {
   type TRequest = PaginatedRequestInit<I>
   type TResponse = PaginatedResponse<O>
 
@@ -420,7 +442,9 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
       return (await rpcUnary(method)(
         {
           ...request,
-          state: { ...baseState, requestedPage },
+          ...(baseState === null
+            ? {}
+            : { state: paginationStateToRequest(baseState, requestedPage) }),
         } as unknown as TRequest,
         { signal: abortSignal },
       )) as TResponse
@@ -439,10 +463,9 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
   })
 
   const currentState = state.value
-  const maxKnownPage = currentState?.maxKnownPage ?? 1
-  const numPages = currentState?.numPages
-  const resolvedMaxPage = numPages ?? maxKnownPage
-  const showNav = resolvedMaxPage > 1
+  const maxPage = paginationMaxPage(currentState)
+  const numPages = paginationNumPages(currentState)
+  const showNav = (numPages ?? maxPage) > 1
   const showTailEllipsis = currentState !== null && numPages === undefined
 
   return (
@@ -453,9 +476,9 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
           currentPage={currentPage}
           targetPage={targetPage}
           pageOrder={pageOrder}
-          maxKnownPage={maxKnownPage}
+          maxPage={maxPage}
           numPages={numPages}
-          numItems={currentState?.numItems}
+          numItems={paginationNumItems(currentState)}
           pageSize={currentState?.pageSize}
           showTailEllipsis={showTailEllipsis}
           small={small}
@@ -474,9 +497,9 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
           currentPage={currentPage}
           targetPage={targetPage}
           pageOrder={pageOrder}
-          maxKnownPage={maxKnownPage}
+          maxPage={maxPage}
           numPages={numPages}
-          numItems={currentState?.numItems}
+          numItems={paginationNumItems(currentState)}
           pageSize={currentState?.pageSize}
           showTailEllipsis={showTailEllipsis}
           small={small}
@@ -486,6 +509,26 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
     </>
   )
 }
+
+const standardPaginationRequestKey = <I extends DescMessage, O extends DescMessage>(
+  method: DescMethodUnary<I, O>,
+  request: Omit<PaginatedRequestInit<I>, "state">,
+) =>
+  `${method.parent.typeName}.${method.localName}:${encodeAscii(
+    toBinary(
+      method.input,
+      create(method.input, request as unknown as MessageInitShape<I>),
+    ),
+  )}`
+
+export const StandardPagination = <I extends DescMessage, O extends DescMessage>(
+  props: StandardPaginationProps<I, O>,
+) => (
+  <StandardPaginationInstance
+    key={standardPaginationRequestKey(props.method, props.request)}
+    {...props}
+  />
+)
 
 // TODO: start of remove
 export const configureStandardPagination = (
@@ -509,20 +552,10 @@ const configureStandardPaginationElements = (
     numItemsTargets,
     numPagesTargets,
   } = elements
-  const {
-    initialPage = 1,
-    customLoader,
-    loadCallback,
-    pageOrder = "asc",
-  } = options ?? {}
-  const dataset = actionPagination.dataset
-  const fetchUrl = dataset.action
-  const customNumPages = dataset.pages ? Number.parseInt(dataset.pages, 10) : null
-  if (customLoader) {
-    assertExists(dataset.pages, "Pagination: Missing data-pages for custom loader")
-  }
+  const { initialPage = 1, loadCallback, pageOrder = "asc" } = options ?? {}
+  const fetchUrl = actionPagination.dataset.action!
 
-  console.debug("Pagination: Initializing", customLoader ? "<custom>" : fetchUrl)
+  console.debug("Pagination: Initializing", fetchUrl)
 
   const scope = createDisposeScope()
   scope.defer(() => {
@@ -576,22 +609,12 @@ const configureStandardPaginationElements = (
     const targetPageValue = targetPage.value
     const targetPageString = targetPageValue.toString()
 
-    if (customLoader) {
-      const resolvedPage = Math.min(targetPageValue, customNumPages!)
-      currentPage.value = resolvedPage
-      customLoader(renderContainer, resolvedPage)
-      afterLoad(resolvedPage)
-      console.debug("Pagination: Page loaded (custom)", targetPageString)
-      return
-    }
-
     console.debug("Pagination: Loading page", targetPageString)
     const abortController = new AbortController()
     setPendingState(true)
 
     const fetchPage = async () => {
       try {
-        assertExists(fetchUrl, "Pagination: Missing data-action")
         const baseState = state.peek()
         const resp = await fetch(
           fetchUrl,
@@ -605,7 +628,7 @@ const configureStandardPaginationElements = (
         let skipRender = false
         if (!didInitialJump && initialPage !== 1) {
           didInitialJump = true
-          const maxPage = parsed.numPages ?? parsed.maxKnownPage
+          const maxPage = paginationMaxPage(parsed)
           const resolvedInitialPage = Math.min(initialPage, maxPage)
           if (resolvedInitialPage !== parsed.currentPage) {
             // Avoid rendering an intermediate "page 1" snapshot when we immediately
@@ -646,11 +669,10 @@ const configureStandardPaginationElements = (
   // Effect: Rebuild pagination UI buttons when page counts or current page changes
   scope.effect(() => {
     const currentState = state.value
-    const numPagesValue = customNumPages ?? currentState?.numPages
-    const maxKnownPageValue = customNumPages ?? currentState?.maxKnownPage ?? 1
+    const numPagesValue = paginationNumPages(currentState)
+    const maxPageValue = paginationMaxPage(currentState)
     const showTailEllipsis = currentState !== null && numPagesValue === undefined
-    const resolvedMaxPage = numPagesValue ?? maxKnownPageValue
-    if (resolvedMaxPage <= 1) {
+    if ((numPagesValue ?? maxPageValue) <= 1) {
       for (const paginationContainer of paginationContainers) {
         paginationContainer.hidden = true
         render(null, paginationContainer)
@@ -664,9 +686,9 @@ const configureStandardPaginationElements = (
         <PaginationItems
           targetPage={targetPage}
           currentPage={currentPage}
-          maxKnownPage={maxKnownPageValue}
+          maxPage={maxPageValue}
           numPages={numPagesValue}
-          numItems={currentState?.numItems}
+          numItems={paginationNumItems(currentState)}
           pageSize={currentState?.pageSize}
           pageOrder={pageOrder}
           showTailEllipsis={showTailEllipsis}
@@ -679,8 +701,8 @@ const configureStandardPaginationElements = (
   // Effect: Update pagination meta targets (num items/pages)
   scope.effect(() => {
     const currentState = state.value
-    const numItemsValue = currentState?.numItems
-    const numPagesValue = customNumPages ?? currentState?.numPages
+    const numItemsValue = paginationNumItems(currentState)
+    const numPagesValue = paginationNumPages(currentState)
 
     if (numItemsValue !== undefined) {
       for (const element of numItemsTargets) {
@@ -698,21 +720,15 @@ const configureStandardPaginationElements = (
 }
 
 const resolvePaginationElements = (container: Element): StandardPaginationElements => {
-  const actionPagination = container.querySelector(
-    "ul.pagination[data-action], ul.pagination[data-pages]",
-  )
-  assertExists(actionPagination, "Pagination: Missing action pagination")
-  const actionNav = actionPagination.closest("nav")
-  assertExists(actionNav, "Pagination: Missing action nav")
-  const paginationRoot = actionNav.parentElement
-  assertExists(paginationRoot, "Pagination: Missing pagination root")
+  const actionPagination = container.querySelector("ul.pagination[data-action]")!
+  const actionNav = actionPagination.closest("nav")!
+  const paginationRoot = actionNav.parentElement!
   const paginationContainers = [
     ...paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
   ]
 
   const renderSibling = (actionNav.previousElementSibling ??
-    paginationRoot.previousElementSibling) as HTMLElement | null
-  assertExists(renderSibling, "Pagination: Missing render container")
+    paginationRoot.previousElementSibling) as HTMLElement
 
   const renderContainer = renderSibling.matches("tbody, ul.list-unstyled")
     ? renderSibling
@@ -744,10 +760,10 @@ const applyState = (
 
 const computePagesToRender = (
   currentPage: number,
-  maxKnownPage: number,
+  maxPage: number,
   numPages: number | undefined,
 ) => {
-  const resolvedMaxPage = numPages ?? maxKnownPage
+  const resolvedMaxPage = numPages ?? maxPage
 
   if (resolvedMaxPage <= STANDARD_PAGINATION_MAX_FULL_PAGES) {
     return range(1, resolvedMaxPage + 1)
@@ -794,10 +810,10 @@ const buildFetchInit = (
   // For the initial request (no state yet), omit the body entirely.
   // The backend defaults `sp_state` to `b''`, so missing body and empty body are equivalent.
   if (baseState !== null) {
-    const requestBytes = toBinary(StandardPaginationStateSchema, {
-      ...baseState,
-      requestedPage,
-    })
+    const requestBytes = toBinary(
+      StandardPaginationRequestSchema,
+      paginationStateToRequest(baseState, requestedPage),
+    )
     fetchInit.body = new Blob([requestBytes], {
       type: "application/x-protobuf",
     })
@@ -806,8 +822,5 @@ const buildFetchInit = (
   return fetchInit
 }
 
-const parsePaginationHeader = (headers: Headers) => {
-  const header = headers.get(SP_HEADER)
-  assertExists(header, `Pagination: Missing ${SP_HEADER} header`)
-  return fromBinaryValid(StandardPaginationStateSchema, base64Decode(header))
-}
+const parsePaginationHeader = (headers: Headers) =>
+  fromBinaryValid(StandardPaginationStateSchema, base64Decode(headers.get(SP_HEADER)!))
