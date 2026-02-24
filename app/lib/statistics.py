@@ -1,28 +1,15 @@
-from base64 import urlsafe_b64encode
 from datetime import date, timedelta
-from typing import TypedDict
 
 import numpy as np
 
 from app.config import USER_ACTIVITY_CHART_WEEKS
 from app.lib.date_utils import utcnow
-from app.models.proto.shared_pb2 import UserActivityChart
+from app.models.proto.profile_pb2 import Page
 from app.models.types import UserId
 from app.queries.changeset_query import ChangesetQuery
 
 
-class UserActivitySummaryResult(TypedDict):
-    activity_chart: str
-    """Base64-encoded protobuf payload describing the activity chart."""
-    activity_max: int
-    """Peak activity count."""
-    activity_sum: int
-    """Sum of all activity counts."""
-    activity_days: int
-    """Total mapping days."""
-
-
-async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
+async def user_activity_summary(user_id: UserId):
     """
     Get activity data for the given user.
     Used to render the activity chart on user profile pages.
@@ -48,26 +35,16 @@ async def user_activity_summary(user_id: UserId) -> UserActivitySummaryResult:
     # Map activity counts to each date
     activity = np.array([activity_per_day.get(d, 0) for d in dates_range], np.uint32)
 
-    # Calculate activity intensity levels (0-19 scale)
+    # Calculate the clipping threshold used for deriving intensity levels (0-19)
     activity_positive = activity[activity > 0]
     max_activity_clip = (
-        np.percentile(activity_positive, 95)
+        np.percentile(activity_positive, 95).tolist()
         if len(activity_positive) > 0  #
         else 1
     )
-    activity_levels = (  #
-        np.ceil(np.clip(activity / max_activity_clip, 0, 1) * 19).astype(np.uint8)
-    )
 
-    chart_proto = UserActivityChart(
-        start_date=dates_range[0].isoformat(),
+    return Page.ActivityChart(
+        start_day=(dates_range[0] - date(1970, 1, 1)).days,
         values=activity.tolist(),
-        levels=activity_levels.tobytes(),
+        max_activity_clip=max_activity_clip,
     )
-
-    return {
-        'activity_chart': urlsafe_b64encode(chart_proto.SerializeToString()).decode(),
-        'activity_max': int(activity.max()),
-        'activity_sum': int(activity.sum()),
-        'activity_days': int((activity > 0).sum()),
-    }
