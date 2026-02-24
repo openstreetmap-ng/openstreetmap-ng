@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package audit;
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+enum Type {
+  add_connected_account = 0;
+  add_passkey = 1;
+  add_totp = 2;
+  admin_task = 3;
+  auth_api = 4;
+  auth_fail = 5;
+  auth_web = 6;
+  authorize_app = 7;
+  change_app_settings = 8;
+  change_display_name = 9;
+  change_email = 10;
+  change_password = 11;
+  change_roles = 12;
+  close_changeset = 13;
+  create_app = 14;
+  create_changeset = 15;
+  create_changeset_comment = 16;
+  create_diary = 17;
+  create_diary_comment = 18;
+  create_note = 19;
+  create_note_comment = 20;
+  create_pat = 21;
+  create_trace = 22;
+  delete_diary = 23;
+  delete_prefs = 24;
+  delete_trace = 25;
+  edit_map = 26;
+  generate_recovery_codes = 27;
+  impersonate = 28;
+  nsfw_image = 29;
+  rate_limit = 30;
+  remove_connected_account = 31;
+  remove_passkey = 32;
+  remove_totp = 33;
+  request_change_email = 34;
+  request_reset_password = 35;
+  revoke_app = 36;
+  revoke_app_all_users = 37;
+  send_message = 38;
+  update_changeset = 39;
+  update_diary = 40;
+  update_note_status = 41;
+  update_prefs = 42;
+  update_trace = 43;
+  use_recovery_code = 44;
+  view_admin_applications = 45;
+  view_admin_users = 46;
+  view_audit = 47;
+}
+
+message Page {}
+
+service Service {
+  rpc List(ListRequest) returns (ListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+message ListRequest {
+  optional StandardPaginationRequest state = 1;
+  Filters filters = 2 [(buf.validate.field).required = true];
+}
+
+message ListResponse {
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Event events = 2;
+}
+
+message Filters {
+  option (buf.validate.message).cel_expression = "!has(this.created_after) || !has(this.created_before) || this.created_after <= this.created_before";
+
+  optional string ip = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  optional string user = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  optional uint64 application_id = 3 [(buf.validate.field).uint64.gt = 0];
+  optional Type type = 4 [(buf.validate.field).enum.defined_only = true];
+  optional uint64 created_after = 5;
+  optional uint64 created_before = 6;
+}
+
+message Event {
+  message Application {
+    uint64 id = 1;
+    string name = 2;
+    string avatar_url = 3;
+    optional User owner = 4;
+  }
+
+  uint64 id = 1;
+  Type type = 2 [(buf.validate.field).enum.defined_only = true];
+  uint64 created_at = 3;
+  bytes ip = 4;
+  optional string user_agent = 5;
+  optional User user = 6;
+  optional User target_user = 7;
+  optional Application application = 8;
+  optional string extra = 9;
+}
