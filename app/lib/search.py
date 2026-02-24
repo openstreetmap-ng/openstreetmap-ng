@@ -149,7 +149,7 @@ class Search:
             assert members_roles is not None, 'Relation members roles must be set'
 
             success: cython.bint = False
-            for member_tid, role in zip(members_tids, members_roles, strict=True):
+            for member_tid, role in zip(members_tids, members_roles):
                 if element_type(member_tid) != 'node' or (
                     success and role != 'admin_centre'
                 ):
@@ -220,7 +220,7 @@ class Search:
             if name1 == name2:
                 mask[i2] = False
 
-        return [result for result, is_mask in zip(dedup1, mask, strict=True) if is_mask]
+        return [result for result, is_mask in zip(dedup1, mask) if is_mask]
 
 
 @cython.cfunc

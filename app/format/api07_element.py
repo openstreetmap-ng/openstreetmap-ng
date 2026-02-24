@@ -66,11 +66,7 @@ def _encode_relation_members(
     return (
         [
             {'type': type, 'id': id, 'role': role}
-            for (type, id), role in zip(
-                split_typed_element_ids(members),
-                members_roles,
-                strict=True,
-            )
+            for (type, id), role in zip(split_typed_element_ids(members), members_roles)
         ]
         if members and members_roles
         else []

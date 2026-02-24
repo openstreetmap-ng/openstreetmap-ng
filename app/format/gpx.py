@@ -39,7 +39,7 @@ class FormatGPX:
             trkseg: list[dict] = []
             trkpt: list[dict] = []
 
-            for (lon, lat), segment_num in zip(coordinates, segment_nums, strict=True):
+            for (lon, lat), segment_num in zip(coordinates, segment_nums):
                 # Handle start of new segment
                 if segment_num > current_segment_num:
                     current_segment_num = segment_num
