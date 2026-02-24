@@ -2,14 +2,15 @@ from psycopg.rows import dict_row
 
 from app.db import db
 from app.lib.auth_context import auth_user
-from app.models.db.connected_account import AuthProvider, ConnectedAccount
+from app.models.db.connected_account import ConnectedAccount
+from app.models.proto.settings_connections_types import Provider
 from app.models.types import UserId
 
 
 class ConnectedAccountQuery:
     @staticmethod
     async def find_user_id_by_auth_provider(
-        provider: AuthProvider, uid: str
+        provider: Provider, uid: str
     ) -> UserId | None:
         """Find a user id by auth provider and uid."""
         async with (

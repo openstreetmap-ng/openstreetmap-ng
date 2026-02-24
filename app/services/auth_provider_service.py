@@ -17,13 +17,10 @@ from app.lib.auth_context import auth_user
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.referrer import secure_referrer
 from app.lib.render_response import render_response
-from app.models.db.connected_account import (
-    AUTH_PROVIDERS,
-    AuthProvider,
-    AuthProviderAction,
-)
+from app.models.db.connected_account import AUTH_PROVIDERS, AuthProviderAction
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
+from app.models.proto.settings_connections_types import Provider
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.audit_service import audit
 from app.services.connected_account_service import ConnectedAccountService
@@ -36,7 +33,7 @@ class AuthProviderService:
     @staticmethod
     def continue_authorize(
         *,
-        provider: AuthProvider,
+        provider: Provider,
         action: AuthProviderAction,
         referer: str | None,
         redirect_uri: str,
@@ -64,7 +61,7 @@ class AuthProviderService:
     @staticmethod
     def validate_state(
         *,
-        provider: AuthProvider,
+        provider: Provider,
         query_state: str,
         cookie_state: str,
     ):
@@ -96,7 +93,7 @@ class AuthProviderService:
         if state.provider not in AUTH_PROVIDERS:
             raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
 
-        provider: AuthProvider = state.provider
+        provider: Provider = state.provider
         action: AuthProviderAction = state.action  # type: ignore
         uid = str(uid)
 
@@ -108,6 +105,14 @@ class AuthProviderService:
                 return await render_response(
                     'user/auth-provider-not-found', {'provider': provider}
                 )
+
+            audit(
+                'auth_web',
+                user_id=user_id,
+                extra={'login': True, 'provider': provider},
+                sample_rate=1,
+                discard_repeated=None,
+            ).close()
 
             access_token = await SystemAppService.create_access_token(
                 SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
@@ -124,13 +129,6 @@ class AuthProviderService:
                 secure=ENV != 'dev',
                 httponly=True,
                 samesite='lax',
-            )
-            await audit(
-                'auth_web',
-                user_id=user_id,
-                extra={'login': True, 'provider': provider},
-                sample_rate=1,
-                discard_repeated=None,
             )
             return response
 
@@ -217,7 +215,7 @@ class AuthProviderService:
 @cython.cfunc
 def _create_signed_state(
     *,
-    provider: AuthProvider,
+    provider: Provider,
     action: AuthProviderAction,
     referer: str | None,
 ):
@@ -242,7 +240,7 @@ def _create_signed_state(
 @cython.cfunc
 def _create_signed_verification(
     *,
-    provider: AuthProvider,
+    provider: Provider,
     uid: str,
     name: str | None,
     email: str | None,
