@@ -1,3 +1,4 @@
+import { configureMap } from "@lib/map/configure-map"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
   addMapLayer,
@@ -7,13 +8,20 @@ import {
 } from "@lib/map/layers/layers"
 import { assertExists } from "@std/assert"
 import { memoize } from "@std/cache"
-import { Map as MaplibreMap } from "maplibre-gl"
+import type { Map as MaplibreMap } from "maplibre-gl"
 
 type MinimapEntry = {
   container: HTMLDivElement
-  map: MaplibreMap
-  attached: boolean
-}
+} & (
+  | {
+      attached: true
+      map: MaplibreMap
+    }
+  | {
+      attached: false
+      map: MaplibreMap | null
+    }
+)
 
 const getStash = memoize(() => {
   const stash = document.createElement("div")
@@ -35,12 +43,18 @@ const ensure = (layerId: LayerId) => {
   getStash().append(container)
 
   console.debug("MinimapPool: Initializing minimap", layerId)
-  const minimap = new MaplibreMap({
+  const minimap = configureMap({
     container,
     attributionControl: false,
     interactive: false,
     refreshExpiredTiles: false,
   })
+  if (!minimap) {
+    const entry: MinimapEntry = { container, map: null, attached: false }
+    entries.set(layerId, entry)
+    return entry
+  }
+
   configureDefaultMapBehavior(minimap)
   addMapLayerSources(minimap, layerId)
   addMapLayer(minimap, layerId, false)
@@ -55,6 +69,9 @@ const ensure = (layerId: LayerId) => {
 const attach = (layerId: LayerId, host: HTMLElement, from: MaplibreMap) => {
   const entry = ensure(layerId)
   host.replaceChildren(entry.container)
+
+  if (!entry.map) return
+
   entry.attached = true
   entry.map.resize()
   entry.map.jumpTo({ center: from.getCenter(), zoom: from.getZoom() })

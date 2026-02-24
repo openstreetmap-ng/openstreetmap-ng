@@ -2,6 +2,7 @@ import { isLatitude, isLongitude, zoomPrecision } from "@lib/coords"
 import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
 import { CustomZoomControl } from "@lib/map/controls/zoom"
+import { configureMap } from "@lib/map/configure-map"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
   addMapLayer,
@@ -33,7 +34,7 @@ mount("diary-compose-body", (body) => {
   const latInput = showMapContainer.querySelector("input[name=lat]")!
   const mapDiv = showMapContainer.querySelector("div.map-container")!
 
-  let map: MaplibreMap | undefined
+  let map: MaplibreMap | null = null
   let marker: Marker | null = null
 
   const setMarker = (lngLat: LngLatLike) => {
@@ -78,7 +79,7 @@ mount("diary-compose-body", (body) => {
 
   /** On coordinates input change, update the marker position */
   const onCoordinatesInputChange = () => {
-    if (mapDiv.classList.contains("d-none")) return
+    if (mapDiv.hidden) return
     assertExists(map)
 
     if (lonInput.value && latInput.value) {
@@ -103,9 +104,9 @@ mount("diary-compose-body", (body) => {
 
   /** Toggle map visibility and related UI elements */
   const setMapVisible = (visible: boolean) => {
-    showMapButton.classList.toggle("d-none", visible)
-    removeMapButton.classList.toggle("d-none", !visible)
-    mapDiv.classList.toggle("d-none", !visible)
+    showMapButton.hidden = visible
+    removeMapButton.hidden = !visible
+    mapDiv.hidden = !visible
   }
 
   showMapButton.addEventListener("click", () => {
@@ -113,12 +114,14 @@ mount("diary-compose-body", (body) => {
     setMapVisible(true)
 
     if (!map) {
-      map = new MaplibreMap({
+      map = configureMap({
         container: mapDiv,
         maxZoom: 19,
         attributionControl: { compact: true, customAttribution: "" },
         refreshExpiredTiles: false,
       })
+      if (!map) return
+
       configureDefaultMapBehavior(map)
       addMapLayerSources(map, DEFAULT_LAYER_ID)
       addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])

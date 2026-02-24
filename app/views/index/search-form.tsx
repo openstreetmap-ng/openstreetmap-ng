@@ -3,11 +3,12 @@ import { SearchRoute, searchFormQuery } from "@index/search"
 import { SEARCH_QUERY_MAX_LENGTH } from "@lib/config"
 import { mainMap } from "@lib/map/main-map"
 import { t } from "i18next"
+import type { SubmitEventHandler } from "preact"
 
 export const SearchForm = () => {
   const map = mainMap.value!
 
-  const onSubmit = (e: Event) => {
+  const onSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
     console.debug("SearchForm: Submitted")
     e.preventDefault()
     const query = searchFormQuery.value

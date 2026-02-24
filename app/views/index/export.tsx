@@ -21,9 +21,8 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
   const locationFilterActive = useSignal(false)
   const locationFilter = useRef<LocationFilterControl>()
 
-  const updateBoundsPrecision = () => {
-    boundsPrecision.value = zoomPrecision(map.getZoom())
-  }
+  const updateBoundsPrecision = () =>
+    (boundsPrecision.value = zoomPrecision(map.getZoom()))
 
   const updateBounds = () => {
     const newBounds = locationFilterActive.peek()
@@ -36,9 +35,7 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
   useDisposeEffect((scope) => {
     scope.map(map, "zoomend", updateBoundsPrecision)
     scope.map(map, "moveend", updateBounds)
-    scope.defer(() => {
-      locationFilterActive.value = false
-    })
+    scope.defer(() => (locationFilterActive.value = false))
 
     updateBoundsPrecision()
     updateBounds()
@@ -238,7 +235,7 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
         <h4>{t("site.export.licence")}</h4>
         <p class="mb-2">
           {tRich("site.export.licence_details_html", {
-            odbl_link: () => (
+            odbl_link: (
               <a
                 href="https://opendatacommons.org/licenses/odbl/1-0/"
                 target="_blank"

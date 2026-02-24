@@ -32,7 +32,7 @@ import {
   Marker,
   Point,
 } from "maplibre-gl"
-import { useRef } from "preact/hooks"
+import { useMemo, useRef } from "preact/hooks"
 
 type MarkerEntry = {
   id: number
@@ -87,7 +87,7 @@ const DistanceSidebar = ({
 
   const nextMarkerId = useRef(0)
   const markers = useRef<MarkerEntry[]>([])
-  const markerIdToIndex = useRef<Map<number, number>>(new Map())
+  const markerIdToIndex = useMemo(() => new Map<number, number>(), [])
   const ghostMarker = useRef<Marker>(null)
   const ghostEndMarkerId = useRef<number>(null)
   const ghostMaterializedMarkerId = useRef<number>(null)
@@ -129,7 +129,7 @@ const DistanceSidebar = ({
   const reindexMarkersFrom = (startIndex: number) => {
     for (let i = startIndex; i < markers.current.length; i++) {
       const entry = markers.current[i]
-      markerIdToIndex.current.set(entry.id, i)
+      markerIdToIndex.set(entry.id, i)
     }
   }
 
@@ -277,7 +277,7 @@ const DistanceSidebar = ({
     }
 
     target.marker.remove()
-    markerIdToIndex.current.delete(target.id)
+    markerIdToIndex.delete(target.id)
     markers.current.splice(index, 1)
     reindexMarkersFrom(index)
 
@@ -303,7 +303,7 @@ const DistanceSidebar = ({
     })
 
   const updateMarkerDataNow = (id: number, lngLat: LngLat) => {
-    const index = markerIdToIndex.current.get(id)!
+    const index = markerIdToIndex.get(id)!
     markers.current[index].marker.setLngLat(lngLat)
     updateSegmentsAround(index)
   }
@@ -331,13 +331,13 @@ const DistanceSidebar = ({
     marker.getElement().addEventListener("click", (e) => {
       e.stopPropagation()
       batch(() => {
-        removeMarker(markerIdToIndex.current.get(id)!)
+        removeMarker(markerIdToIndex.get(id)!)
       })
     })
 
     if (index === markers.current.length) {
       markers.current.push(entry)
-      markerIdToIndex.current.set(entry.id, index)
+      markerIdToIndex.set(entry.id, index)
     } else {
       markers.current.splice(index, 0, entry)
       reindexMarkersFrom(index)
@@ -410,7 +410,7 @@ const DistanceSidebar = ({
       marker.addClassName("dragging")
       batch(() => {
         const endId = ghostEndMarkerId.current!
-        const endIndex = markerIdToIndex.current.get(endId)!
+        const endIndex = markerIdToIndex.get(endId)!
         ghostMaterializedMarkerId.current = insertMarker(
           endIndex,
           marker.getLngLat(),
@@ -434,7 +434,7 @@ const DistanceSidebar = ({
       console.debug("Distance: Ghost marker clicked")
       batch(() => {
         const endId = ghostEndMarkerId.current!
-        const endIndex = markerIdToIndex.current.get(endId)!
+        const endIndex = markerIdToIndex.get(endId)!
         insertMarker(endIndex, marker.getLngLat(), false)
         hideGhostMarker()
       })
@@ -470,7 +470,7 @@ const DistanceSidebar = ({
     marker.getElement().hidden = false
 
     const firstSegmentId = Number(features[0].id)
-    const firstEndIndex = markerIdToIndex.current.get(firstSegmentId)!
+    const firstEndIndex = markerIdToIndex.get(firstSegmentId)!
     const firstStartLngLat = markers.current[firstEndIndex - 1].marker.getLngLat()
     const firstEndLngLat = markers.current[firstEndIndex].marker.getLngLat()
     let bestEndId = firstSegmentId
@@ -484,7 +484,7 @@ const DistanceSidebar = ({
 
     for (let i = 1; i < features.length; i++) {
       const segmentId = Number(features[i].id)
-      const endIndex = markerIdToIndex.current.get(segmentId)!
+      const endIndex = markerIdToIndex.get(segmentId)!
       const startLngLat = markers.current[endIndex - 1].marker.getLngLat()
       const endLngLat = markers.current[endIndex].marker.getLngLat()
       const closestPoint = closestPointOnSegment(
@@ -511,7 +511,7 @@ const DistanceSidebar = ({
       entry.label?.remove()
     }
     markers.current.length = 0
-    markerIdToIndex.current.clear()
+    markerIdToIndex.clear()
     source.setData(emptyFeatureCollection)
 
     ghostMarker.current?.remove()

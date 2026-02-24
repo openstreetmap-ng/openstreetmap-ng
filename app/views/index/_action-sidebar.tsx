@@ -130,12 +130,13 @@ export function useSidebar<
     resource.value = { tag: "loading", prev }
 
     rpcUnary(method)(req, { signal: scope.signal })
-      .then((resp) => {
-        resource.value = {
-          tag: "ready",
-          data: map ? map(resp) : (resp as unknown as T),
-        }
-      })
+      .then(
+        (resp) =>
+          (resource.value = {
+            tag: "ready",
+            data: map ? map(resp) : (resp as unknown as T),
+          }),
+      )
       .catch((error) => {
         if (error.name === "AbortError") return
         const err = ConnectError.from(error)

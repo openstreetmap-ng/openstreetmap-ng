@@ -106,14 +106,18 @@
                 {{ t('diary.compose.select_on_map') }}
               </button>
               <button
-                class="remove-location-btn btn btn-soft px-3 d-none"
+                class="remove-location-btn btn btn-soft px-3"
                 type="button"
+                hidden
               >
                 {{ t('diary.compose.remove_location') }}
               </button>
             </div>
           </div>
-          <div class="map-container d-none mb-4"></div>
+          <div
+            class="map-container mb-4"
+            hidden
+          ></div>
         </div>
 
         <div>

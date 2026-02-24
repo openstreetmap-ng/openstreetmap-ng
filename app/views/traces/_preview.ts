@@ -1,4 +1,5 @@
 import { boundsPadding } from "@lib/map/bounds"
+import { configureMap } from "@lib/map/configure-map"
 import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
 import { addControlGroup } from "@lib/map/controls/group"
 import { CustomZoomControl } from "@lib/map/controls/zoom"
@@ -14,12 +15,7 @@ import {
 import { polylineDecode } from "@lib/polyline"
 import { roundTo } from "@std/math/round-to"
 import type { LineString } from "geojson"
-import {
-  type GeoJSONSource,
-  LngLatBounds,
-  Map as MaplibreMap,
-  ScaleControl,
-} from "maplibre-gl"
+import { type GeoJSONSource, LngLatBounds, ScaleControl } from "maplibre-gl"
 
 const LAYER_ID = "trace-preview" as LayerId
 const LAYER_ID_ANT = "trace-preview-ant" as LayerId
@@ -29,8 +25,7 @@ const ANT_DASH_A = 4
 const ANT_DASH_B = 3
 const ANT_DASH_LENGTH = ANT_DASH_A + ANT_DASH_B
 
-const tracePreviewContainer = document.querySelector("div.trace-preview")
-if (tracePreviewContainer) {
+const initTracePreview = (tracePreviewContainer: HTMLDivElement) => {
   console.debug("TracePreview: Initializing map")
 
   layersConfig.set(LAYER_ID, {
@@ -68,12 +63,14 @@ if (tracePreviewContainer) {
     },
   })
 
-  const map = new MaplibreMap({
+  const map = configureMap({
     container: tracePreviewContainer,
     maxZoom: 19,
     attributionControl: { compact: true, customAttribution: "" },
     refreshExpiredTiles: false,
   })
+  if (!map) return
+
   configureDefaultMapBehavior(map)
   addMapLayerSources(map, "all")
 
@@ -120,3 +117,6 @@ if (tracePreviewContainer) {
   }
   requestAnimationFrame(antPath)
 }
+
+const tracePreviewContainer = document.querySelector("div.trace-preview")
+if (tracePreviewContainer) initTracePreview(tracePreviewContainer)

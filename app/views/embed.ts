@@ -2,6 +2,7 @@ import "./embed.scss"
 
 import { isLatitude, isLongitude } from "@lib/coords"
 import "@lib/i18n"
+import { configureMap } from "@lib/map/configure-map"
 import { configureDefaultMapBehavior } from "@lib/map/defaults"
 import {
   addMapLayer,
@@ -13,23 +14,21 @@ import {
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
 import { encodeMapState } from "@lib/map/state"
 import { qsParse } from "@lib/qs"
+import { throwAbortError } from "@lib/utils"
 import { t } from "i18next"
-import {
-  AttributionControl,
-  Map as MaplibreMap,
-  Marker,
-  NavigationControl,
-} from "maplibre-gl"
+import { AttributionControl, Marker, NavigationControl } from "maplibre-gl"
 
 const mapContainer = document.getElementById("map")!
 const attributionControl = new AttributionControl()
-const map = new MaplibreMap({
-  container: mapContainer,
-  maxZoom: 19,
-  zoom: 1,
-  attributionControl: false,
-  refreshExpiredTiles: false,
-})
+const map =
+  configureMap({
+    container: mapContainer,
+    maxZoom: 19,
+    zoom: 1,
+    attributionControl: false,
+    refreshExpiredTiles: false,
+  }) ?? throwAbortError("Map initialization failed")
+
 configureDefaultMapBehavior(map)
 
 // Parse search params

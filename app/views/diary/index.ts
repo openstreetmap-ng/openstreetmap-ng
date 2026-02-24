@@ -87,14 +87,14 @@ mount("diary-index-body", (body) => {
 
     for (const article of renderContainer.querySelectorAll("article.diary")) {
       const diaryBody = article.querySelector(".diary-body")!
-      const readMore = article.querySelector(".diary-read-more")!
+      const readMore = article.querySelector<HTMLElement>(".diary-read-more")!
 
       // Mark entry clamped when rendered height < content height
       const updateClamp = () => {
         if (article.classList.contains("show")) return
         const clamped = diaryBody.scrollHeight - 1 > diaryBody.clientHeight
         article.classList.toggle("diary-clamped", clamped)
-        readMore.classList.toggle("d-none", !clamped)
+        readMore.hidden = !clamped
       }
 
       updateClamp()

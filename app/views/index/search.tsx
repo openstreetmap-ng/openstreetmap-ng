@@ -16,8 +16,8 @@ import {
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
-import type { SearchData_ResultValid } from "@lib/proto/search_pb"
-import type { ElementIcon, ElementType } from "@lib/proto/shared_pb"
+import type { Data_ResultValid } from "@lib/proto/search_pb"
+import type { ElementIconValid, ElementType } from "@lib/proto/shared_pb"
 import { scrollElementIntoView } from "@lib/scroll"
 import { setPageTitle } from "@lib/title"
 import type { OSMObject } from "@lib/types"
@@ -106,7 +106,7 @@ export const ElementResultEntry = ({
     id: bigint
     prefix: string
     displayName?: string
-    icon?: ElementIcon
+    icon?: ElementIconValid
   }
   hovered?: boolean
   entryRef?: Ref<HTMLLIElement>
@@ -159,7 +159,7 @@ const SearchResultsList = ({
   onHoverChange,
   entryRefs,
 }: {
-  results: SearchData_ResultValid[]
+  results: Data_ResultValid[]
   hoveredIndex: ReadonlySignal<number | null>
   onHoverChange: (index: number | null) => void
   entryRefs: (HTMLLIElement | null)[]
@@ -234,7 +234,7 @@ const SearchSidebar = ({
 
   // Effect: keep the global search input in sync with the active route.
   useSignalEffect(() => {
-    searchFormQuery.value = q.value || ""
+    searchFormQuery.value = q.value ?? ""
   })
 
   const setHoveredIndex = (nextIndex: number | null, scrollIntoView = false) => {
@@ -429,7 +429,7 @@ export const SearchRoute = defineRoute({
   path: "/search",
   aliases: { query: { query: "q" } },
   query: {
-    q: queryParam.string(),
+    q: queryParam.text(),
     at: queryParam.lonLatZoom(),
     local: queryParam.flag(),
   },
