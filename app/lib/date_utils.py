@@ -44,6 +44,34 @@ def legacy_date(dt: datetime | None, /):
     return dt if dt is None or LEGACY_HIGH_PRECISION_TIME else dt.replace(microsecond=0)
 
 
+@overload
+def datetime_unix(dt: None, /) -> None: ...
+@overload
+def datetime_unix(dt: datetime, /) -> int: ...
+def datetime_unix(dt: datetime | None, /):
+    """
+    Convert datetime to a protobuf unix timestamp.
+
+    >>> datetime_unix(datetime(2021, 12, 31, 15, 30, 45, tzinfo=UTC))
+    1640964645
+    """
+    return int(dt.timestamp()) if dt is not None else None
+
+
+@overload
+def unix_datetime(unix: None, /) -> None: ...
+@overload
+def unix_datetime(unix: int, /) -> datetime: ...
+def unix_datetime(unix: int | None, /):
+    """
+    Convert a protobuf unix timestamp into a UTC datetime.
+
+    >>> unix_datetime(1640964645)
+    datetime.datetime(2021, 12, 31, 15, 30, 45, tzinfo=datetime.timezone.utc)
+    """
+    return datetime.fromtimestamp(unix, UTC) if unix is not None else None
+
+
 def format_sql_date(dt: datetime | None, /):
     """
     Format a datetime object as a string in SQL format.
