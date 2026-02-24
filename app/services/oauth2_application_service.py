@@ -1,8 +1,8 @@
 import logging
 from asyncio import TaskGroup
+from collections.abc import Iterable
 from typing import Any
 
-from fastapi import UploadFile
 from pydantic import SecretStr
 from rfc3986 import URIReference
 from zid import zid
@@ -29,7 +29,6 @@ from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey
 from app.services.audit_service import audit
 from app.services.image_service import ImageService
-from app.utils import splitlines_trim
 from app.validators.url import UriValidator
 from speedup import buffered_rand_urlsafe
 
@@ -78,9 +77,9 @@ class OAuth2ApplicationService:
         return app_id
 
     @staticmethod
-    def validate_redirect_uris(redirect_uris: str) -> list[OAuth2Uri]:
+    def validate_redirect_uris(redirect_uris: Iterable[str]) -> list[OAuth2Uri]:
         """Validate redirect URIs."""
-        uris = splitlines_trim(redirect_uris)
+        uris = [uri_ for uri in redirect_uris if (uri_ := uri.strip())]
         if len(uris) > OAUTH_APP_URI_LIMIT:
             StandardFeedback.raise_error(
                 'redirect_uris', t('validation.too_many_redirect_uris')
@@ -182,9 +181,8 @@ class OAuth2ApplicationService:
                     await audit('revoke_app_all_users', conn, extra={'id': app_id})
 
     @staticmethod
-    async def update_avatar(app_id: ApplicationId, avatar_file: UploadFile):
+    async def update_avatar(app_id: ApplicationId, avatar_file: bytes):
         """Update app's avatar. Returns the new avatar URL."""
-        data = await avatar_file.read()
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
@@ -204,7 +202,9 @@ class OAuth2ApplicationService:
                 client_id: ClientId
                 old_avatar_id, client_id = row
 
-            avatar_id = await ImageService.upload_avatar(data) if data else None
+            avatar_id = (
+                await ImageService.upload_avatar(avatar_file) if avatar_file else None
+            )
 
             await conn.execute(
                 """

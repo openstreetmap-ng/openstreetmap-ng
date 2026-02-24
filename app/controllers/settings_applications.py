@@ -1,20 +1,25 @@
-from asyncio import TaskGroup
 from typing import Annotated
 
 from fastapi import APIRouter, Query
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import (
-    API_DOMAIN,
-    API_URL,
-    OAUTH_APP_NAME_MAX_LENGTH,
-    OAUTH_PAT_LIMIT,
-    OAUTH_PAT_NAME_MAX_LENGTH,
-)
+from app.config import OAUTH_PAT_LIMIT
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
-from app.models.db.user import User
+from app.lib.date_utils import datetime_unix
+from app.lib.render_response import render_proto_page
+from app.lib.translation import t
+from app.models.db.oauth2_application import (
+    SYSTEM_APP_PAT_CLIENT_ID,
+    oauth2_app_avatar_url,
+)
+from app.models.db.user import User, user_proto
+from app.models.proto.settings_applications_pb2 import (
+    AdminPage,
+    AuthorizationsPage,
+    EditPage,
+    TokensPage,
+)
 from app.models.types import ApplicationId, OAuth2TokenId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -28,17 +33,29 @@ async def applications_authorizations(
     user: Annotated[User, web_user()],
 ):
     tokens = await OAuth2TokenQuery.find_unique_per_app_by_user(user['id'])
+    apps = await OAuth2ApplicationQuery.resolve_applications(tokens)
+    await UserQuery.resolve_users(apps)
 
-    async with TaskGroup() as tg:
-        tg.create_task(UserQuery.resolve_users(tokens))
-        apps = await OAuth2ApplicationQuery.resolve_applications(tokens)
-        tg.create_task(UserQuery.resolve_users(apps))
+    entries = [
+        AuthorizationsPage.Entry(
+            application=AuthorizationsPage.Entry.Application(
+                id=app['id'],
+                name=app['name'],
+                scopes=app['scopes'],
+                avatar_url=oauth2_app_avatar_url(app),
+                client_id=app['client_id'],
+                owner=user_proto(app.get('user')),
+            ),
+            authorized_at=int(token['authorized_at'].timestamp()),  # type: ignore
+        )
+        for token in tokens
+        if (app := token['application'])['client_id'] != SYSTEM_APP_PAT_CLIENT_ID  # type: ignore
+    ]
 
-    return await render_response(
-        'settings/applications/authorizations',
-        {
-            'tokens': tokens,
-        },
+    page_state = AuthorizationsPage(entries=entries)
+    return await render_proto_page(
+        page_state,
+        title_prefix=t('settings.authorizations.title'),
     )
 
 
@@ -47,13 +64,22 @@ async def applications_admin(
     user: Annotated[User, web_user()],
 ):
     apps = await OAuth2ApplicationQuery.find_by_user(user['id'])
+    page_state = AdminPage(
+        entries=[
+            AdminPage.Entry(
+                id=app['id'],
+                name=app['name'],
+                scopes=app['scopes'],
+                avatar_url=oauth2_app_avatar_url(app),
+                created_at=int(app['created_at'].timestamp()),
+            )
+            for app in apps
+        ]
+    )
 
-    return await render_response(
-        'settings/applications/admin',
-        {
-            'apps': apps,
-            'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
-        },
+    return await render_proto_page(
+        page_state,
+        title_prefix=t('settings.my_applications.title'),
     )
 
 
@@ -68,12 +94,20 @@ async def application_admin(
             '/settings/applications/admin', status.HTTP_303_SEE_OTHER
         )
 
-    return await render_response(
-        'settings/applications/edit',
-        {
-            'app': app,
-            'OAUTH_APP_NAME_MAX_LENGTH': OAUTH_APP_NAME_MAX_LENGTH,
-        },
+    page_state = EditPage(
+        id=app['id'],
+        name=app['name'],
+        scopes=app['scopes'],
+        client_id=app['client_id'],
+        avatar_url=oauth2_app_avatar_url(app),
+        client_secret_preview=app['client_secret_preview'],
+        confidential=app['confidential'],
+        redirect_uris=app['redirect_uris'],
+    )
+
+    return await render_proto_page(
+        page_state,
+        title_prefix=t('settings.my_applications.title_name', name=app['name']),
     )
 
 
@@ -83,16 +117,24 @@ async def get_tokens(
     expand: Annotated[OAuth2TokenId | None, Query()] = None,
 ):
     tokens = await OAuth2TokenQuery.find_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
+    page_state = TokensPage(
+        tokens=[
+            TokensPage.Token(
+                id=token['id'],
+                name=token['name'],  # type: ignore
+                scopes=token['scopes'],
+                token_preview=token['token_preview'],
+                created_at=int(token['created_at'].timestamp()),
+                authorized_at=datetime_unix(token['authorized_at']),
+            )
+            for token in tokens
+        ],
+        expanded_token_id=expand,
+    )
 
-    return await render_response(
-        'settings/applications/tokens',
-        {
-            'expand_id': expand,
-            'tokens': tokens,
-            'API_URL': API_URL,
-            'API_DOMAIN': API_DOMAIN,
-            'OAUTH_PAT_NAME_MAX_LENGTH': OAUTH_PAT_NAME_MAX_LENGTH,
-        },
+    return await render_proto_page(
+        page_state,
+        title_prefix=t('settings.my_tokens.title'),
     )
 
 
