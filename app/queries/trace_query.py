@@ -146,7 +146,7 @@ class TraceQuery:
             ORDER BY id {order}
             {limit}
         """).format(
-            conditions=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            conditions=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
             order=SQL('DESC' if order_desc else 'ASC'),
             limit=limit_clause,
         )

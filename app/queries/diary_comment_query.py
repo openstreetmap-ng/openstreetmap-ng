@@ -69,7 +69,7 @@ class DiaryCommentQuery:
             ORDER BY id {order}
             LIMIT %s
         """).format(
-            where=SQL(' AND ').join(conditions) if conditions else SQL('TRUE'),
+            where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
             order=SQL('DESC' if order_desc else 'ASC'),
         )
         params.append(limit)

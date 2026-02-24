@@ -182,7 +182,7 @@ class OAuth2ApplicationQuery:
             conditions.append(SQL('created_at <= %s'))
             params.append(created_before)
 
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
         return where_clause, tuple(params)
 
     @staticmethod

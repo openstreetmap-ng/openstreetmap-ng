@@ -135,10 +135,10 @@ class ChangesetQuery:
             )
             params['closed_after'] = closed_after
 
-        if is_open is not None:
-            conditions.append(
-                SQL('closed_at IS NULL' if is_open else 'closed_at IS NOT NULL')
-            )
+        conditions.append(
+            SQL('(%(is_open)s::bool IS NULL OR (closed_at IS NULL) = %(is_open)s)')
+        )
+        params['is_open'] = is_open
 
         if geometry is not None:
             conditions.append(
@@ -156,7 +156,7 @@ class ChangesetQuery:
             )
             params['geometry'] = geometry
 
-        where_clause = SQL(' AND ').join(conditions) if conditions else SQL('TRUE')
+        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
         order_clause = SQL(sort)
 
         if limit is not None:
