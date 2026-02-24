@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package admin_users;
+
+import "app/models/proto/auth.proto";
+import "app/models/proto/settings_connections.proto";
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+enum Role {
+  moderator = 0;
+  administrator = 1;
+}
+
+message Page {}
+
+message EditPage {
+  message ConnectedAccount {
+    settings_connections.Provider provider = 1;
+    string uid = 2;
+    uint64 created_at = 3;
+  }
+
+  message Application {
+    uint64 id = 1;
+    string name = 2;
+    string avatar_url = 3;
+    string client_id = 4;
+    repeated Scope scopes = 5;
+    optional User owner = 6;
+    optional uint64 created_at = 7;
+    optional uint64 authorized_at = 8;
+  }
+
+  message Token {
+    uint64 id = 1;
+    optional string name = 2;
+    repeated Scope scopes = 3;
+    optional string token_preview = 4;
+    uint64 created_at = 5;
+    optional uint64 authorized_at = 6;
+  }
+
+  Account account = 1 [(buf.validate.field).required = true];
+  TwoFactorStatus two_factor_status = 2 [(buf.validate.field).required = true];
+  repeated ConnectedAccount connected_accounts = 3;
+  repeated Application authorizations = 4;
+  repeated Application applications = 5;
+  repeated Token tokens = 6;
+}
+
+service Service {
+  rpc List(ListRequest) returns (ListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc ExportIds(ExportIdsRequest) returns (ExportIdsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+  rpc ResetTwoFactor(ResetTwoFactorRequest) returns (ResetTwoFactorResponse) {}
+  rpc Impersonate(ImpersonateRequest) returns (ImpersonateResponse) {}
+}
+
+message ListRequest {
+  optional StandardPaginationRequest state = 1;
+  Filters filters = 2 [(buf.validate.field).required = true];
+}
+
+message ListResponse {
+  message Entry {
+    Account account = 1 [(buf.validate.field).required = true];
+    TwoFactorStatus two_factor_status = 2 [(buf.validate.field).required = true];
+    repeated IpCount ip_counts = 3;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry entries = 2;
+}
+
+message ExportIdsRequest {
+  Filters filters = 1 [(buf.validate.field).required = true];
+}
+
+message ExportIdsResponse {
+  repeated uint64 ids = 1;
+}
+
+message UpdateRequest {
+  uint64 user_id = 1 [(buf.validate.field).uint64.gt = 0];
+  optional string display_name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  optional string email = 3 [(buf.validate.field).string = {
+    email: true
+    min_len: 5
+    max_len: 254
+  }];
+  bool email_verified = 4;
+  repeated Role roles = 5 [(buf.validate.field).repeated = {
+    unique: true
+    items: {
+      enum: {defined_only: true}
+    }
+  }];
+  optional auth.TransmitUserPassword new_password = 6;
+}
+
+message UpdateResponse {
+  StandardFeedbackDetail feedback = 1;
+}
+
+message ResetTwoFactorRequest {
+  uint64 user_id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ResetTwoFactorResponse {}
+
+message ImpersonateRequest {
+  uint64 user_id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ImpersonateResponse {
+  string redirect_url = 1;
+}
+
+message Account {
+  uint64 id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+  string email = 4;
+  bool email_verified = 5;
+  repeated Role roles = 6;
+  uint64 created_at = 7;
+  optional uint64 scheduled_delete_at = 8;
+  bool deleted = 9;
+}
+
+message TwoFactorStatus {
+  bool has_passkeys = 1;
+  bool has_totp = 2;
+  bool has_recovery = 3;
+}
+
+message Filters {
+  enum Sort {
+    created_desc = 0;
+    created_asc = 1;
+    name_asc = 2;
+    name_desc = 3;
+  }
+
+  optional string search = 1 [(buf.validate.field).string.min_len = 1];
+  bool unverified = 2;
+  repeated Role roles = 3 [(buf.validate.field).repeated = {
+    unique: true
+    items: {
+      enum: {defined_only: true}
+    }
+  }];
+  optional uint64 created_after = 4;
+  optional uint64 created_before = 5;
+  optional uint64 application_id = 6 [(buf.validate.field).uint64.gt = 0];
+  Sort sort = 7 [(buf.validate.field).enum.defined_only = true];
+}
