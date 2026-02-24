@@ -49,15 +49,10 @@ class ImageProxyService:
             return []
 
         # Deduplicate URLs while preserving order
-        unique_urls: list[str] = []
-        seen: set[str] = set()
-        for url in urls:
-            if url not in seen:
-                seen.add(url)
-                unique_urls.append(url)
+        unique_urls = list(dict.fromkeys(urls))
 
         params = []
-        for proxy_id, url in zip(zids(len(unique_urls)), unique_urls, strict=True):
+        for proxy_id, url in zip(zids(len(unique_urls)), unique_urls):
             params.extend((proxy_id, url))
 
         query = SQL("""
