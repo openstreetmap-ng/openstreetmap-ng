@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package admin_tasks;
+
+import "buf/validate/validate.proto";
+
+message Page {}
+
+service Service {
+  rpc List(ListRequest) returns (ListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc Start(StartRequest) returns (StartResponse) {}
+}
+
+message ListRequest {}
+
+message ListResponse {
+  message Task {
+    message Argument {
+      string name = 1;
+      string type = 2;
+      bool required = 3;
+      string default = 4;
+      bool numeric = 5;
+    }
+
+    string id = 1;
+    repeated Argument arguments = 2;
+    bool running = 3;
+  }
+
+  repeated Task tasks = 1;
+}
+
+message StartRequest {
+  string task_id = 1 [(buf.validate.field).string.min_len = 1];
+  map<string, string> arguments = 2;
+}
+
+message StartResponse {}
