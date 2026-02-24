@@ -21,9 +21,9 @@ from app.lib.progress import progress
 from app.lib.xmltodict import XMLToDict
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
-    ElementType,
     TypedElementId,
 )
+from app.models.proto.shared_types import ElementType
 from app.utils import calc_num_workers
 from speedup import typed_element_id
 

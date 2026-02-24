@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 
 import httpx
 
-from app.models.proto.shared_pb2 import IdResponse, TransmitUserPassword
+from app.models.proto.auth_pb2 import TransmitUserPassword
+from app.models.proto.shared_pb2 import IdResponse
 
 _CITY_CENTERS: list[tuple[str, float, float]] = [
     ('san_francisco', 37.7749, -122.4194),

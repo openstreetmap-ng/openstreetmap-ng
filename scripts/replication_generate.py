@@ -31,7 +31,7 @@ class _State(TypedDict):
     timestamp: datetime
 
 
-_TimeSpan = Literal['minute', 'hour', 'day']
+type _TimeSpan = Literal['minute', 'hour', 'day']
 
 _TIMESPAN_DELTA: dict[_TimeSpan, timedelta] = {
     'minute': timedelta(minutes=1),
@@ -411,7 +411,7 @@ def main():
     parser = ArgumentParser(description='Generate replication diffs continuously')
     parser.add_argument(
         'timespan',
-        choices=get_args(_TimeSpan),
+        choices=get_args(_TimeSpan.__value__),
         help='Timespan for replication diffs',
     )
     parser.add_argument(

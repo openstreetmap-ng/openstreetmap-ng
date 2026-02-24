@@ -24,18 +24,19 @@ from app.lib.compressible_geometry import point_to_compressible_wkb
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITOR_SLUG
 from app.lib.xmltodict import XMLToDict
-from app.models.element import ElementType, TypedElementId
+from app.models.element import TypedElementId
+from app.models.proto.shared_types import ElementType
 from app.utils import HTTP
 from speedup import typed_element_id
 
-_Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
-_Frequency = Literal['minute', 'hour', 'day']
+type _Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
+type _Frequency = Literal['minute', 'hour', 'day']
 
 _APP_STATE_PATH = REPLICATION_DIR.joinpath('state.json')
 _LOCK_PATH = REPLICATION_DIR.joinpath('.lock')
 
 _NEXT_DATASET: dict[_Dataset, _Dataset] = {
-    from_: to for to, from_ in pairwise(get_args(_Dataset))
+    from_: to for to, from_ in pairwise(get_args(_Dataset.__value__))
 }
 
 _FREQUENCY_TIMEDELTA: dict[_Frequency, timedelta] = {
