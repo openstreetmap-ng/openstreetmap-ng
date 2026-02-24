@@ -52,7 +52,7 @@ from app.services.oauth2_application_service import OAuth2ApplicationService
 def test_validate_redirect_uris(uris, expected):
     with translation_context(DEFAULT_LOCALE):
         try:
-            result = OAuth2ApplicationService.validate_redirect_uris(uris)
+            result = OAuth2ApplicationService.validate_redirect_uris(uris.splitlines())
             assert expected is not None, 'Expected validation to fail, but it succeeded'
             assert sorted(result) == sorted(expected)
         except HTTPException:

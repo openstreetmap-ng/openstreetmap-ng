@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package settings_applications;
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+message AuthorizationsPage {
+  message Entry {
+    message Application {
+      uint64 id = 1;
+      string name = 2;
+      repeated Scope scopes = 3;
+      string avatar_url = 4;
+      string client_id = 5;
+      optional User owner = 6;
+    }
+
+    Application application = 1 [(buf.validate.field).required = true];
+    uint64 authorized_at = 2;
+  }
+
+  repeated Entry entries = 1;
+}
+
+message AdminPage {
+  message Entry {
+    uint64 id = 1;
+    string name = 2;
+    repeated Scope scopes = 3;
+    string avatar_url = 4;
+    uint64 created_at = 5;
+  }
+
+  repeated Entry entries = 1;
+}
+
+message EditPage {
+  uint64 id = 1;
+  string name = 2;
+  repeated Scope scopes = 3;
+  string client_id = 4;
+  string avatar_url = 5;
+  optional string client_secret_preview = 6;
+  bool confidential = 7;
+  repeated string redirect_uris = 8;
+}
+
+message TokensPage {
+  message Token {
+    uint64 id = 1;
+    string name = 2;
+    repeated Scope scopes = 3;
+    optional string token_preview = 4;
+    uint64 created_at = 5;
+    optional uint64 authorized_at = 6;
+  }
+
+  repeated Token tokens = 1;
+  optional uint64 expanded_token_id = 2;
+}
+
+service Service {
+  rpc RevokeAuthorization(RevokeAuthorizationRequest) returns (RevokeAuthorizationResponse) {}
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc ResetClientSecret(ResetClientSecretRequest) returns (ResetClientSecretResponse) {}
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse) {}
+  rpc ResetAccessToken(ResetAccessTokenRequest) returns (ResetAccessTokenResponse) {}
+}
+
+message RevokeAuthorizationRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message RevokeAuthorizationResponse {}
+
+message CreateRequest {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50
+  }];
+}
+
+message CreateResponse {
+  uint64 id = 1;
+}
+
+message ResetClientSecretRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ResetClientSecretResponse {
+  string secret = 1;
+}
+
+message UpdateRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50
+  }];
+  repeated Scope scopes = 3 [(buf.validate.field).repeated = {
+    unique: true
+    max_items: 6
+    items: {
+      enum: {defined_only: true}
+    }
+  }];
+  bool confidential = 4;
+  repeated string redirect_uris = 5 [(buf.validate.field).repeated = {
+    unique: true
+    max_items: 10
+    items: {
+      string: {
+        uri: true
+        max_len: 1000
+      }
+    }
+  }];
+  bool revoke_all_authorizations = 6;
+}
+
+message UpdateResponse {
+  StandardFeedbackDetail feedback = 1;
+}
+
+message UpdateAvatarRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  bytes avatar_file = 2 [(buf.validate.field).bytes.min_len = 1];
+}
+
+message UpdateAvatarResponse {
+  string avatar_url = 1;
+}
+
+message DeleteRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteResponse {}
+
+message CreateTokenRequest {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50
+  }];
+  repeated Scope scopes = 2 [(buf.validate.field).repeated = {
+    unique: true
+    max_items: 6
+    items: {
+      enum: {defined_only: true}
+    }
+  }];
+}
+
+message CreateTokenResponse {
+  uint64 id = 1;
+}
+
+message ResetAccessTokenRequest {
+  uint64 token_id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ResetAccessTokenResponse {
+  string secret = 1;
+}
