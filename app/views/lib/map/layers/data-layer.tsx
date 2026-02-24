@@ -4,7 +4,7 @@ import { ElementRoute } from "@index/element"
 import { routerNavigate } from "@index/router"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@lib/config"
 import { createKeyedAbort } from "@lib/keyed-abort"
-import { ElementService } from "@lib/proto/element_pb"
+import { Service } from "@lib/proto/element_pb"
 import { rpcClient } from "@lib/rpc"
 import type { OSMNode, OSMWay } from "@lib/types"
 import { batch, signal } from "@preact/signals"
@@ -242,7 +242,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
     errorDataAlertVisible.value = false
     try {
-      const resp = await rpcClient(ElementService).getMapElements(
+      const resp = await rpcClient(Service).getMap(
         {
           bbox: boundsToProto(fetchBounds),
           limit,

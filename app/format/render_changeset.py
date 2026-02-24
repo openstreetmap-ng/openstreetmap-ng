@@ -3,7 +3,7 @@ from shapely import measurement
 
 from app.models.db.changeset import Changeset
 from app.models.db.user import user_proto
-from app.models.proto.changeset_pb2 import GetMapChangesetsResponse
+from app.models.proto.changeset_pb2 import GetMapResponse
 from app.models.proto.shared_pb2 import Bounds
 
 
@@ -11,9 +11,7 @@ class RenderChangesetMixin:
     @staticmethod
     def encode_changesets(changesets: list[Changeset]):
         """Format changesets into a minimal structure, suitable for map rendering."""
-        return GetMapChangesetsResponse(
-            changesets=list(map(_encode_changeset, changesets))
-        )
+        return GetMapResponse(changesets=list(map(_encode_changeset, changesets)))
 
 
 @cython.cfunc
@@ -28,8 +26,7 @@ def _encode_changeset(changeset: Changeset):
 
     closed_at = changeset['closed_at']
     status_changed_at = int((closed_at or changeset['created_at']).timestamp())
-
-    return GetMapChangesetsResponse.Changeset(
+    return GetMapResponse.Changeset(
         id=changeset['id'],
         user=user_proto(changeset.get('user')),
         bounds=params_bounds,

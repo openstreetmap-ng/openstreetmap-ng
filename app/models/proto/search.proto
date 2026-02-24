@@ -1,10 +1,12 @@
 syntax = "proto3";
 
+package search;
+
 import "app/models/proto/element.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service SearchService {
+service Service {
   rpc Search(SearchRequest) returns (SearchResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
@@ -23,7 +25,7 @@ message SearchRequest {
 }
 
 message SearchResponse {
-  SearchData data = 1 [(buf.validate.field).required = true];
+  Data data = 1 [(buf.validate.field).required = true];
 }
 
 message ReverseRequest {
@@ -31,17 +33,17 @@ message ReverseRequest {
 }
 
 message ReverseResponse {
-  SearchData data = 1 [(buf.validate.field).required = true];
+  Data data = 1 [(buf.validate.field).required = true];
 }
 
-message SearchData {
+message Data {
   message Result {
     ElementType type = 1;
     uint64 id = 2;
     string prefix = 3;
     string display_name = 4;
     optional ElementIcon icon = 5;
-    RenderElementsData render = 6 [(buf.validate.field).required = true];
+    element.RenderData render = 6 [(buf.validate.field).required = true];
     LonLat location = 7 [(buf.validate.field).required = true];
   }
 

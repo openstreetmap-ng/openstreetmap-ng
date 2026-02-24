@@ -1,15 +1,17 @@
 syntax = "proto3";
 
+package routing;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service RoutingService {
-  rpc GetRoute(GetRouteRequest) returns (GetRouteResponse) {
+service Service {
+  rpc Get(GetRequest) returns (GetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 }
 
-message GetRouteRequest {
+message GetRequest {
   enum Engine {
     valhalla_auto = 0;
     valhalla_bicycle = 1;
@@ -35,6 +37,6 @@ message GetRouteRequest {
   EndpointInput end = 4 [(buf.validate.field).required = true];
 }
 
-message GetRouteResponse {
+message GetResponse {
   RoutingResult route = 1 [(buf.validate.field).required = true];
 }

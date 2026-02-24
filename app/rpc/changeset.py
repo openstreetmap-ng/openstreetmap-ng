@@ -26,21 +26,21 @@ from app.models.db.changeset_comment import (
 )
 from app.models.db.user import user_proto
 from app.models.proto.changeset_connect import (
-    ChangesetService,
-    ChangesetServiceASGIApplication,
+    Service,
+    ServiceASGIApplication,
 )
 from app.models.proto.changeset_pb2 import (
-    AddChangesetCommentRequest,
-    AddChangesetCommentResponse,
-    ChangesetData,
-    GetChangesetCommentsRequest,
-    GetChangesetCommentsResponse,
-    GetChangesetRequest,
-    GetChangesetResponse,
-    GetMapChangesetsRequest,
-    GetMapChangesetsResponse,
-    SetChangesetSubscriptionRequest,
-    SetChangesetSubscriptionResponse,
+    AddCommentRequest,
+    AddCommentResponse,
+    Data,
+    GetCommentsRequest,
+    GetCommentsResponse,
+    GetMapRequest,
+    GetMapResponse,
+    GetRequest,
+    GetResponse,
+    UpdateSubscriptionRequest,
+    UpdateSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import Bounds
 from app.models.types import ChangesetId
@@ -56,11 +56,9 @@ from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.unicode import normalize_display_name
 
 
-class _Service(ChangesetService):
+class _Service(Service):
     @override
-    async def get_map_changesets(
-        self, request: GetMapChangesetsRequest, ctx: RequestContext
-    ):
+    async def get_map(self, request: GetMapRequest, ctx: RequestContext):
         geometry = parse_bbox(request.bbox) if request.HasField('bbox') else None
         scope = request.scope if request.HasField('scope') else None
 
@@ -75,11 +73,11 @@ class _Service(ChangesetService):
         if scope is None:
             pass
 
-        elif scope == GetMapChangesetsRequest.Scope.nearby:
+        elif scope == GetMapRequest.Scope.nearby:
             current_user = require_web_user()
             home_point = current_user['home_point']
             if home_point is None:
-                return GetMapChangesetsResponse()
+                return GetMapResponse()
 
             home = set_srid(Point(home_point.x, home_point.y), 4326)
             nearby_area = home.buffer(meters_to_degrees(NEARBY_USERS_RADIUS_METERS), 4)
@@ -87,13 +85,13 @@ class _Service(ChangesetService):
                 nearby_area if geometry is None else geometry.intersection(nearby_area)
             )
             if geometry.is_empty:
-                return GetMapChangesetsResponse()
+                return GetMapResponse()
 
-        elif scope == GetMapChangesetsRequest.Scope.friends:
+        elif scope == GetMapRequest.Scope.friends:
             current_user = require_web_user()
             followee_ids = await UserFollowQuery.get_followee_ids(current_user['id'])
             if not followee_ids:
-                return GetMapChangesetsResponse()
+                return GetMapResponse()
 
             if user_ids is None:
                 user_ids = followee_ids
@@ -106,7 +104,7 @@ class _Service(ChangesetService):
                     user_ids = [uid for uid in followee_ids if uid in set_]
 
                 if not user_ids:
-                    return GetMapChangesetsResponse()
+                    return GetMapResponse()
 
         if request.HasField('date'):
             try:
@@ -141,25 +139,20 @@ class _Service(ChangesetService):
         return FormatRender.encode_changesets(changesets)
 
     @override
-    async def get_changeset(self, request: GetChangesetRequest, ctx: RequestContext):
+    async def get(self, request: GetRequest, ctx: RequestContext):
         id = ChangesetId(request.id)
-        return GetChangesetResponse(changeset=await _build_data(id))
+        return GetResponse(changeset=await _build_data(id))
 
     @override
-    async def get_changeset_comments(
-        self, request: GetChangesetCommentsRequest, ctx: RequestContext
-    ):
+    async def get_comments(self, request: GetCommentsRequest, ctx: RequestContext):
         id = ChangesetId(request.id)
         if await ChangesetQuery.find_by_id(id) is None:
             raise_for.changeset_not_found(id)
 
-        sp_state = request.state.SerializeToString()
-        return await _build_comments(id, sp_state)
+        return await _build_comments(id, request.state.SerializeToString())
 
     @override
-    async def add_changeset_comment(
-        self, request: AddChangesetCommentRequest, ctx: RequestContext
-    ):
+    async def add_comment(self, request: AddCommentRequest, ctx: RequestContext):
         require_web_user()
 
         id = ChangesetId(request.id)
@@ -169,14 +162,14 @@ class _Service(ChangesetService):
             changeset_t = tg.create_task(_build_data(id))
             comments_t = tg.create_task(_build_comments(id))
 
-        return AddChangesetCommentResponse(
+        return AddCommentResponse(
             changeset=changeset_t.result(),
             comments=comments_t.result(),
         )
 
     @override
-    async def set_changeset_subscription(
-        self, request: SetChangesetSubscriptionRequest, ctx: RequestContext
+    async def update_subscription(
+        self, request: UpdateSubscriptionRequest, ctx: RequestContext
     ):
         require_web_user()
 
@@ -186,11 +179,11 @@ class _Service(ChangesetService):
         else:
             await UserSubscriptionService.unsubscribe('changeset', id)
 
-        return SetChangesetSubscriptionResponse(is_subscribed=request.is_subscribed)
+        return UpdateSubscriptionResponse(is_subscribed=request.is_subscribed)
 
 
 service = _Service()
-asgi_app_cls = ChangesetServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication
 
 
 async def _build_data(changeset_id: ChangesetId):
@@ -235,7 +228,7 @@ async def _build_data(changeset_id: ChangesetId):
     )
 
     user = changeset.get('user')
-    return ChangesetData(
+    return Data(
         id=changeset_id,
         user=user_proto(user),
         created_at=int(changeset['created_at'].timestamp()),
@@ -276,10 +269,10 @@ async def _build_comments(changeset_id: ChangesetId, sp_state: bytes = b''):
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    page = GetChangesetCommentsResponse(
+    page = GetCommentsResponse(
         state=state,
         comments=[
-            GetChangesetCommentsResponse.Comment(
+            GetCommentsResponse.Comment(
                 user=user_proto(c['user']),  # type: ignore
                 created_at=int(c['created_at'].timestamp()),
                 body_rich=c['body_rich'],  # type: ignore

@@ -9,12 +9,10 @@ from app.lib.search import Search, SearchResult
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.models.proto.routing_connect import (
-    RoutingService as RoutingServiceConnect,
+    Service as RoutingServiceConnect,
 )
-from app.models.proto.routing_connect import (
-    RoutingServiceASGIApplication,
-)
-from app.models.proto.routing_pb2 import GetRouteRequest, GetRouteResponse
+from app.models.proto.routing_connect import ServiceASGIApplication
+from app.models.proto.routing_pb2 import GetRequest, GetResponse
 from app.models.proto.shared_pb2 import Bounds, LonLat, RoutingResult
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
@@ -26,7 +24,7 @@ from app.queries.valhalla_query import ValhallaQuery
 
 class _Service(RoutingServiceConnect):
     @override
-    async def get_route(self, request: GetRouteRequest, ctx: RequestContext):
+    async def get(self, request: GetRequest, ctx: RequestContext):
         at_sequence_id = await ElementQuery.get_current_sequence_id()
         async with TaskGroup() as tg:
             start_t = tg.create_task(
@@ -54,7 +52,7 @@ class _Service(RoutingServiceConnect):
         route_fn, profile = _ENGINE_TABLE[request.engine]
         result = await route_fn(start_point, end_point, profile=profile)
         result.MergeFrom(RoutingResult(start=start_endpoint, end=end_endpoint))
-        return GetRouteResponse(route=result)
+        return GetResponse(route=result)
 
 
 async def _resolve_name(
@@ -113,7 +111,7 @@ async def _resolve_name(
 async def _resolve_endpoint(
     field: str,
     *,
-    endpoint: GetRouteRequest.EndpointInput,
+    endpoint: GetRequest.EndpointInput,
     bbox: Bounds,
     at_sequence_id: SequenceId,
 ):
@@ -145,17 +143,17 @@ class _Route(Protocol):
 
 
 _ENGINE_TABLE: dict[int, tuple[_Route, str]] = {
-    GetRouteRequest.Engine.graphhopper_car: (GraphHopperQuery.route, 'car'),
-    GetRouteRequest.Engine.graphhopper_bike: (GraphHopperQuery.route, 'bike'),
-    GetRouteRequest.Engine.graphhopper_foot: (GraphHopperQuery.route, 'foot'),
-    GetRouteRequest.Engine.osrm_car: (OSRMQuery.route, 'car'),
-    GetRouteRequest.Engine.osrm_bike: (OSRMQuery.route, 'bike'),
-    GetRouteRequest.Engine.osrm_foot: (OSRMQuery.route, 'foot'),
-    GetRouteRequest.Engine.valhalla_auto: (ValhallaQuery.route, 'auto'),
-    GetRouteRequest.Engine.valhalla_bicycle: (ValhallaQuery.route, 'bicycle'),
-    GetRouteRequest.Engine.valhalla_pedestrian: (ValhallaQuery.route, 'pedestrian'),
+    GetRequest.Engine.graphhopper_car: (GraphHopperQuery.route, 'car'),
+    GetRequest.Engine.graphhopper_bike: (GraphHopperQuery.route, 'bike'),
+    GetRequest.Engine.graphhopper_foot: (GraphHopperQuery.route, 'foot'),
+    GetRequest.Engine.osrm_car: (OSRMQuery.route, 'car'),
+    GetRequest.Engine.osrm_bike: (OSRMQuery.route, 'bike'),
+    GetRequest.Engine.osrm_foot: (OSRMQuery.route, 'foot'),
+    GetRequest.Engine.valhalla_auto: (ValhallaQuery.route, 'auto'),
+    GetRequest.Engine.valhalla_bicycle: (ValhallaQuery.route, 'bicycle'),
+    GetRequest.Engine.valhalla_pedestrian: (ValhallaQuery.route, 'pedestrian'),
 }
 
 
 service = _Service()
-asgi_app_cls = RoutingServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication

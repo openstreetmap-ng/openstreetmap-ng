@@ -6,21 +6,19 @@ from app.lib.auth_context import require_web_user
 from app.lib.render_jinja import render_jinja
 from app.lib.rich_text import rich_text
 from app.models.proto.rich_text_connect import (
-    RichTextService,
-    RichTextServiceASGIApplication,
+    Service,
+    ServiceASGIApplication,
 )
-from app.models.proto.rich_text_pb2 import RenderMarkdownRequest, RenderMarkdownResponse
+from app.models.proto.rich_text_pb2 import RenderRequest, RenderResponse
 
 
-class _Service(RichTextService):
+class _Service(Service):
     @override
-    async def render_markdown(
-        self, request: RenderMarkdownRequest, ctx: RequestContext
-    ):
+    async def render(self, request: RenderRequest, ctx: RequestContext):
         require_web_user()
         html = (await rich_text(request.text, None, 'markdown'))[0]
-        return RenderMarkdownResponse(html=html or render_jinja('rich-text/_empty'))
+        return RenderResponse(html=html or render_jinja('rich-text/_empty'))
 
 
 service = _Service()
-asgi_app_cls = RichTextServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication

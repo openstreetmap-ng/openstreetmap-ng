@@ -1,29 +1,31 @@
 syntax = "proto3";
 
+package changeset;
+
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service ChangesetService {
-  rpc GetMapChangesets(GetMapChangesetsRequest) returns (GetMapChangesetsResponse) {
+service Service {
+  rpc GetMap(GetMapRequest) returns (GetMapResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetChangeset(GetChangesetRequest) returns (GetChangesetResponse) {
+  rpc Get(GetRequest) returns (GetResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc GetChangesetComments(GetChangesetCommentsRequest) returns (GetChangesetCommentsResponse) {
+  rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
-  rpc AddChangesetComment(AddChangesetCommentRequest) returns (AddChangesetCommentResponse) {}
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
 
-  rpc SetChangesetSubscription(SetChangesetSubscriptionRequest) returns (SetChangesetSubscriptionResponse) {
+  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
     option idempotency_level = IDEMPOTENT;
   }
 }
 
-message GetMapChangesetsRequest {
+message GetMapRequest {
   option (buf.validate.message).cel_expression = "has(this.bbox) || has(this.scope) || has(this.display_name) || has(this.date)";
 
   enum Scope {
@@ -41,7 +43,7 @@ message GetMapChangesetsRequest {
   optional uint64 before = 5 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetMapChangesetsResponse {
+message GetMapResponse {
   message Changeset {
     uint64 id = 1;
     optional User user = 2;
@@ -58,20 +60,20 @@ message GetMapChangesetsResponse {
   repeated Changeset changesets = 1;
 }
 
-message GetChangesetRequest {
+message GetRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetChangesetResponse {
-  ChangesetData changeset = 1 [(buf.validate.field).required = true];
+message GetResponse {
+  Data changeset = 1 [(buf.validate.field).required = true];
 }
 
-message GetChangesetCommentsRequest {
-  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
-  StandardPaginationState state = 2;
+message GetCommentsRequest {
+  StandardPaginationRequest state = 1;
+  uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
 }
 
-message GetChangesetCommentsResponse {
+message GetCommentsResponse {
   message Comment {
     User user = 1;
     uint64 created_at = 2;
@@ -82,7 +84,7 @@ message GetChangesetCommentsResponse {
   repeated Comment comments = 2;
 }
 
-message AddChangesetCommentRequest {
+message AddCommentRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   string body = 2 [(buf.validate.field).string = {
     min_len: 1
@@ -90,21 +92,21 @@ message AddChangesetCommentRequest {
   }];
 }
 
-message AddChangesetCommentResponse {
-  ChangesetData changeset = 1 [(buf.validate.field).required = true];
-  GetChangesetCommentsResponse comments = 2 [(buf.validate.field).required = true];
+message AddCommentResponse {
+  Data changeset = 1 [(buf.validate.field).required = true];
+  GetCommentsResponse comments = 2 [(buf.validate.field).required = true];
 }
 
-message SetChangesetSubscriptionRequest {
+message UpdateSubscriptionRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   bool is_subscribed = 2;
 }
 
-message SetChangesetSubscriptionResponse {
+message UpdateSubscriptionResponse {
   bool is_subscribed = 1;
 }
 
-message ChangesetData {
+message Data {
   message Element {
     uint64 id = 1;
     uint64 version = 2;

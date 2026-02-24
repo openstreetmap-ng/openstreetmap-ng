@@ -1,10 +1,12 @@
 syntax = "proto3";
 
+package query_features;
+
 import "app/models/proto/element.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-service QueryFeaturesService {
+service Service {
   rpc Nearby(NearbyRequest) returns (NearbyResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
@@ -21,7 +23,7 @@ message NearbyResponse {
     string prefix = 3;
     optional string display_name = 4;
     optional ElementIcon icon = 5;
-    RenderElementsData render = 6 [(buf.validate.field).required = true];
+    element.RenderData render = 6 [(buf.validate.field).required = true];
   }
 
   repeated Result results = 1;

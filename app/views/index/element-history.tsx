@@ -13,7 +13,7 @@ import { BTooltip } from "@lib/bootstrap"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
-import { type ElementDataValid, ElementService } from "@lib/proto/element_pb"
+import { type DataValid, Service } from "@lib/proto/element_pb"
 import { ElementType } from "@lib/proto/shared_pb"
 import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
@@ -34,15 +34,9 @@ const getPageTitle = (type: ElementTypeSlug, id: string) => {
   }
 }
 
-const ElementHistoryEntry = ({
-  map,
-  data,
-}: {
-  map: MaplibreMap
-  data: ElementDataValid
-}) => {
+const ElementHistoryEntry = ({ map, data }: { map: MaplibreMap; data: DataValid }) => {
   const { type, id, version } = data.ref
-  const isLatest = data.nextVersion === undefined
+  const isLatest = !data.nextVersion
   const location = data.location
 
   const elementsRef = useRef<ReturnType<typeof convertRenderElementsData>>()
@@ -123,8 +117,7 @@ const ElementHistorySidebar = ({
       </div>
 
       <StandardPagination
-        key={`${type.value}-${id.value}-${tagsDiffStorage.value}`}
-        method={ElementService.method.getElementHistory}
+        method={Service.method.getHistory}
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,

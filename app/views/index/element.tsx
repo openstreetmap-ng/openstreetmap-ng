@@ -1,17 +1,17 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { routeParam } from "@lib/codecs"
+import { pathParam } from "@lib/codecs"
 import { API_URL } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import type { LonLat } from "@lib/map/state"
 import {
-  type ElementData_Context_EntryValid,
-  type ElementDataValid,
-  ElementService,
+  type Data_Context_EntryValid,
+  type DataValid,
+  Service,
 } from "@lib/proto/element_pb"
-import { type ElementIcon, ElementType } from "@lib/proto/shared_pb"
+import { type ElementIconValid, ElementType } from "@lib/proto/shared_pb"
 import { StandardPaginationNav } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
@@ -21,7 +21,6 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { memoize } from "@std/cache/memoize"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, Fragment } from "preact"
@@ -83,7 +82,7 @@ export const ElementsSection = <T,>({
           currentPage={page}
           targetPage={page}
           pageOrder="asc"
-          maxKnownPage={totalPages}
+          maxPage={totalPages}
           numPages={totalPages}
           small
           class="pagination-2ch mb-0"
@@ -98,22 +97,22 @@ export type ElementTypeSlug = keyof typeof ElementType
 export const getElementTypeSlug = (type: ElementType) =>
   ElementType[type] as ElementTypeSlug
 
-export const ElementTypeParam = routeParam.enum(["node", "way", "relation"])
-export const ElementIdParam = routeParam.positive()
-export const ElementVersionParam = routeParam.positive()
+export const ElementTypeParam = pathParam.enum(["node", "way", "relation"])
+export const ElementIdParam = pathParam.positive()
+export const ElementVersionParam = pathParam.positive()
 
 const formatElementLocation = ({ lon, lat }: LonLat) =>
   `${lat.toFixed(7)}, ${lon.toFixed(7)}`
 
-const getElementTitleText = (data: ElementDataValid) => {
+const getElementTitleText = (data: DataValid) => {
   const { type, id } = data.ref
   const typeLabel = getElementTypeLabel(type)
   return data.name ? `${typeLabel}: ${data.name} (${id})` : `${typeLabel}: ${id}`
 }
 
-const ElementHeader = ({ data }: { data: ElementDataValid }) => {
+const ElementHeader = ({ data }: { data: DataValid }) => {
   const { type, id, version } = data.ref
-  const isLatest = data.nextVersion === undefined
+  const isLatest = !data.nextVersion
 
   return (
     <SidebarHeader class="mb-1">
@@ -151,7 +150,7 @@ const ElementHeader = ({ data }: { data: ElementDataValid }) => {
   )
 }
 
-export const ElementMeta = ({ data }: { data: ElementDataValid }) => {
+export const ElementMeta = ({ data }: { data: DataValid }) => {
   const changeset = data.changeset
   const user = changeset.user
   return (
@@ -221,7 +220,7 @@ export const ElementLocation = ({
   </p>
 )
 
-const ElementHistoryLinks = ({ data }: { data: ElementDataValid }) => {
+const ElementHistoryLinks = ({ data }: { data: DataValid }) => {
   const { type, id, version } = data.ref
   const typeText = getElementTypeSlug(type)
   const prev = data.prevVersion
@@ -229,9 +228,9 @@ const ElementHistoryLinks = ({ data }: { data: ElementDataValid }) => {
 
   return (
     <div class="section text-center">
-      {(prev !== undefined || next !== undefined) && (
+      {(prev || next) && (
         <div class="mb-2">
-          {prev !== undefined && (
+          {prev && (
             <a
               href={`/${typeText}/${id}/history/${prev}`}
               rel="prev"
@@ -239,9 +238,9 @@ const ElementHistoryLinks = ({ data }: { data: ElementDataValid }) => {
               « v{prev}
             </a>
           )}
-          {prev !== undefined && " · "}
+          {prev && " · "}
           <a href={`/${typeText}/${id}/history`}>{t("browse.view_history")}</a>
-          {next !== undefined && (
+          {next && (
             <>
               {" "}
               ·{" "}
@@ -282,7 +281,7 @@ const ElementSidebar = ({
       const typeValue = ElementType[type.value]
       const idValue = id.value
       const versionValue = version.value
-      return versionValue !== undefined
+      return versionValue
         ? {
             ref: {
               case: "version" as const,
@@ -296,7 +295,7 @@ const ElementSidebar = ({
             },
           }
     }),
-    ElementService.method.getElement,
+    Service.method.get,
     (r) => r.element,
   )
   const renderElements = useComputed(() =>
@@ -326,10 +325,9 @@ const ElementSidebar = ({
       notFound={() => {
         const typeLabel = getElementTypeLabel(ElementType[type.value]).toLowerCase()
         const versionValue = version.value
-        const idLabel =
-          versionValue !== undefined
-            ? `${id.value} ${t("browse.version").toLowerCase()} ${versionValue}`
-            : id.toString()
+        const idLabel = versionValue
+          ? `${id.value} ${t("browse.version").toLowerCase()} ${versionValue}`
+          : id.toString()
         return t("browse.not_found.sorry", { type: typeLabel, id: idLabel })
       }}
     >
@@ -355,13 +353,17 @@ const ElementSidebar = ({
               {hasRelations && (
                 <div class="elements mt-3">
                   <ElementsSection
-                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
+                    keyFn={(el) =>
+                      `${el.ref.type}-${el.ref.id}-${el.roles.join("\x1F")}`
+                    }
                     items={parents}
                     title={(count) => `${t("browse.part_of")} (${count})`}
                     renderRow={(el) => <ElementRow element={el} />}
                   />
                   <ElementsSection
-                    keyFn={(el) => `${el.ref.type}-${el.ref.id}-${el.role ?? ""}`}
+                    keyFn={(el) =>
+                      `${el.ref.type}-${el.ref.id}-${el.roles.join("\x1F")}`
+                    }
                     items={members}
                     title={(count) =>
                       d.ref.type === ElementType.way
@@ -388,7 +390,7 @@ export const ElementRoute = defineRoute({
   params: {
     type: ElementTypeParam,
     id: ElementIdParam,
-    version: routeParam.optional(ElementVersionParam),
+    version: pathParam.optional(ElementVersionParam),
   },
   Component: ElementSidebar,
 })
@@ -401,7 +403,7 @@ export const ElementsListRow = ({
   class: extraClass,
 }: {
   href: string
-  icon: ElementIcon | undefined
+  icon: ElementIconValid | undefined
   title: ComponentChildren
   meta: ComponentChildren
   class?: string
@@ -429,7 +431,7 @@ export const ElementsListRow = ({
   </tr>
 )
 
-const ElementRow = ({ element }: { element: ElementData_Context_EntryValid }) => {
+const ElementRow = ({ element }: { element: Data_Context_EntryValid }) => {
   const { type, id } = element.ref
   return (
     <ElementsListRow
@@ -440,10 +442,10 @@ const ElementRow = ({ element }: { element: ElementData_Context_EntryValid }) =>
         <>
           <span>{getElementTypeLabel(type)}</span>
           {element.name && <span>{`#${id}`}</span>}
-          {element.role && (
+          {element.roles.length > 0 && (
             <>
               <span aria-hidden="true"> · </span>
-              <span>{element.role}</span>
+              <span>{element.roles.join(", ")}</span>
             </>
           )}
         </>
@@ -452,7 +454,7 @@ const ElementRow = ({ element }: { element: ElementData_Context_EntryValid }) =>
   )
 }
 
-export const getElementTypeLabel = memoize((type: ElementType) => {
+export const getElementTypeLabel = (type: ElementType) => {
   switch (type) {
     case ElementType.node:
       return t("javascripts.query.node")
@@ -461,7 +463,7 @@ export const getElementTypeLabel = memoize((type: ElementType) => {
     case ElementType.relation:
       return t("javascripts.query.relation")
   }
-})
+}
 
 export const getPaginationCountLabel = (page: number, totalItems: number) => {
   if (totalItems > ELEMENTS_PER_PAGE) {

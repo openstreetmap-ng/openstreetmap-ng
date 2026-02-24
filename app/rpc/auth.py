@@ -5,8 +5,8 @@ from connectrpc.request import RequestContext
 
 from app.lib.auth_context import auth_user
 from app.models.proto.auth_connect import (
-    AuthService,
-    AuthServiceASGIApplication,
+    Service,
+    ServiceASGIApplication,
 )
 from app.models.proto.auth_pb2 import (
     GetPasskeyChallengeRequest,
@@ -20,7 +20,7 @@ from app.services.user_password_service import UserPasswordService
 from app.validators.unicode import normalize_display_name
 
 
-class _Service(AuthService):
+class _Service(Service):
     @override
     async def get_passkey_challenge(
         self, request: GetPasskeyChallengeRequest, ctx: RequestContext
@@ -57,4 +57,4 @@ class _Service(AuthService):
 
 
 service = _Service()
-asgi_app_cls = AuthServiceASGIApplication
+asgi_app_cls = ServiceASGIApplication
