@@ -40,8 +40,8 @@ if (isCrashReportingEnabled(config)) {
   })
 
   const userInfo: User = {
-    ...(userConfig?.id && { id: userConfig.id.toString() }),
-    ...(userConfig?.displayName && { username: userConfig.displayName }),
+    ...(userConfig?.user?.id && { id: userConfig.user.id.toString() }),
+    ...(userConfig?.user?.displayName && { username: userConfig.user.displayName }),
     ip_address: "{{auto}}",
     geo: { region: getTimezoneName() },
   }

@@ -1,5 +1,5 @@
 import { routerRemoteEditTarget } from "@index/router"
-import { routeParam } from "@lib/codecs"
+import { pathParam } from "@lib/codecs"
 import { API_URL } from "@lib/config"
 import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
@@ -18,7 +18,7 @@ export type RemoteEditTarget = Readonly<{
 export const parseRemoteEditTargetFromQueryParams = (
   queryParams: Record<string, string[]>,
 ): RemoteEditTarget | null => {
-  const idSchema = routeParam.positive()
+  const idSchema = pathParam.positive()
   for (const type of ["node", "way", "relation", "note"] as const) {
     const raw = queryParams[type]?.at(-1)
     if (!raw) continue
@@ -99,7 +99,7 @@ export const openRemoteEdit = async ({
 export const RemoteEditButton = ({
   state,
   onBeforeOpen,
-  class: className,
+  class: className = "",
   children,
 }: {
   state: ReadonlySignal<LonLatZoom>

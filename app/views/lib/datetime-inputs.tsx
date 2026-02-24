@@ -25,10 +25,6 @@ type TimePropsBase = {
   relativeStyle?: RelativeOrDayStyle
 }
 
-type TimeProps =
-  | (TimePropsBase & { unix: number | bigint; date?: never })
-  | (TimePropsBase & { date: Date; unix?: never })
-
 const TIME_UNITS = [
   [365 * DAY, "year"],
   [30 * DAY, "month"],
@@ -92,7 +88,11 @@ const timeFormatOptionsFromDataset = (dataset: DOMStringMap): TimeFormatOptions 
   relativeStyle: dataset.style as RelativeOrDayStyle,
 })
 
-export const Time = (props: TimeProps) => {
+export const Time = (
+  props:
+    | (TimePropsBase & { unix: number | bigint; date?: never })
+    | (TimePropsBase & { date: Date; unix?: never }),
+) => {
   const date = props.date ?? new Date(Number(props.unix) * 1000)
   const relativeStyle =
     props.relativeStyle ?? (props.dateStyle || props.timeStyle ? undefined : "long")
@@ -163,9 +163,7 @@ export const configureDatetimeInputs = (
     input.after(hiddenInput)
 
     // Update hidden input whenever visible input changes
-    const sync = () => {
-      hiddenInput.value = localInputToUtcString(input)
-    }
+    const sync = () => (hiddenInput.value = localInputToUtcString(input))
     input.addEventListener("input", sync)
 
     // Convert existing UTC value to local time for display

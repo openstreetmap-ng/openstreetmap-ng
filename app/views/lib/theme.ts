@@ -8,7 +8,7 @@ export type Theme = PrefersColorScheme | "auto"
 const getPrefersColorScheme = () =>
   window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 
-const prefersColorScheme = signal<PrefersColorScheme>(getPrefersColorScheme())
+const prefersColorScheme = signal(getPrefersColorScheme())
 
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
   console.debug("Theme: System preference changed")
