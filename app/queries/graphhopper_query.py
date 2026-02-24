@@ -10,8 +10,10 @@ from app.models.graphhopper import GraphHopperResponse
 from app.models.proto.shared_pb2 import RoutingResult
 from app.utils import HTTP
 
-GraphHopperProfile = Literal['car', 'bike', 'foot']
-GraphHopperProfiles = frozenset[GraphHopperProfile](get_args(GraphHopperProfile))
+type GraphHopperProfile = Literal['car', 'bike', 'foot']
+GraphHopperProfiles = frozenset[GraphHopperProfile](
+    get_args(GraphHopperProfile.__value__)
+)
 
 
 class GraphHopperQuery:
