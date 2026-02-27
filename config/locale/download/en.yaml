@@ -372,6 +372,7 @@ en:
       comment_by_html: Comment from %{user} %{time_ago}
       changesetxml: Changeset XML
       osmchangexml: osmChange XML
+      show_diff: Show Diff
       feed:
         title: Changeset %{id}
         title_comment: Changeset %{id} - %{comment}

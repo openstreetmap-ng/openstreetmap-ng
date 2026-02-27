@@ -162,6 +162,12 @@
         </div>
         {% endif %}
 
+        <div class="mb-2">
+            <button class="btn btn-sm btn-outline-primary diff-toggle-btn" type="button">
+                <i class="bi bi-layers-half me-1"></i>
+                {{- t('browse.changeset.show_diff') -}}
+            </button>
+        </div>
         <small>
             <a href="{{ API_URL }}/api/0.6/changeset/{{ changeset.id }}">
                 {{- t('browse.changeset.changesetxml') -}}
