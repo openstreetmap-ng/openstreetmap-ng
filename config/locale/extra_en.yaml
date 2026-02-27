@@ -45,6 +45,9 @@ changeset:
 changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below
+browse:
+  tags: Tags
+  tags_format_hint: "Enter tags in key=value format, one per line"
 element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
@@ -584,6 +587,8 @@ action:
   block_user: Block user
   cancel: Cancel
   copy: Copy
+  discard: Discard
+  edit_tags: Edit tags
   copy_link: Copy link
   click_here: Click here
   end_session: End session
@@ -636,6 +641,7 @@ state:
   any: Any
   hidden: Hidden
   latest: latest
+  none: None
   preparing: Preparing
   resolved: Resolved
   unread: Unread
