@@ -578,6 +578,7 @@ validation:
   user_not_found: User {{user}} not found
   you_can_send_message_to_at_most_limit_recipients: "You can send a message to at most {{limit}} recipients"
   incomplete_location_information: Incomplete location information
+  avatar_file_too_large: The avatar file is too large. Please choose a smaller image.
 action:
   go_back: Go back
   authorize: Authorize

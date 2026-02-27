@@ -47,12 +47,25 @@ mount("user-profile-body", (body) => {
             avatarForm.requestSubmit()
         })
 
+        const maxAvatarSize = 80 * 1024 // 80 KiB
         configureStandardForm(avatarForm, ({ avatar_url }) => {
             // On successful avatar upload, update avatar images
             console.debug("Profile: Avatar updated", avatar_url)
             for (const avatarImage of avatars) {
                 avatarImage.src = avatar_url
             }
+        }, {
+            validationCallback: (formData) => {
+                const file = formData.get("avatar_file") as File
+                if (file && file.size > maxAvatarSize) {
+                    return [{
+                        type: "error",
+                        loc: [null, "avatar_file"],
+                        msg: i18next.t("validation.avatar_file_too_large"),
+                    }]
+                }
+                return null
+            },
         })
 
         const backgroundForm = body.querySelector("form.background-form")!
