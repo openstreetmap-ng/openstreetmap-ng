@@ -3,6 +3,7 @@ import { getChangesetsHistoryController } from "@index/changesets-history"
 import { configureContextMenu } from "@index/context-menu"
 import { getDistanceController } from "@index/distance"
 import { getElementController } from "@index/element"
+import { getElementDeepHistoryController } from "@index/element-deep-history"
 import { getElementHistoryController } from "@index/element-history"
 import { getExportController } from "@index/export"
 import { getIndexController } from "@index/index"
@@ -128,6 +129,10 @@ const configureMainMap = (container: HTMLElement) => {
             [
                 "/(?<type>node|way|relation)/(?<id>\\d+)/history",
                 getElementHistoryController(map),
+            ],
+            [
+                "/(?<type>node|way|relation)/(?<id>\\d+)/deep-history",
+                getElementDeepHistoryController(map),
             ],
             ["/distance", getDistanceController(map)],
         ]),

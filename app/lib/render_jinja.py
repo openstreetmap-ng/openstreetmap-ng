@@ -23,7 +23,7 @@ from app.models.db.user import (
     user_is_deleted,
     user_is_moderator,
 )
-from speedup import split_typed_element_id
+from speedup import element_id, split_typed_element_id
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil
@@ -217,6 +217,7 @@ _J2.globals.update(
 # configure template filters
 _J2.filters.update(
     b64=b64,
+    element_id=element_id,
     mask_ip=mask_ip,
     stripspecial=stripspecial,
 )

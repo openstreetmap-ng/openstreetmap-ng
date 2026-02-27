@@ -48,6 +48,19 @@ changesets_history:
 element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
+  deep_history: Deep history
+  showing_versions: "Showing {{count}} of {{total}} versions"
+  limit: Limit
+  more_versions_available: More versions available. Increase the limit to see older history.
+  part_of_ways: Part of ways
+  and_more: "...and {{count}} more"
+  date: Date
+  user: User
+  coordinates: Coordinates
+  tags: Tags
+  changeset: Changeset
+  back_to_history: Back to history
+  view_deep_history: View deep history
 note:
   title: Note
   count_one: "note"
