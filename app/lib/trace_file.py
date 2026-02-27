@@ -91,6 +91,25 @@ class TraceFile:
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
 
     @staticmethod
+    async def compress_heavy(buffer: bytes) -> _CompressResult:
+        """
+        Compress the trace file buffer with heavy compression (level 22).
+
+        This is CPU-intensive and should only be used in background tasks.
+        Returns the compressed buffer and the file name suffix.
+        """
+        loop = get_running_loop()
+        # Level 22 provides significantly better compression at the cost of CPU time
+        # The zstd library releases the GIL during compression, enabling parallelism
+        result = await loop.run_in_executor(
+            None,
+            ZstdCompressor(level=22, threads=1).compress,
+            buffer,
+        )
+        logging.debug('Trace file heavy zstd-compressed size is %s', sizestr(len(result)))
+        return _CompressResult(result, _ZSTD_SUFFIX, {'zstd_level': '22'})
+
+    @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey) -> bytes:
         """Decompress the trace file buffer if needed."""
         return (

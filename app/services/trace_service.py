@@ -1,8 +1,10 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 import cython
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -108,12 +110,17 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Start background recompression task
+        loop = get_running_loop()
+        loop.create_task(_recompress_task(trace_id, file_bytes))  # noqa: RUF006
+
+        return trace_id
 
     @staticmethod
     async def update(
@@ -213,3 +220,54 @@ def _get_file_name(file: UploadFile) -> str:
     If not provided, use the current time as the file name.
     """
     return file.filename or f'{utcnow().isoformat(timespec="seconds")}.gpx'
+
+
+async def _recompress_task(trace_id: TraceId, file_bytes: bytes) -> None:
+    """
+    Background task to recompress the trace file with heavy compression.
+
+    This improves storage efficiency without delaying the upload response.
+    """
+    try:
+        logging.debug('Starting background recompression for trace %d', trace_id)
+
+        # Compress with heavy settings (level 22)
+        result = await TraceFile.compress_heavy(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+        logging.debug('Saved recompressed trace file %r', new_file_id)
+
+        # Update the trace to point to the new file
+        async with db(True) as conn:
+            async with await conn.execute(
+                """
+                SELECT file_id FROM trace
+                WHERE id = %s
+                FOR UPDATE
+                """,
+                (trace_id,),
+            ) as r:
+                row = await r.fetchone()
+                if row is None:
+                    # Trace was deleted, clean up new file
+                    logging.debug('Trace %d was deleted, cleaning up recompressed file', trace_id)
+                    await TRACE_STORAGE.delete(new_file_id)
+                    return
+
+                old_file_id = row[0]
+
+            await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %s
+                WHERE id = %s
+                """,
+                (new_file_id, trace_id),
+            )
+
+        # Delete the old file after successful update
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.info('Completed background recompression for trace %d', trace_id)
+
+    except Exception:
+        logging.warning('Failed background recompression for trace %d', trace_id, exc_info=True)
+        capture_exception()
