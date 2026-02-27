@@ -1,6 +1,7 @@
 import { overlayOpacityStorage } from "@lib/local-storage"
 import { effectiveTheme } from "@lib/theme"
 import libertyStyle from "@lib/vector-styles/liberty.json"
+import libertyHybridStyle from "@lib/vector-styles/liberty-hybrid.json"
 import { effect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import type { FeatureCollection } from "geojson"
@@ -85,6 +86,10 @@ interface LayerConfig {
     layerOptions?: AddMapLayerOptions
     /** Layers with higher priority are drawn on top of others, defaults to 0 */
     priority?: number
+    /** For composite layers: raster source to render first */
+    rasterUnderlayTiles?: string[]
+    /** For composite layers: vector style to render on top */
+    vectorOverlayStyle?: StyleSpecification
 }
 
 export const layersConfig = new Map<LayerId, LayerConfig>()
@@ -108,6 +113,18 @@ layersConfig.set("liberty" as LayerId, {
     vectorStyle: libertyStyle,
     isBaseLayer: true,
     layerCode: "L" as LayerCode,
+})
+
+// Hybrid aerial: aerial imagery with vector overlay (roads, POIs, labels)
+layersConfig.set("hybrid" as LayerId, {
+    specification: { type: "vector" },
+    // @ts-expect-error
+    vectorStyle: libertyHybridStyle,
+    isBaseLayer: true,
+    layerCode: "B" as LayerCode, // B for hybrid
+    rasterUnderlayTiles: [
+        "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    ],
 })
 
 layersConfig.set("cyclosm" as LayerId, {
@@ -277,6 +294,16 @@ export const addMapLayerSources = (
                 map.addSource(layerId, config.specification)
             }
         } else if (specType === "vector") {
+            // For hybrid layers, add the raster underlay source first
+            if (config.rasterUnderlayTiles) {
+                map.addSource(getExtendedLayerId(layerId, "underlay" as LayerType), {
+                    type: "raster",
+                    tiles: config.rasterUnderlayTiles,
+                    tileSize: 256,
+                    maxzoom: 23,
+                    attribution: aerialEsriCredit,
+                })
+            }
             for (const [sourceId, source] of Object.entries(
                 config.vectorStyle!.sources,
             )) {
@@ -399,6 +426,16 @@ export const addMapLayer = (
     if (specType === "vector") {
         console.debug("Layers: Adding vector", layerId, "before", beforeId)
         const vectorStyle = config.vectorStyle!
+
+        // For hybrid layers, add raster underlay layer first
+        if (config.rasterUnderlayTiles) {
+            const underlayId = getExtendedLayerId(layerId, "underlay" as LayerType)
+            map.addLayer({
+                id: underlayId,
+                type: "raster",
+                source: underlayId,
+            }, beforeId)
+        }
 
         // Add glyphs
         if (vectorStyle.glyphs) map.setGlyphs(vectorStyle.glyphs)
