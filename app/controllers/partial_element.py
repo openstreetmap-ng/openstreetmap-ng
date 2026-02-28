@@ -1,7 +1,8 @@
 from asyncio import TaskGroup
 from base64 import urlsafe_b64encode
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from shapely import get_coordinates
 from starlette import status
 
@@ -23,6 +24,7 @@ from app.queries.user_query import UserQuery
 from speedup import element_type, typed_element_id
 
 router = APIRouter(prefix='/partial')
+ELEMENT_HISTORY_LIMIT_OPTIONS = (10, 25, 50, 100)
 
 
 @router.get('/{type:element_type}/{id:int}')
@@ -80,7 +82,11 @@ async def get_version(type: ElementType, id: ElementId, version: int):
 
 
 @router.get('/{type:element_type}/{id:int}/history')
-async def get_history(type: ElementType, id: ElementId):
+async def get_history(
+    type: ElementType,
+    id: ElementId,
+    limit: Annotated[int, Query(ge=1, le=100)] = ELEMENT_HISTORY_PAGE_SIZE,
+):
     typed_id = typed_element_id(type, id)
     at_sequence_id = await ElementQuery.get_current_sequence_id()
     current_version_map = await ElementQuery.map_refs_to_current_versions(
@@ -98,7 +104,9 @@ async def get_history(type: ElementType, id: ElementId):
         {
             'type': type,
             'id': id,
-            'page_size': ELEMENT_HISTORY_PAGE_SIZE,
+            'page_size': limit,
+            'history_limit': limit,
+            'history_limit_options': ELEMENT_HISTORY_LIMIT_OPTIONS,
         },
     )
 
