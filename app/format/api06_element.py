@@ -384,6 +384,13 @@ def _decode_element_unsafe(
         and (lat := data.get('@lat')) is not None
         else None
     )
+
+    # Reject nodes placed at null island (0, 0) — always an editor bug, never intentional
+    if type == 'node' and point is not None:
+        coords = get_coordinates(point)[0]
+        if coords[0] == 0.0 and coords[1] == 0.0:
+            raise ValueError('Node coordinates at null island (0, 0) are not allowed')
+
     members = None
     members_roles = None
 
