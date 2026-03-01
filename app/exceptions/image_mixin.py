@@ -12,6 +12,12 @@ class ImageExceptionsMixin:
     def image_too_big(self) -> NoReturn:
         raise APIError(status.HTTP_422_UNPROCESSABLE_CONTENT, detail='Image is too big')
 
+    def image_not_readable(self) -> NoReturn:
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail='The uploaded file is not a valid image or is corrupted',
+        )
+
     def image_inappropriate(self) -> NoReturn:
         raise APIError(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
