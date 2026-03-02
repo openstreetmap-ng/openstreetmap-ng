@@ -39,8 +39,8 @@ service Service {
 }
 
 message ChangePasswordRequest {
-  TransmitUserPassword old_password = 1 [(buf.validate.field).required = true];
-  TransmitUserPassword new_password = 2 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword old_password = 1 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword new_password = 2 [(buf.validate.field).required = true];
   bool revoke_other_sessions = 3;
 }
 
@@ -64,13 +64,13 @@ message SetupTotpResponse {
 }
 
 message DisableTotpRequest {
-  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword password = 1 [(buf.validate.field).required = true];
 }
 
 message DisableTotpResponse {}
 
 message RegisterPasskeyRequest {
-  PasskeyRegistration registration = 1 [(buf.validate.field).required = true];
+  auth.PasskeyRegistration registration = 1 [(buf.validate.field).required = true];
 }
 
 message RegisterPasskeyResponse {
@@ -87,7 +87,7 @@ message RenamePasskeyResponse {
 }
 
 message RemovePasskeyRequest {
-  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword password = 1 [(buf.validate.field).required = true];
   bytes credential_id = 2 [(buf.validate.field).bytes.min_len = 1];
 }
 
@@ -96,7 +96,7 @@ message RemovePasskeyResponse {
 }
 
 message GenerateRecoveryCodesRequest {
-  TransmitUserPassword password = 1 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword password = 1 [(buf.validate.field).required = true];
 }
 
 message GenerateRecoveryCodesResponse {
