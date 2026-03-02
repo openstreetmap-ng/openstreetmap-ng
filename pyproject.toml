@@ -307,8 +307,6 @@ preview = true
 
 [tool.uv]
 package = false
-python-downloads = "never"
-python-preference = "only-system"
 
 [[tool.uv.index]]
 name = "pytorch"

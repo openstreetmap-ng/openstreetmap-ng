@@ -87,7 +87,7 @@ message UpdateEmailRequest {
     email: true
     max_len: 254
   }];
-  TransmitUserPassword password = 2 [(buf.validate.field).required = true];
+  auth.TransmitUserPassword password = 2 [(buf.validate.field).required = true];
 }
 
 message UpdateEmailResponse {
