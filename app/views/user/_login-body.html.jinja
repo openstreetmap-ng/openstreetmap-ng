@@ -26,6 +26,13 @@
                     <input type="password" class="form-control mt-2" data-name="password"
                         autocomplete="current-password" required>
                 </label>
+                <div class="form-check mb-3">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" data-action="toggle-password"
+                            autocomplete="off">
+                        {{ t('profiles.edit.show') }}
+                    </label>
+                </div>
 
                 <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
                     <div class="form-check">
