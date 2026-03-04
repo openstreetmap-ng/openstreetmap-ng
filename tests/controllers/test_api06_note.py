@@ -3,6 +3,7 @@ from random import uniform
 
 import pytest
 from annotated_types import Len
+from app.models.proto.shared_pb2 import IdResponse
 from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
@@ -108,6 +109,58 @@ async def test_note_create_anonymous(client: AsyncClient):
         },
     )
     assert 'user' not in props['comments'][0]
+
+
+async def test_web_note_create_appends_osm_ng_hashtag(client: AsyncClient):
+    body = test_web_note_create_appends_osm_ng_hashtag.__qualname__
+
+    r = await client.post(
+        '/api/web/note',
+        data={'lon': 0, 'lat': 0, 'text': body},
+    )
+    assert r.is_success, r.text
+
+    id_response = IdResponse()
+    id_response.ParseFromString(r.content)
+    note_id = id_response.id
+    assert note_id > 0
+
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert_model(
+        props['comments'][0],
+        {
+            'action': 'opened',
+            'text': f'{body}\n#osm-ng',
+        },
+    )
+
+
+async def test_web_note_create_does_not_duplicate_osm_ng_hashtag(client: AsyncClient):
+    body = f'{test_web_note_create_does_not_duplicate_osm_ng_hashtag.__qualname__}\n#osm-ng'
+
+    r = await client.post(
+        '/api/web/note',
+        data={'lon': 0, 'lat': 0, 'text': body},
+    )
+    assert r.is_success, r.text
+
+    id_response = IdResponse()
+    id_response.ParseFromString(r.content)
+    note_id = id_response.id
+    assert note_id > 0
+
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert_model(
+        props['comments'][0],
+        {
+            'action': 'opened',
+            'text': body,
+        },
+    )
 
 
 async def test_note_crud(client: AsyncClient):

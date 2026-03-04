@@ -1,6 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated, Literal
 
+import re2
 from fastapi import APIRouter, Form, Query, Response
 from psycopg.sql import SQL
 from starlette import status
@@ -37,6 +38,16 @@ from app.services.note_service import NoteService
 from app.utils import id_response
 
 router = APIRouter(prefix='/api/web/note')
+_NOTE_SOURCE_HASHTAG = '#osm-ng'
+_NOTE_SOURCE_HASHTAG_RE = re2.compile(r'(?i)(^|\s)#osm-ng(?=\s|$)')
+
+
+def _append_note_source_hashtag(text: str) -> str:
+    if _NOTE_SOURCE_HASHTAG_RE.search(text):
+        return text
+
+    separator = '' if text.endswith('\n') else '\n'
+    return f'{text}{separator}{_NOTE_SOURCE_HASHTAG}'
 
 
 @router.post('')
@@ -45,7 +56,7 @@ async def create_note(
     lat: Annotated[Latitude, Form()],
     text: Annotated[str, Form(min_length=1, max_length=NOTE_COMMENT_BODY_MAX_LENGTH)],
 ):
-    note_id = await NoteService.create(lon, lat, text)
+    note_id = await NoteService.create(lon, lat, _append_note_source_hashtag(text))
     return id_response(note_id)
 
 
