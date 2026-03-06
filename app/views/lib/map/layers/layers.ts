@@ -365,6 +365,46 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
     symbol: ["==", ["geometry-type"], "Point"],
 }
 
+const getCurrentBaseLayerId = (map: MaplibreMap): LayerId | null => {
+    let baseLayerId: LayerId | null = null
+    for (const extendedLayerId of map.getLayersOrder()) {
+        const layerId = resolveExtendedLayerId(extendedLayerId)
+        if (layersConfig.get(layerId)?.isBaseLayer) baseLayerId = layerId
+    }
+    return baseLayerId
+}
+
+export const syncAerialOverlayLabelOrder = (map: MaplibreMap) => {
+    if (!hasMapLayer(map, "aerial" as LayerId)) return
+    if (map.getProjection().type !== "globe") return
+
+    const baseLayerId = getCurrentBaseLayerId(map)
+    if (baseLayerId === null) return
+
+    const layerOrder = map.getLayersOrder()
+    const labelLayerIds = layerOrder.filter((extendedLayerId) => {
+        if (resolveExtendedLayerId(extendedLayerId) !== baseLayerId) return false
+        const layer = map.getLayer(extendedLayerId)
+        return (
+            layer?.type === "symbol" &&
+            (layer as { "source-layer"?: string })["source-layer"] === "place"
+        )
+    })
+
+    if (!labelLayerIds.length) return
+
+    const aerialPriority = layersConfig.get("aerial" as LayerId)?.priority ?? 0
+    const beforeId = layerOrder.find((extendedLayerId) => {
+        const layerPriority =
+            layersConfig.get(resolveExtendedLayerId(extendedLayerId))?.priority ?? 0
+        return layerPriority > aerialPriority
+    })
+
+    for (const labelLayerId of labelLayerIds) {
+        map.moveLayer(labelLayerId, beforeId)
+    }
+}
+
 export const addMapLayer = (
     map: MaplibreMap,
     layerId: LayerId,
@@ -483,6 +523,10 @@ export const addMapLayer = (
         for (const handler of layerEventHandlers) {
             handler(true, layerId, config)
         }
+    }
+
+    if (layerId === ("aerial" as LayerId) || config.isBaseLayer) {
+        syncAerialOverlayLabelOrder(map)
     }
 }
 

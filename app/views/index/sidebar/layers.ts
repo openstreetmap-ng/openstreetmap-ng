@@ -19,6 +19,7 @@ import {
     type LayerId,
     layersConfig,
     removeMapLayer,
+    syncAerialOverlayLabelOrder,
 } from "@lib/map/layers/layers"
 import { getMapBaseLayerId } from "@lib/map/state"
 import { throttle } from "@std/async/unstable-throttle"
@@ -234,6 +235,7 @@ export class LayerSidebarToggleControl extends SidebarToggleControl {
                 globeProjectionStorage.set(enabled)
                 const projection = { type: enabled ? "globe" : "mercator" }
                 map.setProjection(projection)
+                if (enabled) syncAerialOverlayLabelOrder(map)
 
                 // Workaround a bug where after switching back to mercator,
                 // the map is not fit to the screen (there is grey padding)
