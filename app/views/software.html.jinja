@@ -1,0 +1,119 @@
+{% extends '_base' %}
+{% block title_prefix %}Software | {% endblock %}
+{% block body_class %}software-body{% endblock %}
+{% block body %}
+
+<div class="content-header">
+    <h1 class="container">
+        Software
+    </h1>
+</div>
+<div class="content-body">
+    <div class="container">
+        <p class="lead mb-4">
+            Discover software built with OpenStreetMap data &mdash; editors, mobile apps, routing engines,
+            map renderers, and developer tools.
+        </p>
+
+        <div class="software-filters mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-medium" for="software-category-filter">Category</label>
+                    <select class="form-select" id="software-category-filter">
+                        <option value="all" selected>All categories</option>
+                        {% for cat_id, cat_label in software_categories %}
+                        <option value="{{ cat_id }}">{{ cat_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-medium" for="software-platform-filter">Platform</label>
+                    <select class="form-select" id="software-platform-filter">
+                        <option value="all" selected>All platforms</option>
+                        {% for plat in software_platforms %}
+                        <option value="{{ plat }}">{{ plat | capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label fw-medium" for="software-license-filter">License</label>
+                    <select class="form-select" id="software-license-filter">
+                        <option value="all" selected>All licenses</option>
+                        <option value="open">Open source</option>
+                        <option value="proprietary">Proprietary</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <p class="software-count text-body-secondary mb-3"></p>
+
+        {% for cat_id, cat_label in software_categories %}
+        {% set _cat_items = software_list | selectattr('category', 'equalto', cat_id) | list %}
+        {% if _cat_items %}
+        <section class="software-category mb-4" data-category="{{ cat_id }}">
+            <h3 class="mb-3">{{ cat_label }}</h3>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                {% for sw in _cat_items %}
+                <div class="col software-card"
+                     data-category="{{ sw.category }}"
+                     data-platforms="{{ sw.platforms | join(',') }}"
+                     data-license="{{ sw.license }}">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi {{ sw.icon }} fs-4 me-2 text-primary flex-shrink-0"></i>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-0">
+                                        <a class="stretched-link" href="{{ sw.url }}" target="_blank"
+                                            rel="noopener noreferrer">
+                                            {{ sw.name }}
+                                        </a>
+                                    </h5>
+                                </div>
+                            </div>
+                            <p class="card-text mb-2">{{ sw.description }}</p>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for plat in sw.platforms %}
+                                <span class="badge text-bg-secondary">{{ plat | capitalize }}</span>
+                                {% endfor %}
+                                {% if sw.license == 'open' %}
+                                <span class="badge text-bg-success">Open source</span>
+                                {% else %}
+                                <span class="badge text-bg-warning">Proprietary</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        {% endfor %}
+
+        <div class="software-no-results d-none">
+            <p class="text-center text-body-secondary py-5">
+                <i class="bi bi-search fs-1 d-block mb-2"></i>
+                No software matches the selected filters.
+            </p>
+        </div>
+
+        <hr class="my-4">
+
+        <section class="mb-4">
+            <h3>More resources</h3>
+            <p>
+                The <a href="https://wiki.openstreetmap.org/wiki/Software" rel="noopener">OSM Wiki Software page</a>
+                maintains a comprehensive catalog of all known software using OpenStreetMap data.
+                You can also explore the
+                <a href="https://wiki.openstreetmap.org/wiki/Editors" rel="noopener">editors list</a>
+                or browse <a href="https://osm-apps.org" rel="noopener">OSM Apps Catalog</a>
+                for community-maintained listings.
+            </p>
+        </section>
+
+    </div>
+</div>
+
+{% endblock %}

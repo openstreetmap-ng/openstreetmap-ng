@@ -1,0 +1,13 @@
+.software-body {
+    .software-card .card {
+        transition: box-shadow 0.15s ease-in-out;
+
+        &:hover {
+            box-shadow: $box-shadow;
+        }
+    }
+
+    .software-no-results i {
+        opacity: 0.4;
+    }
+}

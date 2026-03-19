@@ -19,6 +19,10 @@ const navLinks = [
     title: t("layouts.user_diaries_tooltip"),
   },
   {
+    href: "/software",
+    label: "Software",
+  },
+  {
     href: "/communities",
     label: t("site.communities.title"),
   },
