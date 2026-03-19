@@ -41,6 +41,20 @@ const getMessageFromPageUrl = () => {
   }
 }
 
+const buildActionUrl = (
+  baseAction: string,
+  query: string,
+  dateAfter: string,
+  dateBefore: string,
+) => {
+  const params = new URLSearchParams()
+  if (query) params.set("q", query)
+  if (dateAfter) params.set("after", dateAfter)
+  if (dateBefore) params.set("before", dateBefore)
+  const qs = params.toString()
+  return qs ? `${baseAction}?${qs}` : baseAction
+}
+
 const summaryUserLink = (user: MessagePage_Summary_User) => (
   <a href={`/user/${user.displayName}`}>
     <img
@@ -89,12 +103,16 @@ const MessagesListItem = ({
   message,
   inbox,
   openMessageId,
+  selected,
   onOpen,
+  onToggleSelect,
 }: {
   message: MessagePage_Summary
   inbox: boolean
   openMessageId: bigint | null
+  selected: boolean
   onOpen: (messageId: bigint) => void
+  onToggleSelect: (messageId: bigint) => void
 }) => {
   const messageId = message.id
   const isUnread = inbox && message.unread
@@ -118,48 +136,65 @@ const MessagesListItem = ({
     onOpen(messageId)
   }
 
+  const handleCheckbox = (event: Event) => {
+    event.stopPropagation()
+    onToggleSelect(messageId)
+  }
+
   return (
     <li
-      class={`social-entry clickable ${isUnread ? "unread" : ""} ${
-        isActive ? "active" : ""
-      }`}
+      class={`social-entry clickable ${isUnread ? "unread" : ""} ${isActive ? "active" : ""} ${selected ? "selected" : ""}`}
     >
-      <p class="header text-muted d-flex justify-content-between">
-        {inbox ? (
-          <span>
-            {summaryUserLink(message.sender!)} {t("messages.action_sent")}{" "}
-            <Time
-              unix={message.time}
-              relativeStyle="long"
-            />
-          </span>
-        ) : (
-          <span>
-            {summaryRecipients(message)} {t("messages.action_delivered")}{" "}
-            <Time
-              unix={message.time}
-              relativeStyle="long"
-            />
-          </span>
-        )}
-        <span>
-          <a
-            class="stretched-link"
-            href={`?show=${messageId}`}
-            onClick={handleOpen}
-            onKeyDown={handleOpen}
-          >
-            <span class="visually-hidden">{message.subject}</span>
-          </a>
-          <span class="unread-badge badge text-bg-primary">
-            <i class="bi bi-bell-fill me-1" />
-            {t("state.unread")}
-          </span>
-        </span>
-      </p>
-      <div class="body">
-        <h6 class="title">{message.subject}</h6>
-        <p class="description">{message.bodyPreview}</p>
+      <div class="d-flex align-items-start">
+        <div class="message-checkbox me-2 mt-1">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            checked={selected}
+            onChange={handleCheckbox}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={message.subject}
+          />
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <p class="header text-muted d-flex justify-content-between">
+            {inbox ? (
+              <span>
+                {summaryUserLink(message.sender!)} {t("messages.action_sent")}{" "}
+                <Time
+                  unix={message.time}
+                  relativeStyle="long"
+                />
+              </span>
+            ) : (
+              <span>
+                {summaryRecipients(message)} {t("messages.action_delivered")}{" "}
+                <Time
+                  unix={message.time}
+                  relativeStyle="long"
+                />
+              </span>
+            )}
+            <span>
+              <a
+                class="stretched-link"
+                href={`?show=${messageId}`}
+                onClick={handleOpen}
+                onKeyDown={handleOpen}
+              >
+                <span class="visually-hidden">{message.subject}</span>
+              </a>
+              <span class="unread-badge badge text-bg-primary">
+                <i class="bi bi-bell-fill me-1" />
+                {t("state.unread")}
+              </span>
+            </span>
+          </p>
+          <div class="body">
+            <h6 class="title">{message.subject}</h6>
+            <p class="description">{message.bodyPreview}</p>
+          </div>
+        </div>
       </div>
     </li>
   )
@@ -344,11 +379,189 @@ const MessagePreview = ({
   )
 }
 
+const SearchBar = ({
+  onSearch,
+}: {
+  onSearch: (query: string, dateAfter: string, dateBefore: string) => void
+}) => {
+  const queryRef = useRef<HTMLInputElement>(null)
+  const dateAfterRef = useRef<HTMLInputElement>(null)
+  const dateBeforeRef = useRef<HTMLInputElement>(null)
+  const expanded = useSignal(false)
+
+  const handleSubmit = (event: Event) => {
+    event.preventDefault()
+    onSearch(
+      queryRef.current?.value ?? "",
+      dateAfterRef.current?.value ?? "",
+      dateBeforeRef.current?.value ?? "",
+    )
+  }
+
+  const handleClear = () => {
+    if (queryRef.current) queryRef.current.value = ""
+    if (dateAfterRef.current) dateAfterRef.current.value = ""
+    if (dateBeforeRef.current) dateBeforeRef.current.value = ""
+    expanded.value = false
+    onSearch("", "", "")
+  }
+
+  return (
+    <form
+      class="messages-search mb-3"
+      onSubmit={handleSubmit}
+    >
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control"
+          placeholder={t("messages.search_placeholder")}
+          ref={queryRef}
+          aria-label={t("messages.search_placeholder")}
+        />
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          onClick={() => {
+            expanded.value = !expanded.value
+          }}
+          title={t("messages.date_after")}
+        >
+          <i class="bi bi-calendar-range" />
+        </button>
+        <button
+          class="btn btn-outline-secondary"
+          type="submit"
+        >
+          <i class="bi bi-search" />
+        </button>
+      </div>
+      {expanded.value && (
+        <div class="row g-2 mt-2">
+          <div class="col-sm-6">
+            <label class="form-label small text-muted mb-1">
+              {t("messages.date_after")}
+            </label>
+            <input
+              type="date"
+              class="form-control form-control-sm"
+              ref={dateAfterRef}
+            />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small text-muted mb-1">
+              {t("messages.date_before")}
+            </label>
+            <input
+              type="date"
+              class="form-control form-control-sm"
+              ref={dateBeforeRef}
+            />
+          </div>
+        </div>
+      )}
+      <div class="mt-2 d-flex gap-2">
+        <button
+          class="btn btn-sm btn-link text-muted p-0"
+          type="button"
+          onClick={handleClear}
+        >
+          {t("action.reset_filters")}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+const BulkActionBar = ({
+  selectedCount,
+  inbox,
+  totalVisible,
+  onSelectAll,
+  onDeselectAll,
+  onBulkRead,
+  onBulkUnread,
+  onBulkDelete,
+}: {
+  selectedCount: number
+  inbox: boolean
+  totalVisible: number
+  onSelectAll: () => void
+  onDeselectAll: () => void
+  onBulkRead: () => void
+  onBulkUnread: () => void
+  onBulkDelete: () => void
+}) => {
+  if (selectedCount === 0) return null
+
+  const allSelected = selectedCount === totalVisible && totalVisible > 0
+
+  return (
+    <div class="bulk-action-bar d-flex align-items-center gap-2 mb-2 p-2 bg-body-secondary rounded">
+      <span class="fw-medium small">
+        {t("messages.selected_count", { count: selectedCount })}
+      </span>
+      <button
+        class="btn btn-sm btn-outline-secondary"
+        type="button"
+        onClick={allSelected ? onDeselectAll : onSelectAll}
+      >
+        {allSelected ? t("messages.deselect_all") : t("messages.select_all")}
+      </button>
+      <div class="vr" />
+      {inbox && (
+        <>
+          <button
+            class="btn btn-sm btn-soft"
+            type="button"
+            onClick={onBulkRead}
+          >
+            <i class="bi bi-envelope-open me-1" />
+            {t("messages.mark_read")}
+          </button>
+          <button
+            class="btn btn-sm btn-soft"
+            type="button"
+            onClick={onBulkUnread}
+          >
+            <i class="bi bi-envelope me-1" />
+            {t("messages.mark_unread")}
+          </button>
+        </>
+      )}
+      <button
+        class="btn btn-sm btn-soft text-danger"
+        type="button"
+        onClick={onBulkDelete}
+      >
+        <i class="bi bi-trash me-1" />
+        {t("messages.message_summary.destroy_button")}
+      </button>
+    </div>
+  )
+}
+
 const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) => {
   const messages = useSignal<MessagePage_Summary[]>([])
   const openMessageId = useSignal<bigint | null>(null)
   const previewState = useSignal<PreviewState>({ status: "closed" })
   const previewRef = useRef<HTMLDivElement>(null)
+
+  // Search state
+  const searchQuery = useSignal("")
+  const searchDateAfter = useSignal("")
+  const searchDateBefore = useSignal("")
+  const searchKey = useSignal(0)
+
+  // Selection state: persists across page navigations
+  const selectedIds = useSignal<Set<bigint>>(new Set())
+
+  const currentAction = buildActionUrl(
+    action,
+    searchQuery.value,
+    searchDateAfter.value,
+    searchDateBefore.value,
+  )
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) => {
     messages.value = messages.value.map((message) => {
@@ -360,6 +573,16 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
 
   const removeMessage = (messageId: bigint) => {
     messages.value = messages.value.filter((message) => message.id !== messageId)
+    const next = new Set(selectedIds.value)
+    next.delete(messageId)
+    selectedIds.value = next
+  }
+
+  const removeMessages = (ids: Set<bigint>) => {
+    messages.value = messages.value.filter((message) => !ids.has(message.id))
+    const next = new Set(selectedIds.value)
+    for (const id of ids) next.delete(id)
+    selectedIds.value = next
   }
 
   const openMessage = (messageId: bigint) => {
@@ -382,6 +605,32 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
   const closeMessage = () => {
     openMessageId.value = null
     updatePageUrl(null)
+  }
+
+  const toggleSelect = (messageId: bigint) => {
+    const next = new Set(selectedIds.value)
+    if (next.has(messageId)) next.delete(messageId)
+    else next.add(messageId)
+    selectedIds.value = next
+  }
+
+  const selectAllVisible = () => {
+    const next = new Set(selectedIds.value)
+    for (const msg of messages.value) next.add(msg.id)
+    selectedIds.value = next
+  }
+
+  const deselectAll = () => {
+    selectedIds.value = new Set()
+  }
+
+  const handleSearch = (query: string, dateAfter: string, dateBefore: string) => {
+    searchQuery.value = query
+    searchDateAfter.value = dateAfter
+    searchDateBefore.value = dateBefore
+    searchKey.value += 1
+    selectedIds.value = new Set()
+    closeMessage()
   }
 
   const markMessageUnread = async () => {
@@ -416,6 +665,87 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
       closeMessage()
     } catch (error) {
       console.error("Messages: Failed to delete", messageId, error)
+      alert(error.message)
+    }
+  }
+
+  // Bulk actions
+  const bulkMarkRead = async () => {
+    const ids = [...selectedIds.value]
+    if (!ids.length) return
+    try {
+      const body = new URLSearchParams()
+      for (const id of ids) body.append("message_id", id.toString())
+      const resp = await fetch("/api/web/messages/bulk/read", {
+        method: "POST",
+        body,
+        priority: "high",
+      })
+      assert(resp.ok, `${resp.status} ${resp.statusText}`)
+
+      // Count how many were actually unread before marking
+      let unreadCount = 0
+      messages.value = messages.value.map((msg) => {
+        if (!selectedIds.value.has(msg.id)) return msg
+        if (msg.unread) unreadCount++
+        return msg.unread ? { ...msg, unread: false } : msg
+      })
+      if (unreadCount) changeUnreadMessagesBadge(-unreadCount)
+      selectedIds.value = new Set()
+    } catch (error) {
+      console.error("Messages: Failed to bulk mark read", error)
+      alert(error.message)
+    }
+  }
+
+  const bulkMarkUnread = async () => {
+    const ids = [...selectedIds.value]
+    if (!ids.length) return
+    try {
+      const body = new URLSearchParams()
+      for (const id of ids) body.append("message_id", id.toString())
+      const resp = await fetch("/api/web/messages/bulk/unread", {
+        method: "POST",
+        body,
+        priority: "high",
+      })
+      assert(resp.ok, `${resp.status} ${resp.statusText}`)
+
+      let readCount = 0
+      messages.value = messages.value.map((msg) => {
+        if (!selectedIds.value.has(msg.id)) return msg
+        if (!msg.unread) readCount++
+        return !msg.unread ? { ...msg, unread: true } : msg
+      })
+      if (readCount) changeUnreadMessagesBadge(readCount)
+      selectedIds.value = new Set()
+    } catch (error) {
+      console.error("Messages: Failed to bulk mark unread", error)
+      alert(error.message)
+    }
+  }
+
+  const bulkDelete = async () => {
+    const ids = [...selectedIds.value]
+    if (!ids.length) return
+    if (
+      !confirm(t("messages.bulk_delete_confirmation", { count: ids.length }))
+    )
+      return
+    try {
+      const body = new URLSearchParams()
+      for (const id of ids) body.append("message_id", id.toString())
+      const resp = await fetch("/api/web/messages/bulk/delete", {
+        method: "POST",
+        body,
+        priority: "high",
+      })
+      assert(resp.ok, `${resp.status} ${resp.statusText}`)
+      const removed = new Set(ids.map((id) => BigInt(id)))
+      removeMessages(removed)
+      closeMessage()
+    } catch (error) {
+      console.error("Messages: Failed to bulk delete", error)
       alert(error.message)
     }
   }
@@ -467,12 +797,26 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
     previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   })
 
+  const selectedCount = selectedIds.value.size
+
   return (
     <div class="row flex-wrap-reverse">
       <div class="col-lg">
+        <SearchBar onSearch={handleSearch} />
+        <BulkActionBar
+          selectedCount={selectedCount}
+          inbox={inbox}
+          totalVisible={messages.value.length}
+          onSelectAll={selectAllVisible}
+          onDeselectAll={deselectAll}
+          onBulkRead={bulkMarkRead}
+          onBulkUnread={bulkMarkUnread}
+          onBulkDelete={bulkDelete}
+        />
         <div>
           <StandardPagination
-            action={action}
+            key={searchKey.value}
+            action={currentAction}
             protobuf={MessagePageSchema}
             onLoad={(data) => {
               messages.value = data.messages
@@ -495,7 +839,9 @@ const MessagesIndex = ({ inbox, action }: { inbox: boolean; action: string }) =>
                       message={message}
                       inbox={inbox}
                       openMessageId={openMessageId.value}
+                      selected={selectedIds.value.has(message.id)}
                       onOpen={openMessage}
+                      onToggleSelect={toggleSelect}
                       key={message.id}
                     />
                   ))

@@ -158,6 +158,7 @@ follows:
 messages:
   description: Your private messages with other map users.
   delete_confirmation: Are you sure you want to delete this message?
+  bulk_delete_confirmation: Are you sure you want to delete {{count}} selected messages?
   action_sent: sent
   action_delivered: delivered
   user_sent_you_a_message_on_platform_subject: "{user} sent you a message on {platform}: {subject}"
@@ -165,6 +166,15 @@ messages:
   user_sent_you_and_others_a_message_on_platform_subject_other: "{user} sent you and {count} others a message on {platform}: {subject}"
   to_prefix: To
   reply_all: Reply all
+  search_placeholder: Search by user or subject
+  date_after: After
+  date_before: Before
+  selected_count_one: "{{count}} selected"
+  selected_count_other: "{{count}} selected"
+  select_all: Select all
+  deselect_all: Deselect all
+  mark_read: Mark read
+  mark_unread: Mark unread
   compose:
     description: Send a new private message to another map user.
     recipients: Recipients

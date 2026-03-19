@@ -1,7 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Response
+from fastapi import APIRouter, Form, Query, Response
 from psycopg.sql import SQL
 from starlette import status
 
@@ -129,24 +129,100 @@ async def delete_message(
     return Response(None, status.HTTP_204_NO_CONTENT)
 
 
+@router.post('/bulk/read')
+async def bulk_mark_read(
+    _: Annotated[User, web_user()],
+    message_id: Annotated[list[int], Form(min_length=1)],
+):
+    await MessageService.bulk_set_state(
+        [MessageId(mid) for mid in message_id], read=True
+    )
+    return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/bulk/unread')
+async def bulk_mark_unread(
+    _: Annotated[User, web_user()],
+    message_id: Annotated[list[int], Form(min_length=1)],
+):
+    await MessageService.bulk_set_state(
+        [MessageId(mid) for mid in message_id], read=False
+    )
+    return Response(None, status.HTTP_204_NO_CONTENT)
+
+
+@router.post('/bulk/delete')
+async def bulk_delete(
+    _: Annotated[User, web_user()],
+    message_id: Annotated[list[int], Form(min_length=1)],
+):
+    count = await MessageService.bulk_delete_messages(
+        [MessageId(mid) for mid in message_id]
+    )
+    return {'deleted': count}
+
+
+def _build_search_conditions(
+    q: str | None,
+    after: str | None,
+    before: str | None,
+) -> tuple[list[SQL], list[object]]:
+    """Build additional WHERE conditions from search/filter parameters."""
+    conditions: list[SQL] = []
+    params: list[object] = []
+
+    if q:
+        conditions.append(SQL("""
+            (subject ILIKE %s OR body ILIKE %s
+             OR EXISTS (
+                SELECT 1 FROM "user"
+                WHERE "user".id = from_user_id
+                AND "user".display_name ILIKE %s
+             ))
+        """))
+        escaped = q.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+        pattern = f'%{escaped}%'
+        params.extend((pattern, pattern, pattern))
+
+    if after:
+        conditions.append(SQL('created_at >= %s::timestamptz'))
+        params.append(after)
+
+    if before:
+        conditions.append(SQL('created_at < %s::timestamptz'))
+        params.append(before)
+
+    return conditions, params
+
+
 @router.post('/inbox')
 async def inbox_page(
     user: Annotated[User, web_user()],
+    q: Annotated[str | None, Query(max_length=200)] = None,
+    after: Annotated[str | None, Query()] = None,
+    before: Annotated[str | None, Query()] = None,
     sp_state: StandardPaginationStateBody = b'',
 ):
+    base_conditions = [SQL("""
+        EXISTS (
+            SELECT 1 FROM message_recipient
+            WHERE message_id = id
+              AND user_id = %s
+              AND NOT hidden
+        )
+    """)]
+    base_params: list[object] = [user['id']]
+
+    search_conditions, search_params = _build_search_conditions(q, after, before)
+    all_conditions = base_conditions + search_conditions
+    all_params = base_params + search_params
+
     messages, state = await sp_paginate_table(
         Message,
         sp_state,
         table='message',
-        where=SQL("""
-            EXISTS (
-                SELECT 1 FROM message_recipient
-                WHERE message_id = id
-                  AND user_id = %s
-                  AND NOT hidden
-            )
-        """),
-        params=(user['id'],),
+        where=SQL(' AND ').join(all_conditions),
+        params=tuple(all_params),
         page_size=MESSAGES_INBOX_PAGE_SIZE,
         cursor_column='id',
         cursor_kind='id',
@@ -183,14 +259,24 @@ async def inbox_page(
 @router.post('/outbox')
 async def outbox_page(
     user: Annotated[User, web_user()],
+    q: Annotated[str | None, Query(max_length=200)] = None,
+    after: Annotated[str | None, Query()] = None,
+    before: Annotated[str | None, Query()] = None,
     sp_state: StandardPaginationStateBody = b'',
 ):
+    base_conditions = [SQL('from_user_id = %s AND NOT from_user_hidden')]
+    base_params: list[object] = [user['id']]
+
+    search_conditions, search_params = _build_search_conditions(q, after, before)
+    all_conditions = base_conditions + search_conditions
+    all_params = base_params + search_params
+
     messages, state = await sp_paginate_table(
         Message,
         sp_state,
         table='message',
-        where=SQL('from_user_id = %s AND NOT from_user_hidden'),
-        params=(user['id'],),
+        where=SQL(' AND ').join(all_conditions),
+        params=tuple(all_params),
         page_size=MESSAGES_INBOX_PAGE_SIZE,
         cursor_column='id',
         cursor_kind='id',

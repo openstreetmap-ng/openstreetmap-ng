@@ -210,6 +210,97 @@ class MessageService:
                 )
                 # message_recipient is deleted by cascade
 
+    @staticmethod
+    async def bulk_set_state(message_ids: list[MessageId], *, read: bool) -> int:
+        """Mark multiple messages as read or unread."""
+        if not message_ids:
+            return 0
+
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE message_recipient
+                SET read = %s
+                WHERE message_id = ANY(%s)
+                AND user_id = %s
+                AND NOT hidden
+                """,
+                (read, message_ids, user_id),
+            )
+            return result.rowcount
+
+    @staticmethod
+    async def bulk_delete_messages(message_ids: list[MessageId]) -> int:
+        """Delete multiple messages. Returns number of messages processed."""
+        if not message_ids:
+            return 0
+
+        user_id = auth_user(required=True)['id']
+        count = 0
+
+        async with db(True) as conn:
+            # Lock all messages at once
+            async with await conn.execute(
+                """
+                SELECT id, from_user_id FROM message
+                WHERE id = ANY(%s)
+                FOR UPDATE
+                """,
+                (message_ids,),
+            ) as r:
+                rows = await r.fetchall()
+
+            sender_ids: list[MessageId] = []
+            recipient_ids: list[MessageId] = []
+            for row in rows:
+                mid, from_user_id = row
+                if from_user_id == user_id:
+                    sender_ids.append(mid)
+                else:
+                    recipient_ids.append(mid)
+
+            # Hide from sender view
+            if sender_ids:
+                result = await conn.execute(
+                    """
+                    UPDATE message SET from_user_hidden = TRUE
+                    WHERE id = ANY(%s) AND NOT from_user_hidden
+                    """,
+                    (sender_ids,),
+                )
+                count += result.rowcount
+
+            # Hide from recipient view
+            if recipient_ids:
+                result = await conn.execute(
+                    """
+                    UPDATE message_recipient SET hidden = TRUE
+                    WHERE message_id = ANY(%s) AND user_id = %s AND NOT hidden
+                    """,
+                    (recipient_ids, user_id),
+                )
+                count += result.rowcount
+
+            # Clean up messages where no one has access anymore
+            all_ids = sender_ids + recipient_ids
+            if all_ids:
+                await conn.execute(
+                    """
+                    DELETE FROM message
+                    WHERE id = ANY(%s)
+                    AND from_user_hidden
+                    AND NOT EXISTS (
+                        SELECT 1 FROM message_recipient
+                        WHERE message_id = message.id AND NOT hidden
+                    )
+                    """,
+                    (all_ids,),
+                )
+
+        return count
+
 
 async def _send_activity_email(message: Message) -> None:
     assert 'recipients' in message, 'Message recipients must be set'
