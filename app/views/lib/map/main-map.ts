@@ -137,5 +137,11 @@ const configureMainMap = (container: HTMLElement) => {
     handleEditRemotePath()
 }
 
+// Handle edit_help=1 query parameter: redirect logged-in users to the editor walkthrough
+const searchParams = new URLSearchParams(window.location.search)
+if (searchParams.get("edit_help") === "1" && config.userConfig) {
+    window.location.replace("/edit#walkthrough=true")
+}
+
 const mapContainer = document.querySelector("div.main-map")
 if (mapContainer) configureMainMap(mapContainer)
