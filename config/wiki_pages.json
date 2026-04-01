@@ -19,7 +19,8 @@
   "*:colour": {
     "*": [
       "",
-      "Sk"
+      "Sk",
+      "Zh-hans"
     ]
   },
   "*:conditional": {
@@ -64,6 +65,11 @@
     "*": [
       "",
       "ES"
+    ]
+  },
+  "*:min_payment": {
+    "*": [
+      ""
     ]
   },
   "*:parts": {
@@ -933,6 +939,11 @@
       "RU"
     ]
   },
+  "accreditation:url": {
+    "*": [
+      ""
+    ]
+  },
   "accuracy": {
     "*": [
       ""
@@ -975,6 +986,11 @@
     "pneumatic_cylinder": [
       "",
       "FR"
+    ]
+  },
+  "addr": {
+    "separate": [
+      ""
     ]
   },
   "addr2:*": {
@@ -1077,6 +1093,9 @@
       "Pt",
       "Uk"
     ],
+    "AT": [
+      ""
+    ],
     "CH": [
       ""
     ],
@@ -1087,6 +1106,18 @@
       ""
     ],
     "DK": [
+      ""
+    ],
+    "EG": [
+      ""
+    ],
+    "FR": [
+      ""
+    ],
+    "IT": [
+      ""
+    ],
+    "LI": [
       ""
     ],
     "RU": [
@@ -2325,6 +2356,9 @@
     ]
   },
   "air_rescue_service": {
+    "*": [
+      ""
+    ],
     "aeromedical": [
       ""
     ],
@@ -2416,6 +2450,11 @@
   },
   "alt_name:pl": {
     "*": [
+      ""
+    ]
+  },
+  "alt_name:signed": {
+    "yes": [
       ""
     ]
   },
@@ -4898,6 +4937,7 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -5611,11 +5651,13 @@
     "fish": [
       "",
       "El",
+      "JA",
       "RU"
     ],
     "seaweed": [
       "",
       "El",
+      "JA",
       "RU",
       "Sk"
     ]
@@ -6327,6 +6369,9 @@
       "DE",
       "ES",
       "RU"
+    ],
+    "model_railway": [
+      ""
     ],
     "roller_coaster": [
       "",
@@ -7954,6 +7999,11 @@
       "RU"
     ]
   },
+  "board_games": {
+    "*": [
+      ""
+    ]
+  },
   "board_type": {
     "*": [
       "",
@@ -7970,6 +8020,9 @@
     ],
     "company": [
       ""
+    ],
+    "obituary": [
+      "IT"
     ],
     "welcome_sign": [
       ""
@@ -9507,6 +9560,9 @@
     "government_office": [
       ""
     ],
+    "granary": [
+      ""
+    ],
     "grandstand": [
       "",
       "DE",
@@ -10971,6 +11027,7 @@
       "IT",
       "Pl",
       "Pt",
+      "RU",
       "Zh-hans"
     ]
   },
@@ -11769,7 +11826,8 @@
       "Cs",
       "ES",
       "El",
-      "JA"
+      "JA",
+      "RU"
     ]
   },
   "changesets_count": {
@@ -11922,6 +11980,7 @@
       "FR",
       "IT",
       "Pl",
+      "RU",
       "Zh-hans"
     ]
   },
@@ -12392,6 +12451,9 @@
     ]
   },
   "coastline": {
+    "*": [
+      ""
+    ],
     "bogus": [
       ""
     ]
@@ -14791,6 +14853,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -16939,6 +17002,7 @@
       "",
       "Cs",
       "JA",
+      "RU",
       "Sk"
     ]
   },
@@ -17131,6 +17195,12 @@
       "Pl"
     ]
   },
+  "diff:ref:FR:RNB": {
+    "*": [
+      "",
+      "FR"
+    ]
+  },
   "digital_access": {
     "*": [
       ""
@@ -17243,6 +17313,7 @@
     "backward": [
       "",
       "DE",
+      "Pt",
       "RU"
     ],
     "forward": [
@@ -17507,7 +17578,8 @@
     "*": [
       "",
       "FR",
-      "JA"
+      "JA",
+      "RU"
     ]
   },
   "divipola": {
@@ -18370,7 +18442,8 @@
       "JA",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hant"
     ],
     "designated": [
       "",
@@ -18760,6 +18833,16 @@
       "JA"
     ]
   },
+  "emergency:camp_area": {
+    "yes": [
+      ""
+    ]
+  },
+  "emergency:logistic_entry": {
+    "*": [
+      ""
+    ]
+  },
   "emergency:phone": {
     "*": [
       "",
@@ -18786,6 +18869,16 @@
   },
   "emergency:social_facility:for": {
     "displaced_people": [
+      ""
+    ]
+  },
+  "emergency:staging_area": {
+    "rescue": [
+      ""
+    ]
+  },
+  "emergency:waiting_area": {
+    "yes": [
       ""
     ]
   },
@@ -19206,11 +19299,13 @@
     "*": [
       "",
       "DE",
+      "El",
       "JA",
       "Pl"
     ],
     "stockyard": [
-      ""
+      "",
+      "El"
     ]
   },
   "fast_food": {
@@ -20280,7 +20375,8 @@
       "FR",
       "Id",
       "JA",
-      "Pt"
+      "Pt",
+      "RU"
     ]
   },
   "fridge": {
@@ -21179,15 +21275,19 @@
       "",
       "ES",
       "El",
+      "JA",
       "Ko"
     ],
     "cone": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "dyke": [
       "",
-      "El"
+      "El",
+      "JA",
+      "Zh-hans"
     ],
     "fault": [
       "",
@@ -21200,40 +21300,48 @@
     "fold": [
       "",
       "El",
+      "JA",
       "Sk"
     ],
     "giants_kettle": [
       "",
       "DE",
-      "El"
+      "El",
+      "JA"
     ],
     "glacial_erratic": [
       "",
       "DE",
-      "El"
+      "El",
+      "JA"
     ],
     "hoodoo": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "inselberg": [
       "",
       "El",
+      "JA",
       "Sk"
     ],
     "limestone_pavement": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "meteor_crater": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "monocline": [
       "",
       "El",
+      "JA",
       "Sk"
     ],
     "moraine": [
@@ -21269,26 +21377,31 @@
     "pingo": [
       "",
       "El",
+      "JA",
       "Sk"
     ],
     "rock_glacier": [
       "",
       "DE",
-      "El"
+      "El",
+      "JA"
     ],
     "sinkhole": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "tor": [
       "",
       "El",
       "IT",
+      "JA",
       "Sk"
     ],
     "unconformity": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "volcanic_caldera": [
       "",
@@ -21301,6 +21414,7 @@
       "ES",
       "El",
       "IT",
+      "JA",
       "RU"
     ],
     "volcanic_lava_field": [
@@ -21308,22 +21422,26 @@
       "DE",
       "ES",
       "El",
+      "JA",
       "RU"
     ],
     "volcanic_lava_flow": [
       "",
-      "El"
+      "El",
+      "JA"
     ],
     "volcanic_lava_tube": [
       "",
       "DE",
-      "El"
+      "El",
+      "JA"
     ],
     "volcanic_vent": [
       "",
       "DE",
       "ES",
-      "El"
+      "El",
+      "JA"
     ]
   },
   "geothermal": {
@@ -22212,6 +22330,7 @@
   "hazard": {
     "*": [
       "",
+      "Cs",
       "DE",
       "ES",
       "FR",
@@ -24528,6 +24647,9 @@
       "JA",
       "RU"
     ],
+    "granary": [
+      ""
+    ],
     "heritage": [
       "",
       "ES",
@@ -24547,6 +24669,9 @@
       "FR",
       "JA",
       "RU"
+    ],
+    "hogback": [
+      ""
     ],
     "hollow_way": [
       "",
@@ -25112,7 +25237,8 @@
       "",
       "Cs",
       "DE",
-      "JA"
+      "JA",
+      "Zh-hans"
     ]
   },
   "ice_road": {
@@ -26133,7 +26259,8 @@
   "irrigated": {
     "*": [
       "",
-      "ES"
+      "ES",
+      "El"
     ]
   },
   "irrigation": {
@@ -26143,6 +26270,7 @@
     ],
     "pivot": [
       "",
+      "El",
       "Pl"
     ],
     "yes": [
@@ -26665,7 +26793,8 @@
   },
   "landcover": {
     "*": [
-      ""
+      "",
+      "El"
     ],
     "dunes": [
       ""
@@ -27053,7 +27182,8 @@
       "Ko",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hans"
     ],
     "field": [
       "",
@@ -27103,6 +27233,7 @@
     "forestry": [
       "",
       "ES",
+      "El",
       "FR",
       "RU"
     ],
@@ -27619,6 +27750,7 @@
       "El",
       "FR",
       "Fi",
+      "Id",
       "JA",
       "Pl",
       "Pt",
@@ -28881,6 +29013,7 @@
       "DE",
       "ES",
       "JA",
+      "RU",
       "Zh-hans"
     ],
     "busbar": [
@@ -28888,6 +29021,7 @@
       "DE",
       "ES",
       "JA",
+      "RU",
       "Zh-hans"
     ],
     "substation": [
@@ -28943,7 +29077,8 @@
     ],
     "pin": [
       "",
-      "FR"
+      "FR",
+      "RU"
     ],
     "pulley": [
       "",
@@ -29097,6 +29232,11 @@
   },
   "loading_gauge": {
     "*": [
+      ""
+    ]
+  },
+  "loc_name:signed": {
+    "yes": [
       ""
     ]
   },
@@ -29483,7 +29623,8 @@
     ],
     "advertising": [
       "",
-      "FR"
+      "FR",
+      "JA"
     ],
     "air_vent": [
       ""
@@ -29506,6 +29647,7 @@
       "JA",
       "Pl",
       "Pt",
+      "RU",
       "Zh-hans"
     ],
     "archimedes_screw": [
@@ -29551,7 +29693,8 @@
       "Uk"
     ],
     "bell": [
-      ""
+      "",
+      "JA"
     ],
     "bioreactor": [
       ""
@@ -29572,7 +29715,8 @@
       "Sk"
     ],
     "borehole": [
-      ""
+      "",
+      "JA"
     ],
     "breakwater": [
       "",
@@ -29634,6 +29778,7 @@
       "DE",
       "ES",
       "FR",
+      "JA",
       "Pl",
       "RU",
       "Uk"
@@ -29657,7 +29802,8 @@
     "charge_point": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "JA"
     ],
     "chiller": [
       "",
@@ -29681,7 +29827,8 @@
     ],
     "clarifier": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ],
     "clearcut": [
       "",
@@ -29715,6 +29862,7 @@
       "",
       "ES",
       "IT",
+      "JA",
       "RU"
     ],
     "composting_plant": [
@@ -32405,6 +32553,16 @@
       "DE"
     ]
   },
+  "monitoring:dissolved_oxygen": {
+    "*": [
+      ""
+    ]
+  },
+  "monitoring:flow_rate": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:galileo": {
     "*": [
       "",
@@ -32514,6 +32672,16 @@
       "FR",
       "JA",
       "Pl"
+    ]
+  },
+  "monitoring:water_temperature": {
+    "*": [
+      ""
+    ]
+  },
+  "monitoring:water_turbidity": {
+    "*": [
+      ""
     ]
   },
   "monitoring:weather": {
@@ -35822,7 +35990,8 @@
       "RU"
     ],
     "beaver_dam": [
-      ""
+      "",
+      "JA"
     ],
     "bedrock": [
       "",
@@ -35832,6 +36001,7 @@
     "birds_nest": [
       "",
       "ES",
+      "JA",
       "Pl",
       "Uk"
     ],
@@ -36416,7 +36586,8 @@
     "termite_mound": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "tree": [
       "",
@@ -36441,6 +36612,9 @@
       ""
     ],
     "tree/List_of_Species": [
+      ""
+    ],
+    "tree/Tree_species_records": [
       ""
     ],
     "tree_group": [
@@ -36754,6 +36928,9 @@
     "CN:national": [
       "",
       "Zh-hans"
+    ],
+    "CO-OP": [
+      ""
     ],
     "CR:national": [
       "",
@@ -38918,6 +39095,11 @@
       ""
     ]
   },
+  "official_name:signed": {
+    "no": [
+      ""
+    ]
+  },
   "official_name:uk": {
     "*": [
       "",
@@ -39665,6 +39847,9 @@
     "association": [
       ""
     ],
+    "cooperative": [
+      ""
+    ],
     "intergovernmental": [
       ""
     ]
@@ -39753,7 +39938,8 @@
       "FR",
       "JA",
       "Pl",
-      "RU"
+      "RU",
+      "Zh-hans"
     ]
   },
   "origin:service": {
@@ -40828,6 +41014,11 @@
     ]
   },
   "payment:sodexo": {
+    "*": [
+      ""
+    ]
+  },
+  "payment:western_union": {
     "*": [
       ""
     ]
@@ -42613,6 +42804,7 @@
       "IT",
       "Id",
       "Pl",
+      "RU",
       "Zh-hans"
     ],
     "cable_distribution_cabinet": [
@@ -42632,6 +42824,7 @@
       "JA",
       "Ko",
       "Pl",
+      "RU",
       "Zh-hans"
     ],
     "catenary_portal": [
@@ -42640,7 +42833,8 @@
     ],
     "circuit": [
       "",
-      "FR"
+      "FR",
+      "RU"
     ],
     "compensator": [
       "",
@@ -42655,7 +42849,8 @@
       "",
       "DE",
       "ES",
-      "FR"
+      "FR",
+      "RU"
     ],
     "converter": [
       "",
@@ -42663,6 +42858,7 @@
       "ES",
       "FR",
       "Pl",
+      "RU",
       "Zh-hans"
     ],
     "generator": [
@@ -42695,6 +42891,7 @@
       "",
       "ES",
       "FR",
+      "RU",
       "Zh-hans"
     ],
     "inverter": [
@@ -42774,6 +42971,7 @@
       "FR",
       "JA",
       "Pl",
+      "RU",
       "Zh-hans"
     ],
     "station": [
@@ -45245,6 +45443,11 @@
       "FR"
     ]
   },
+  "ref:CH-GE:CODE_SLCE": {
+    "*": [
+      ""
+    ]
+  },
   "ref:CH-GE:CODE_VOIE": {
     "*": [
       ""
@@ -45271,6 +45474,11 @@
     ]
   },
   "ref:CH:hls-dhs": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:CH:hydro": {
     "*": [
       ""
     ]
@@ -46362,6 +46570,11 @@
       ""
     ]
   },
+  "ref:gewiss": {
+    "*": [
+      ""
+    ]
+  },
   "ref:gnbc": {
     "*": [
       ""
@@ -46911,6 +47124,11 @@
       ""
     ]
   },
+  "ref:tesla": {
+    "*": [
+      ""
+    ]
+  },
   "ref:tiploc": {
     "*": [
       ""
@@ -47060,6 +47278,7 @@
   "region:type": {
     "*": [
       "",
+      "FR",
       "RU"
     ]
   },
@@ -48295,7 +48514,8 @@
     "pipeline": [
       "",
       "Cs",
-      "DE"
+      "DE",
+      "RU"
     ],
     "piste": [
       "",
@@ -48309,7 +48529,8 @@
       ""
     ],
     "power": [
-      ""
+      "",
+      "RU"
     ],
     "railway": [
       "",
@@ -49925,6 +50146,7 @@
   "seamark:marine_farm:category": {
     "*": [
       "",
+      "El",
       "FR",
       "Pl"
     ]
@@ -50639,6 +50861,7 @@
     ],
     "marine_farm": [
       "",
+      "El",
       "Pl"
     ],
     "mooring": [
@@ -50885,6 +51108,7 @@
     "*": [
       "",
       "DE",
+      "El",
       "Eo",
       "FR",
       "NL"
@@ -51386,6 +51610,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "JA",
@@ -51406,11 +51631,13 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "FR",
       "RU"
     ],
     "bomb_shelter": [
-      ""
+      "",
+      "El"
     ],
     "changing_rooms": [
       "",
@@ -51423,12 +51650,14 @@
       "",
       "Da",
       "ES",
+      "El",
       "RU"
     ],
     "gazebo": [
       "",
       "DE",
       "ES",
+      "El",
       "JA",
       "RU"
     ],
@@ -51438,6 +51667,7 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "FR",
       "Fi",
       "RU"
@@ -51446,16 +51676,19 @@
       "",
       "DE",
       "ES",
+      "El",
       "RU"
     ],
     "pergola": [
       "",
-      "ES"
+      "ES",
+      "El"
     ],
     "picnic_shelter": [
       "",
       "DE",
       "Da",
+      "El",
       "RU"
     ],
     "public_transport": [
@@ -51464,6 +51697,7 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "FR",
       "IT",
       "Ko",
@@ -51472,6 +51706,7 @@
     ],
     "rock_shelter": [
       "",
+      "El",
       "RU"
     ],
     "shopping_cart": [
@@ -51480,15 +51715,18 @@
     ],
     "sun_shelter": [
       "",
+      "El",
       "RU"
     ],
     "weather_shelter": [
       "",
       "DE",
+      "El",
       "RU"
     ],
     "wetterpilz": [
       "",
+      "El",
       "RU"
     ]
   },
@@ -51691,7 +51929,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "baking_supplies": [
       ""
@@ -52503,6 +52742,7 @@
       "Pl",
       "Pt",
       "RU",
+      "Zh-hans",
       "Zh-hant"
     ],
     "furnace": [
@@ -54826,6 +55066,16 @@
       "IT"
     ]
   },
+  "socket:multi": {
+    "*": [
+      ""
+    ]
+  },
+  "socket:multi:type": {
+    "*": [
+      ""
+    ]
+  },
   "soliciting": {
     "*": [
       ""
@@ -56528,7 +56778,8 @@
   },
   "state": {
     "*": [
-      ""
+      "",
+      "RU"
     ],
     "alternate": [
       ""
@@ -56874,7 +57125,8 @@
   },
   "structure": {
     "*": [
-      ""
+      "",
+      "RU"
     ],
     "wall_mount": [
       ""
@@ -57154,6 +57406,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "Fa",
       "JA",
@@ -57180,6 +57433,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "RU"
     ],
@@ -57207,6 +57461,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "RU"
@@ -57215,6 +57470,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "JA",
       "Pl"
     ],
@@ -57222,6 +57478,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "JA"
     ],
     "cork": [
@@ -57321,12 +57578,14 @@
       "DE",
       "Da",
       "ES",
+      "El",
       "JA"
     ],
     "paving_stones": [
       "",
       "DE",
       "ES",
+      "El",
       "JA"
     ],
     "paving_stones:30": [
@@ -57334,7 +57593,8 @@
     ],
     "paving_stones:lanes": [
       "",
-      "DE"
+      "DE",
+      "El"
     ],
     "pebblestone": [
       "",
@@ -58430,6 +58690,9 @@
   },
   "toilets:wash": {
     "*": [
+      ""
+    ],
+    "bidet_spray": [
       ""
     ],
     "no": [
@@ -60363,6 +60626,7 @@
     ],
     "apple_trees": [
       "",
+      "DE",
       "ES"
     ],
     "banana_plants": [
@@ -60578,7 +60842,8 @@
       "",
       "ES",
       "El",
-      "FR"
+      "FR",
+      "JA"
     ]
   },
   "turkey_class": {
@@ -60945,7 +61210,8 @@
       "",
       "DE",
       "FR",
-      "IT"
+      "IT",
+      "JA"
     ],
     "industrial": [
       "",
@@ -60985,6 +61251,7 @@
       "",
       "DE",
       "FR",
+      "JA",
       "RU"
     ],
     "science": [
@@ -60995,12 +61262,14 @@
       "",
       "DE",
       "FR",
+      "JA",
       "RU"
     ],
     "tailrace": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "JA"
     ],
     "test": [
       "",
@@ -61016,7 +61285,8 @@
       "",
       "DE",
       "FR",
-      "IT"
+      "IT",
+      "JA"
     ],
     "transportation": [
       "",
@@ -61906,24 +62176,28 @@
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "active": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "dormant": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "extinct": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ]
   },
@@ -61932,41 +62206,48 @@
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "caldera": [
       "",
       "El",
+      "JA",
       "RU"
     ],
     "lava_dome": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "maar": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "scoria": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "shield": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ],
     "stratovolcano": [
       "",
       "DE",
       "El",
+      "JA",
       "RU"
     ]
   },
@@ -62427,6 +62708,7 @@
     "reflecting_pool": [
       "",
       "ES",
+      "JA",
       "RU"
     ],
     "reservoir": [
@@ -62654,7 +62936,8 @@
     "canoe_pass": [
       "",
       "DE",
-      "FR"
+      "FR",
+      "JA"
     ],
     "confluence": [
       ""
@@ -62674,7 +62957,8 @@
     "debris_screen": [
       "",
       "Cs",
-      "DE"
+      "DE",
+      "JA"
     ],
     "deep_well": [
       "",
@@ -62770,7 +63054,8 @@
       "ES"
     ],
     "floodgate": [
-      ""
+      "",
+      "JA"
     ],
     "flow_control": [
       "",
@@ -62778,7 +63063,8 @@
     ],
     "flowline": [
       "",
-      "DE"
+      "DE",
+      "JA"
     ],
     "fuel": [
       "",
@@ -62790,7 +63076,8 @@
       "Uk"
     ],
     "link": [
-      ""
+      "",
+      "JA"
     ],
     "lock_gate": [
       "",
@@ -62831,13 +63118,15 @@
       "",
       "DE",
       "ES",
-      "FR"
+      "FR",
+      "JA"
     ],
     "rapids": [
       "",
       "DE",
       "ES",
       "IT",
+      "JA",
       "RU"
     ],
     "river": [
@@ -62884,7 +63173,8 @@
     "security_lock": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "JA"
     ],
     "sluice_gate": [
       "",
@@ -62931,6 +63221,7 @@
       "ES",
       "FR",
       "Id",
+      "JA",
       "Ko"
     ],
     "turning_point": [
