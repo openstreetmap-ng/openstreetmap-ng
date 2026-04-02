@@ -11,6 +11,7 @@ from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
 from app.lib.referrer import secure_referrer
 from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_response
+from app.lib.software_list import SOFTWARE_CATEGORIES, SOFTWARE_LIST, SOFTWARE_PLATFORMS
 from app.lib.translation import primary_translation_locale, t, translation_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.default_headers_middleware import CSP_HEADER
@@ -190,6 +191,18 @@ async def about():
 @router.get('/help')
 async def help_():
     return await render_response('help')
+
+
+@router.get('/software')
+async def software():
+    return await render_response(
+        'software',
+        {
+            'software_list': SOFTWARE_LIST,
+            'software_categories': SOFTWARE_CATEGORIES,
+            'software_platforms': SOFTWARE_PLATFORMS,
+        },
+    )
 
 
 @router.get('/fixthemap')
