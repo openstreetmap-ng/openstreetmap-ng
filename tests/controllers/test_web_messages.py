@@ -16,6 +16,20 @@ from app.queries.user_query import UserQuery
 from tests.utils.assert_model import assert_model
 
 
+async def _send_message(
+    client: AsyncClient, subject: str, body: str, recipient: str
+) -> MessageId:
+    """Helper to send a message and return its ID."""
+    r = await client.post(
+        '/api/web/messages',
+        data={'subject': subject, 'body': body, 'recipient': recipient},
+    )
+    assert r.is_success, r.text
+    parsed_url = urlsplit(r.json()['redirect_url'])
+    query_params = parse_qs(parsed_url.query, strict_parsing=True)
+    return MessageId(int(query_params['show'][0]))
+
+
 async def test_message_crud(client: AsyncClient):
     user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
 
@@ -118,3 +132,91 @@ async def test_message_crud(client: AsyncClient):
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)
+
+
+async def test_bulk_mark_read(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    mid1 = await _send_message(client, 'Bulk Read 1', 'Body 1', 'user2')
+    mid2 = await _send_message(client, 'Bulk Read 2', 'Body 2', 'user2')
+
+    # Switch to recipient
+    client.headers['Authorization'] = 'User user2'
+
+    # Bulk mark as read
+    r = await client.post(
+        '/api/web/messages/bulk/read',
+        data={'message_id': [str(mid1), str(mid2)]},
+    )
+    assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    # Verify both are read
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
+    with auth_context(user2):
+        m1 = await MessageQuery.get_by_id(mid1)
+        m2 = await MessageQuery.get_by_id(mid2)
+        assert m1['recipients'][0]['read']  # type: ignore
+        assert m2['recipients'][0]['read']  # type: ignore
+
+
+async def test_bulk_mark_unread(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    mid1 = await _send_message(client, 'Bulk Unread 1', 'Body 1', 'user2')
+
+    # Switch to recipient and read the message first
+    client.headers['Authorization'] = 'User user2'
+    r = await client.get(f'/api/web/messages/{mid1}')
+    assert r.is_success
+
+    # Bulk mark as unread
+    r = await client.post(
+        '/api/web/messages/bulk/unread',
+        data={'message_id': [str(mid1)]},
+    )
+    assert r.status_code == status.HTTP_204_NO_CONTENT
+
+    # Verify it is unread
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
+    with auth_context(user2):
+        m = await MessageQuery.get_by_id(mid1)
+        assert not m['recipients'][0]['read']  # type: ignore
+
+
+async def test_bulk_delete(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    mid1 = await _send_message(client, 'Bulk Del 1', 'Body 1', 'user2')
+    mid2 = await _send_message(client, 'Bulk Del 2', 'Body 2', 'user2')
+
+    # Switch to recipient
+    client.headers['Authorization'] = 'User user2'
+
+    # Bulk delete
+    r = await client.post(
+        '/api/web/messages/bulk/delete',
+        data={'message_id': [str(mid1), str(mid2)]},
+    )
+    assert r.is_success
+    assert r.json()['deleted'] == 2
+
+    # Verify messages are hidden from recipient
+    r = await client.get(f'/api/web/messages/{mid1}')
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+    r = await client.get(f'/api/web/messages/{mid2}')
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_inbox_search(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+    await _send_message(client, 'Unique Search Subject XYZ', 'Body', 'user2')
+    await _send_message(client, 'Another Message', 'Body', 'user2')
+
+    # Switch to recipient
+    client.headers['Authorization'] = 'User user2'
+
+    # Search by subject
+    r = await client.post(
+        '/api/web/messages/inbox?q=Unique+Search+Subject',
+        headers={'Content-Type': 'application/x-protobuf'},
+        content=b'',
+    )
+    assert r.is_success
+    assert 'X-StandardPagination' in r.headers

@@ -5,6 +5,32 @@
         }
     }
 
+    .messages-search {
+        .input-group {
+            max-width: 100%;
+        }
+    }
+
+    .bulk-action-bar {
+        border: 1px solid var(--bs-border-color);
+    }
+
+    .social-entry {
+        &.selected {
+            background-color: var(--bs-primary-bg-subtle);
+        }
+
+        .message-checkbox {
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+
+            .form-check-input {
+                cursor: pointer;
+            }
+        }
+    }
+
     .message-preview {
         border: unset;
 
