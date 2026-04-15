@@ -239,7 +239,7 @@ export const timezoneBoundsMap = new Map<string, [number, number, number, number
     ["Europe/Budapest", [16.1138866, 45.737128, 22.8962602, 48.585237]],
     ["Europe/Chisinau", [26.630225, 45.4671885, 30.1637143, 48.4914523]],
     ["Europe/Dublin", [-10.9586103, 51.223, -5.6661898, 55.636]],
-    ["Europe/Gibraltar", [-5.3997364, 36.0639294, -5.2767611, 36.1494904]],
+    ["Europe/Gibraltar", [-5.3960457, 36.0639294, -5.2767611, 36.1494904]],
     ["Europe/Helsinki", [19.0832, 59.4543007, 31.5867071, 70.092293]],
     ["Europe/Istanbul", [25.5718916, 35.8059041, 44.8093804, 42.297]],
     ["Europe/Kaliningrad", [19.25, 41.188862, 190.95, 81.857361]],
