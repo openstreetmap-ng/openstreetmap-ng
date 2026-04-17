@@ -42,24 +42,42 @@ export const getElementHistoryController = (map: MaplibreMap) => {
 
         // Handle not found
         const tagsDiffCheckbox = sidebarContent.querySelector("input.tags-diff")
-        if (!tagsDiffCheckbox) return
+        const historyLimitSelect = sidebarContent.querySelector(
+            "select.history-limit-select",
+        )
+        if (!tagsDiffCheckbox || !historyLimitSelect) return
 
         tagsDiffCheckbox.checked = tagsDiffStorage.get()
         const tagsDiff = signal(tagsDiffCheckbox.checked)
+        const historyLimit = signal(
+            Number.parseInt(historyLimitSelect.value, 10) || 10,
+        )
 
         tagsDiffCheckbox.addEventListener("change", () => {
             tagsDiffStorage.set(tagsDiffCheckbox.checked)
             tagsDiff.value = tagsDiffCheckbox.checked
         })
+        historyLimitSelect.addEventListener("change", () => {
+            const value = Number.parseInt(historyLimitSelect.value, 10)
+            if (!Number.isNaN(value)) historyLimit.value = value
+        })
 
         // Update pagination
         const paginationContainers = sidebarContent.querySelectorAll("ul.pagination")
         const disposePaginationEffect = effect(() => {
+            const tagsDiffValue = tagsDiff.toString()
+            const historyLimitValue = historyLimit.toString()
+
             for (const pagination of paginationContainers) {
                 pagination.dataset.action = pagination.dataset.actionTemplate!.replace(
                     "{tags_diff}",
-                    tagsDiff.toString(),
+                    tagsDiffValue,
                 )
+                pagination.dataset.action = pagination.dataset.action.replace(
+                    "{history_limit}",
+                    historyLimitValue,
+                )
+                pagination.dataset.pageSize = historyLimitValue
             }
 
             let disposeElementContent: (() => void) | undefined
@@ -102,7 +120,10 @@ export const getElementHistoryController = (map: MaplibreMap) => {
 
     const controller: IndexController = {
         load: ({ type, id }) => {
-            base.load(`/partial/${type}/${id}/history`)
+            const params = new URLSearchParams(location.search)
+            const limit = params.get("limit")
+            const query = /^\d+$/.test(limit ?? "") ? `?limit=${limit}` : ""
+            base.load(`/partial/${type}/${id}/history${query}`)
         },
         unload: base.unload,
     }

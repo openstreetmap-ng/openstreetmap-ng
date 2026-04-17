@@ -11,12 +11,25 @@
                     {{ t('browse.relation.history_title_html', name=id) | safe }}
                     {% endif %}
                 </h2>
-                <div class="form-check ms-1">
-                    <label class="form-check-label">
-                        <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
-                        {{- t('element.tags_diff_mode') -}}
-                        <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
-                            data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
+                <div class="d-flex align-items-center flex-wrap gap-2 ms-1">
+                    <div class="form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input tags-diff" type="checkbox" autocomplete="off">
+                            {{- t('element.tags_diff_mode') -}}
+                            <i class="bi bi-question-circle ms-1-5" data-bs-toggle="tooltip"
+                                data-bs-title="{{ t('element.highlight_changed_tags_between_versions') }}"></i>
+                        </label>
+                    </div>
+                    <label class="d-flex align-items-center gap-2 mb-0">
+                        <span class="small text-body-secondary">{{ t('browse.version') }}</span>
+                        <select class="form-select form-select-sm history-limit-select"
+                            aria-label="{{ t('layouts.history') }} {{ t('browse.version') }}">
+                            {% for option in history_limit_options %}
+                            <option value="{{ option }}" {% if option == history_limit %}selected{% endif %}>
+                                {{ option }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </label>
                 </div>
             </div>
@@ -33,7 +46,7 @@
     <div class="section">
         <nav aria-label="{{ t('alt.elements_page_navigation') }}">
             <ul class="pagination pagination-sm justify-content-end mb-0" data-page-size="{{ page_size }}"
-                data-action-template="/api/web/element/{{ type }}/{{ id }}/history?tags_diff={tags_diff}"></ul>
+                data-action-template="/api/web/element/{{ type }}/{{ id }}/history?tags_diff={tags_diff}&limit={history_limit}"></ul>
         </nav>
     </div>
 </div>

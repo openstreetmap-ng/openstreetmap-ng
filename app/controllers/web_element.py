@@ -26,6 +26,7 @@ async def get_history(
     type: ElementType,
     id: ElementId,
     tags_diff: Annotated[bool, Query()],
+    limit: Annotated[int, Query(ge=1, le=100)] = ELEMENT_HISTORY_PAGE_SIZE,
     sp_state: StandardPaginationStateBody = b'',
 ):
     typed_id = typed_element_id(type, id)
@@ -38,7 +39,7 @@ async def get_history(
         params=(typed_id,),
         cursor_key='sequence_id',
         id_key='version',
-        page_size=ELEMENT_HISTORY_PAGE_SIZE,
+        page_size=limit,
         cursor_kind='id',
         order_dir='desc',
     )
@@ -47,7 +48,7 @@ async def get_history(
     num_items = state.snapshot_max_id
     state.num_items = num_items
     state.num_pages = sp_num_pages(
-        num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
+        num_items=num_items, page_size=limit
     )
     state.max_known_page = state.num_pages
 
