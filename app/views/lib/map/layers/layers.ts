@@ -64,6 +64,36 @@ const hotosmCredit = i18next.t("javascripts.map.hotosm_credit", {
 const aerialEsriCredit =
     "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
+const libertyHybridStyle = (() => {
+    const vectorOverlayLayers = libertyStyle.layers.filter(
+        ({ type }) => type === "line" || type === "symbol" || type === "circle",
+    )
+
+    return {
+        ...libertyStyle,
+        sources: {
+            aerial_underlay: {
+                type: "raster",
+                maxzoom: 23,
+                tiles: [
+                    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                ],
+                tileSize: 256,
+                attribution: aerialEsriCredit,
+            },
+            ...libertyStyle.sources,
+        },
+        layers: [
+            {
+                id: "aerial_underlay",
+                type: "raster",
+                source: "aerial_underlay",
+            },
+            ...vectorOverlayLayers,
+        ],
+    } as StyleSpecification
+})()
+
 export const emptyFeatureCollection: FeatureCollection = {
     type: "FeatureCollection",
     features: [],
@@ -108,6 +138,14 @@ layersConfig.set("liberty" as LayerId, {
     vectorStyle: libertyStyle,
     isBaseLayer: true,
     layerCode: "L" as LayerCode,
+})
+
+layersConfig.set("hybrid" as LayerId, {
+    specification: { type: "vector" },
+    // @ts-expect-error
+    vectorStyle: libertyHybridStyle,
+    isBaseLayer: true,
+    layerCode: "I" as LayerCode,
 })
 
 layersConfig.set("cyclosm" as LayerId, {
