@@ -25,6 +25,9 @@ if (loginForm) {
         "input[name=display_name_or_email]",
     )!
     const passwordInput = loginForm.querySelector("input[data-name=password]")!
+    const togglePasswordInput = loginForm.querySelector(
+        "input[data-action=toggle-password]",
+    )!
     const rememberInput = loginForm.querySelector("input[name=remember]")!
 
     let conditionalMediationAbort: AbortController | undefined
@@ -210,6 +213,10 @@ if (loginForm) {
             },
         },
     )
+
+    togglePasswordInput.addEventListener("change", () => {
+        passwordInput.type = togglePasswordInput.checked ? "text" : "password"
+    })
 
     // Delegated click handler for login UI actions
     loginForm.addEventListener("click", (e: Event) => {
