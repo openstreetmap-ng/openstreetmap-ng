@@ -20,6 +20,7 @@
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": false,
 
     "paths": {
