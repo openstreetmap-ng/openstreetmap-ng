@@ -49,7 +49,7 @@ run_formatters() {
   format_files '*.sh' -- shfmt -w
   format_files '*.sql' -- sql-formatter --fix
   format_files '*.toml' -- tombi format
-  format_files '*.ts' '*.tsx' '*.json' -- biome format --write --no-errors-on-unmatched
+  format_files '*.ts' '*.tsx' '*.json' '*.jsonc' -- oxfmt --write --no-error-on-unmatched-pattern
   format_files --per-file '*.proto' -- buf format -w
   (cd speedup && cargo fmt)
 }

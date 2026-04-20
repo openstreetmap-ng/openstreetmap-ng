@@ -1,4 +1,4 @@
 { pkgs, ... }:
 ''
-  exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none "$@"
+  exec ${pkgs.watchexec}/bin/watchexec --wrap-process=none --shell=none "$@"
 ''

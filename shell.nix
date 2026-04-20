@@ -28,7 +28,7 @@
 
 let
   # Update packages with `nixpkgs-update` command
-  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/ed142ab1b3a092c4d149245d0c4126a5d7ea00b0.tar.gz";
+  pkgsUrl = "https://github.com/NixOS/nixpkgs/archive/b63fe7f000adcfa269967eeff72c64cafecbbebe.tar.gz";
   pkgs = import (fetchTarball pkgsUrl) { };
 
   projectDir = toString ./.;
@@ -173,7 +173,6 @@ let
     with pkgs;
     [
       b3sum
-      biome
       brotli
       buf
       bun
@@ -191,6 +190,7 @@ let
       mailpit
       nixfmt
       nodejs-slim_24
+      oxfmt
       oxlint
       patchelf
       pigz

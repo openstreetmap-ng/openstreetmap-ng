@@ -3,10 +3,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
@@ -18,10 +18,10 @@
     "editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "autoDocstring.docstringFormat": "sphinx-notypes",
   "cmake.sourceDirectory": "${workspaceFolder}/speedup",
@@ -55,6 +55,8 @@
   },
   "files.exclude": {
     ".*cache/": true,
+    ".buf-deps/": true,
+    ".ck/": true,
     ".direnv/": true,
     ".venv/": true,
     "{app,script}/**/*.c": true,
@@ -67,11 +69,14 @@
     "/nix/store/": true,
     "app/static/vite/**/*.js": true,
     "config/locale/download/": true,
-    "dist/": true
+    "dist/": true,
+    "speedup/target": true
   },
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsserver.automaticTypeAcquisition.enabled": true,
   "prettier.documentSelectors": ["**/*.html.jinja"],
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.packageIndexDepths": [
@@ -86,7 +91,5 @@
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "scss.lint.vendorPrefix": "ignore",
-  "somesass.workspace.loadPaths": ["app/views"],
-  "typescript.disableAutomaticTypeAcquisition": true,
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "somesass.workspace.loadPaths": ["app/views"]
 }

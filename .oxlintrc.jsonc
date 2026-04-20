@@ -4,7 +4,7 @@
     "app/views/lib/_generated/**",
     "app/views/lib/proto/**",
     "app/views/lib/timezone-bbox.ts",
-    "app/views/lib/vector-styles/**"
+    "app/views/lib/vector-styles/**",
   ],
   "plugins": [
     "eslint",
@@ -16,18 +16,18 @@
     "import",
     "jsx-a11y",
     "node",
-    "promise"
+    "promise",
   ],
   "categories": {
     "correctness": "warn",
     "nursery": "warn",
     "perf": "warn",
     "suspicious": "warn",
-    "style": "warn"
+    "style": "warn",
   },
   "jsPlugins": ["eslint-plugin-compat"],
   "settings": {
-    "lintAllEsApis": true
+    "lintAllEsApis": true,
   },
   "rules": {
     "accessor-pairs": "warn",
@@ -36,6 +36,7 @@
     "avoid-new": "off",
     "capitalized-comments": "off",
     "consistent-function-scoping": "off",
+    "consistent-return": "off",
     "consistent-type-definitions": "off",
     "consistent-type-imports": "off",
     "consistent-type-specifier-style": "off",
@@ -48,7 +49,6 @@
     "id-length": "off",
     "import/no-amd": "warn",
     "import/no-commonjs": "warn",
-    "import/no-cycle": "warn",
     "import/no-dynamic-require": "warn",
     "init-declarations": "off",
     "jsx-key": "off",
@@ -73,9 +73,11 @@
     "no-named-export": "off",
     "no-nested-ternary": "off",
     "no-new": "off",
+    "no-nodejs-modules": "off",
     "no-null": "off",
     "no-proto": "warn",
     "no-regex-spaces": "warn",
+    "no-shadow": "off",
     "no-ternary": "off",
     "no-throw-literal": "warn",
     "no-unassigned-import": "off",
@@ -87,10 +89,12 @@
     "oxc/bad-bitwise-operator": "warn",
     "prefer-await-to-callbacks": "off",
     "prefer-await-to-then": "off",
+    "prefer-const": ["warn", { "destructuring": "all" }],
     "prefer-default-export": "off",
     "prefer-destructuring": "off",
     "prefer-global-this": "off",
     "prefer-optional-chain": "off",
+    "prefer-readonly-parameter-types": "off",
     "promise/spec-only": "warn",
     "radix": "warn",
     "react-in-jsx-scope": "off",
@@ -101,6 +105,7 @@
     "require-await": "warn",
     "sort-imports": "off",
     "sort-keys": "off",
+    "strict-void-return": "off",
     "switch-case-braces": "off",
     "typescript/ban-types": "warn",
     "typescript/no-deprecated": "warn",
@@ -152,25 +157,25 @@
     "unicorn/prefer-regexp-test": "warn",
     "unicorn/prefer-string-replace-all": "warn",
     "unicorn/prefer-string-slice": "warn",
-    "unicorn/prefer-type-error": "warn"
+    "unicorn/prefer-type-error": "warn",
   },
   "overrides": [
     {
       "files": ["app/views/**/*.ts", "app/views/**/*.tsx"],
       "env": {
         "browser": true,
-        "node": false
+        "node": false,
       },
       "rules": {
-        "compat/compat": "error"
-      }
+        "compat/compat": "error",
+      },
     },
     {
       "files": ["vite.config.ts", "app/views/**/*.macro.ts"],
       "env": {
         "browser": false,
-        "node": true
-      }
-    }
-  ]
+        "node": true,
+      },
+    },
+  ],
 }

@@ -389,7 +389,9 @@ temp
 tmp
 .tmp
 
+/.buf-deps
 /.ck
+/.codex
 /app/**/*.c
 /app/**/*.html
 /app/models/proto/**/*_connect.py*

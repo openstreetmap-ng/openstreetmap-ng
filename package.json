@@ -1,7 +1,10 @@
 {
   "name": "openstreetmap-ng",
-  "type": "module",
   "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "_scripts-postinstall"
+  },
   "dependencies": {
     "@babel/preset-env": "latest",
     "@babel/preset-typescript": "latest",
@@ -31,7 +34,7 @@
     "@vitejs/plugin-legacy": "latest",
     "@zod/zod": "npm:@jsr/zod__zod",
     "autoprefixer": "latest",
-    "basedpyright": "1.36.2",
+    "basedpyright": "latest",
     "blurhash": "latest",
     "bootstrap": "latest",
     "bootstrap-icons": "latest",
@@ -59,9 +62,6 @@
     "typed-query-selector": "latest",
     "unplugin-macros": "latest",
     "vite": "latest"
-  },
-  "scripts": {
-    "postinstall": "_scripts-postinstall"
   },
   "overrides": {
     "core-js": "3.47.0",
@@ -92,10 +92,6 @@
     "supports abortcontroller and supports bigint and partially supports contentsecuritypolicy2 and partially supports cors and supports es6 and supports fetch and partially supports same-site-cookie-attribute and partially supports webp and since 2019 and not dead"
   ],
   "prettier": {
-    "singleAttributePerLine": true,
-    "plugins": [
-      "prettier-plugin-jinja-template"
-    ],
     "overrides": [
       {
         "files": "**/*.html.jinja",
@@ -103,6 +99,10 @@
           "parser": "jinja-template"
         }
       }
-    ]
+    ],
+    "plugins": [
+      "prettier-plugin-jinja-template"
+    ],
+    "singleAttributePerLine": true
   }
 }

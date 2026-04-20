@@ -14,7 +14,7 @@ dependencies = [
   "brotli",
   "cairosvg",
   "cbor2",
-  "connect-python",
+  "connectrpc",
   "coverage",
   "cryptography",
   "cython",
@@ -43,7 +43,7 @@ dependencies = [
   "phonenumbers",
   "pillow",
   "polyline-rs",
-  "protobuf==6.33.4",
+  "protobuf==6.33.5",
   "protoc-gen-connect-python",
   "protovalidate",
   "psycopg[binary,pool]",
@@ -128,7 +128,6 @@ strictSetInference = true
 typeCheckingMode = "standard"
 useLibraryCodeForTypes = false
 # basedpyright specific:
-reportPrivateLocalImportUsage = "warning"
 reportInvalidCast = "warning"
 reportImplicitAbstractClass = "information"
 strictGenericNarrowing = true
@@ -193,6 +192,7 @@ ignore = [
   "PT001",  # pytest-fixture-incorrect-parentheses-style
   "PT006",  # pytest-parametrize-names-wrong-type
   "PT011",  # pytest-raises-too-broad
+  "PT013",  # pytest-incorrect-pytest-import
   "PT018",  # pytest-composite-assertion
   "PT023",  # pytest-incorrect-mark-parentheses-style
   "PYI021",  # docstring-in-stub
