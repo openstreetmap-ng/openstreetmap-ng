@@ -37,7 +37,10 @@ class NoteService:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
 
+        # Reject notes at the null island (0, 0) for non-moderators
         user = auth_user()
+        if point.x == 0.0 and point.y == 0.0 and not user_is_moderator(user):
+            raise_for.note_null_island()
         if user is not None:
             # Prevent OAuth to create user-authorized note
             scopes = auth_scopes()

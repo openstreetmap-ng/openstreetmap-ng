@@ -12,6 +12,7 @@ from shapely import Point, bounds, box
 from app.lib.auth_context import auth_user
 from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
+from app.models.db.user import user_is_moderator
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
 from app.models.element import (
@@ -208,6 +209,16 @@ class OptimisticDiffPrepare:
                 )
             else:
                 entry.current = element
+
+        # Check for null island nodes (reject if 2+ nodes at 0,0)
+        if not user_is_moderator(auth_user()):
+            null_island_count: cython.size_t = 0
+            for element in apply_elements:
+                point = element.get('point')
+                if point is not None and point.x == 0.0 and point.y == 0.0:
+                    null_island_count += 1
+            if null_island_count >= 2:
+                raise_for.diff_null_island(null_island_count)
 
         self._update_changeset_size(
             num_create=num_create,
