@@ -142,6 +142,9 @@ export const exportMapImage = async (
     }
 
     // Export the canvas to an image
+    // TODO: Canvas.toBlob() only supports raster formats (JPEG, PNG, WebP).
+    // To support SVG and PDF export, use the render.openstreetmap.org service
+    // for server-side rendering. See https://github.com/openstreetmap-ng/openstreetmap-ng/issues/36
     return new Promise<Blob>((resolve, reject) => {
         exportCanvas.toBlob(
             (blob) => {

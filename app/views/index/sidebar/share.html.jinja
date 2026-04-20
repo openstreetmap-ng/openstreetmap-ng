@@ -81,6 +81,9 @@
                     <option value="image/jpeg" data-suffix=".jpg">JPEG</option>
                     <option value="image/png" data-suffix=".png">PNG</option>
                     <option value="image/webp" data-suffix=".webp">WebP</option>
+                    {# TODO: SVG and PDF export requires server-side rendering via
+                       https://render.openstreetmap.org/ since Canvas.toBlob() only
+                       supports raster formats. See #36. #}
                     {# <option value="image/svg+xml" data-suffix=".svg">SVG</option> #}
                     {# <option value="application/pdf" data-suffix=".pdf">PDF</option> #}
                 </select>
