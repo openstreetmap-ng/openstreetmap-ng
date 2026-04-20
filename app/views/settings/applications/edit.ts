@@ -7,7 +7,14 @@ mount("settings-application-edit-body", (body) => {
     const avatarImage = avatarForm.querySelector("img.avatar")!
     const avatarFileInput = avatarForm.querySelector("input[name=avatar_file]")!
 
+    const avatarMaxFileSize = 10 * 1024 * 1024 // 10 MB
     avatarFileInput.addEventListener("change", () => {
+        const file = (avatarFileInput as HTMLInputElement).files?.[0]
+        if (file && file.size > avatarMaxFileSize) {
+            alert(t("validation.image_file_too_big"))
+            ;(avatarFileInput as HTMLInputElement).value = ""
+            return
+        }
         avatarForm.requestSubmit()
     })
 
