@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
 from PIL.Image import open as open_image
@@ -243,7 +244,10 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
+    try:
+        img = open_image(BytesIO(data))
+    except (UnidentifiedImageError, DecompressionBombError):
+        raise_for.image_not_readable()
     ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio

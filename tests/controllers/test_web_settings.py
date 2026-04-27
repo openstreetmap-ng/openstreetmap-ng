@@ -62,3 +62,18 @@ async def test_update_socials_roundtrip(client: AsyncClient):
 
     profile = await UserProfileQuery.get_by_user_id(user_id)
     assert profile['socials'] == []
+
+
+async def test_update_avatar_with_invalid_image_returns_readable_validation_error(
+    client: AsyncClient,
+):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/api/web/settings/avatar',
+        data={'avatar_type': 'custom'},
+        files={'avatar_file': ('bad.txt', b'not-an-image', 'text/plain')},
+    )
+
+    assert r.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, r.text
+    assert r.json() == {'detail': 'Image is not readable'}
