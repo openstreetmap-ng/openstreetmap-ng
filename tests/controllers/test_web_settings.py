@@ -1,4 +1,5 @@
 from httpx import AsyncClient
+from PIL import DecompressionBombError
 from starlette import status
 
 from app.queries.user_profile_query import UserProfileQuery
@@ -62,3 +63,38 @@ async def test_update_socials_roundtrip(client: AsyncClient):
 
     profile = await UserProfileQuery.get_by_user_id(user_id)
     assert profile['socials'] == []
+
+
+async def test_update_custom_avatar_decompression_bomb(client: AsyncClient, monkeypatch):
+    client.headers['Authorization'] = 'User user1'
+
+    async def fail_upload_avatar(*args, **kwargs):
+        raise DecompressionBombError('too big')
+
+    monkeypatch.setattr('app.services.user_service.ImageService.upload_avatar', fail_upload_avatar)
+
+    r = await client.post(
+        '/api/web/settings/avatar',
+        data={'avatar_type': 'custom'},
+        files={'avatar_file': ('avatar.png', b'fake-image', 'image/png')},
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+    assert r.json()['detail'][0]['msg'] == 'Image file is too big'
+
+
+async def test_update_background_decompression_bomb(client: AsyncClient, monkeypatch):
+    client.headers['Authorization'] = 'User user1'
+
+    async def fail_upload_background(*args, **kwargs):
+        raise DecompressionBombError('too big')
+
+    monkeypatch.setattr(
+        'app.services.user_service.ImageService.upload_background', fail_upload_background
+    )
+
+    r = await client.post(
+        '/api/web/settings/background',
+        files={'background_file': ('background.png', b'fake-image', 'image/png')},
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+    assert r.json()['detail'][0]['msg'] == 'Image file is too big'

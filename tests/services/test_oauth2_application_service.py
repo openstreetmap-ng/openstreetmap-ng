@@ -1,9 +1,12 @@
 import pytest
 from fastapi import HTTPException
+from PIL import DecompressionBombError
+from starlette import status
 
 from app.config import OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH
 from app.lib.locale import DEFAULT_LOCALE
 from app.lib.translation import translation_context
+from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.services.oauth2_application_service import OAuth2ApplicationService
 
 
@@ -57,3 +60,22 @@ def test_validate_redirect_uris(uris, expected):
             assert sorted(result) == sorted(expected)
         except HTTPException:
             assert expected is None, 'Expected validation to succeed, but it failed'
+
+
+async def test_update_avatar_decompression_bomb(monkeypatch):
+    async def fail_upload_avatar(*args, **kwargs):
+        raise DecompressionBombError('too big')
+
+    monkeypatch.setattr(
+        'app.services.oauth2_application_service.ImageService.upload_avatar', fail_upload_avatar
+    )
+
+    with translation_context(DEFAULT_LOCALE):
+        with pytest.raises(HTTPException) as exc_info:
+            await OAuth2ApplicationService.update_avatar(
+                SYSTEM_APP_WEB_CLIENT_ID,
+                avatar_file=None,  # type: ignore[arg-type]
+            )
+
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+    assert exc_info.value.detail[0]['msg'] == 'Image file is too big'

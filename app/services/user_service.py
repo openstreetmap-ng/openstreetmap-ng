@@ -5,6 +5,7 @@ from random import random
 from typing import Any
 
 from fastapi import UploadFile
+from PIL import DecompressionBombError
 from psycopg import AsyncConnection
 from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
@@ -116,11 +117,14 @@ class UserService:
         old_avatar_id = user['avatar_id']
 
         data = await avatar_file.read()
-        avatar_id = (
-            await ImageService.upload_avatar(data)
-            if data and avatar_type == 'custom'
-            else None
-        )
+        try:
+            avatar_id = (
+                await ImageService.upload_avatar(data)
+                if data and avatar_type == 'custom'
+                else None
+            )
+        except DecompressionBombError:
+            StandardFeedback.raise_error(None, t('validation.image_file_too_big'))
 
         async with db(True) as conn:
             await conn.execute(
@@ -153,7 +157,10 @@ class UserService:
         old_background_id = user['background_id']
 
         data = await background_file.read()
-        background_id = await ImageService.upload_background(data) if data else None
+        try:
+            background_id = await ImageService.upload_background(data) if data else None
+        except DecompressionBombError:
+            StandardFeedback.raise_error(None, t('validation.image_file_too_big'))
 
         async with db(True) as conn:
             await conn.execute(
