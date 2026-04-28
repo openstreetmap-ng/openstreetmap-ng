@@ -3,6 +3,7 @@ from asyncio import TaskGroup
 from typing import Any
 
 from fastapi import UploadFile
+from PIL import DecompressionBombError
 from pydantic import SecretStr
 from rfc3986 import URIReference
 from zid import zid
@@ -204,7 +205,10 @@ class OAuth2ApplicationService:
                 client_id: ClientId
                 old_avatar_id, client_id = row
 
-            avatar_id = await ImageService.upload_avatar(data) if data else None
+            try:
+                avatar_id = await ImageService.upload_avatar(data) if data else None
+            except DecompressionBombError:
+                StandardFeedback.raise_error(None, t('validation.image_file_too_big'))
 
             await conn.execute(
                 """
