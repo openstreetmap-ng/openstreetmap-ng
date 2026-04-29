@@ -64,7 +64,7 @@ let
       --arg postgresParallelMaintenanceWorkers 6 \
       --arg postgresMaxWalSizeGb 100 \
       --arg postgresVerbose 1 \
-      --arg gunicornWorkers 3 \
+      --arg webWorkers 3 \
       --run "
         export ENV=test \
         && export APP_URL=https://test.openstreetmap.ng \

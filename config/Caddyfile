@@ -22,7 +22,7 @@
 
 test.openstreetmap.ng, api.openstreetmap.ng, id.openstreetmap.ng, rapid.openstreetmap.ng {
 	import common
-	reverse_proxy 127.0.0.1:8000 {
+	reverse_proxy h2c://127.0.0.1:8000 {
 		import common_proxy
 	}
 }

@@ -98,7 +98,7 @@ Prefer invoking operational logic through these commands rather than calling fil
 
 Notable commands:
 
-- `run` - app server (`uvicorn` in dev, gunicorn+uvicorn-worker in prod mode)
+- `run` - app server (`h2corn` in dev/reload and production modes)
 - `dev-start` / `dev-stop` / `dev-restart` - process-compose services
 - `format` - formatting + linting + non-Python checks
 - `pyright` - Python type checking

@@ -1,13 +1,16 @@
 {
   isDevelopment,
-  gunicornPort,
-  gunicornWorkers,
+  webPort,
+  webWorkers,
+  webMaxRequests,
+  webMaxRequestsJitter,
   ...
 }:
 (
   if isDevelopment then
     ''
-      exec python -m uvicorn app.main:app \
+      exec python -m h2corn app.main:app \
+        --port ${toString webPort} \
         --reload \
         --reload-include "*.mo" \
         --reload-exclude scripts \
@@ -16,14 +19,12 @@
     ''
   else
     ''
-      exec python -m gunicorn app.main:app \
-        --bind localhost:${toString gunicornPort} \
-        --workers ${toString gunicornWorkers} \
-        --worker-class uvicorn_worker.UvicornWorker \
-        --max-requests 10000 \
-        --max-requests-jitter 1000 \
-        --graceful-timeout 5 \
-        --keep-alive 300 \
-        --access-logfile -
+      exec python -m h2corn app.main:app \
+        --port ${toString webPort} \
+        --workers ${toString webWorkers} \
+        --max-requests ${toString webMaxRequests} \
+        --max-requests-jitter ${toString webMaxRequestsJitter} \
+        --proxy-headers \
+        --no-http1
     ''
 )

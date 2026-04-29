@@ -22,8 +22,10 @@
   enableMailpit ? true,
   mailpitHttpPort ? 49566,
   mailpitSmtpPort ? 49565,
-  gunicornWorkers ? 1,
-  gunicornPort ? 8000,
+  webPort ? 8000,
+  webWorkers ? 1,
+  webMaxRequests ? 10000,
+  webMaxRequestsJitter ? 1000,
 }:
 
 let
@@ -131,8 +133,10 @@ let
       isDevelopment
       processComposeConf
       processComposeFastIngestConf
-      gunicornPort
-      gunicornWorkers
+      webPort
+      webWorkers
+      webMaxRequests
+      webMaxRequestsJitter
       enablePostgres
       pkgsUrl
       ;

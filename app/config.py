@@ -611,8 +611,7 @@ dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            '()': 'uvicorn.logging.DefaultFormatter',
-            'fmt': '%(levelprefix)s | %(asctime)s | %(name)s %(message)s',
+            'format': '%(levelname)s | %(asctime)s | %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
