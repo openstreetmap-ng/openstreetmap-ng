@@ -1,7 +1,7 @@
 import logging
 from html import escape
 from random import Random
-from typing import Literal
+from typing import Literal, assert_never
 
 import cython
 import re2
@@ -13,8 +13,10 @@ def generate_avatar(style: Literal['initials', 'shapes'], text: str, /):
     """Generate a random avatar SVG."""
     if style == 'initials':
         svg = _generate_initials(text)
-    else:  # shapes
+    elif style == 'shapes':
         svg = _generate_shapes(hmac_bytes(text))
+    else:
+        assert_never(style)
 
     logging.debug('Generated %r avatar', style)
     return svg.encode()

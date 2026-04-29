@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, assert_never
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
@@ -209,7 +209,7 @@ class OAuth2ApplicationQuery:
         elif sort == 'created_asc':
             order_dir = SQL('ASC')
         else:
-            raise NotImplementedError(f'Unsupported sort {sort!r}')
+            assert_never(sort)
 
         query = SQL("""
             SELECT id FROM oauth2_application

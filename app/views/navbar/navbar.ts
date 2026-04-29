@@ -1,5 +1,5 @@
 import type { LonLatZoom } from "@lib/map/state"
-import { isHrefCurrentPage, wrapMessageEventValidator } from "@lib/utils"
+import { wrapMessageEventValidator } from "@lib/utils"
 import { Collapse } from "bootstrap"
 import { updateNavbarAndHash } from "./navbar-left"
 import { messagesCountUnread } from "./navbar-right"
@@ -24,17 +24,6 @@ export const changeUnreadMessagesBadge = (change: number) => {
   const newCount = oldCount + change
   console.debug("Navbar: Message badge changed", oldCount, "->", newCount)
   messagesCountUnread.value = newCount
-}
-
-// Initialize active nav link
-if (navbar) {
-  for (const link of navbar.querySelectorAll("a.nav-link")) {
-    if (isHrefCurrentPage(link.href)) {
-      link.classList.add("active")
-      link.ariaCurrent = "page"
-      break
-    }
-  }
 }
 
 // Handle mapState window messages (from iD/Rapid)

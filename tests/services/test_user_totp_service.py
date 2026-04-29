@@ -26,7 +26,7 @@ async def test_totp_flow(digits: int):
 
     with translation_context(DEFAULT_LOCALE), auth_context(user):
         # Setup TOTP
-        code = totp_generate(secret_str, digits=digits)
+        code = int(totp_generate(secret_str, digits=digits))
         await UserTOTPService.setup_totp(secret, digits, code)
 
         # Verify stored in DB
@@ -34,8 +34,8 @@ async def test_totp_flow(digits: int):
         assert stored_totp is not None
 
         # Verify valid code
-        current_code = totp_generate(
-            secret_str, digits=digits, time_window=totp_time_window() + 1
+        current_code = int(
+            totp_generate(secret_str, digits=digits, time_window=totp_time_window() + 1)
         )
         success = await UserTOTPService.verify_totp(user_id, current_code)
         assert success is True
@@ -45,7 +45,7 @@ async def test_totp_flow(digits: int):
         assert success is False
 
         # Verify invalid code
-        success = await UserTOTPService.verify_totp(user_id, '0' * digits)
+        success = await UserTOTPService.verify_totp(user_id, 0)
         assert success is False
 
         # Remove TOTP

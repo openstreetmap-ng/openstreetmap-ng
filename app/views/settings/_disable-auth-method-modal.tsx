@@ -12,11 +12,9 @@ export const DISABLE_AUTH_METHOD_MODAL_ID = "SettingsSecurityDisableAuthMethodMo
 export type DisableAuthMethodContext =
   | {
       method: "totp"
-      title: string
     }
   | {
       method: "passkey"
-      title: string
       credentialId: Uint8Array
     }
 
@@ -45,6 +43,12 @@ export const DisableAuthMethodModal = ({
   }, [])
 
   const current = ctx.value
+  const title =
+    current?.method === "passkey"
+      ? t("two_fa.remove_passkey")
+      : current?.method === "totp"
+        ? t("two_fa.disable_authenticator_app")
+        : undefined
 
   return (
     <div
@@ -62,7 +66,7 @@ export const DisableAuthMethodModal = ({
               class="modal-title"
               id={labelId}
             >
-              {current?.title}
+              {title}
             </h5>
             <button
               type="button"
@@ -88,7 +92,7 @@ export const DisableAuthMethodModal = ({
                 <input
                   type="text"
                   name="display_name"
-                  value={config.userConfig!.user.displayName}
+                  defaultValue={config.userConfig!.user.displayName}
                   autoComplete="username"
                   readOnly
                   hidden
@@ -139,7 +143,7 @@ export const DisableAuthMethodModal = ({
                 <input
                   type="text"
                   name="display_name"
-                  value={config.userConfig!.user.displayName}
+                  defaultValue={config.userConfig!.user.displayName}
                   autoComplete="username"
                   readOnly
                   hidden

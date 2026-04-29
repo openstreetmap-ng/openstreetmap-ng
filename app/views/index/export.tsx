@@ -171,63 +171,69 @@ const ExportRouteComponent = ({ map }: { map: MaplibreMap }) => {
         <p>{t("site.export.too_large.advice")}</p>
 
         <ul class="mb-2">
-          <li>
-            <h6 class="mb-1">
-              <img
-                class="source-icon"
-                src="/static/img/brand/overpass.webp"
-                alt={t("alt.logo", { name: "Overpass" })}
-                loading="lazy"
-              />
-              <a
-                href={`https://overpass-api.de/api/map${bboxQueryString}`}
-                target="_blank"
-                rel="noopener"
-              >
-                {t("site.export.too_large.overpass.title")}
-              </a>
-            </h6>
-            <p>{t("site.export.too_large.overpass.description")}</p>
-          </li>
-
-          <li>
-            <h6 class="mb-1">
-              <img
-                class="source-icon"
-                src="/static/img/favicon/256.webp"
-                alt={t("alt.logo", { name: t("project_name") })}
-                loading="lazy"
-              />
-              <a href="https://planet.openstreetmap.org">
-                {t("site.export.too_large.planet.title")}
-              </a>
-            </h6>
-            <p>{t("site.export.too_large.planet.description")}</p>
-          </li>
-
-          <li>
-            <h6 class="mb-1">
-              <img
-                class="source-icon"
-                src="/static/img/brand/geofabrik.webp"
-                alt={t("alt.logo", { name: "Geofabrik" })}
-                loading="lazy"
-              />
-              <a href="https://download.geofabrik.de">
-                {t("site.export.too_large.geofabrik.title")}
-              </a>
-            </h6>
-            <p>{t("site.export.too_large.geofabrik.description")}</p>
-          </li>
-
-          <li>
-            <h6 class="mb-1">
-              <a href="https://wiki.openstreetmap.org/wiki/Downloading_data">
-                {t("site.export.too_large.other.title")}
-              </a>
-            </h6>
-            <p class="mb-0">{t("site.export.too_large.other.description")}</p>
-          </li>
+          {[
+            {
+              href: `https://overpass-api.de/api/map${bboxQueryString}`,
+              title: t("site.export.too_large.overpass.title"),
+              description: t("site.export.too_large.overpass.description"),
+              iconSrc: "/static/img/brand/overpass.webp",
+              iconAlt: t("alt.logo", { name: "Overpass" }),
+              target: "_blank",
+              rel: "noopener",
+            },
+            {
+              href: "https://planet.openstreetmap.org",
+              title: t("site.export.too_large.planet.title"),
+              description: t("site.export.too_large.planet.description"),
+              iconSrc: "/static/img/favicon/256.webp",
+              iconAlt: t("alt.logo", { name: t("project_name") }),
+            },
+            {
+              href: "https://download.geofabrik.de",
+              title: t("site.export.too_large.geofabrik.title"),
+              description: t("site.export.too_large.geofabrik.description"),
+              iconSrc: "/static/img/brand/geofabrik.webp",
+              iconAlt: t("alt.logo", { name: "Geofabrik" }),
+            },
+            {
+              href: "https://wiki.openstreetmap.org/wiki/Downloading_data",
+              title: t("site.export.too_large.other.title"),
+              description: t("site.export.too_large.other.description"),
+              descriptionClass: "mb-0",
+            },
+          ].map(
+            ({
+              href,
+              title,
+              description,
+              iconSrc,
+              iconAlt,
+              target,
+              rel,
+              descriptionClass = "",
+            }) => (
+              <li>
+                <h6 class="mb-1">
+                  {iconSrc && (
+                    <img
+                      class="source-icon"
+                      src={iconSrc}
+                      alt={iconAlt}
+                      loading="lazy"
+                    />
+                  )}
+                  <a
+                    href={href}
+                    target={target}
+                    rel={rel}
+                  >
+                    {title}
+                  </a>
+                </h6>
+                <p class={descriptionClass}>{description}</p>
+              </li>
+            ),
+          )}
         </ul>
       </div>
 

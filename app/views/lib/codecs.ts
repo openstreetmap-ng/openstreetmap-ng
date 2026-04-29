@@ -52,6 +52,19 @@ const protoEnumName = <TValue extends number>(
 const isStringTuple = (value: unknown): value is readonly [string, ...string[]] =>
   Array.isArray(value)
 
+const mapQueryParam = <TIn, TOut>(
+  schema: QuerySchema<TIn>,
+  output: z.ZodType<TOut, TOut>,
+  options: {
+    decode: (value: TIn) => TOut
+    encode: (value: TOut) => TIn
+  },
+): QuerySchema<TOut> =>
+  z.codec(z.array(z.string()).optional(), output, {
+    decode: (raw) => options.decode(schema.parse(raw)),
+    encode: (value) => schema.encode(options.encode(value)),
+  })
+
 const queryEnumString = <const T extends readonly [string, ...string[]]>(
   values: T,
   options?: EnumCodecDefaultOptions<T[number]>,
@@ -215,6 +228,29 @@ function queryEnumList(source: any, options?: any) {
     : queryEnumListProto(source, options)
 }
 
+const queryPositive = () => {
+  const schema = pathParam.positive()
+  return z.codec(z.array(z.string()).optional(), z.bigint().positive().optional(), {
+    decode: (raw) => {
+      const last = raw?.at(-1)
+      if (last === undefined) return
+      const parsed = schema.safeDecode(last)
+      return parsed.success ? parsed.data : undefined
+    },
+    encode: (value) => (value !== undefined ? [schema.encode(value)] : undefined),
+  })
+}
+
+const queryPositiveInt = () =>
+  mapQueryParam(queryPositive(), z.number().int().positive().optional(), {
+    decode: (value) => {
+      if (value === undefined) return
+      const number = Number(value)
+      return Number.isSafeInteger(number) && number > 0 ? number : undefined
+    },
+    encode: (value) => (value === undefined ? undefined : BigInt(value)),
+  })
+
 export const queryParam = {
   text: () =>
     z.codec(z.array(z.string()).optional(), z.string().optional(), {
@@ -230,18 +266,9 @@ export const queryParam = {
       },
     }),
 
-  positive: () => {
-    const schema = pathParam.positive()
-    return z.codec(z.array(z.string()).optional(), z.bigint().positive().optional(), {
-      decode: (raw) => {
-        const last = raw?.at(-1)
-        if (last === undefined) return
-        const parsed = schema.safeDecode(last)
-        return parsed.success ? parsed.data : undefined
-      },
-      encode: (value) => (value !== undefined ? [schema.encode(value)] : undefined),
-    })
-  },
+  positive: queryPositive,
+
+  positiveInt: queryPositiveInt,
 
   enum: queryEnum,
 

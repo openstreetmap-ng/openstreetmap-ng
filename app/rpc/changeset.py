@@ -179,7 +179,7 @@ class _Service(Service):
         else:
             await UserSubscriptionService.unsubscribe('changeset', id)
 
-        return UpdateSubscriptionResponse(is_subscribed=request.is_subscribed)
+        return UpdateSubscriptionResponse()
 
 
 service = _Service()

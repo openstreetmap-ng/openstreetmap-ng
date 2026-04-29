@@ -6,6 +6,7 @@ import { encodeMapState, getInitialMapState, type MapState } from "@lib/map/stat
 import { qsEncode } from "@lib/qs"
 import { RemoteEditButton } from "@lib/remote-edit"
 import { computed, signal, useSignalEffect } from "@preact/signals"
+import { assertNever } from "@std/assert/unstable-never"
 import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
@@ -44,6 +45,8 @@ const getEditorImage = (editor: Editor) => {
       return { src: "/static/img/brand/rapid.webp", name: "Rapid", darkInvert: false }
     case "remote":
       return { src: "/static/img/brand/josm.webp", name: "JOSM", darkInvert: false }
+    default:
+      assertNever(editor)
   }
 }
 

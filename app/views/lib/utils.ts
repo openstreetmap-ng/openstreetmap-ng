@@ -1,9 +1,16 @@
 import { SECOND } from "@std/datetime/constants"
 
-export const isHrefCurrentPage = (href: string) => {
+export const isHrefCurrentPage = (
+  href: string,
+  { includeSubpaths = false }: { includeSubpaths?: boolean } = {},
+) => {
   const hrefPathname = new URL(href, window.location.href).pathname
   const locationPathname = window.location.pathname
-  return hrefPathname === locationPathname || `${hrefPathname}/` === locationPathname
+  return (
+    hrefPathname === locationPathname ||
+    `${hrefPathname}/` === locationPathname ||
+    (includeSubpaths && locationPathname.startsWith(`${hrefPathname}/`))
+  )
 }
 
 export const isUnmodifiedLeftClick = (event: MouseEvent) =>
@@ -99,9 +106,9 @@ export const formatPackedIp = (packedIp: Uint8Array) => {
   if (packedIp.length === 6) {
     const groups = Array.from(
       { length: 3 },
-      (_, i) => (packedIp[i * 2] << 8) | packedIp[i * 2 + 1],
+      (_, i) => (packedIp[i * 2]! << 8) | packedIp[i * 2 + 1]!,
     )
-    return `${groups[0].toString(16)}:${groups[1].toString(16)}:${groups[2].toString(16)}:*:*:*:*:*`
+    return `${groups[0]!.toString(16)}:${groups[1]!.toString(16)}:${groups[2]!.toString(16)}:*:*:*:*:*`
   }
 
   if (packedIp.length !== 16)
@@ -112,7 +119,7 @@ export const formatPackedIp = (packedIp: Uint8Array) => {
 
   const groups = Array.from(
     { length: 8 },
-    (_, i) => (packedIp[i * 2] << 8) | packedIp[i * 2 + 1],
+    (_, i) => (packedIp[i * 2]! << 8) | packedIp[i * 2 + 1]!,
   )
   let bestStart = -1
   let bestLen = 0

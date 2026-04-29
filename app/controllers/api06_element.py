@@ -1,5 +1,5 @@
 from asyncio import TaskGroup
-from typing import Annotated
+from typing import Annotated, assert_never
 
 from fastapi import APIRouter, Path, Query, Response, status
 
@@ -116,7 +116,7 @@ async def get_many(
     elif type == 'relation':
         query = relations
     else:
-        raise NotImplementedError(f'Unsupported element type {type!r}')
+        assert_never(type)
 
     if not query:
         return Response(

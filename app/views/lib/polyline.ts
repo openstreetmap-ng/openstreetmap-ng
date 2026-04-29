@@ -27,8 +27,8 @@ export const polylineEquals = (
 
   const factor = 10 ** precision
   for (let i = 0; i < a.length; i++) {
-    const pa = a[i]
-    const pb = b[i]
+    const pa = a[i]!
+    const pb = b[i]!
     if (
       roundPy2(pa[0] * factor) !== roundPy2(pb[0] * factor) ||
       roundPy2(pa[1] * factor) !== roundPy2(pb[1] * factor)
@@ -86,6 +86,7 @@ export const polylineDecode = (line: string, precision: number) => {
     return (result >> 1) ^ -(result & 1) // Zigzag decode
   }
 
+  // oxlint-disable-next-line no-unmodified-loop-condition
   while (i < len) {
     lat += decodeDelta()
     lon += decodeDelta()

@@ -11,11 +11,14 @@ if (modalElement) {
     window.location.href = redirectLink
   })
 
-  configureStandardForm(modalElement.querySelector("form.subscription-form"), () => {
-    // On success callback, redirect to the discussion page
-    console.debug("Unsubscribe: Success", redirectLink)
-    window.location.href = redirectLink
-  })
+  configureStandardForm(
+    modalElement.querySelector("form.subscription-form"),
+    (_, ctx) => {
+      // On success callback, redirect to the discussion page
+      console.debug("Unsubscribe: Success", redirectLink)
+      ctx.redirect(redirectLink)
+    },
+  )
 
   new Modal(modalElement, {
     backdrop: "static", // Prevents closing when clicking outside

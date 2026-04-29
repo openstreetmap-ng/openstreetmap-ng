@@ -28,8 +28,8 @@ import {
 import { renderObjects } from "@lib/map/render-objects"
 import {
   type GetMapResponse_ChangesetValid as Changeset,
-  Service,
   GetMapRequest_Scope,
+  Service,
 } from "@lib/proto/changeset_pb"
 import { rpcClient } from "@lib/rpc"
 import { scrollElementIntoView } from "@lib/scroll"
@@ -368,7 +368,7 @@ const ChangesetsHistorySidebar = ({
     const csList = changesets.value
     let featureIdCounter = 1
     for (let i = 0; i < layerState.current.hiddenBefore; i++)
-      featureIdCounter += csList[i].bounds.length * 2
+      featureIdCounter += csList[i]!.bounds.length * 2
 
     idFirstFeatureIdMap.clear()
     const changesetsMinimumSize: OSMChangeset[] = []
@@ -446,7 +446,7 @@ const ChangesetsHistorySidebar = ({
     const featureUpdates: [string, number, ScrollState["state"], number][] = []
 
     for (let i = csList.length - 1; i >= 0; i--) {
-      const changeset = csList[i]
+      const changeset = csList[i]!
       const changesetId = changeset.id.toString()
       const element = getEntryEl(changesetId)
       if (!element) continue
@@ -633,6 +633,7 @@ const ChangesetsHistorySidebar = ({
       console.error("ChangesetsHistory: Failed to fetch", error)
     } finally {
       token.done()
+      // oxlint-disable-next-line typescript/no-unnecessary-condition
       if (activeFetch.current?.token === token) activeFetch.current = null
     }
   }

@@ -85,103 +85,86 @@ export const configureContextMenu = (map: MaplibreMap) => {
             aria-expanded="false"
           />
           <ul class="dropdown-menu">
-            <li>
-              <button
-                type="button"
-                class="btn dropdown-item"
-                onClick={onCopy}
-              >
-                {ctxGeoText.value}
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                class="btn dropdown-item"
-                onClick={onCopy}
-              >
-                {ctxGeoUriText.value}
-              </button>
-            </li>
+            {[ctxGeoText.value, ctxGeoUriText.value].map((text) => (
+              <li>
+                <button
+                  type="button"
+                  class="btn dropdown-item"
+                  onClick={onCopy}
+                >
+                  {text}
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
 
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            const from = formatPoint(ctx.value, ROUTING_QUERY_PRECISION)
-            closePopup()
-            routerNavigate(RoutingRoute, { from })
-          }}
-        >
-          {t("javascripts.context.directions_from")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            const to = formatPoint(ctx.value, ROUTING_QUERY_PRECISION)
-            closePopup()
-            routerNavigate(RoutingRoute, { to })
-          }}
-        >
-          {t("javascripts.context.directions_to")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          disabled={ctx.value.zoom < NEW_NOTE_MIN_ZOOM}
-          onClick={() => {
-            closePopup()
-            routerNavigate(NewNoteRoute, { at: ctx.value })
-          }}
-        >
-          {t("context_menu.suggest_edit")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            closePopup()
-            routerNavigate(SearchRoute, { at: ctx.value })
-          }}
-        >
-          {t("javascripts.context.show_address")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          disabled={ctx.value.zoom < QUERY_FEATURES_MIN_ZOOM}
-          onClick={() => {
-            closePopup()
-            routerNavigate(QueryFeaturesRoute, { at: ctx.value })
-          }}
-        >
-          {t("javascripts.context.query_features")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            closePopup()
-            map.panTo(ctx.value)
-          }}
-        >
-          {t("javascripts.context.centre_map")}
-        </button>
-        <button
-          type="button"
-          class="btn"
-          onClick={() => {
-            const { lon, lat } = ctx.value
-            const line = [[lon, lat]] as const
-            closePopup()
-            routerNavigate(DistanceRoute, { line })
-          }}
-        >
-          {t("context_menu.measure_distance")}
-        </button>
+        {[
+          {
+            label: t("javascripts.context.directions_from"),
+            onClick: () => {
+              const from = formatPoint(ctx.value, ROUTING_QUERY_PRECISION)
+              closePopup()
+              routerNavigate(RoutingRoute, { from })
+            },
+          },
+          {
+            label: t("javascripts.context.directions_to"),
+            onClick: () => {
+              const to = formatPoint(ctx.value, ROUTING_QUERY_PRECISION)
+              closePopup()
+              routerNavigate(RoutingRoute, { to })
+            },
+          },
+          {
+            label: t("context_menu.suggest_edit"),
+            disabled: ctx.value.zoom < NEW_NOTE_MIN_ZOOM,
+            onClick: () => {
+              closePopup()
+              routerNavigate(NewNoteRoute, { at: ctx.value })
+            },
+          },
+          {
+            label: t("javascripts.context.show_address"),
+            onClick: () => {
+              closePopup()
+              routerNavigate(SearchRoute, { at: ctx.value })
+            },
+          },
+          {
+            label: t("javascripts.context.query_features"),
+            disabled: ctx.value.zoom < QUERY_FEATURES_MIN_ZOOM,
+            onClick: () => {
+              closePopup()
+              routerNavigate(QueryFeaturesRoute, { at: ctx.value })
+            },
+          },
+          {
+            label: t("javascripts.context.centre_map"),
+            onClick: () => {
+              closePopup()
+              map.panTo(ctx.value)
+            },
+          },
+          {
+            label: t("context_menu.measure_distance"),
+            onClick: () => {
+              const { lon, lat } = ctx.value
+              const line = [[lon, lat]] as const
+              closePopup()
+              routerNavigate(DistanceRoute, { line })
+            },
+          },
+        ].map(({ label, disabled, onClick }) => (
+          <button
+            type="button"
+            class="btn"
+            disabled={disabled}
+            onClick={onClick}
+          >
+            {label}
+          </button>
+        ))}
       </nav>
     )
   }

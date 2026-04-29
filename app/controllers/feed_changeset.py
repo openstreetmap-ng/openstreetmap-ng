@@ -47,9 +47,7 @@ async def user_history_feed(
 ):
     user = await UserQuery.find_by_display_name(display_name)
     if user is None:
-        return Response(
-            None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml'
-        )
+        return Response(None, status.HTTP_404_NOT_FOUND)
 
     geometry = parse_bbox(bbox)
     return await _get_feed(user, geometry, limit)
@@ -65,9 +63,7 @@ async def user_permalink_history_feed(
 ):
     user = await UserQuery.find_by_id(user_id)
     if user is None:
-        return Response(
-            None, status.HTTP_404_NOT_FOUND, media_type='application/atom+xml'
-        )
+        return Response(None, status.HTTP_404_NOT_FOUND)
 
     geometry = parse_bbox(bbox)
     return await _get_feed(user, geometry, limit)

@@ -2,13 +2,13 @@ import { config, URLSAFE_BLACKLIST, URLSAFE_BLACKLIST_RE } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
-import { PageSchema, Service } from "@lib/proto/settings_pb"
 import { mountProtoPage } from "@lib/proto-page"
+import { PageSchema, Service } from "@lib/proto/settings_pb"
 import { StandardForm } from "@lib/standard-form"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
 import { useEffect, useRef } from "preact/hooks"
-import { SettingsNav } from "./_nav"
+import { Nav } from "./_nav"
 
 mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
   const displayNameInputRef = useRef<HTMLInputElement>(null)
@@ -36,7 +36,7 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
         <div class="container">
           <div class="row">
             <div class="col-lg-auto mb-4">
-              <SettingsNav />
+              <Nav />
             </div>
 
             <div class="col-lg">
@@ -46,10 +46,10 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
                 buildRequest={({ formData }) => ({
                   displayName: formData.get("display_name") as string,
                   language: formData.get("language") as string,
-                  activityTracking: formData.get("activity_tracking") === "true",
-                  crashReporting: formData.get("crash_reporting") === "true",
+                  activityTracking: formData.has("activity_tracking"),
+                  crashReporting: formData.has("crash_reporting"),
                 })}
-                onSuccess={() => window.location.reload()}
+                onSuccess={(_, ctx) => ctx.reload()}
                 class="settings-form"
               >
                 <label class="form-label d-block mb-3">
@@ -114,10 +114,7 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
                     required
                   >
                     {LOCALE_OPTIONS.map((locale) => (
-                      <option
-                        key={locale[0]}
-                        value={locale[0]}
-                      >
+                      <option value={locale[0]}>
                         {getLocaleDisplayName(locale, true)}
                       </option>
                     ))}
@@ -133,40 +130,43 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
                   })}
                 </p>
 
-                <div class="form-check ms-1">
-                  <label class="form-check-label d-block">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      name="activity_tracking"
-                      value="true"
-                      defaultChecked={config.userConfig!.activityTracking}
-                    />
-                    <i class="bi bi-graph-up text-primary" />
-                    {t("privacy.enable_activity_tracking.title")}
-                  </label>
-                </div>
-                <p class="form-text mb-3">
-                  {t("privacy.enable_activity_tracking.description")}{" "}
-                  {t("privacy.enable_activity_tracking.we_use_matomo")}
-                </p>
-
-                <div class="form-check ms-1">
-                  <label class="form-check-label d-block">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      name="crash_reporting"
-                      value="true"
-                      defaultChecked={config.userConfig!.crashReporting}
-                    />
-                    <i class="bi bi-bug text-primary" />
-                    {t("privacy.enable_crash_reporting.title")}
-                  </label>
-                </div>
-                <p class="form-text mb-3">
-                  {t("privacy.enable_crash_reporting.description")}
-                </p>
+                {[
+                  {
+                    name: "activity_tracking",
+                    checked: config.userConfig!.activityTracking,
+                    icon: "graph-up",
+                    title: t("privacy.enable_activity_tracking.title"),
+                    description: (
+                      <>
+                        {t("privacy.enable_activity_tracking.description")}{" "}
+                        {t("privacy.enable_activity_tracking.we_use_matomo")}
+                      </>
+                    ),
+                  },
+                  {
+                    name: "crash_reporting",
+                    checked: config.userConfig!.crashReporting,
+                    icon: "bug",
+                    title: t("privacy.enable_crash_reporting.title"),
+                    description: t("privacy.enable_crash_reporting.description"),
+                  },
+                ].map(({ name, checked, icon, title, description }) => (
+                  <div>
+                    <div class="form-check ms-1">
+                      <label class="form-check-label d-block">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          name={name}
+                          defaultChecked={checked}
+                        />
+                        <i class={`bi bi-${icon} text-primary me-1-5`} />
+                        {title}
+                      </label>
+                    </div>
+                    <p class="form-text mb-3">{description}</p>
+                  </div>
+                ))}
 
                 <div class="text-end">
                   <button
@@ -186,7 +186,7 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
                 class="btn btn-outline-secondary"
                 type="button"
                 data-report-type="user"
-                data-report-type-id={config.userConfig!.user.id.toString()}
+                data-report-type-id={config.userConfig!.user.id}
                 data-report-action="user_account"
               >
                 <i class="bi bi-flag me-1" />

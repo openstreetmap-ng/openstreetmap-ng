@@ -112,7 +112,7 @@ export const GenerateRecoveryCodesModal = ({
                 <input
                   type="text"
                   name="display_name"
-                  value={config.userConfig!.user.displayName}
+                  defaultValue={config.userConfig!.user.displayName}
                   autoComplete="username"
                   readOnly
                   hidden

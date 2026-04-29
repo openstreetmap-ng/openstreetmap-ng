@@ -39,7 +39,7 @@ export const ThemeSwitcher = () => {
           <h6 class="dropdown-item-text">{t("theme.toggle_theme")}</h6>
         </li>
         {THEME_OPTIONS.map((option) => (
-          <li key={option.value}>
+          <li>
             <button
               class={`dropdown-item ${option.value === themeStorage.value ? "active" : ""}`}
               type="button"

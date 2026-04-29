@@ -1,6 +1,6 @@
 from asyncio import TaskGroup
 from math import ceil
-from typing import override
+from typing import assert_never, override
 
 from connectrpc.request import RequestContext
 from psycopg.sql import SQL
@@ -96,8 +96,10 @@ class _Service(NoteServiceConnect):
             open = True
         elif request.status == GetUserPageRequest.StatusFilter.closed:
             open = False
-        else:
+        elif request.status == GetUserPageRequest.StatusFilter.any:
             open = None
+        else:
+            assert_never(request.status)
 
         where_clause, params = NoteQuery.user_page_where(
             user_id,
@@ -175,7 +177,7 @@ class _Service(NoteServiceConnect):
         else:
             await UserSubscriptionService.unsubscribe('note', id)
 
-        return UpdateSubscriptionResponse(is_subscribed=request.is_subscribed)
+        return UpdateSubscriptionResponse()
 
 
 service = _Service()

@@ -15,7 +15,7 @@ import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import { type DataValid, Service } from "@lib/proto/element_pb"
 import { ElementType } from "@lib/proto/shared_pb"
-import { StandardPagination } from "@lib/standard-pagination"
+import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import type { ReadonlySignal } from "@preact/signals"
@@ -102,8 +102,8 @@ const ElementHistorySidebar = ({
                 type="checkbox"
                 autoComplete="off"
                 checked={tagsDiffStorage.value}
-                onChange={(event) => {
-                  const checked = event.currentTarget.checked
+                onChange={(e) => {
+                  const checked = e.currentTarget.checked
                   tagsDiffStorage.value = checked
                 }}
               />
@@ -122,8 +122,9 @@ const ElementHistorySidebar = ({
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
         }}
+        urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}
-        pageOrder="desc-range"
+        pageOrder={PageOrder.desc_range}
         onLoad={() => focusObjects(map)}
         small
         navClassBottom="mb-0"

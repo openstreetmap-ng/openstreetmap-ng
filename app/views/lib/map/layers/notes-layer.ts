@@ -66,7 +66,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
   // On feature click, navigate to the note
   map.on("click", LAYER_ID, (e) => {
-    const noteId = e.features![0].properties.id
+    const noteId = e.features![0]!.properties.id
     routerNavigate(NoteRoute, { id: BigInt(noteId) })
   })
 
@@ -92,7 +92,7 @@ export const configureNotesLayer = (map: MaplibreMap) => {
 
   map.on("mousemove", LAYER_ID, async (e) => {
     const lngLat = e.lngLat
-    const feature = e.features![0]
+    const feature = e.features![0]!
     const featureId = feature.id as number
     if (hoveredFeatureId === featureId) return
     if (hoveredFeatureId) {

@@ -15,7 +15,7 @@ export interface OSMWay {
   area?: boolean
 }
 
-export interface OSMRelation {
+interface OSMRelation {
   type: "relation"
   id: bigint
   version?: bigint

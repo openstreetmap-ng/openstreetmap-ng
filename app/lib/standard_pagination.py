@@ -3,7 +3,15 @@ from __future__ import annotations
 from base64 import urlsafe_b64encode
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Annotated, Any, Literal, LiteralString, NamedTuple, TypeVar
+from typing import (
+    Annotated,
+    Any,
+    Literal,
+    LiteralString,
+    NamedTuple,
+    TypeVar,
+    assert_never,
+)
 
 import cython
 from fastapi import Body
@@ -352,7 +360,7 @@ def _cursor_codec(kind: _CursorKind):
             empty='',
             storage='text',
         )
-    raise NotImplementedError(f'Unsupported cursor kind {kind!r}')
+    assert_never(kind)
 
 
 async def _snapshot(
@@ -702,9 +710,17 @@ def _ceil_div(a: cython.size_t, b: cython.size_t):
 
 @cython.cfunc
 def _reverse_dir(value: _OrderDir):
-    return 'desc' if value == 'asc' else 'asc'
+    if value == 'asc':
+        return 'desc'
+    if value == 'desc':
+        return 'asc'
+    assert_never(value)
 
 
 @cython.cfunc
 def _order_dir_sql(value: _OrderDir):
-    return SQL('ASC') if value == 'asc' else SQL('DESC')
+    if value == 'asc':
+        return SQL('ASC')
+    if value == 'desc':
+        return SQL('DESC')
+    assert_never(value)

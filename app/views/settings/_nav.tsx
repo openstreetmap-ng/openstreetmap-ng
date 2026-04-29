@@ -6,13 +6,15 @@ import type { ComponentChildren } from "preact"
 export const NavLinkItem = ({
   href,
   class: className = "",
+  section = false,
   children,
 }: {
   href: string
   class?: string
+  section?: boolean | undefined
   children: ComponentChildren
 }) => {
-  const active = isHrefCurrentPage(href)
+  const active = isHrefCurrentPage(href, { includeSubpaths: section })
 
   return (
     <li class="nav-item">
@@ -27,60 +29,99 @@ export const NavLinkItem = ({
   )
 }
 
-export const SettingsNav = () => (
+export const Nav = () => (
   <nav>
     <ul class="nav flex-column settings-nav">
-      <NavLinkItem href="/settings">
-        <i class="bi bi-gear" />
-        {t("accounts.edit.my settings")}
-      </NavLinkItem>
-      <NavLinkItem href="/settings/security">
-        <i class="bi bi-shield-lock" />
-        {t("settings.password_and_security")}
-      </NavLinkItem>
-      <NavLinkItem href="/settings/connections">
-        <i class="bi bi-diagram-3" />
-        {t("settings.connected_accounts")}
-      </NavLinkItem>
-      <NavLinkItem href="/settings/applications">
-        <i class="bi bi-boxes" />
-        {t("settings.applications")}
-      </NavLinkItem>
+      {[
+        {
+          href: "/settings",
+          icon: "gear",
+          label: t("accounts.edit.my settings"),
+        },
+        {
+          href: "/settings/security",
+          icon: "shield-lock",
+          label: t("settings.password_and_security"),
+        },
+        {
+          href: "/settings/connections",
+          icon: "diagram-3",
+          label: t("settings.connected_accounts"),
+        },
+        {
+          href: "/settings/applications",
+          icon: "boxes",
+          label: t("settings.applications"),
+          section: true,
+        },
+      ].map(({ href, icon, label, section }) => (
+        <NavLinkItem
+          href={href}
+          section={section}
+        >
+          <i class={`bi bi-${icon}`} />
+          {label}
+        </NavLinkItem>
+      ))}
 
       {isAdministrator && (
         <>
           <li>
             <hr />
           </li>
-          <NavLinkItem href="/admin/tasks">
-            <i class="bi bi-list-task" />
-            Administrative tasks
-          </NavLinkItem>
-          <NavLinkItem href="/admin/users">
-            <i class="bi bi-database-gear" />
-            Users
-          </NavLinkItem>
-          <NavLinkItem href="/admin/applications">
-            <i class="bi bi-database-gear" />
-            Applications
-          </NavLinkItem>
-          <NavLinkItem href="/audit">
-            <i class="bi bi-card-checklist" />
-            Audit logs
-          </NavLinkItem>
+          {[
+            {
+              href: "/admin/tasks",
+              icon: "list-task",
+              label: "Administrative tasks",
+            },
+            {
+              href: "/admin/users",
+              icon: "database-gear",
+              label: "Users",
+              section: true,
+            },
+            {
+              href: "/admin/applications",
+              icon: "database-gear",
+              label: "Applications",
+              section: true,
+            },
+            {
+              href: "/audit",
+              icon: "card-checklist",
+              label: "Audit logs",
+            },
+          ].map(({ href, icon, label, section }) => (
+            <NavLinkItem
+              href={href}
+              section={section}
+            >
+              <i class={`bi bi-${icon}`} />
+              {label}
+            </NavLinkItem>
+          ))}
         </>
       )}
 
       <li>
         <hr />
       </li>
-      <NavLinkItem
-        href="/settings/delete-account"
-        class="text-body-secondary"
-      >
-        <i class="bi bi-trash" />
-        {t("settings.delete_account")}
-      </NavLinkItem>
+      {[
+        {
+          href: "/settings/delete-account",
+          icon: "trash",
+          label: t("settings.delete_account"),
+        },
+      ].map(({ href, icon, label }) => (
+        <NavLinkItem
+          href={href}
+          class="text-body-secondary"
+        >
+          <i class={`bi bi-${icon}`} />
+          {label}
+        </NavLinkItem>
+      ))}
     </ul>
   </nav>
 )

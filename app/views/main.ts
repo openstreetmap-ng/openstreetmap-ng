@@ -11,7 +11,6 @@ import "./edit/redirect"
 import "./navbar/navbar-left"
 import "./navbar/navbar-right"
 
-import "./rich-text/_control"
 import "@lib/datetime-inputs"
 import "@lib/image-proxy"
 
@@ -59,6 +58,5 @@ import "./index/app"
 
 import "@lib/bootstrap"
 import "@lib/copy-group"
-import "@lib/multi-input"
 import "@lib/password-strength"
 import "@lib/report"

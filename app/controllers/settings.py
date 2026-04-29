@@ -11,7 +11,6 @@ from app.lib.date_utils import datetime_unix
 from app.lib.ip import anonymize_ip
 from app.lib.render_response import render_proto_page
 from app.lib.translation import t
-from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.models.proto.settings_connections_pb2 import Page as ConnectionsPage
@@ -131,18 +130,11 @@ async def settings_security(user: Annotated[User, web_user()]):
 
 @router.get('/settings/connections')
 async def settings_connections(_: Annotated[User, web_user()]):
-    accounts = await ConnectedAccountQuery.find_by_user(None)
-    provider_id_set = {a['provider'] for a in accounts}
+    accounts = await ConnectedAccountQuery.find_by_user()
 
     return await render_proto_page(
         ConnectionsPage(
-            providers=[
-                ConnectionsPage.Entry(
-                    provider=provider,
-                    connected=provider in provider_id_set,
-                )
-                for provider in CONFIGURED_AUTH_PROVIDERS
-            ],
+            connected_providers=[account['provider'] for account in accounts],
         ),
         title_prefix=t('settings.connected_accounts'),
     )

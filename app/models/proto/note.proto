@@ -148,9 +148,7 @@ message UpdateSubscriptionRequest {
   bool is_subscribed = 2;
 }
 
-message UpdateSubscriptionResponse {
-  bool is_subscribed = 1;
-}
+message UpdateSubscriptionResponse {}
 
 message Data {
   message Header {

@@ -22,6 +22,7 @@ import {
 if (isCrashReportingEnabled(config)) {
   console.debug("Sentry: Enabling")
   const userConfig = config.userConfig
+  const user = userConfig?.user
 
   const tracePropagationTargets: (string | RegExp)[] = [/^\/(?!static)/]
   if (API_URL !== window.location.origin) {
@@ -40,8 +41,8 @@ if (isCrashReportingEnabled(config)) {
   })
 
   const userInfo: User = {
-    ...(userConfig?.user?.id && { id: userConfig.user.id.toString() }),
-    ...(userConfig?.user?.displayName && { username: userConfig.user.displayName }),
+    ...(user?.id && { id: user.id.toString() }),
+    ...(user?.displayName && { username: user.displayName }),
     ip_address: "{{auto}}",
     geo: { region: getTimezoneName() },
   }

@@ -5,7 +5,7 @@ from starlette import status
 
 from app.exceptions.api_error import APIError
 from app.models.element import TypedElementId
-from speedup import split_typed_element_id
+from speedup import element_type
 
 if TYPE_CHECKING:
     from app.models.db.element import Element, ElementInit
@@ -16,25 +16,23 @@ class ElementExceptionsMixin:
         self, element_ref: TypedElementId | tuple[TypedElementId, int]
     ):
         if isinstance(element_ref, int):
-            type, id = split_typed_element_id(element_ref)
+            type = element_type(element_ref)
             raise APIError(
                 status.HTTP_404_NOT_FOUND,
-                detail=f'{type}/{id} not found',
+                detail=f'{type.title()} not found',
             )
         else:
-            type, id = split_typed_element_id(element_ref[0])
-            version = element_ref[1]
+            type = element_type(element_ref[0])
             raise APIError(
                 status.HTTP_404_NOT_FOUND,
-                detail=f'{type}/{id}v{version} not found',
+                detail=f'{type.title()} version not found',
             )
 
     def element_redacted(self, versioned_ref: tuple[TypedElementId, int]):
-        type, id = split_typed_element_id(versioned_ref[0])
-        version = versioned_ref[1]
+        type = element_type(versioned_ref[0])
         raise APIError(
             status.HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS,
-            detail=f'{type}/{id}v{version} redacted',
+            detail=f'{type.title()} version is redacted',
         )
 
     @abstractmethod

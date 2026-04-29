@@ -390,14 +390,10 @@ const SearchSidebar = ({
         map.fitBounds(boundsPadded, { maxZoom: 14 })
       } else if (d.results.length) {
         const [first, ...rest] = d.results
+        const { lon: firstLon, lat: firstLat } = first!.location
         const markersBounds = rest.reduce(
           (bounds, r) => bounds.extend([r.location.lon, r.location.lat]),
-          new LngLatBounds([
-            first.location.lon,
-            first.location.lat,
-            first.location.lon,
-            first.location.lat,
-          ]),
+          new LngLatBounds([firstLon, firstLat, firstLon, firstLat]),
         )
         const boundsPadded = boundsPadding(markersBounds, 0.15)
         map.fitBounds(boundsPadded, { maxZoom: 14 })

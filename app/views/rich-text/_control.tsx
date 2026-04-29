@@ -4,10 +4,14 @@ import { Service } from "@lib/proto/rich_text_pb"
 import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import { type Signal, useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { type Ref, render } from "preact"
+import type { Ref } from "preact"
 import { useRef } from "preact/hooks"
 
-type RichTextMode = "edit" | "preview" | "help"
+enum RichTextMode {
+  edit,
+  preview,
+  help,
+}
 
 export const RichTextControl = ({
   name,
@@ -22,13 +26,13 @@ export const RichTextControl = ({
   required?: boolean | undefined
   textareaRef?: Ref<HTMLTextAreaElement> | undefined
 }) => {
-  const mode = useSignal<RichTextMode>("edit")
+  const mode = useSignal(RichTextMode.edit)
   const previewHtml = useSignal("")
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
   // Effect: Fetch preview HTML when in preview mode
   useDisposeSignalEffect((scope) => {
-    if (mode.value !== "preview") {
+    if (mode.value !== RichTextMode.preview) {
       previewHtml.value = ""
       return
     }
@@ -73,9 +77,9 @@ export const RichTextControl = ({
               textareaRef.current = el
             }
           }}
-          hidden={mode.value !== "edit"}
+          hidden={mode.value !== RichTextMode.edit}
         />
-        {mode.value === "preview" && (
+        {mode.value === RichTextMode.preview && (
           <div
             class="RichTextPreview rich-text"
             dangerouslySetInnerHTML={{ __html: previewHtml.value }}
@@ -94,7 +98,7 @@ export const RichTextControl = ({
             showHelp
             mobile
           />
-          {mode.value === "help" && <RichTextHelp class="d-md-none" />}
+          {mode.value === RichTextMode.help && <RichTextHelp class="d-md-none" />}
           <RichTextHelp class="d-none d-md-block" />
         </div>
       </div>
@@ -117,16 +121,16 @@ const ModeButtons = ({
     <button
       class={mobile ? "btn btn-primary px-sm-3" : "btn btn-primary"}
       type="button"
-      disabled={mode.value === "edit"}
-      onClick={() => (mode.value = "edit")}
+      disabled={mode.value === RichTextMode.edit}
+      onClick={() => (mode.value = RichTextMode.edit)}
     >
       {t("layouts.edit")}
     </button>
     <button
       class={mobile ? "btn btn-primary px-sm-3" : "btn btn-primary"}
       type="button"
-      disabled={mode.value === "preview"}
-      onClick={() => (mode.value = "preview")}
+      disabled={mode.value === RichTextMode.preview}
+      onClick={() => (mode.value = RichTextMode.preview)}
     >
       {t("shared.richtext_field.preview")}
     </button>
@@ -134,8 +138,8 @@ const ModeButtons = ({
       <button
         class={mobile ? "btn btn-soft px-sm-3" : "btn btn-soft"}
         type="button"
-        disabled={mode.value === "help"}
-        onClick={() => (mode.value = "help")}
+        disabled={mode.value === RichTextMode.help}
+        onClick={() => (mode.value = RichTextMode.help)}
       >
         {t("rich_text.formatting_tips")}
       </button>
@@ -201,18 +205,3 @@ const RichTextHelp = ({ class: className = "" }: { class?: string }) => (
     </p>
   </div>
 )
-
-const roots = document.querySelectorAll<HTMLElement>(".RichTextControl")
-console.debug("RichTextControl: Initializing", roots.length, "containers")
-for (const root of roots) {
-  const { name, value, maxlength, required } = root.dataset
-  render(
-    <RichTextControl
-      name={name!}
-      value={value}
-      maxLength={maxlength ? Number.parseInt(maxlength, 10) : undefined}
-      required={Boolean(required)}
-    />,
-    root,
-  )
-}

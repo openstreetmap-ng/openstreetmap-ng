@@ -1,5 +1,6 @@
 import { effect, signal } from "@preact/signals"
 import { assert } from "@std/assert"
+import { assertNever } from "@std/assert/unstable-never"
 import { delay } from "@std/async/delay"
 import { LruCache } from "@std/cache/lru-cache"
 import { encodeHex } from "@std/encoding/hex"
@@ -100,7 +101,7 @@ const evaluateStrength = (
         ) * 100,
       )
 
-  let level = STRENGTH_LEVELS[0]
+  let level = STRENGTH_LEVELS[0]!
   for (const strengthLevel of STRENGTH_LEVELS) {
     if (score >= strengthLevel.minScore) level = strengthLevel
   }
@@ -123,7 +124,7 @@ const evaluateStrength = (
   return { score, level, suggestions: [...suggestions] }
 }
 
-export const configurePasswordStrength = (root: ParentNode) => {
+const configurePasswordStrength = (root: ParentNode) => {
   const inputs = root.querySelectorAll(
     "input[type=password][name=new_password], input[type=password][name=password][autocomplete=new-password]",
   )
@@ -226,7 +227,7 @@ export const configurePasswordStrength = (root: ParentNode) => {
           levelLabel = t("password_strength.levels.perfect")
           break
         default:
-          levelLabel = "?"
+          assertNever(level.key)
       }
       status.textContent = levelLabel
 
@@ -277,6 +278,8 @@ export const configurePasswordStrength = (root: ParentNode) => {
                   "password_strength.suggestions.use_a_password_not_widely_known",
                 )
                 break
+              default:
+                assertNever(suggestion)
             }
             return item
           }),

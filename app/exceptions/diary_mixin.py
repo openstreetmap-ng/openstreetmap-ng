@@ -6,9 +6,7 @@ from app.models.types import DiaryCommentId, DiaryId
 
 class DiaryExceptionsMixin:
     def diary_not_found(self, id: DiaryId):
-        raise APIError(status.HTTP_404_NOT_FOUND, detail=f'Diary {id} not found')
+        raise APIError(status.HTTP_404_NOT_FOUND, detail='Diary not found')
 
     def diary_comment_not_found(self, id: DiaryCommentId):
-        raise APIError(
-            status.HTTP_404_NOT_FOUND, detail=f'Diary comment {id} not found'
-        )
+        raise APIError(status.HTTP_404_NOT_FOUND, detail='Diary comment not found')

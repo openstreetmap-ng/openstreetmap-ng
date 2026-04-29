@@ -108,7 +108,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
   /** On feature click, navigate to the object page */
   const onFeatureClick = (e: MapLayerMouseEvent) => {
-    const props = e.features![0].properties
+    const props = e.features![0]!.properties
     routerNavigate(ElementRoute, {
       type: props.type as ElementTypeSlug,
       id: BigInt(props.id),
@@ -117,7 +117,7 @@ export const configureDataLayer = (map: MaplibreMap) => {
 
   let hoveredFeatureId: number | null = null
   const onFeatureHover = (e: MapLayerMouseEvent) => {
-    const feature = e.features![0]
+    const feature = e.features![0]!
     const featureId = feature.id as number
     if (hoveredFeatureId === featureId) return
     if (hoveredFeatureId) {

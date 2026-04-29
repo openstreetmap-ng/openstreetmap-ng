@@ -189,7 +189,7 @@ const computeRouteRender = (route: RoutingResultValid) => {
     )
     if (step.numCoords) coordsSliceStart += step.numCoords - 1
 
-    const point = stepCoords[0]
+    const point = stepCoords[0]!
     const pointBounds = new LngLatBounds([point, point])
 
     instructions.push({
@@ -281,11 +281,7 @@ const RoutingSidebar = ({
   const formRef = useRef<HTMLFormElement>(null)
 
   const engineInputId = useId()
-
-  const startInputId = useId()
   const startDisplay = useSignal(from.peek() ?? "")
-
-  const endInputId = useId()
   const endDisplay = useSignal(to.peek() ?? "")
 
   const endpoints = useRef<Record<EndpointDir, EndpointState>>({
@@ -706,61 +702,54 @@ const RoutingSidebar = ({
           title={t("javascripts.directions.directions")}
         />
 
-        <div class="d-flex align-items-end mb-1">
-          <div class="custom-input-group flex-grow-1 me-2">
-            <label for={startInputId}>{t("site.search.from")}</label>
-            <input
-              id={startInputId}
-              name="start"
-              type="text"
-              class="form-control"
-              required
-              value={startDisplay}
-              onInput={(e) => {
-                endpoints.current.start.loaded = null
-                const value = e.currentTarget.value
-                setEndpointDisplay("start", value)
-                setUrlEndpoint("start", value)
-              }}
+        {[
+          {
+            dir: "start" as const,
+            inputId: useId(),
+            label: t("site.search.from"),
+            value: startDisplay,
+            markerSrc: "/static/img/marker/green.webp",
+            markerAlt: t("alt.marker.green"),
+            markerTitle: t("map.routing.drag_and_drop.start"),
+          },
+          {
+            dir: "end" as const,
+            inputId: useId(),
+            label: t("site.search.to"),
+            value: endDisplay,
+            markerSrc: "/static/img/marker/red.webp",
+            markerAlt: t("alt.marker.red"),
+            markerTitle: t("map.routing.drag_and_drop.end"),
+          },
+        ].map(({ dir, inputId, label, value, markerSrc, markerAlt, markerTitle }) => (
+          <div class="d-flex align-items-end mb-1">
+            <div class="custom-input-group flex-grow-1 me-2">
+              <label for={inputId}>{label}</label>
+              <input
+                id={inputId}
+                name={dir}
+                type="text"
+                class="form-control"
+                required
+                value={value}
+                onInput={(e) => {
+                  endpoints.current[dir].loaded = null
+                  const nextValue = e.currentTarget.value
+                  setEndpointDisplay(dir, nextValue)
+                  setUrlEndpoint(dir, nextValue)
+                }}
+              />
+            </div>
+            <img
+              class="draggable-marker btn btn-light"
+              src={markerSrc}
+              alt={markerAlt}
+              title={markerTitle}
+              draggable
+              onDragStart={onInterfaceMarkerDragStart(dir)}
             />
           </div>
-          <img
-            class="draggable-marker btn btn-light"
-            src="/static/img/marker/green.webp"
-            alt={t("alt.marker.green")}
-            title={t("map.routing.drag_and_drop.start")}
-            draggable
-            onDragStart={onInterfaceMarkerDragStart("start")}
-          />
-        </div>
-
-        <div class="d-flex align-items-end mb-1">
-          <div class="custom-input-group flex-grow-1 me-2">
-            <label for={endInputId}>{t("site.search.to")}</label>
-            <input
-              id={endInputId}
-              name="end"
-              type="text"
-              class="form-control"
-              required
-              value={endDisplay}
-              onInput={(e) => {
-                endpoints.current.end.loaded = null
-                const value = e.currentTarget.value
-                setEndpointDisplay("end", value)
-                setUrlEndpoint("end", value)
-              }}
-            />
-          </div>
-          <img
-            class="draggable-marker btn btn-light"
-            src="/static/img/marker/red.webp"
-            alt={t("alt.marker.red")}
-            title={t("map.routing.drag_and_drop.end")}
-            draggable
-            onDragStart={onInterfaceMarkerDragStart("end")}
-          />
-        </div>
+        ))}
 
         <button
           class="btn btn-sm btn-link mb-2"
@@ -792,12 +781,7 @@ const RoutingSidebar = ({
               }}
             >
               {ROUTING_ENGINES.map((value) => (
-                <option
-                  key={value}
-                  value={value}
-                >
-                  {routingEngineLabel(value)}
-                </option>
+                <option value={value}>{routingEngineLabel(value)}</option>
               ))}
             </select>
           </div>
@@ -870,7 +854,7 @@ const RoutingSidebar = ({
             >
               {routeValue.instructions.map((inst, instId) => (
                 <li
-                  data-instruction-id={instId.toString()}
+                  data-instruction-id={instId}
                   class={`list-group-item p-0 ${
                     activeInstructionId.value === instId ? "hover" : ""
                   }`}

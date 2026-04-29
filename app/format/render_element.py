@@ -1,3 +1,5 @@
+from typing import assert_never
+
 import cython
 from polyline_rs import encode_lonlat
 from shapely import Point, get_coordinates
@@ -79,7 +81,7 @@ class RenderElementMixin:
                 encoded.append(RenderData(nodes=nodes, ways=ways))
 
             else:
-                raise NotImplementedError(f'Unsupported element type {type!r}')
+                assert_never(type)
 
         return encoded
 

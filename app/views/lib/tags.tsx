@@ -113,8 +113,8 @@ const WikipediaLink = ({ keyParts, text }: { keyParts: string[]; text: string })
   let title = text
   const match = WIKI_LANG_VALUE_RE.exec(text)
   if (match) {
-    lang = match[1]
-    title = match[2]
+    lang = match[1]!
+    title = match[2]!
   }
 
   return (

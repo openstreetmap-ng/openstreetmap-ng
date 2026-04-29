@@ -1,6 +1,6 @@
 from asyncio import TaskGroup
 from datetime import timedelta
-from typing import Literal, override
+from typing import Literal, assert_never, override
 
 from connectrpc.request import RequestContext
 
@@ -58,8 +58,10 @@ class _Service(Service):
         order_dir: Literal['asc', 'desc']
         if sort == Filters.Sort.created_asc:
             order_dir = 'asc'
-        else:
+        elif sort == Filters.Sort.created_desc:
             order_dir = 'desc'
+        else:
+            assert_never(sort)
 
         apps, state = await sp_paginate_table(
             OAuth2Application,

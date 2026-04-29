@@ -578,6 +578,7 @@ validation:
   cant_send_message_to_self: You can't send a message to yourself
   user_not_found: User {{user}} not found
   you_can_send_message_to_at_most_count_recipients: "You can send a message to at most {{count}} recipients"
+  you_can_add_at_most_count_tags: "You can add at most {{count}} tags"
   incomplete_location_information: Incomplete location information
 action:
   go_back: Go back

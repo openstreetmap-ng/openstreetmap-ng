@@ -20,15 +20,11 @@ from app.models.proto.audit_connect import (
     ServiceASGIApplication,
 )
 from app.models.proto.audit_pb2 import (
-    Event as ProtoAuditEvent,
-)
-from app.models.proto.audit_pb2 import (
+    Event,
     Filters,
     ListRequest,
     ListResponse,
-)
-from app.models.proto.audit_pb2 import (
-    Type as ProtoAuditType,
+    Type,
 )
 from app.models.types import ApplicationId
 from app.queries.audit_query import AuditQuery
@@ -116,7 +112,7 @@ def _filters_parse(filters: Filters):
         if filters.HasField('application_id')
         else None
     )
-    audit_type = ProtoAuditType.Name(filters.type) if filters.HasField('type') else None
+    audit_type = Type.Name(filters.type) if filters.HasField('type') else None
     created_after = (
         unix_datetime(filters.created_after)
         if filters.HasField('created_after')
@@ -137,7 +133,7 @@ def _event_proto(event: DBAuditEvent):
     target_user = event.get('target_user')
     extra = event['extra']
 
-    return ProtoAuditEvent(
+    return Event(
         id=event['id'],
         type=event['type'],
         created_at=datetime_unix(event['created_at']),
@@ -146,7 +142,7 @@ def _event_proto(event: DBAuditEvent):
         user=user_proto(user),
         target_user=user_proto(target_user),
         application=(
-            ProtoAuditEvent.Application(
+            Event.Application(
                 id=application['id'],
                 name=application['name'],
                 avatar_url=oauth2_app_avatar_url(application),

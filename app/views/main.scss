@@ -53,6 +53,16 @@ $bootstrap-icons-font-hash: "";
 
 @import "bootstrap-icons/font/bootstrap-icons";
 
+.btn:has(> .bi):not([class^="d-"]):not([class*=" d-"]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:has(> .bi) > .bi {
+  line-height: 1;
+}
+
 // (MapLibre GL)
 @import "maplibre-gl/dist/maplibre-gl";
 

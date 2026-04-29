@@ -37,6 +37,7 @@ mount("report-show-body", () => {
     document.querySelector("div.report-comments-pagination"),
     {
       loadCallback: setupVisibilityDropdowns,
+      urlKey: "page",
     },
   )
 
@@ -52,15 +53,9 @@ mount("report-show-body", () => {
   const reopenButton = document.querySelector("button.reopen-btn")
   const commentReopenButton = document.querySelector("button.comment-reopen-btn")
 
-  configureStandardForm(commentForm, () => {
-    window.location.reload()
-  })
-  configureStandardForm(closeForm, () => {
-    window.location.reload()
-  })
-  configureStandardForm(reopenForm, () => {
-    window.location.reload()
-  })
+  configureStandardForm(commentForm, (_, ctx) => ctx.reload())
+  configureStandardForm(closeForm, (_, ctx) => ctx.reload())
+  configureStandardForm(reopenForm, (_, ctx) => ctx.reload())
 
   // Toggle buttons based on comment input
   const updateButtons = () => {

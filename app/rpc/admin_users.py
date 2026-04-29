@@ -1,8 +1,7 @@
 from asyncio import TaskGroup
 from collections.abc import Iterable
 from datetime import timedelta
-from http.cookies import SimpleCookie
-from typing import Literal, override
+from typing import Literal, assert_never, override
 
 from connectrpc.request import RequestContext
 from pydantic import SecretStr
@@ -11,6 +10,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from app.config import ADMIN_USER_EXPORT_LIMIT, ADMIN_USER_LIST_PAGE_SIZE, ENV
 from app.lib.auth_context import require_web_user
+from app.lib.cookie import set_auth_cookie
 from app.lib.date_utils import datetime_unix, unix_datetime
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.standard_pagination import sp_paginate_table
@@ -99,10 +99,12 @@ class _Service(Service):
             cursor_column = 'display_name'
             cursor_kind = 'text'
             order_dir = 'asc'
-        else:
+        elif sort == Filters.Sort.name_desc:
             cursor_column = 'display_name'
             cursor_kind = 'text'
             order_dir = 'desc'
+        else:
+            assert_never(sort)
 
         users, state = await sp_paginate_table(
             User,
@@ -259,8 +261,8 @@ class _Service(Service):
                 hidden=True,
             )
 
-        _set_auth_cookie_header(ctx, access_token.token)
-        return ImpersonateResponse(redirect_url='/')
+        set_auth_cookie(ctx, access_token.token)
+        return ImpersonateResponse()
 
 
 def _roles_from_proto(roles: Iterable[int]) -> list[Role]:
@@ -298,17 +300,6 @@ def _filters_parse(filters: Filters):
         application_id,
         sort,
     )
-
-
-def _set_auth_cookie_header(ctx: RequestContext, token: SecretStr):
-    cookie = SimpleCookie()
-    cookie['auth'] = token.get_secret_value()
-    cookie['auth']['path'] = '/'
-    cookie['auth']['httponly'] = True
-    cookie['auth']['samesite'] = 'lax'
-    if ENV != 'dev':
-        cookie['auth']['secure'] = True
-    ctx.response_headers()['Set-Cookie'] = cookie.output(header='').lstrip()
 
 
 service = _Service()

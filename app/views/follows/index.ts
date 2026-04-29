@@ -13,6 +13,7 @@ mount("follows-body", (body) => {
         disposePagination = configureStandardPagination(paginationContainer, {
           initialPage: page,
           loadCallback: setupFollowForms,
+          urlKey: "page",
         })
       })
     }
@@ -20,5 +21,6 @@ mount("follows-body", (body) => {
 
   let disposePagination = configureStandardPagination(paginationContainer, {
     loadCallback: setupFollowForms,
+    urlKey: "page",
   })
 })

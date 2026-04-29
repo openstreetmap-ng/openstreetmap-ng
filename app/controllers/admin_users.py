@@ -25,6 +25,7 @@ from app.models.proto.admin_users_pb2 import (
     Page,
     TwoFactorStatus,
 )
+from app.models.proto.settings_applications_pb2 import Application, Token
 from app.models.types import UserId
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -110,9 +111,9 @@ async def user_edit(
                 for app in apps_t.result()
             ],
             tokens=[
-                EditPage.Token(
+                Token(
                     id=token['id'],
-                    name=token['name'],
+                    name=token['name'],  # type: ignore
                     scopes=token['scopes'],
                     token_preview=token['token_preview'],
                     created_at=int(token['created_at'].timestamp()),
@@ -132,7 +133,7 @@ def _application_proto(
     created_at: datetime | None = None,
     authorized_at: datetime | None = None,
 ):
-    return EditPage.Application(
+    return Application(
         id=app['id'],
         name=app['name'],
         avatar_url=oauth2_app_avatar_url(app),

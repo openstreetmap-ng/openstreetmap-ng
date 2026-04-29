@@ -23,7 +23,7 @@ import {
 import { ElementType } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
-import { StandardPagination } from "@lib/standard-pagination"
+import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import { showLoginModal } from "../user/login"
@@ -63,12 +63,9 @@ export const ChangesetStats = ({
 
 const getChangesetElementsTitle = (type: ElementType) => {
   if (type === ElementType.node)
-    // @ts-expect-error - i18next pluralization
     return (count: string) => t("browse.changeset.node", { count })
   if (type === ElementType.way)
-    // @ts-expect-error - i18next pluralization
     return (count: string) => t("browse.changeset.way", { count })
-  // @ts-expect-error - i18next pluralization
   return (count: string) => t("browse.changeset.relation", { count })
 }
 
@@ -142,7 +139,7 @@ const SubscriptionForm = ({
       id: changesetId,
       isSubscribed: !isSubscribed.value,
     })}
-    onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+    onSuccess={(_, ctx) => (isSubscribed.value = ctx.request.isSubscribed)}
   >
     <button
       class="btn btn-sm btn-soft"
@@ -236,7 +233,12 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
               >
                 « {data.prevChangesetId}
               </a>
-              <span aria-hidden="true"> · </span>
+              <span
+                class="mx-1"
+                aria-hidden="true"
+              >
+                ·
+              </span>
             </>
           )}
           <a
@@ -247,7 +249,12 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
           </a>
           {data.nextChangesetId && (
             <>
-              <span aria-hidden="true"> · </span>
+              <span
+                class="mx-1"
+                aria-hidden="true"
+              >
+                ·
+              </span>
               <a
                 href={`/changeset/${data.nextChangesetId}`}
                 rel="next"
@@ -262,7 +269,12 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}`}>
           {t("browse.changeset.changesetxml")}
         </a>
-        <span aria-hidden="true"> · </span>
+        <span
+          class="mx-1"
+          aria-hidden="true"
+        >
+          ·
+        </span>
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}/download`}>
           {t("browse.changeset.osmchangexml")}
         </a>
@@ -290,7 +302,12 @@ const ChangesetElementRow = ({
         <>
           <span>{getElementTypeLabel(type)}</span>
           {element.name && <span>{`#${idStr}`}</span>}
-          <span aria-hidden="true"> · </span>
+          <span
+            class="mx-1"
+            aria-hidden="true"
+          >
+            ·
+          </span>
           <a
             href={`/${typeSlug}/${idStr}/history/${element.version}`}
           >{`v${element.version}`}</a>
@@ -409,8 +426,9 @@ const ChangesetSidebar = ({
             <StandardPagination
               method={Service.method.getComments}
               request={{ id: d.id }}
+              urlKey="page"
               ariaLabel={t("alt.comments_page_navigation")}
-              pageOrder="desc"
+              pageOrder={PageOrder.desc}
               responseSignal={preloadedComments}
               small
             >

@@ -9,8 +9,8 @@ import { throwAbortError } from "@lib/utils"
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
-import { SettingsNav } from "../_nav"
-import { SettingsApplicationsNav } from "./_nav"
+import { Nav } from "../_nav"
+import { ApplicationsNav } from "./_nav"
 
 mountProtoPage(
   EditPageSchema,
@@ -45,11 +45,11 @@ mountProtoPage(
           <div class="container">
             <div class="row">
               <div class="col-lg-auto mb-4">
-                <SettingsNav />
+                <Nav />
               </div>
 
               <div class="col-lg">
-                <SettingsApplicationsNav />
+                <ApplicationsNav />
 
                 <div class="row g-3 g-lg-5 flex-wrap-reverse">
                   <StandardForm
@@ -63,8 +63,9 @@ mountProtoPage(
                         /\r?\n/u,
                       ),
                       scopes: formDataScopes(formData),
-                      revokeAllAuthorizations:
-                        formData.get("revoke_all_authorizations") === "true",
+                      revokeAllAuthorizations: formData.has(
+                        "revoke_all_authorizations",
+                      ),
                     })}
                     onSuccess={(_, ctx) => {
                       const revokeCheckbox = ctx.form.elements.namedItem(
@@ -137,37 +138,36 @@ mountProtoPage(
                     </label>
                     <div class="ms-1">
                       <div class="form-check">
-                        <label class="form-check-label w-100">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="confidential"
-                            value="false"
-                            checked={!confidential.value}
-                            onChange={() => (confidential.value = false)}
-                          />
-                          <i class="bi bi-unlock text-primary me-1-5" />
-                          {t("settings.public_client")}
-                        </label>
-                        <p class="form-text">
-                          {t("settings.public_client_description")}
-                        </p>
-
-                        <label class="form-check-label w-100">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="confidential"
-                            value="true"
-                            checked={confidential.value}
-                            onChange={() => (confidential.value = true)}
-                          />
-                          <i class="bi bi-key text-primary me-1-5" />
-                          {t("settings.confidential_client")}
-                        </label>
-                        <p class="form-text">
-                          {t("settings.confidential_client_description")}
-                        </p>
+                        {[
+                          {
+                            value: false,
+                            icon: "unlock",
+                            label: t("settings.public_client"),
+                            description: t("settings.public_client_description"),
+                          },
+                          {
+                            value: true,
+                            icon: "key",
+                            label: t("settings.confidential_client"),
+                            description: t("settings.confidential_client_description"),
+                          },
+                        ].map(({ value, icon, label, description }) => (
+                          <div>
+                            <label class="form-check-label w-100">
+                              <input
+                                class="form-check-input"
+                                type="radio"
+                                name="confidential"
+                                value={value.toString()}
+                                checked={confidential.value === value}
+                                onChange={() => (confidential.value = value)}
+                              />
+                              <i class={`bi bi-${icon} text-primary me-1-5`} />
+                              {label}
+                            </label>
+                            <p class="form-text">{description}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
@@ -188,10 +188,7 @@ mountProtoPage(
                     <p class="form-label">{t("settings.requested_permissions")}</p>
                     <ul class="list-unstyled ms-1">
                       {SCOPES_NO_WEB_USER.map((scope) => (
-                        <li
-                          class="form-check"
-                          key={scope}
-                        >
+                        <li class="form-check">
                           <label class="form-check-label d-block">
                             <input
                               class="form-check-input"
@@ -214,7 +211,6 @@ mountProtoPage(
                             class="form-check-input"
                             type="checkbox"
                             name="revoke_all_authorizations"
-                            value="true"
                           />
                           {t("settings.revoke_all_authorizations")}
                         </label>
@@ -324,9 +320,7 @@ mountProtoPage(
                     }
                     return { id }
                   }}
-                  onSuccess={() => {
-                    window.location.href = "/settings/applications/admin"
-                  }}
+                  onSuccess={(_, ctx) => ctx.redirect("/settings/applications/admin")}
                 >
                   <button
                     class="btn btn-outline-danger"

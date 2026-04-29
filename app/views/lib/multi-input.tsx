@@ -1,24 +1,23 @@
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { render } from "preact"
 import { useRef } from "preact/hooks"
 
 const MULTI_INPUT_DELIMITER = ","
 
-const normalizeMultiInputToken = (value: string, maxItemLength?: number) => {
+const normalizeMultiInputToken = (value: string, maxItemLength: number) => {
   const trimmed = value.trim()
   if (!trimmed) return null
-  return maxItemLength ? trimmed.slice(0, maxItemLength) : trimmed
+  return trimmed.slice(0, maxItemLength)
 }
 
 const insertToken = (
   current: string[],
   token: string,
-  maxItems: number | undefined,
+  maxItems: number,
 ): readonly [next: string[], blocked: boolean] => {
   const index = current.indexOf(token)
   if (index === -1) {
-    if (maxItems !== undefined && current.length >= maxItems) {
+    if (current.length >= maxItems) {
       return [current, true]
     }
     return [[...current, token], false]
@@ -27,11 +26,7 @@ const insertToken = (
   return [[...current.slice(0, index), ...current.slice(index + 1), token], false]
 }
 
-const seedTokens = (
-  raw: string,
-  maxItems: number | undefined,
-  maxItemLength?: number,
-) => {
+const seedTokens = (raw: string, maxItems: number, maxItemLength: number) => {
   let tokens: string[] = []
   for (const value of raw.split(MULTI_INPUT_DELIMITER)) {
     const normalized = normalizeMultiInputToken(value, maxItemLength)
@@ -44,23 +39,20 @@ const seedTokens = (
 
 export const MultiInput = ({
   name,
-  id = `multi-input-${name}`,
-  defaultValue = "",
-  placeholder = "",
+  defaultValue,
+  placeholder,
   required = false,
   maxItems,
   maxItemLength,
 }: {
   name: string
-  id?: string | undefined
-  defaultValue?: string | undefined
-  placeholder?: string | undefined
-  required?: boolean | undefined
-  maxItems?: readonly [limit: number, message: string] | undefined
-  maxItemLength?: number | undefined
+  defaultValue: string
+  placeholder: string
+  required?: boolean
+  maxItems: readonly [limit: number, message: string]
+  maxItemLength: number
 }) => {
-  const maxItemsLimit = maxItems?.[0]
-  const maxItemsFeedback = maxItems?.[1]
+  const [maxItemsLimit, maxItemsFeedback] = maxItems
 
   const tokens = useSignal(seedTokens(defaultValue, maxItemsLimit, maxItemLength))
   const latestInsertBlocked = useSignal(false)
@@ -125,9 +117,7 @@ export const MultiInput = ({
 
   const visibleTokens = tokens.value
   const showLimitFeedback =
-    latestInsertBlocked.value &&
-    maxItemsLimit !== undefined &&
-    visibleTokens.length >= maxItemsLimit
+    latestInsertBlocked.value && visibleTokens.length >= maxItemsLimit
 
   return (
     <div class="multi-input-container">
@@ -149,8 +139,8 @@ export const MultiInput = ({
                 type="button"
                 class="multi-input-remove"
                 aria-label={t("action.remove")}
-                onClick={(event) => {
-                  event.stopPropagation()
+                onClick={(e) => {
+                  e.stopPropagation()
                   removeTokenValue(value)
                 }}
               >
@@ -161,7 +151,6 @@ export const MultiInput = ({
         </div>
 
         <input
-          id={id}
           ref={inputRef}
           type="text"
           class="form-control"
@@ -171,8 +160,8 @@ export const MultiInput = ({
           autoComplete="off"
           autoCapitalize="none"
           enterKeyHint="enter"
-          onInput={(event) => {
-            const raw = event.currentTarget.value
+          onInput={(e) => {
+            const raw = e.currentTarget.value
             if (!raw.includes(MULTI_INPUT_DELIMITER)) {
               if (latestInsertBlocked.peek()) latestInsertBlocked.value = false
               return
@@ -183,16 +172,16 @@ export const MultiInput = ({
               if (tryInsert(token) !== "blocked") continue
               break
             }
-            event.currentTarget.value =
+            e.currentTarget.value =
               normalizeMultiInputToken(parts.at(-1)!, maxItemLength) ?? ""
           }}
-          onKeyDown={(event) => {
-            if (event.isComposing) return
-            if (event.key === "Enter" || event.key === MULTI_INPUT_DELIMITER) {
-              event.preventDefault()
+          onKeyDown={(e) => {
+            if (e.isComposing) return
+            if (e.key === "Enter" || e.key === MULTI_INPUT_DELIMITER) {
+              e.preventDefault()
               commitInput()
-            } else if (event.key === "Backspace" && !event.currentTarget.value) {
-              event.preventDefault()
+            } else if (e.key === "Backspace" && !e.currentTarget.value) {
+              e.preventDefault()
               editLastToken()
             }
           }}
@@ -210,7 +199,7 @@ export const MultiInput = ({
       ))}
 
       {showLimitFeedback ? (
-        <div class="form-text text-danger">{maxItemsFeedback!}</div>
+        <div class="form-text text-danger">{maxItemsFeedback}</div>
       ) : (
         <div class="form-text">
           {t("multi_input.add_new_entries_with_enter_or_comma")}{" "}
@@ -218,39 +207,5 @@ export const MultiInput = ({
         </div>
       )}
     </div>
-  )
-}
-
-const roots = document.querySelectorAll<HTMLElement>(
-  ".multi-input-container[data-name]",
-)
-console.debug("MultiInput: Initializing", roots.length)
-for (const root of roots) {
-  const {
-    name,
-    id,
-    placeholder,
-    value,
-    required,
-    maxItems,
-    maxItemsError,
-    maxItemLength,
-  } = root.dataset
-
-  render(
-    <MultiInput
-      name={name!}
-      id={id}
-      placeholder={placeholder}
-      defaultValue={value}
-      required={Boolean(required)}
-      maxItems={
-        maxItems
-          ? ([Number.parseInt(maxItems, 10), maxItemsError!] as const)
-          : undefined
-      }
-      maxItemLength={maxItemLength ? Number.parseInt(maxItemLength, 10) : undefined}
-    />,
-    root,
   )
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 package admin_users;
 
 import "app/models/proto/auth.proto";
+import "app/models/proto/settings_applications.proto";
 import "app/models/proto/settings_connections.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
@@ -21,32 +22,12 @@ message EditPage {
     uint64 created_at = 3;
   }
 
-  message Application {
-    uint64 id = 1;
-    string name = 2;
-    string avatar_url = 3;
-    string client_id = 4;
-    repeated Scope scopes = 5;
-    optional User owner = 6;
-    optional uint64 created_at = 7;
-    optional uint64 authorized_at = 8;
-  }
-
-  message Token {
-    uint64 id = 1;
-    optional string name = 2;
-    repeated Scope scopes = 3;
-    optional string token_preview = 4;
-    uint64 created_at = 5;
-    optional uint64 authorized_at = 6;
-  }
-
   Account account = 1 [(buf.validate.field).required = true];
   TwoFactorStatus two_factor_status = 2 [(buf.validate.field).required = true];
   repeated ConnectedAccount connected_accounts = 3;
-  repeated Application authorizations = 4;
-  repeated Application applications = 5;
-  repeated Token tokens = 6;
+  repeated settings_applications.Application authorizations = 4;
+  repeated settings_applications.Application applications = 5;
+  repeated settings_applications.Token tokens = 6;
 }
 
 service Service {
@@ -62,7 +43,7 @@ service Service {
 }
 
 message ListRequest {
-  optional StandardPaginationRequest state = 1;
+  StandardPaginationRequest state = 1;
   Filters filters = 2 [(buf.validate.field).required = true];
 }
 
@@ -120,9 +101,7 @@ message ImpersonateRequest {
   uint64 user_id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message ImpersonateResponse {
-  string redirect_url = 1;
-}
+message ImpersonateResponse {}
 
 message Account {
   uint64 id = 1;

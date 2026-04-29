@@ -55,9 +55,14 @@ const InfoCell = ({ entry }: { entry: ListResponse_EntryValid }) => (
         {entry.name}
       </abbr>
       <div class="lh-1">
-        <code>{entry.id.toString()}</code>
+        <code>{entry.id}</code>
         <small class="text-body-secondary">
-          <span class="mx-1">·</span>
+          <span
+            class="mx-1"
+            aria-hidden="true"
+          >
+            ·
+          </span>
           {entry.confidential
             ? t("settings.confidential_client")
             : t("settings.public_client")}
@@ -132,7 +137,7 @@ const AuthCell = ({
 
 const OwnerCell = ({ entry: { owner } }: { entry: ListResponse_EntryValid }) =>
   owner ? (
-    <a href={`/user-id/${owner.id.toString()}`}>
+    <a href={`/user-id/${owner.id}`}>
       <img
         class="avatar me-1-5"
         src={owner.avatarUrl}
@@ -172,7 +177,7 @@ const Row = ({ entry }: { entry: ListResponse_EntryValid }) => (
       <IpSummary ipCounts={entry.ipCounts} />
     </td>
     <td>
-      <a href={`/audit?application_id=${entry.id.toString()}`}>Audit</a>
+      <a href={`/audit?application_id=${entry.id}`}>Audit</a>
     </td>
   </tr>
 )
@@ -346,6 +351,7 @@ mountProtoPage(PageSchema, () => {
           <StandardPagination
             method={Service.method.list}
             request={{ filters: filters.value }}
+            urlKey="page"
             navTop
             navClassTop="mb-2"
             onLoad={(data) => {

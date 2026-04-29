@@ -10,11 +10,14 @@ mount("welcome-body", (body) => {
   // Support default location setting via URL parameters
   let providedState: MapState | undefined
   const params = qsParse(window.location.search)
+  // oxlint-disable-next-line typescript/no-unnecessary-condition
   params.zoom ??= "17"
+  // oxlint-disable-next-line typescript/no-unnecessary-condition
   params.layers ??= ""
+  const layersCode = params.layers
 
   const at = parseLonLatZoom(params)
-  if (at) providedState = { ...at, layersCode: params.layers }
+  if (at) providedState = { ...at, layersCode }
 
   // Assign position only if it's valid
   let noteHref = "/note/new"
@@ -62,7 +65,7 @@ mount("welcome-body", (body) => {
       lon,
       lat,
       zoom,
-      layersCode: params.layers,
+      layersCode,
     } satisfies MapState
 
     startButton.href = `/edit${qsEncode(startParams)}${encodeMapState(geolocationState)}`

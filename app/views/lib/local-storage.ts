@@ -63,19 +63,19 @@ function createScopedStorage<T>(prefix: string, config?: StorageConfig<T>) {
   return memoize((scope: string) => createStorage<T>(`${prefix}-${scope}`, config))
 }
 
-export function createStorageSignal<T>(
+function createStorageSignal<T>(
   key: string,
   config: StorageConfig<T> & { defaultValue: T },
 ): Signal<T>
-export function createStorageSignal<T>(
+function createStorageSignal<T>(
   key: string,
   config?: StorageConfig<T>,
 ): Signal<T | null>
-export function createStorageSignal<T>(key: string, config: StorageConfig<T> = {}) {
+function createStorageSignal<T>(key: string, config: StorageConfig<T> = {}) {
   let skipUpdates = false
-  window.addEventListener("storage", (event) => {
-    if (event.storageArea !== localStorage) return
-    if (event.key !== key && event.key !== null) return
+  window.addEventListener("storage", (e) => {
+    if (e.storageArea !== localStorage) return
+    if (e.key !== key && e.key !== null) return
 
     skipUpdates = true
     storageSignal.value = storage.get()

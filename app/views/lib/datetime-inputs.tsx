@@ -1,6 +1,5 @@
 import { primaryLanguage } from "@lib/config"
 import { dateTimeFormat, relativeTimeFormat } from "@lib/format"
-import { assert } from "@std/assert"
 import { DAY, HOUR, MINUTE, SECOND, WEEK } from "@std/datetime/constants"
 import type { CSSProperties } from "preact"
 
@@ -114,64 +113,6 @@ export const Time = (
       {text}
     </time>
   )
-}
-
-const utcStringToLocalInputValue = (utcDateString: string) => {
-  const utcDate = new Date(utcDateString)
-  const ms = utcDate.getTime()
-  assert(!Number.isNaN(ms), `Invalid UTC datetime string: ${utcDateString}`)
-
-  // datetime-local defaults to minute precision; keep behavior stable by truncating.
-  return ms - (ms % MINUTE)
-}
-
-const localInputToUtcString = (input: HTMLInputElement) => {
-  if (input.value === "") return ""
-  const ms = input.valueAsNumber
-  assert(!Number.isNaN(ms), `Invalid datetime-local value: ${input.value}`)
-  return new Date(ms).toISOString()
-}
-
-/**
- * Setup timezone conversion for datetime-local inputs in a form.
- * This function:
- * 1. Converts any existing UTC values to local time for display
- * 2. Creates hidden inputs that are automatically updated with UTC values
- * 3. Removes the name attribute from visible inputs to prevent direct submission
- *
- * @param form - The form element containing datetime-local inputs
- * @param datetimeInputNames - Array of input names to handle
- */
-export const configureDatetimeInputs = (
-  form: HTMLFormElement,
-  datetimeInputNames: string[],
-) => {
-  for (const inputName of datetimeInputNames) {
-    const input = form.elements.namedItem(inputName) as HTMLInputElement | null
-    assert(
-      input && input.type === "datetime-local",
-      `Missing datetime-local input: ${inputName}`,
-    )
-
-    // Remove name from visible input so it doesn't get submitted
-    input.removeAttribute("name")
-
-    // Create hidden input that will hold the UTC value for submission
-    const hiddenInput = document.createElement("input")
-    hiddenInput.type = "hidden"
-    hiddenInput.name = inputName
-    input.after(hiddenInput)
-
-    // Update hidden input whenever visible input changes
-    const sync = () => (hiddenInput.value = localInputToUtcString(input))
-    input.addEventListener("input", sync)
-
-    // Convert existing UTC value to local time for display
-    const dataValue = input.dataset.value
-    if (dataValue) input.valueAsNumber = utcStringToLocalInputValue(dataValue)
-    delete input.dataset.value
-    sync()
-  }
 }
 
 export const resolveDatetimeLazy = (container: Element) =>

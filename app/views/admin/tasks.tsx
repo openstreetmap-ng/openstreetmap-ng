@@ -10,7 +10,7 @@ import { StandardForm } from "@lib/standard-form"
 import { useSignal } from "@preact/signals"
 import { SECOND } from "@std/datetime/constants"
 import { useEffect } from "preact/hooks"
-import { SettingsNav } from "../settings/_nav"
+import { Nav } from "../settings/_nav"
 
 const AdminTaskCard = ({
   task,
@@ -102,7 +102,7 @@ mountProtoPage(PageSchema, () => {
         <div class="container">
           <div class="row">
             <div class="col-lg-auto mb-4">
-              <SettingsNav />
+              <Nav />
             </div>
 
             <div class="col-lg">

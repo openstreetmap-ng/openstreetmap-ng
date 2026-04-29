@@ -13,12 +13,12 @@ import { mountProtoPage } from "@lib/proto-page"
 import {
   type AdminPage_EntryValid,
   AdminPageSchema,
-  type AuthorizationsPage_EntryValid,
+  type ApplicationValid,
   AuthorizationsPageSchema,
   Service,
-  TokensPage_TokenSchema,
-  type TokensPage_TokenValid,
+  TokenSchema,
   TokensPageSchema,
+  type TokenValid,
 } from "@lib/proto/settings_applications_pb"
 import { Service as SecurityService } from "@lib/proto/settings_security_pb"
 import { Scope } from "@lib/proto/shared_pb"
@@ -27,11 +27,12 @@ import { formDataScopes, SCOPE_LABEL, ScopeList, SCOPES_NO_WEB_USER } from "@lib
 import { StandardForm } from "@lib/standard-form"
 import { headersDate, throwAbortError } from "@lib/utils"
 import { useSignal, useSignalEffect } from "@preact/signals"
+import { assertNever } from "@std/assert/unstable-never"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { useRef } from "preact/hooks"
-import { SettingsNav } from "../_nav"
-import { SettingsApplicationsNav } from "./_nav"
+import { Nav } from "../_nav"
+import { ApplicationsNav } from "./_nav"
 
 const SYSTEM_APP_WEB_CLIENT_ID = "SystemApp.web"
 const API_DOMAIN = new URL(API_URL).host
@@ -52,7 +53,7 @@ const ApplicationsLayout = ({
       <div class="container">
         <div class="row">
           <div class="col-lg-auto mb-4">
-            <SettingsNav />
+            <Nav />
           </div>
 
           <div class="col-lg">{children}</div>
@@ -74,7 +75,7 @@ const PermissionsActions = ({
       <h6>{t("settings.requested_permissions")}</h6>
       <ScopeList scopes={scopes} />
     </div>
-    {actions ? <div class="col-md-auto align-self-end text-end">{actions}</div> : null}
+    {actions && <div class="col-md-auto align-self-end text-end">{actions}</div>}
   </div>
 )
 
@@ -118,6 +119,8 @@ const TimestampDescription = ({
       return tRich("settings.updated_at", {
         date,
       })
+    default:
+      assertNever(timestamp.kind)
   }
 }
 
@@ -154,12 +157,12 @@ export const ApplicationAccordionEntry = ({
           <h6 class="mb-1">{name}</h6>
           <p class="form-text mb-0">
             <TimestampDescription timestamp={timestamp} />
-            {descriptionExtra ? (
+            {descriptionExtra && (
               <>
                 <br />
                 {descriptionExtra}
               </>
-            ) : null}
+            )}
           </p>
         </div>
       </div>
@@ -173,11 +176,11 @@ export const ApplicationAccordionEntry = ({
 )
 
 const AuthorizationsOwnerInfo = ({
-  entry,
+  application,
 }: {
-  entry: AuthorizationsPage_EntryValid
+  application: ApplicationValid
 }) => {
-  const owner = entry.application.owner
+  const owner = application.owner
 
   if (owner?.id === config.userConfig!.user.id) {
     return (
@@ -214,13 +217,12 @@ const AuthorizationsOwnerInfo = ({
 }
 
 const AuthorizationEntry = ({
-  entry,
+  application,
   onRevoke,
 }: {
-  entry: AuthorizationsPage_EntryValid
+  application: ApplicationValid
   onRevoke: (applicationId: bigint) => void
 }) => {
-  const { application } = entry
   const canRevoke = application.clientId !== SYSTEM_APP_WEB_CLIENT_ID
   const canReport = Boolean(application.owner)
 
@@ -230,12 +232,12 @@ const AuthorizationEntry = ({
       name={application.name}
       timestamp={{
         kind: "authorized",
-        unix: entry.authorizedAt,
+        unix: application.authorizedAt!,
       }}
-      descriptionExtra={<AuthorizationsOwnerInfo entry={entry} />}
+      descriptionExtra={<AuthorizationsOwnerInfo application={application} />}
       scopes={application.scopes}
       actions={
-        canRevoke ? (
+        canRevoke && (
           <StandardForm
             class={canReport ? "btn-group" : ""}
             method={Service.method.revokeAuthorization}
@@ -249,7 +251,7 @@ const AuthorizationEntry = ({
               {t("action.revoke_access")}
             </button>
 
-            {canReport ? (
+            {canReport && (
               <>
                 <button
                   class="btn btn-soft dropdown-toggle dropdown-toggle-split"
@@ -274,9 +276,9 @@ const AuthorizationEntry = ({
                   </li>
                 </ul>
               </>
-            ) : null}
+            )}
           </StandardForm>
-        ) : null
+        )
       }
     />
   )
@@ -384,14 +386,14 @@ export const TokenAccordionEntry = ({
   </BAccordion>
 )
 
-type TokenState = TokensPage_TokenValid & {
+type TokenState = TokenValid & {
   secret?: string
 }
 
 const removeAuthorizationByAppId = (
-  entries: readonly AuthorizationsPage_EntryValid[],
+  entries: readonly ApplicationValid[],
   applicationId: bigint,
-) => entries.filter((entry) => entry.application.id !== applicationId)
+) => entries.filter((entry) => entry.id !== applicationId)
 
 const removeTokenById = (tokens: readonly TokenState[], tokenId: bigint) =>
   tokens.filter((token) => token.id !== tokenId)
@@ -495,16 +497,16 @@ mountProtoPage(AuthorizationsPageSchema, ({ entries: initialEntries }) => {
 
   return (
     <ApplicationsLayout title={t("settings.applications")}>
-      <SettingsApplicationsNav />
+      <ApplicationsNav />
 
       <p>{t("settings.authorizations.description")}</p>
       <ul class="applications-list list-unstyled">
-        {entries.value.map((entry) => {
-          const id = entry.application.id
+        {entries.value.map((application) => {
+          const id = application.id
           return (
             <li key={id}>
               <AuthorizationEntry
-                entry={entry}
+                application={application}
                 onRevoke={(applicationId) =>
                   (entries.value = removeAuthorizationByAppId(
                     entries.value,
@@ -533,7 +535,7 @@ mountProtoPage(AdminPageSchema, ({ entries: initialEntries }) => {
 
   return (
     <ApplicationsLayout title={t("settings.applications")}>
-      <SettingsApplicationsNav />
+      <ApplicationsNav />
 
       <p>{t("settings.my_applications.description")}</p>
       <ul class="applications-list list-unstyled">
@@ -566,9 +568,9 @@ mountProtoPage(AdminPageSchema, ({ entries: initialEntries }) => {
             buildRequest={({ formData }) => ({
               name: formData.get("name") as string,
             })}
-            onSuccess={(resp) => {
-              window.location.href = `/settings/applications/admin/${resp.id}/edit`
-            }}
+            onSuccess={(resp, ctx) =>
+              ctx.redirect(`/settings/applications/admin/${resp.id}/edit`)
+            }
           >
             <input
               type="text"
@@ -602,7 +604,7 @@ mountProtoPage(
 
     return (
       <ApplicationsLayout title={t("settings.applications")}>
-        <SettingsApplicationsNav />
+        <ApplicationsNav />
 
         <p>{t("settings.my_tokens.description")}</p>
         <ul class="applications-list list-unstyled">
@@ -646,7 +648,7 @@ mountProtoPage(
               scopes: formDataScopes(formData),
             })}
             onSuccess={(resp, ctx) => {
-              const token: TokenState = create(TokensPage_TokenSchema, {
+              const token: TokenState = create(TokenSchema, {
                 id: resp.id,
                 name: ctx.request.name,
                 createdAt: headersDate(ctx.headers),
@@ -673,10 +675,7 @@ mountProtoPage(
             <p class="form-label">{t("settings.requested_permissions")}</p>
             <ul class="list-unstyled ms-1">
               {SCOPES_NO_WEB_USER.map((scope) => (
-                <li
-                  class="form-check"
-                  key={scope}
-                >
+                <li class="form-check">
                   <label class="form-check-label d-block">
                     <input
                       class="form-check-input"
@@ -705,28 +704,31 @@ mountProtoPage(
 
         <h3>{t("settings.my_tokens.how_to_use.title")}</h3>
         <p>{t("settings.my_tokens.how_to_use.description")}</p>
-        <div class="card mb-3">
-          <div class="card-header">
-            <i class="bi bi-globe2 me-2" />
-            {t("settings.my_tokens.how_to_use.example_http_request")}
+        {[
+          {
+            icon: "globe2",
+            title: t("settings.my_tokens.how_to_use.example_http_request"),
+            code: `GET /api/0.7/user/details HTTP/1.1\nHost: ${API_DOMAIN}\nAuthorization: Bearer your_access_token_here`,
+            className: "mb-3",
+          },
+          {
+            icon: "terminal",
+            title: t("settings.my_tokens.how_to_use.example_curl_command"),
+            code: `curl -H "Authorization: Bearer your_access_token_here" \\\n    ${API_URL}/api/0.7/user/details`,
+          },
+        ].map(({ icon, title, code, className = "" }) => (
+          <div class={`card ${className}`}>
+            <div class="card-header">
+              <i class={`bi bi-${icon} me-2`} />
+              {title}
+            </div>
+            <div class="card-body">
+              <pre class="mb-0">
+                <code>{code}</code>
+              </pre>
+            </div>
           </div>
-          <div class="card-body">
-            <pre class="mb-0">
-              <code>{`GET /api/0.7/user/details HTTP/1.1\nHost: ${API_DOMAIN}\nAuthorization: Bearer your_access_token_here`}</code>
-            </pre>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <i class="bi bi-terminal me-2" />
-            {t("settings.my_tokens.how_to_use.example_curl_command")}
-          </div>
-          <div class="card-body">
-            <pre class="mb-0">
-              <code>{`curl -H "Authorization: Bearer your_access_token_here" \\\n    ${API_URL}/api/0.7/user/details`}</code>
-            </pre>
-          </div>
-        </div>
+        ))}
       </ApplicationsLayout>
     )
   },

@@ -1,11 +1,21 @@
-import type { Page_EntryValid } from "@lib/proto/settings_connections_pb"
-import { PageSchema, Provider, Service } from "@lib/proto/settings_connections_pb"
+import {
+  AuthProviderIcon,
+  CONFIGURED_PROVIDERS,
+  getAuthProviderDescription,
+  getAuthProviderTitle,
+} from "@lib/auth-provider"
 import { mountProtoPage } from "@lib/proto-page"
+import { Action, Service as AuthProviderService } from "@lib/proto/auth_provider_pb"
+import {
+  Service as ConnectionsService,
+  PageSchema,
+  Provider,
+} from "@lib/proto/settings_connections_pb"
 import { StandardForm } from "@lib/standard-form"
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
-import { SettingsNav } from "./_nav"
+import { Nav } from "./_nav"
 
 export const ProviderIdentity = ({
   provider,
@@ -13,36 +23,25 @@ export const ProviderIdentity = ({
 }: {
   provider: Provider
   children: ComponentChildren
-}) => {
-  const providerName = Provider[provider]
-  return (
-    <>
-      {provider === Provider.facebook || provider === Provider.github ? (
-        <i class={`auth-provider-icon me-3 me-lg-4 bi bi-${providerName}`} />
-      ) : (
-        <img
-          class="auth-provider-icon me-3 me-lg-4"
-          src={`/static/img/brand/${providerName}.webp`}
-          alt={t("alt.service_image")}
-        />
-      )}
-      <div>
-        <h6 class="mb-0">{t(`service.${providerName}.title`)}</h6>
-        {children}
-      </div>
-    </>
-  )
-}
+}) => (
+  <>
+    <AuthProviderIcon
+      provider={provider}
+      class="auth-provider-icon me-3 me-lg-4"
+      decorative
+    />
+    <div>
+      <h6 class="mb-0">{getAuthProviderTitle(provider)}</h6>
+      {children}
+    </div>
+  </>
+)
 
-const ProviderCell = ({ provider }: { provider: Provider }) => {
-  const providerName = Provider[provider]
-
-  return (
-    <ProviderIdentity provider={provider}>
-      <p class="form-text mb-0">{t(`service.${providerName}.description`)}</p>
-    </ProviderIdentity>
-  )
-}
+const ProviderCell = ({ provider }: { provider: Provider }) => (
+  <ProviderIdentity provider={provider}>
+    <p class="form-text mb-0">{getAuthProviderDescription(provider)}</p>
+  </ProviderIdentity>
+)
 
 const ActionCell = ({
   provider,
@@ -52,13 +51,11 @@ const ActionCell = ({
   provider: Provider
   connected: boolean
   onDisconnected: (provider: Provider) => void
-}) => {
-  const providerName = Provider[provider]
-
-  return connected ? (
+}) =>
+  connected ? (
     <StandardForm
       class="d-flex justify-content-end align-items-center"
-      method={Service.method.remove}
+      method={ConnectionsService.method.remove}
       buildRequest={() => ({ provider })}
       onSuccess={(_, ctx) => onDisconnected(ctx.request.provider)}
     >
@@ -74,28 +71,30 @@ const ActionCell = ({
       </button>
     </StandardForm>
   ) : (
-    <form
+    <StandardForm
       class="d-flex justify-content-end align-items-center"
-      method="POST"
-      action={`/oauth2/${providerName}/authorize`}
+      method={AuthProviderService.method.startAuthorize}
+      buildRequest={() => ({
+        provider,
+        action: Action.settings,
+      })}
     >
       <button
         type="submit"
         class="btn btn-soft"
-        name="action"
-        value="settings"
       >
         {t("action.connect")}
       </button>
-    </form>
+    </StandardForm>
   )
-}
 
 const Row = ({
-  entry: { provider, connected },
+  provider,
+  connected,
   onDisconnected,
 }: {
-  entry: Page_EntryValid
+  provider: Provider
+  connected: boolean
   onDisconnected: (provider: Provider) => void
 }) => (
   <tr>
@@ -112,11 +111,11 @@ const Row = ({
   </tr>
 )
 
-mountProtoPage(PageSchema, ({ providers: initialProviders }) => {
-  const providers = useSignal(initialProviders)
+mountProtoPage(PageSchema, ({ connectedProviders: initialConnectedProviders }) => {
+  const connectedProviders = useSignal(initialConnectedProviders)
   const onDisconnected = (provider: Provider) => {
-    providers.value = providers.value.map((entry) =>
-      entry.provider === provider ? ((entry.connected = false), entry) : entry,
+    connectedProviders.value = connectedProviders.value.filter(
+      (entry) => entry !== provider,
     )
   }
 
@@ -130,7 +129,7 @@ mountProtoPage(PageSchema, ({ providers: initialProviders }) => {
         <div class="container">
           <div class="row">
             <div class="col-lg-auto mb-4">
-              <SettingsNav />
+              <Nav />
             </div>
 
             <div class="col-lg">
@@ -140,10 +139,10 @@ mountProtoPage(PageSchema, ({ providers: initialProviders }) => {
               <div class="table-responsive">
                 <table class="table align-middle">
                   <tbody>
-                    {providers.value.map((entry) => (
+                    {CONFIGURED_PROVIDERS.map((provider) => (
                       <Row
-                        key={entry.provider}
-                        entry={entry}
+                        provider={provider}
+                        connected={connectedProviders.value.includes(provider)}
                         onDisconnected={onDisconnected}
                       />
                     ))}

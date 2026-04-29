@@ -14,5 +14,5 @@ class MapExceptionsMixin:
     def map_query_nodes_limit_exceeded(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
-            detail='Requested too much data',
+            detail='Requested map data is too large',
         )

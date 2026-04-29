@@ -14,10 +14,7 @@ export const renderObjects = (
   objects: OSMObject[],
   options?: Partial<RenderOptions>,
 ): FeatureCollection => {
-  let {
-    featureIdCounter = 1,
-    renderAreas = true, //
-  } = options ?? {}
+  let { featureIdCounter = 1, renderAreas = true } = options ?? {}
   const features: Feature[] = []
 
   const processChangeset = (changeset: OSMChangeset) => {

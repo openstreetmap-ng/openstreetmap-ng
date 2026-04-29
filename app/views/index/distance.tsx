@@ -115,9 +115,9 @@ const DistanceSidebar = ({
   const refreshEndpointIcons = () => {
     const count = markers.current.length
     if (count === 0) return
-    setMarkerIcon(markers.current[0].marker, "green")
+    setMarkerIcon(markers.current[0]!.marker, "green")
     if (count === 1) return
-    setMarkerIcon(markers.current[count - 1].marker, "red")
+    setMarkerIcon(markers.current[count - 1]!.marker, "red")
   }
 
   const commitMarkersChange = (updateUrl = true) => {
@@ -128,7 +128,7 @@ const DistanceSidebar = ({
 
   const reindexMarkersFrom = (startIndex: number) => {
     for (let i = startIndex; i < markers.current.length; i++) {
-      const entry = markers.current[i]
+      const entry = markers.current[i]!
       markerIdToIndex.set(entry.id, i)
     }
   }
@@ -147,16 +147,16 @@ const DistanceSidebar = ({
 
   const removeLabel = (endIndex: number) => {
     assertGreater(endIndex, 0)
-    const label = markers.current[endIndex].label!
+    const label = markers.current[endIndex]!.label!
     totalDistance.value = totalDistance.peek() - label.distance
     label.remove()
-    markers.current[endIndex].label = null
+    markers.current[endIndex]!.label = null
   }
 
   const updateLabel = (endIndex: number) => {
     assertGreater(endIndex, 0)
-    const startEntry = markers.current[endIndex - 1]
-    const endEntry = markers.current[endIndex]
+    const startEntry = markers.current[endIndex - 1]!
+    const endEntry = markers.current[endIndex]!
     const startLngLat = startEntry.marker.getLngLat()
     const endLngLat = endEntry.marker.getLngLat()
 
@@ -191,8 +191,8 @@ const DistanceSidebar = ({
 
   const segmentCoords = (endIndex: number) => {
     assertGreater(endIndex, 0)
-    const startLngLat = markers.current[endIndex - 1].marker.getLngLat()
-    const endLngLat = markers.current[endIndex].marker.getLngLat()
+    const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
+    const endLngLat = markers.current[endIndex]!.marker.getLngLat()
     return [
       [startLngLat.lng, startLngLat.lat],
       [endLngLat.lng, endLngLat.lat],
@@ -201,7 +201,7 @@ const DistanceSidebar = ({
 
   const makeSegmentFeature = (endIndex: number): Feature<LineString> => ({
     type: "Feature",
-    id: markers.current[endIndex].id,
+    id: markers.current[endIndex]!.id,
     properties: {},
     geometry: {
       type: "LineString",
@@ -210,7 +210,7 @@ const DistanceSidebar = ({
   })
 
   const makeSegmentUpdate = (endIndex: number): GeoJSONFeatureDiff => ({
-    id: markers.current[endIndex].id,
+    id: markers.current[endIndex]!.id,
     newGeometry: {
       type: "LineString",
       coordinates: segmentCoords(endIndex),
@@ -235,7 +235,7 @@ const DistanceSidebar = ({
 
     const segments: Feature<LineString>[] = []
     for (let endIndex = 1; endIndex < markers.current.length; endIndex++) {
-      markers.current[endIndex].label!.distance = 0
+      markers.current[endIndex]!.label!.distance = 0
       updateLabel(endIndex)
       segments.push(makeSegmentFeature(endIndex))
     }
@@ -257,7 +257,7 @@ const DistanceSidebar = ({
     unit.value = next
 
     for (let i = 1; i < markers.current.length; i++) {
-      const label = markers.current[i].label!
+      const label = markers.current[i]!.label!
       label.getElement().textContent = formatDistance(label.distance, next)
     }
   }
@@ -267,12 +267,12 @@ const DistanceSidebar = ({
     hideGhostMarker()
 
     const countBefore = markers.current.length
-    const target = markers.current[index]
+    const target = markers.current[index]!
 
     let segmentIdToRemove: number | null = null
     if (countBefore > 1) {
       const segmentEndIndexToRemove = Math.max(index, 1)
-      segmentIdToRemove = markers.current[segmentEndIndexToRemove].id
+      segmentIdToRemove = markers.current[segmentEndIndexToRemove]!.id
       removeLabel(segmentEndIndexToRemove)
     }
 
@@ -304,7 +304,7 @@ const DistanceSidebar = ({
 
   const updateMarkerDataNow = (id: number, lngLat: LngLat) => {
     const index = markerIdToIndex.get(id)!
-    markers.current[index].marker.setLngLat(lngLat)
+    markers.current[index]!.marker.setLngLat(lngLat)
     updateSegmentsAround(index)
   }
 
@@ -353,7 +353,7 @@ const DistanceSidebar = ({
     }
 
     if (prevCount >= 2) {
-      setMarkerIcon(markers.current[prevCount - 1].marker, "blue")
+      setMarkerIcon(markers.current[prevCount - 1]!.marker, "blue")
     }
 
     const color = prevCount === 0 ? "green" : "red"
@@ -469,10 +469,10 @@ const DistanceSidebar = ({
     const marker = ghostMarker.current
     marker.getElement().hidden = false
 
-    const firstSegmentId = Number(features[0].id)
+    const firstSegmentId = Number(features[0]!.id)
     const firstEndIndex = markerIdToIndex.get(firstSegmentId)!
-    const firstStartLngLat = markers.current[firstEndIndex - 1].marker.getLngLat()
-    const firstEndLngLat = markers.current[firstEndIndex].marker.getLngLat()
+    const firstStartLngLat = markers.current[firstEndIndex - 1]!.marker.getLngLat()
+    const firstEndLngLat = markers.current[firstEndIndex]!.marker.getLngLat()
     let bestEndId = firstSegmentId
     let bestClosestPoint = closestPointOnSegment(
       hitPoint,
@@ -483,10 +483,10 @@ const DistanceSidebar = ({
       (bestClosestPoint.x - hitPoint.x) ** 2 + (bestClosestPoint.y - hitPoint.y) ** 2
 
     for (let i = 1; i < features.length; i++) {
-      const segmentId = Number(features[i].id)
+      const segmentId = Number(features[i]!.id)
       const endIndex = markerIdToIndex.get(segmentId)!
-      const startLngLat = markers.current[endIndex - 1].marker.getLngLat()
-      const endLngLat = markers.current[endIndex].marker.getLngLat()
+      const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
+      const endLngLat = markers.current[endIndex]!.marker.getLngLat()
       const closestPoint = closestPointOnSegment(
         hitPoint,
         map.project(startLngLat),
@@ -539,10 +539,10 @@ const DistanceSidebar = ({
     commitMarkersChange(false)
 
     // Focus on the markers if they're offscreen
-    const [firstLon, firstLat] = line[0]
+    const [firstLon, firstLat] = line[0]!
     const markerBounds = new LngLatBounds([firstLon, firstLat, firstLon, firstLat])
     for (let i = 1; i < line.length; i++) {
-      const [lon, lat] = line[i]
+      const [lon, lat] = line[i]!
       markerBounds.extend([lon, lat])
     }
     fitBoundsIfNeeded(map, markerBounds, {

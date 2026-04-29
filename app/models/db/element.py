@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Literal, NotRequired, TypedDict
+from typing import Annotated, Literal, NotRequired, TypedDict, assert_never
 
 import cython
 import numpy as np
@@ -77,7 +77,7 @@ def validate_elements(elements: list[ElementInit]):
         elif type == 'relation':
             _validate_relation(element)
         else:
-            raise NotImplementedError(f'Unsupported element type {type!r}')
+            assert_never(type)
 
         if element['visible']:
             _validate_visible(element)

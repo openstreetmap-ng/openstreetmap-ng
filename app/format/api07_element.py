@@ -1,3 +1,5 @@
+from typing import assert_never
+
 import cython
 from shapely import Point, get_coordinates
 
@@ -45,7 +47,7 @@ def _encode_element(element: Element):
             element['members'], element['members_roles']
         )
     else:
-        raise NotImplementedError(f'Unsupported element type {type!r}')
+        assert_never(type)
 
     return result
 

@@ -16,8 +16,10 @@ from app.models.db.oauth2_application import (
 from app.models.db.user import User, user_proto
 from app.models.proto.settings_applications_pb2 import (
     AdminPage,
+    Application,
     AuthorizationsPage,
     EditPage,
+    Token,
     TokensPage,
 )
 from app.models.types import ApplicationId, OAuth2TokenId
@@ -37,15 +39,13 @@ async def applications_authorizations(
     await UserQuery.resolve_users(apps)
 
     entries = [
-        AuthorizationsPage.Entry(
-            application=AuthorizationsPage.Entry.Application(
-                id=app['id'],
-                name=app['name'],
-                scopes=app['scopes'],
-                avatar_url=oauth2_app_avatar_url(app),
-                client_id=app['client_id'],
-                owner=user_proto(app.get('user')),
-            ),
+        Application(
+            id=app['id'],
+            name=app['name'],
+            scopes=app['scopes'],
+            avatar_url=oauth2_app_avatar_url(app),
+            client_id=app['client_id'],
+            owner=user_proto(app.get('user')),
             authorized_at=int(token['authorized_at'].timestamp()),  # type: ignore
         )
         for token in tokens
@@ -119,7 +119,7 @@ async def get_tokens(
     tokens = await OAuth2TokenQuery.find_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
     page_state = TokensPage(
         tokens=[
-            TokensPage.Token(
+            Token(
                 id=token['id'],
                 name=token['name'],  # type: ignore
                 scopes=token['scopes'],

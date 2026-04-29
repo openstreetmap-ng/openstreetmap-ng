@@ -206,8 +206,8 @@ export const ReportButton = ({
 
 const configureReportButtons = (searchElement: Element) => {
   for (const button of searchElement.querySelectorAll("button[data-report-type]")) {
-    button.addEventListener("click", (event) => {
-      event.preventDefault()
+    button.addEventListener("click", (e) => {
+      e.preventDefault()
       const { reportType, reportTypeId, reportAction, reportActionId } = button.dataset
       showReportModal({
         type: reportType as ReportType,

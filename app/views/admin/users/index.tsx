@@ -41,7 +41,7 @@ const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
 
 const IdentityCell = ({ entry: { account } }: { entry: ListResponse_EntryValid }) => (
   <>
-    <a href={`/user-id/${account.id.toString()}`}>
+    <a href={`/user-id/${account.id}`}>
       <img
         class="avatar me-1-5"
         src={account.avatarUrl}
@@ -94,21 +94,13 @@ const TwoFactorCell = ({
   entry: ListResponse_EntryValid
 }) => (
   <div class="d-flex gap-1">
-    <i
-      class={`bi bi-fingerprint ${
-        twoFactorStatus.hasPasskeys ? "text-success" : "text-body-tertiary"
-      }`}
-    />
-    <i
-      class={`bi bi-phone ${
-        twoFactorStatus.hasTotp ? "text-success" : "text-body-tertiary"
-      }`}
-    />
-    <i
-      class={`bi bi-file-text ${
-        twoFactorStatus.hasRecovery ? "text-success" : "text-body-tertiary"
-      }`}
-    />
+    {[
+      { icon: "fingerprint", enabled: twoFactorStatus.hasPasskeys },
+      { icon: "phone", enabled: twoFactorStatus.hasTotp },
+      { icon: "file-text", enabled: twoFactorStatus.hasRecovery },
+    ].map(({ icon, enabled }) => (
+      <i class={`bi bi-${icon} ${enabled ? "text-success" : "text-body-tertiary"}`} />
+    ))}
   </div>
 )
 
@@ -141,12 +133,12 @@ const Row = ({ entry }: { entry: ListResponse_EntryValid }) => {
       </td>
       <td>
         <a
-          href={`/admin/users/${account.id.toString()}`}
+          href={`/admin/users/${account.id}`}
           class="link-primary me-2"
         >
           Manage
         </a>
-        <a href={`/audit?user=${account.id.toString()}`}>Audit</a>
+        <a href={`/audit?user=${account.id}`}>Audit</a>
       </td>
     </tr>
   )
@@ -351,6 +343,7 @@ mountProtoPage(PageSchema, () => {
           <StandardPagination
             method={Service.method.list}
             request={{ filters: filters.value }}
+            urlKey="page"
             navTop
             navClassTop="mb-2"
             onLoad={(data) => {

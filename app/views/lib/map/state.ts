@@ -2,9 +2,8 @@ import { config } from "@lib/config"
 import {
   beautifyZoom,
   clampLatitude,
-  isLatitude,
-  isLongitude,
-  isZoom,
+  tryParseLonLat,
+  tryParseLonLatZoom,
   wrapLongitude,
   zoomPrecision,
 } from "@lib/coords"
@@ -172,16 +171,13 @@ export const parseLonLatZoom = (
     const components = input.split("/")
     if (components.length !== 3) return null
     input = {
-      zoom: components[0],
-      lat: components[1],
-      lon: components[2],
+      zoom: components[0]!,
+      lat: components[1]!,
+      lon: components[2]!,
     }
   }
 
-  const zoom = Number.parseFloat(input.zoom)
-  const lat = Number.parseFloat(input.lat)
-  const lon = Number.parseFloat(input.lon)
-  return isZoom(zoom) && isLatitude(lat) && isLongitude(lon) ? { lon, lat, zoom } : null
+  return tryParseLonLatZoom(input.lon, input.lat, input.zoom)
 }
 
 export const lonLatZoomEquals = (
@@ -258,47 +254,37 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
   }
 
   // 3. Use the bounds from minlon, minlat, maxlon, maxlat query parameters
-  if (
-    searchParams.minlon &&
-    searchParams.minlat &&
-    searchParams.maxlon &&
-    searchParams.maxlat
-  ) {
-    const minLon = Number.parseFloat(searchParams.minlon)
-    const minLat = Number.parseFloat(searchParams.minlat)
-    const maxLon = Number.parseFloat(searchParams.maxlon)
-    const maxLat = Number.parseFloat(searchParams.maxlat)
-    if (
-      isLongitude(minLon) &&
-      isLatitude(minLat) &&
-      isLongitude(maxLon) &&
-      isLatitude(maxLat)
-    ) {
-      const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [
-        minLon,
-        minLat,
-        maxLon,
-        maxLat,
-      ])
-      const state = { lon, lat, zoom, layersCode: lastLayersCode }
-      console.debug("MapState: Initial from bounds query", state)
-      return state
-    }
+  const southWest = tryParseLonLat(searchParams.minlon, searchParams.minlat)
+  const northEast = tryParseLonLat(searchParams.maxlon, searchParams.maxlat)
+  if (southWest && northEast) {
+    const { lon, lat, zoom } = convertBoundsToLonLatZoom(map, [
+      southWest[0],
+      southWest[1],
+      northEast[0],
+      northEast[1],
+    ])
+    const state = { lon, lat, zoom, layersCode: lastLayersCode }
+    console.debug("MapState: Initial from bounds query", state)
+    return state
   }
 
   // 4. Use the position from the marker
-  if (searchParams.mlon && searchParams.mlat) {
-    const mlon = Number.parseFloat(searchParams.mlon)
-    const mlat = Number.parseFloat(searchParams.mlat)
-    const zoom = searchParams.zoom ? Number.parseFloat(searchParams.zoom) : 12
-    if (isLongitude(mlon) && isLatitude(mlat) && isZoom(zoom)) {
-      const state = { lon: mlon, lat: mlat, zoom, layersCode: lastLayersCode }
-      console.debug("MapState: Initial from marker", state)
-      return state
+  const markerState = tryParseLonLatZoom(
+    searchParams.mlon,
+    searchParams.mlat,
+    searchParams.zoom ?? "12",
+  )
+  if (markerState) {
+    const state = {
+      ...markerState,
+      layersCode: lastLayersCode,
     }
+    console.debug("MapState: Initial from marker", state)
+    return state
   }
 
   // 5. Use the position from search parameters
+  // oxlint-disable-next-line typescript/no-unnecessary-condition
   searchParams.zoom ??= "12"
   const at = parseLonLatZoom(searchParams)
   if (at) {
@@ -351,7 +337,7 @@ export const getInitialMapState = (map?: MaplibreMap): MapState => {
   return defaultState
 }
 
-export const getMapUrl = (state: MapState, showMarker = false) => {
+const getMapUrl = (state: MapState, showMarker = false) => {
   const hash = encodeMapState(state)
   const { lon, lat, zoom } = state
   if (showMarker) {

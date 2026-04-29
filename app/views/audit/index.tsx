@@ -39,7 +39,7 @@ const UserCell = ({ event }: { event: EventValid }) => {
 
   return (
     <>
-      <a href={`/user-id/${user.id.toString()}`}>
+      <a href={`/user-id/${user.id}`}>
         <img
           class="avatar me-1-5"
           src={user.avatarUrl}
@@ -51,7 +51,7 @@ const UserCell = ({ event }: { event: EventValid }) => {
       {targetUser && (
         <>
           <i class="bi bi-arrow-right-short me-1" />
-          <a href={`/user-id/${targetUser.id.toString()}`}>
+          <a href={`/user-id/${targetUser.id}`}>
             <img
               class="avatar me-1-5"
               src={targetUser.avatarUrl}
@@ -104,12 +104,12 @@ const ApplicationCell = ({
             class="btn btn-link btn-sm p-0 lh-1"
             onClick={() => onFilterApplicationId(application.id)}
           >
-            <code>{application.id.toString()}</code>
+            <code>{application.id}</code>
           </button>
           {application.owner && (
             <>
               <span class="text-body-secondary mx-1">by</span>
-              <a href={`/user-id/${application.owner.id.toString()}`}>
+              <a href={`/user-id/${application.owner.id}`}>
                 {application.owner.displayName}
               </a>
             </>
@@ -246,12 +246,7 @@ mountProtoPage(PageSchema, () => {
                 >
                   <option value="">All types</option>
                   {AUDIT_TYPES.map((name) => (
-                    <option
-                      key={name}
-                      value={name}
-                    >
-                      {name}
-                    </option>
+                    <option value={name}>{name}</option>
                   ))}
                 </select>
               </div>
@@ -339,6 +334,7 @@ mountProtoPage(PageSchema, () => {
           <StandardPagination
             method={Service.method.list}
             request={{ filters: filters.value }}
+            urlKey="page"
             navTop
             navClassTop="mb-2"
             navClassBottom="mb-0"

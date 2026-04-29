@@ -16,7 +16,7 @@ export type RemoteEditTarget = Readonly<{
 }>
 
 export const parseRemoteEditTargetFromQueryParams = (
-  queryParams: Record<string, string[]>,
+  queryParams: Readonly<Record<string, string[] | undefined>>,
 ): RemoteEditTarget | null => {
   const idSchema = pathParam.positive()
   for (const type of ["node", "way", "relation", "note"] as const) {
@@ -42,7 +42,7 @@ const getBoundsFromCoords = ({ lon, lat, zoom }: LonLatZoom, paddingRatio = 0) =
   const deltaLon = (tileCountHalfX / n) * 360 * (1 + paddingRatio)
   const deltaLat = (tileCountHalfY / n) * 180 * (1 + paddingRatio)
 
-  return [lon - deltaLon, lat - deltaLat, lon + deltaLon, lat + deltaLat]
+  return [lon - deltaLon, lat - deltaLat, lon + deltaLon, lat + deltaLat] as const
 }
 
 export const openRemoteEdit = async ({

@@ -156,7 +156,7 @@ export const LegendSidebar = ({ close }: { close: () => void }) => {
   )
 }
 
-export class LegendSidebarToggleControl extends SidebarToggleControl {
+export class LegendSidebarControl extends SidebarToggleControl {
   public constructor() {
     super("legend", t("javascripts.key.tooltip"))
   }

@@ -116,7 +116,7 @@ export const SetupTotpModal = ({
             buildRequest={({ formData }) => ({
               secret: secret.value,
               digits: digits.value,
-              totpCode: formData.get("totp_code") as string,
+              totpCode: Number.parseInt(formData.get("totp_code") as string, 10),
             })}
             onSuccess={(resp) => {
               totpCreatedAt.value = resp.createdAt
@@ -129,32 +129,32 @@ export const SetupTotpModal = ({
                 {t("two_fa.adjust_the_strength_of_your_one_time_codes")}
               </p>
 
-              <div class="form-check mb-2">
-                <label class="form-check-label w-100">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="digits"
-                    value="8"
-                    checked={digits.value === 8}
-                    onChange={() => (digits.value = 8)}
-                  />
-                  {t("two_fa.8_digit_code_more_secure")}
-                </label>
-              </div>
-              <div class="form-check mb-4">
-                <label class="form-check-label w-100">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="digits"
-                    value="6"
-                    checked={digits.value === 6}
-                    onChange={() => (digits.value = 6)}
-                  />
-                  {t("two_fa.6_digit_code")}
-                </label>
-              </div>
+              {[
+                {
+                  value: 8 as const,
+                  label: t("two_fa.8_digit_code_more_secure"),
+                  className: "mb-2",
+                },
+                {
+                  value: 6 as const,
+                  label: t("two_fa.6_digit_code"),
+                  className: "mb-4",
+                },
+              ].map(({ value, label, className }) => (
+                <div class={`form-check ${className}`}>
+                  <label class="form-check-label w-100">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="digits"
+                      value={value}
+                      checked={digits.value === value}
+                      onChange={() => (digits.value = value)}
+                    />
+                    {label}
+                  </label>
+                </div>
+              ))}
 
               <h6>{t("two_fa.step_2_scan_qr_code")}</h6>
               <p class="text-muted">

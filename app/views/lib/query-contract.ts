@@ -65,7 +65,7 @@ type OptionalizeUndefined<T extends Record<string, unknown>> = {
   [K in keyof T as undefined extends T[K] ? K : never]?: Exclude<T[K], undefined>
 }
 
-export type QueryState<T extends Record<string, unknown>> = OptionalizeUndefined<T>
+type QueryState<T extends Record<string, unknown>> = OptionalizeUndefined<T>
 
 export type QueryContract<T extends Record<string, unknown>> = Readonly<{
   keys: readonly (keyof T & string)[]
@@ -91,7 +91,7 @@ const formDataToQueryParams = (formData: FormData) => {
   const params: Record<string, string[]> = {}
   for (const [key, value] of formData.entries()) {
     const values = params[key] ?? (params[key] = [])
-    values.push(String(value))
+    values.push(value)
   }
   return params
 }

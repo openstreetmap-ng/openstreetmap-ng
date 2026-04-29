@@ -1,6 +1,7 @@
 import { config } from "@lib/config"
 import { mainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState } from "@lib/map/state"
+import { isHrefCurrentPage } from "@lib/utils"
 import { signal } from "@preact/signals"
 import { assertEquals, assertExists } from "@std/assert"
 import { runningReduce } from "@std/collections/running-reduce"
@@ -46,8 +47,12 @@ const navLinksRef = createRef<HTMLDivElement>()
 const navLinksListRef = createRef<HTMLUListElement>()
 const navLinksMoreRef = createRef<HTMLDivElement>()
 
-const NavbarNav = () => (
-  <>
+const NavbarNav = () => {
+  const navVisibleCountValue = navVisibleCount.value
+  const activeLinkIndex = navLinks.findIndex((link) => isHrefCurrentPage(link.href))
+  const activeLinkInMore = activeLinkIndex >= navVisibleCountValue
+
+  return (
     <div
       class="navbar-links"
       ref={navLinksRef}
@@ -58,15 +63,15 @@ const NavbarNav = () => (
       >
         {navLinks.map((link, index) => (
           <li
-            key={link.href}
             class="nav-item"
-            hidden={index >= navVisibleCount.value}
+            hidden={index >= navVisibleCountValue}
           >
             <a
-              class="nav-link"
+              class={`nav-link ${activeLinkIndex === index ? "active" : ""}`}
               href={link.href}
               title={link.title}
               rel={link.rel}
+              aria-current={activeLinkIndex === index ? "page" : undefined}
             >
               {link.label}
             </a>
@@ -76,11 +81,13 @@ const NavbarNav = () => (
 
       <div
         class="btn-group"
-        hidden={navVisibleCount.value >= navLinks.length}
+        hidden={navVisibleCountValue >= navLinks.length}
         ref={navLinksMoreRef}
       >
         <button
-          class="btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle"
+          class={`btn btn-light btn-bg-initial text-navbar border-0 dropdown-toggle ${
+            activeLinkInMore ? "active" : ""
+          }`}
           type="button"
           aria-expanded="false"
           data-bs-toggle="dropdown"
@@ -88,23 +95,28 @@ const NavbarNav = () => (
           {t("layouts.more")}
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
-          {navLinks.slice(navVisibleCount.value).map((link) => (
-            <li key={link.href}>
-              <a
-                class="dropdown-item"
-                href={link.href}
-                title={link.title}
-                rel={link.rel}
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
+          {navLinks.slice(navVisibleCountValue).map((link, offset) => {
+            const index = navVisibleCountValue + offset
+            const active = activeLinkIndex === index
+            return (
+              <li>
+                <a
+                  class={`dropdown-item ${active ? "active" : ""}`}
+                  href={link.href}
+                  title={link.title}
+                  rel={link.rel}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </div>
-  </>
-)
+  )
+}
 
 const userConfig = config.userConfig
 const user = userConfig?.user
@@ -160,41 +172,40 @@ const NavbarUser = () => {
         )}
       </button>
       <ul class="dropdown-menu dropdown-menu-green dropdown-menu-end">
-        <li>
-          <a
-            class="dropdown-item"
-            href="/dashboard"
-          >
-            {t("dashboards.show.title")}
-          </a>
-        </li>
-        <li>
-          <a
-            class="dropdown-item d-flex align-items-center"
-            href="/messages/inbox"
-          >
-            {t("users.show.my messages")}
-            <span class="badge text-bg-light-green ms-2">
-              {messagesCountUnread.value}
-            </span>
-          </a>
-        </li>
-        <li>
-          <a
-            class="dropdown-item"
-            href={`/user/${user.displayName}`}
-          >
-            {t("users.show.my profile")}
-          </a>
-        </li>
-        <li>
-          <a
-            class="dropdown-item"
-            href="/settings"
-          >
-            {t("accounts.edit.my settings")}
-          </a>
-        </li>
+        {[
+          {
+            href: "/dashboard",
+            label: t("dashboards.show.title"),
+          },
+          {
+            href: "/messages/inbox",
+            label: t("users.show.my messages"),
+            className: "d-flex align-items-center",
+            suffix: (
+              <span class="badge text-bg-light-green ms-2">
+                {messagesCountUnread.value}
+              </span>
+            ),
+          },
+          {
+            href: `/user/${user.displayName}`,
+            label: t("users.show.my profile"),
+          },
+          {
+            href: "/settings",
+            label: t("accounts.edit.my settings"),
+          },
+        ].map(({ href, label, className = "", suffix }) => (
+          <li>
+            <a
+              class={`dropdown-item ${className}`}
+              href={href}
+            >
+              {label}
+              {suffix}
+            </a>
+          </li>
+        ))}
         {showReports && (
           <>
             <li>
@@ -308,7 +319,7 @@ const configureResponsiveNavbarLinks = (
     more.hidden = prevHidden
   }
 
-  const getLinksWidth = (count: number) => linkPrefixWidths![count]
+  const getLinksWidth = (count: number) => linkPrefixWidths![count]!
 
   const updateNow = () => {
     if (!desktopMedia.matches) {

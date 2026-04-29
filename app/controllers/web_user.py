@@ -1,70 +1,24 @@
 from typing import Annotated
 
-import orjson
-from fastapi import APIRouter, Cookie, File, Form, Query, Response
+from fastapi import APIRouter, Cookie, File, Form, Query
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import COOKIE_AUTH_MAX_AGE, ENV
 from app.lib.auth_context import auth_user, web_user
+from app.lib.cookie import delete_auth_cookie
 from app.lib.referrer import redirect_referrer
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
-from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
-from app.models.proto.auth_pb2 import LoginResponse
 from app.models.types import Email, Password
-from app.services.auth_provider_service import AuthProviderService
 from app.services.oauth2_token_service import OAuth2TokenService
-from app.services.system_app_service import SystemAppService
 from app.services.user_password_service import UserPasswordService
-from app.services.user_service import UserService
-from app.services.user_signup_service import UserSignupService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.services.user_token_reset_password_service import UserTokenResetPasswordService
-from app.validators.display_name import DisplayNameNormalizing, DisplayNameValidating
-from app.validators.email import EmailValidating
 
 router = APIRouter(prefix='/api/web/user')
-
-
-@router.post('/login')
-async def login(
-    display_name_or_email: Annotated[
-        DisplayNameNormalizing | Email | None, Form(min_length=1)
-    ] = None,
-    password: Annotated[Password | None, File()] = None,
-    passkey: Annotated[bytes | None, File()] = None,
-    totp_code: Annotated[str | None, Form(pattern=r'^(?:\d{6}|\d{8})$')] = None,
-    recovery_code: Annotated[str | None, Form()] = None,
-    bypass_2fa: Annotated[bool, Form()] = False,
-    remember: Annotated[bool, Form()] = False,
-):
-    result = await UserService.login(
-        display_name_or_email=display_name_or_email,
-        password=password,
-        passkey=passkey,
-        totp_code=totp_code,
-        recovery_code=recovery_code,
-        bypass_2fa=bypass_2fa,
-    )
-
-    # 2FA required
-    if isinstance(result, LoginResponse):
-        return Response(result.SerializeToString(), media_type='application/x-protobuf')
-
-    response = Response(None, status.HTTP_204_NO_CONTENT)
-    response.set_cookie(
-        key='auth',
-        value=result.get_secret_value(),
-        max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()) if remember else None,
-        secure=ENV != 'dev',
-        httponly=True,
-        samesite='lax',
-    )
-    return response
 
 
 @router.post('/logout')
@@ -74,59 +28,7 @@ async def logout(
 ):
     await OAuth2TokenService.revoke_by_access_token(auth)
     response = redirect_referrer()
-    response.delete_cookie('auth')
-    return response
-
-
-@router.post('/signup')
-async def signup(
-    display_name: Annotated[DisplayNameValidating, Form()],
-    email: Annotated[EmailValidating, Form()],
-    password: Annotated[Password, File()],
-    tracking: Annotated[bool, Form()] = False,
-    auth_provider_verification: Annotated[str | None, Cookie()] = None,
-):
-    verification = AuthProviderService.validate_verification(auth_provider_verification)
-    email_verified = verification is not None and verification.email == email
-
-    user_id = await UserSignupService.signup(
-        display_name=display_name,
-        email=email,
-        password=password,
-        tracking=tracking,
-        email_verified=email_verified,
-    )
-    response = Response(
-        orjson.dumps({
-            'redirect_url': (
-                '/welcome' if email_verified else '/user/account-confirm/pending'
-            )
-        }),
-        media_type='application/json; charset=utf-8',
-    )
-
-    if email_verified:
-        response.delete_cookie('auth_provider_verification')
-
-    access_token = await SystemAppService.create_access_token(
-        SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
-    )
-    response.set_cookie(
-        key='auth',
-        value=access_token.token.get_secret_value(),
-        max_age=None,
-        secure=ENV != 'dev',
-        httponly=True,
-        samesite='lax',
-    )
-
-    return response
-
-
-@router.post('/signup/cancel-provider')
-async def signup_cancel_provider():
-    response = RedirectResponse('/signup', status.HTTP_303_SEE_OTHER)
-    response.delete_cookie('auth_provider_verification')
+    delete_auth_cookie(response)
     return response
 
 

@@ -13,9 +13,9 @@ import { z } from "@zod/zod"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren, RefObject } from "preact"
 
-export type RouteLoadReason = "navigation" | "popstate" | "sync"
+type RouteLoadReason = "navigation" | "popstate" | "sync"
 
-export type RouteContext = Readonly<{
+type RouteContext = Readonly<{
   reason: RouteLoadReason
   path: string
   pathname: string
@@ -36,7 +36,7 @@ type QuerySignals<Q extends Record<string, unknown>> = {
 
 type AnyRouteComponent = (props: any) => ComponentChildren
 
-export type RouteComponent<
+type RouteComponent<
   P extends Record<string, unknown> = EmptyParams,
   Q extends Record<string, unknown> = EmptyQuery,
 > = (
@@ -79,14 +79,14 @@ type Specificity = Readonly<{
   variantIndex: number
 }>
 
-export type RouteDef = Readonly<{
+type RouteDef = Readonly<{
   id: string
   path: string
   Component: AnyRouteComponent
   sidebarOverlay: boolean | undefined
 }>
 
-export type CompiledRouteDef<
+type CompiledRouteDef<
   P extends Record<string, unknown> = EmptyParams,
   Q extends Record<string, unknown> = EmptyQuery,
 > = RouteDef &
@@ -98,10 +98,10 @@ export type CompiledRouteDef<
     _buildPathname: (params: P) => string
   }>
 
-export type AnyRouteDef = CompiledRouteDef<any, any>
+type AnyRouteDef = CompiledRouteDef<any, any>
 
 const removeTrailingSlash = (s: string) => trimEndBy(s, "/") || "/"
-const getPathname = (path: string) => path.split("?", 1)[0]
+const getPathname = (path: string) => path.split("?", 1)[0]!
 const getPathSearch = (path: string) => {
   const i = path.indexOf("?")
   return i === -1 ? "" : path.slice(i)
@@ -200,17 +200,14 @@ const compareSpecificity = (a: Specificity, b: Specificity) => {
   return a.variantIndex - b.variantIndex
 }
 
-const matchTokens = <P extends Record<string, unknown>>(
-  tokens: readonly PathToken[],
-  segments: readonly string[],
-) => {
+const matchTokens = (tokens: readonly PathToken[], segments: readonly string[]) => {
   if (segments.length !== tokens.length) return null
 
   const out: Record<string, unknown> = {}
 
   for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
-    const raw = segments[i]
+    const token = tokens[i]!
+    const raw = segments[i]!
 
     let segment: string
     if (token.kind === "lit") {
@@ -232,12 +229,12 @@ const matchTokens = <P extends Record<string, unknown>>(
     }
   }
 
-  return out as P
+  return out
 }
 
-const buildPathname = <P extends Record<string, unknown>>(
+const buildPathname = (
   tokens: readonly PathToken[],
-  params: P,
+  params: Record<string, unknown>,
 ) => {
   if (!tokens.length) return "/"
   const obj = params
@@ -321,7 +318,7 @@ export const defineRoute = <
         }
       }
 
-      return buildPathname(pathVariants[0].tokens, params)
+      return buildPathname(pathVariants[0]!.tokens, params)
     },
   }
   return out
@@ -369,23 +366,6 @@ const routerHrefImpl = <R extends CompiledRouteDef<any, any>>(
   return pathname + search
 }
 
-export function routerHref<R extends CompiledRouteDef<any, any>>(
-  route: RequiredKeys<RouteHrefInput<R>> extends never ? R : never,
-  input?: RouteHrefInput<R> | null,
-): string
-
-export function routerHref<R extends CompiledRouteDef<any, any>>(
-  route: R,
-  input: RouteHrefInput<R>,
-): string
-
-export function routerHref<R extends CompiledRouteDef<any, any>>(
-  route: R,
-  input?: RouteHrefInput<R> | null,
-) {
-  return routerHrefImpl(route, input)
-}
-
 type CompiledRouteVariant = Readonly<{
   route: AnyRouteDef
   tokens: readonly PathToken[]
@@ -420,11 +400,11 @@ export const routerRemoteEditTarget = computed(() => {
   let type
   let id
   if (route.id === "element" || route.id === "element-history") {
-    type = params.type.value
-    id = params.id.value
+    type = params.type!.value
+    id = params.id!.value
   } else if (route.id === "note") {
     type = "note"
-    id = params.id.value
+    id = params.id!.value
   } else {
     return null
   }
@@ -436,7 +416,7 @@ const matchRoute = (path: string) => {
   const pathname = removeTrailingSlash(getPathname(path))
   const segments = pathname === "/" ? [] : pathname.slice(1).split("/")
   for (const variant of compiledRouteVariants) {
-    const params = matchTokens<Record<string, unknown>>(variant.tokens, segments)
+    const params = matchTokens(variant.tokens, segments)
     if (params) return { route: variant.route, params }
   }
   return null
@@ -467,7 +447,7 @@ const reconcileSignalBag = (
 
   batch(() => {
     for (const key of keys) {
-      bag[key].value = getNextValue(key)
+      bag[key]!.value = getNextValue(key)
     }
   })
 }
@@ -635,13 +615,13 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
 
     const queryObj: Record<string, unknown> = {}
     for (const key of route._queryKeys) {
-      queryObj[key] = querySignals[key].value
+      queryObj[key] = querySignals[key]!.value
     }
 
     const paramSignals = activeParamSignals.peek()
     const params: Record<string, unknown> = {}
     for (const key of route._paramKeys) {
-      params[key] = paramSignals[key].peek()
+      params[key] = paramSignals[key]!.peek()
     }
 
     const pathname = route._buildPathname(params)

@@ -7,6 +7,7 @@ mount("fixthemap-body", (body) => {
   let noteHref = "/note/new"
 
   // Supports default location setting via URL parameters
+  // oxlint-disable-next-line typescript/no-unnecessary-condition
   params.zoom ??= "17"
   const at = parseLonLatZoom(params)
   if (at) noteHref += encodeMapState({ ...at, layersCode: params.layers })

@@ -14,11 +14,11 @@ const getPackageDist = (pkgName: string) => {
 export const {
   API_URL,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
-  DISPLAY_NAME_MAX_LENGTH,
   CONFIGURED_AUTH_PROVIDERS,
   DIARY_BODY_MAX_LENGTH,
   DIARY_COMMENT_BODY_MAX_LENGTH,
   DIARY_TITLE_MAX_LENGTH,
+  DISPLAY_NAME_MAX_LENGTH,
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
@@ -95,11 +95,11 @@ from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.lib.sentry import *
 print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "API_URL",
+        "CHANGESET_COMMENT_BODY_MAX_LENGTH",
         "CONFIGURED_AUTH_PROVIDERS",
         "DIARY_BODY_MAX_LENGTH",
         "DIARY_COMMENT_BODY_MAX_LENGTH",
         "DIARY_TITLE_MAX_LENGTH",
-        "CHANGESET_COMMENT_BODY_MAX_LENGTH",
         "DISPLAY_NAME_MAX_LENGTH",
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",

@@ -363,7 +363,7 @@ Use:
 - for CSS class composition, prefer simple template strings (for example ``class={`accordion ${className}`}``) over conditional class helpers; avoid duplicated ternary class strings when only a suffix changes, and keep explicit spacing around interpolated segments for readability (for example ``class={`collapse ${isOpen ? "show" : ""}`}``)
 - for optional destructured props used in string interpolation, default them in the parameter list (for example `class: className = ""`) instead of adding `??` fallbacks at use sites
 - for DOM event listeners wired in `useEffect`, prefer straightforward dependency-based effects with explicit cleanup; use mutable refs for callback/state bridging only when there is a clear need to avoid stale closures without re-subscribing
-- for file-local TSX helpers (for example table/list `Row`/`Cell` components), use the shortest unambiguous names in that file (`Row`, `ProviderCell`, `StatusCell`) and avoid repeating page context prefixes already implied by the file path
+- for file-local TSX helpers and feature-local exports, use the shortest unambiguous names the file/path context already provides (`Row`, `ProviderCell`, `StatusCell`, `SummaryRow`, `EntryCard`); drop repeated feature prefixes when the symbol stays within one feature subtree, but keep the nearest useful qualifier when a bare name would be vague or collide
 - for conditional JSX branches that render nothing, prefer `: null` over `: undefined` in ternaries for consistency and clearer intent
 - for JSX form submit handlers, prefer `SubmitEventHandler<HTMLFormElement>` so `currentTarget`/`submitter` stay precisely typed without extra casts
 - keep tiny general-purpose helpers in existing utility modules (`app/views/lib/utils.ts`, `app/views/lib/format.ts`) instead of creating new one-off files
@@ -528,7 +528,7 @@ Most tests require app lifespan + DB services. Start services with `dev-start` b
 `format` performs multi-language checks and fixes:
 
 - python: ruff import/order + format + lint
-- ts/tsx/json: biome format
+- ts/tsx/json: oxfmt
 - ts lint: oxlint
 - scss: stylelint
 - proto: buf format + buf lint

@@ -13,9 +13,9 @@ import { configureRouter } from "@index/router"
 import { RoutingRoute } from "@index/routing"
 import { SearchRoute } from "@index/search"
 import type { RightSidebarKind } from "@index/sidebar/_toggle-button"
-import { LayerSidebarToggleControl } from "@index/sidebar/layers"
-import { LegendSidebarToggleControl } from "@index/sidebar/legend"
-import { ShareSidebarToggleControl } from "@index/sidebar/share"
+import { LayersSidebarControl } from "@index/sidebar/layers"
+import { LegendSidebarControl } from "@index/sidebar/legend"
+import { ShareSidebarControl } from "@index/sidebar/share"
 import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
 import { wrapIdleCallbackStatic } from "@lib/utils"
 import { effect, signal } from "@preact/signals"
@@ -108,9 +108,9 @@ const createMainMap = (
   map.addControl(new ScaleControl({ unit: "metric" }))
   addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
   addControlGroup(map, [
-    new LayerSidebarToggleControl(),
-    new LegendSidebarToggleControl(),
-    new ShareSidebarToggleControl(),
+    new LayersSidebarControl(),
+    new LegendSidebarControl(),
+    new ShareSidebarControl(),
   ])
   addControlGroup(map, [new NewNoteControl()])
   addControlGroup(map, [new QueryFeaturesControl()])

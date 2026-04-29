@@ -2,7 +2,7 @@ import { routerRoute } from "@index/router"
 import { IndexRouterOutlet } from "@index/router-outlet"
 import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar/sidebar-outlet"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { useDisposeLayoutEffect } from "@lib/dispose-scope"
 import { MapAlertPanel, MapAlerts, pushMapAlert } from "@lib/map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@lib/map/main-map"
 import { qsParseAll } from "@lib/qs"
@@ -54,20 +54,20 @@ const IndexPage = () => {
     }
   }, [])
 
-  useDisposeSignalEffect((scope) => {
-    // Track route changes + right sidebar open/close
-    routerRoute.value
-    rightSidebar.value
+  const map = mainMap.value
+  const route = routerRoute.value
+  const sidebarKind = rightSidebar.value
 
+  useDisposeLayoutEffect(() => {
     collapseNavbar()
-    scope.frame(() => mainMap.value!.resize())
-  })
+    map?.resize()
+  }, [map, route, sidebarKind])
 
-  const sidebarOverlay = Boolean(routerRoute.value?.sidebarOverlay)
+  const sidebarOverlay = Boolean(route?.sidebarOverlay)
 
   return (
     <>
-      {mainMap.value && (
+      {map && (
         <div
           class={`sidebar ${sidebarOverlay ? "sidebar-overlay" : ""}`}
           ref={sidebarRef}
@@ -84,7 +84,7 @@ const IndexPage = () => {
         <MapAlerts />
       </div>
 
-      {mainMap.value && <RightSidebarOutlet />}
+      {map && <RightSidebarOutlet />}
     </>
   )
 }

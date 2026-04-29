@@ -12,7 +12,7 @@ class ChangesetExceptionsMixin:
     def changeset_not_found(self, changeset_id: ChangesetId):
         raise APIError(
             status.HTTP_404_NOT_FOUND,
-            detail=f'changeset/{changeset_id} not found',
+            detail='Changeset not found',
         )
 
     @abstractmethod

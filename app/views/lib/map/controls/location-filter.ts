@@ -33,7 +33,7 @@ export class LocationFilterControl implements IControl {
   private _bounds!: Bounds
   private _grabber!: Marker
   private _corners!: Marker[]
-  private _onRenderHandlers: (() => void)[] = []
+  private readonly _onRenderHandlers: (() => void)[] = []
 
   public addTo(map: MaplibreMap, bounds: LngLatBounds) {
     const scope = createDisposeScope()
@@ -65,7 +65,7 @@ export class LocationFilterControl implements IControl {
       [1, minLon, maxLat],
       [2, maxLon, maxLat],
       [3, maxLon, minLat],
-    ]) {
+    ] as const) {
       const corner = new Marker({
         anchor: "center",
         element: createCornerElement(),
@@ -129,19 +129,19 @@ export class LocationFilterControl implements IControl {
         maxLat = lngLat.lat
       }
     } else if (i === 0) {
-      const lngLat = this._corners[0].getLngLat()
+      const lngLat = this._corners[0]!.getLngLat()
       minLon = lngLat.lng
       minLat = lngLat.lat
     } else if (i === 1) {
-      const lngLat = this._corners[1].getLngLat()
+      const lngLat = this._corners[1]!.getLngLat()
       minLon = lngLat.lng
       maxLat = lngLat.lat
     } else if (i === 2) {
-      const lngLat = this._corners[2].getLngLat()
+      const lngLat = this._corners[2]!.getLngLat()
       maxLon = lngLat.lng
       maxLat = lngLat.lat
     } else if (i === 3) {
-      const lngLat = this._corners[3].getLngLat()
+      const lngLat = this._corners[3]!.getLngLat()
       maxLon = lngLat.lng
       minLat = lngLat.lat
     } else {
@@ -160,10 +160,10 @@ export class LocationFilterControl implements IControl {
     const [minLon, minLat, maxLon, maxLat] = this._bounds
     if (i !== -1)
       this._grabber.setLngLat([Math.min(minLon, maxLon), Math.max(minLat, maxLat)])
-    if (i !== 0) this._corners[0].setLngLat([minLon, minLat])
-    if (i !== 1) this._corners[1].setLngLat([minLon, maxLat])
-    if (i !== 2) this._corners[2].setLngLat([maxLon, maxLat])
-    if (i !== 3) this._corners[3].setLngLat([maxLon, minLat])
+    if (i !== 0) this._corners[0]!.setLngLat([minLon, minLat])
+    if (i !== 1) this._corners[1]!.setLngLat([minLon, maxLat])
+    if (i !== 2) this._corners[2]!.setLngLat([maxLon, maxLat])
+    if (i !== 3) this._corners[3]!.setLngLat([maxLon, minLat])
     source.setData(getMaskData(this._bounds))
     for (const handler of this._onRenderHandlers) handler()
   }

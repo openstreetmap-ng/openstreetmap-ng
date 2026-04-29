@@ -3,7 +3,7 @@ import { mountProtoPage } from "@lib/proto-page"
 import { EmailPageSchema, Service } from "@lib/proto/settings_pb"
 import { StandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { SettingsNav } from "./_nav"
+import { Nav } from "./_nav"
 
 mountProtoPage(EmailPageSchema, ({ email }) => (
   <>
@@ -15,7 +15,7 @@ mountProtoPage(EmailPageSchema, ({ email }) => (
       <div class="container">
         <div class="row">
           <div class="col-lg-auto mb-4">
-            <SettingsNav />
+            <Nav />
           </div>
 
           <div class="col-lg">

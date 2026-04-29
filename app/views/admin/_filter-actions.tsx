@@ -26,7 +26,7 @@ export const totalItemsFromPaginationState = (state: StandardPaginationStateVali
     case "knownTotal":
       return totalExtent.value.numItems.toString()
     case "maxDiscoveredPage":
-      return `${Math.max(1, (totalExtent.value - 1) * state.pageSize).toString()}+`
+      return `${Math.max(1, (totalExtent.value - 1) * state.pageSize)}+`
     default:
       throw new Error("Missing pagination total extent")
   }

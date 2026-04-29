@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TypedDict, get_args, overload
+from typing import TypedDict, assert_never, get_args, overload
 
 from shapely import Point
 
@@ -91,7 +91,7 @@ def user_avatar_url(user: User | UserDisplay):
         avatar_id = user['avatar_id']
         assert avatar_id is not None, 'avatar_id must be set'
         return Image.get_avatar_url('custom', avatar_id)
-    raise NotImplementedError(f'Unsupported avatar type {avatar_type!r}')
+    assert_never(avatar_type)
 
 
 @overload

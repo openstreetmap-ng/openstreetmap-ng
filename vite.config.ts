@@ -1,12 +1,12 @@
+import { assert } from "@std/assert"
+import { parse as parseToml } from "@std/toml"
+import legacy from "@vitejs/plugin-legacy"
+import autoprefixer from "autoprefixer"
 import { execSync } from "node:child_process"
 import { globSync, readFileSync, rmSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { assert } from "@std/assert"
-import { parse as parseToml } from "@std/toml"
-import legacy from "@vitejs/plugin-legacy"
-import autoprefixer from "autoprefixer"
 import { PurgeCSS } from "purgecss"
 import { visualizer } from "rollup-plugin-visualizer"
 import rtlcss from "rtlcss"
@@ -153,7 +153,7 @@ export default defineConfig({
   plugins: [
     Macros(),
     legacy({
-      modernTargets: browserslist[0],
+      modernTargets: browserslist[0]!,
       modernPolyfills: true,
       renderLegacyChunks: false,
     }),
@@ -202,8 +202,8 @@ export default defineConfig({
 
           const mod = await server.ssrLoadModule(inlinePath)
           const css =
-            (mod && typeof mod.default === "string" && mod.default) ||
-            (mod && typeof mod.css === "string" && mod.css)
+            (typeof mod.default === "string" && mod.default) ||
+            (typeof mod.css === "string" && mod.css)
           assert(typeof css === "string")
 
           res.setHeader("Content-Type", "text/css")
@@ -236,9 +236,7 @@ export default defineConfig({
               safelist: PURGECSS_SAFELIST,
               defaultExtractor: PURGECSS_EXTRACTOR,
             })
-            if (result) {
-              chunk.source = result.css
-            }
+            chunk.source = result!.css
           }),
         )
       },
@@ -284,7 +282,7 @@ export default defineConfig({
           for (const file of globSync(pattern)) {
             const content = readFileSync(file, "utf8")
             for (const match of content.matchAll(biPattern)) {
-              usedIcons.add(match[1])
+              usedIcons.add(match[1]!)
             }
           }
         }
@@ -312,7 +310,7 @@ export default defineConfig({
 
         // Build unicode list
         const unicodes = [...usedIcons]
-          .map((icon) => `U+${iconsMap[icon].toString(16).toUpperCase()}`)
+          .map((icon) => `U+${iconsMap[icon]!.toString(16).toUpperCase()}`)
           .join(",")
 
         // Generate subset font

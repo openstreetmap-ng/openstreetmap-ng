@@ -7,10 +7,24 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetId
+from app.models.types import ChangesetId, UserId
 
 
 class ChangesetCommentQuery:
+    @staticmethod
+    async def count_by_user(user_id: UserId) -> int:
+        async with (
+            db() as conn,
+            await conn.execute(
+                """
+                SELECT COUNT(*) FROM changeset_comment
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            ) as r,
+        ):
+            return (await r.fetchone())[0]  # type: ignore
+
     @staticmethod
     async def resolve_num_comments(changesets: list[Changeset]) -> None:
         """Resolve the number of comments for each changeset."""

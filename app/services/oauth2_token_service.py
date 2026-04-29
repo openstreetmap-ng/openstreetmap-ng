@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from random import random
-from typing import Any, Literal, overload
+from typing import Any, Literal, assert_never, overload
 
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
@@ -232,9 +232,7 @@ class OAuth2TokenService:
                     ):
                         raise_for.oauth2_bad_verifier(code_challenge_method)
                 else:
-                    raise NotImplementedError(  # noqa: TRY301
-                        f'Unsupported OAuth2 code challenge method {token["code_challenge_method"]!r}'
-                    )
+                    assert_never(code_challenge_method)
 
             except Exception:
                 # Delete the token if verification fails

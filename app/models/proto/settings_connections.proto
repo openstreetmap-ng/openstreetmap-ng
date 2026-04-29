@@ -13,12 +13,7 @@ enum Provider {
 }
 
 message Page {
-  message Entry {
-    Provider provider = 1;
-    bool connected = 2;
-  }
-
-  repeated Entry providers = 1;
+  repeated Provider connected_providers = 1;
 }
 
 service Service {

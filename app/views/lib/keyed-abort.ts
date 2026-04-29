@@ -1,6 +1,6 @@
 import { type ReadonlySignal, signal } from "@preact/signals"
 
-export type KeyedAbort = Readonly<{
+type KeyedAbort = Readonly<{
   pending: ReadonlySignal<boolean>
   abort: () => void
   start: (nextKey: string) => KeyedAbortToken | null

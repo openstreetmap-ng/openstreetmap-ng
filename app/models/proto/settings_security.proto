@@ -56,7 +56,7 @@ message SetupTotpRequest {
       8
     ]
   }];
-  string totp_code = 3 [(buf.validate.field).string.pattern = "^(?:[0-9]{6}|[0-9]{8})$"];
+  uint32 totp_code = 3 [(buf.validate.field).uint32.lt = 100000000];
 }
 
 message SetupTotpResponse {

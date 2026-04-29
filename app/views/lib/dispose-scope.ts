@@ -95,7 +95,7 @@ export const createDisposeScope = (): DisposeScope => {
 
     for (let i = disposers.length - 1; i >= 0; i--) {
       try {
-        disposers[i]()
+        disposers[i]!()
       } catch (error) {
         console.error("DisposeScope: disposer threw", error)
       }
@@ -140,7 +140,11 @@ export const createDisposeScope = (): DisposeScope => {
     let pendingArgs: Args | null = null
     let startTime: DOMHighResTimeStamp | null = null
 
-    let scheduled: Scheduled<(...args: Args) => void>
+    const scheduled: Scheduled<(...args: Args) => void> = ((...args: Args) => {
+      pendingArgs = args
+      rafId ??= requestAnimationFrame(run)
+    }) as Scheduled<(...args: Args) => void>
+
     const run = (time: DOMHighResTimeStamp) => {
       if (isDisposed) return
       const args = pendingArgs!
@@ -148,13 +152,9 @@ export const createDisposeScope = (): DisposeScope => {
       pendingArgs = null
       startTime ??= time
       fn({ time, startTime, next: () => scheduled(...args) }, ...args)
+      // oxlint-disable-next-line typescript/no-unnecessary-condition
       if (rafId === null) startTime = null
     }
-
-    scheduled = ((...args: Args) => {
-      pendingArgs = args
-      rafId ??= requestAnimationFrame(run)
-    }) as Scheduled<(...args: Args) => void>
 
     scheduled.cancel = () => {
       if (rafId === null) return

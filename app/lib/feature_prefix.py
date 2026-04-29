@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import overload
+from typing import assert_never, overload
 
 import cython
 
@@ -103,4 +103,4 @@ def _feature_prefix_type(type: ElementType):
     if type == 'relation':
         return t('javascripts.query.relation')
 
-    raise NotImplementedError(f'Unsupported element type {type!r}')
+    assert_never(type)

@@ -1,7 +1,7 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { isLatitude, isLongitude } from "@lib/coords"
+import { tryParseLonLat } from "@lib/coords"
 import { CopyField } from "@lib/copy-group"
 import { useDisposeEffect } from "@lib/dispose-scope"
 import { shareExportFormatStorage } from "@lib/local-storage"
@@ -322,7 +322,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   )
 }
 
-export class ShareSidebarToggleControl extends SidebarToggleControl {
+export class ShareSidebarControl extends SidebarToggleControl {
   public constructor() {
     super("share", t("javascripts.share.title"))
   }
@@ -332,16 +332,17 @@ export class ShareSidebarToggleControl extends SidebarToggleControl {
 
     effect(() => {
       const { queryParams } = routerCtx.value
-      const mlonText = queryParams.mlon?.at(-1)
-      const mlatText = queryParams.mlat?.at(-1)
-      if (mlonText && mlatText) {
-        const mlon = Number.parseFloat(mlonText)
-        const mlat = Number.parseFloat(mlatText)
-        if (isLongitude(mlon) && isLatitude(mlat)) {
-          ensureUrlMarker("ShareSidebar: Initializing marker from URL", map, mlon, mlat)
-        } else {
-          removeUrlMarker()
-        }
+      const location = tryParseLonLat(
+        queryParams.mlon?.at(-1),
+        queryParams.mlat?.at(-1),
+      )
+      if (location) {
+        ensureUrlMarker(
+          "ShareSidebar: Initializing marker from URL",
+          map,
+          location[0],
+          location[1],
+        )
       } else if (queryParams.m !== undefined) {
         const { lon, lat } = getInitialMapState(map)
         ensureUrlMarker("ShareSidebar: Initializing marker at center", map, lon, lat)

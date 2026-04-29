@@ -479,7 +479,7 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
   )
 }
 
-export class LayerSidebarToggleControl extends SidebarToggleControl {
+export class LayersSidebarControl extends SidebarToggleControl {
   public constructor() {
     super("layers", t("javascripts.map.layers.title"))
   }

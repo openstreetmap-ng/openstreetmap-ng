@@ -222,7 +222,7 @@ const getCircleFeature = (
     cosTheta = newCosTheta
     sinTheta = newSinTheta
   }
-  coords.push(coords[0])
+  coords.push(coords[0]!)
 
   return {
     type: "FeatureCollection",

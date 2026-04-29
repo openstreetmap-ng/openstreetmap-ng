@@ -26,7 +26,7 @@ from app.models.proto.settings_pb2 import (
     UpdateTimezoneRequest,
     UpdateTimezoneResponse,
 )
-from app.models.proto.shared_pb2 import UserSocial as ProtoUserSocial
+from app.models.proto.shared_pb2 import UserSocial
 from app.models.types import DisplayName, Email, LocaleCode
 from app.queries.user_profile_query import UserProfileQuery
 from app.services.user_profile_service import UserProfileService
@@ -84,7 +84,7 @@ class _Service(Service):
         await UserProfileService.update_socials(socials=socials)
 
         return UpdateSocialsResponse(
-            socials=[ProtoUserSocial(service=s.service, value=s.value) for s in socials]
+            socials=[UserSocial(service=s.service, value=s.value) for s in socials]
         )
 
     @override

@@ -1,17 +1,14 @@
 import { Time } from "@lib/datetime-inputs"
 import { tRich } from "@lib/i18n"
-import type {
-  EditPage_Application,
-  EditPage_ConnectedAccountValid,
-  EditPage_Token,
-} from "@lib/proto/admin_users_pb"
+import type { EditPage_ConnectedAccountValid } from "@lib/proto/admin_users_pb"
+import type { ApplicationValid, TokenValid } from "@lib/proto/settings_applications_pb"
 import { EditPageSchema, Role, Service } from "@lib/proto/admin_users_pb"
 import { mountProtoPage } from "@lib/proto-page"
 import { StandardForm } from "@lib/standard-form"
 import { throwAbortError } from "@lib/utils"
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
-import { useEffect, useRef } from "preact/hooks"
+import { useRef } from "preact/hooks"
 import {
   ApplicationAccordionEntry,
   TokenAccordionEntry,
@@ -26,7 +23,7 @@ const TABS = [
   ["tokens", t("settings.my_tokens.title")],
 ] as const
 
-const ApplicationEntry = ({ entry }: { entry: EditPage_Application }) => (
+const ApplicationEntry = ({ entry }: { entry: ApplicationValid }) => (
   <ApplicationAccordionEntry
     avatarUrl={entry.avatarUrl}
     name={entry.name}
@@ -40,11 +37,7 @@ const ApplicationEntry = ({ entry }: { entry: EditPage_Application }) => (
         <>
           <i class="bi bi-person-fill text-primary" />{" "}
           {tRich("settings.owned_by_user", {
-            name: (
-              <a href={`/user-id/${entry.owner.id.toString()}`}>
-                {entry.owner.displayName}
-              </a>
-            ),
+            name: <a href={`/user-id/${entry.owner.id}`}>{entry.owner.displayName}</a>,
           })}
         </>
       ) : (
@@ -60,9 +53,9 @@ const ApplicationEntry = ({ entry }: { entry: EditPage_Application }) => (
   />
 )
 
-const TokenEntry = ({ token }: { token: EditPage_Token }) => (
+const TokenEntry = ({ token }: { token: TokenValid }) => (
   <TokenAccordionEntry
-    name={token.name ?? ""}
+    name={token.name}
     timestamp={
       token.authorizedAt
         ? { kind: "updated", unix: token.authorizedAt }
@@ -82,7 +75,13 @@ const ProviderCell = ({
 }) => (
   <ProviderIdentity provider={connection.provider}>
     <p class="form-text mb-0">
-      UID: <code>{connection.uid}</code> ·{" "}
+      UID: <code>{connection.uid}</code>
+      <span
+        class="mx-1"
+        aria-hidden="true"
+      >
+        ·
+      </span>
       <Time
         unix={connection.createdAt}
         dateStyle="long"
@@ -121,17 +120,6 @@ mountProtoPage(
     const newPasswordInputRef = useRef<HTMLInputElement>(null)
     const newPasswordConfirmInputRef = useRef<HTMLInputElement>(null)
 
-    const syncPasswordValidity = () => {
-      const password = newPasswordInputRef.current?.value ?? ""
-      const confirm = newPasswordConfirmInputRef.current?.value ?? ""
-      const message =
-        confirm && password !== confirm ? t("validation.passwords_missmatch") : ""
-      if (newPasswordConfirmInputRef.current) {
-        newPasswordConfirmInputRef.current.setCustomValidity(message)
-      }
-    }
-    useEffect(syncPasswordValidity, [])
-
     const renderAccountTab = () => (
       <div>
         <h3 class="mb-3">Account information</h3>
@@ -164,7 +152,7 @@ mountProtoPage(
               userId: account.value.id,
               displayName: (formData.get("display_name") as string) || undefined,
               email: (formData.get("email") as string) || undefined,
-              emailVerified: formData.get("email_verified") === "true",
+              emailVerified: formData.has("email_verified"),
               roles: nextRoles,
               newPassword: passwords.new_password,
             }
@@ -212,7 +200,6 @@ mountProtoPage(
                 class="form-check-input"
                 type="checkbox"
                 name="email_verified"
-                value="true"
                 defaultChecked={account.value.emailVerified}
               />
               Email verified
@@ -224,10 +211,7 @@ mountProtoPage(
           <h4 class="mb-3">Roles</h4>
           <div class="mb-3">
             {[Role.moderator, Role.administrator].map((role) => (
-              <div
-                key={role}
-                class="form-check"
-              >
+              <div class="form-check">
                 <label class="form-check-label">
                   <input
                     class="form-check-input role-checkbox"
@@ -257,7 +241,6 @@ mountProtoPage(
               class="form-control mt-2"
               name="new_password"
               ref={newPasswordInputRef}
-              onInput={syncPasswordValidity}
             />
           </label>
           <p class="form-text">Leave blank to keep current password</p>
@@ -269,7 +252,6 @@ mountProtoPage(
               class="form-control mt-2"
               name="new_password_confirm"
               ref={newPasswordConfirmInputRef}
-              onInput={syncPasswordValidity}
             />
           </label>
 
@@ -287,21 +269,17 @@ mountProtoPage(
 
         <h4 class="mb-3">{t("two_fa.two_factor_methods")}</h4>
         <div class="d-flex gap-3">
-          <i
-            class={`bi bi-fingerprint fs-4 ${
-              twoFactorStatus.value.hasPasskeys ? "text-success" : "text-body-tertiary"
-            }`}
-          />
-          <i
-            class={`bi bi-phone fs-4 ${
-              twoFactorStatus.value.hasTotp ? "text-success" : "text-body-tertiary"
-            }`}
-          />
-          <i
-            class={`bi bi-file-text fs-4 ${
-              twoFactorStatus.value.hasRecovery ? "text-success" : "text-body-tertiary"
-            }`}
-          />
+          {[
+            { icon: "fingerprint", enabled: twoFactorStatus.value.hasPasskeys },
+            { icon: "phone", enabled: twoFactorStatus.value.hasTotp },
+            { icon: "file-text", enabled: twoFactorStatus.value.hasRecovery },
+          ].map(({ icon, enabled }) => (
+            <i
+              class={`bi bi-${icon} fs-4 ${
+                enabled ? "text-success" : "text-body-tertiary"
+              }`}
+            />
+          ))}
 
           {(twoFactorStatus.value.hasPasskeys || twoFactorStatus.value.hasTotp) && (
             <StandardForm
@@ -351,7 +329,7 @@ mountProtoPage(
 
             <div class="row mb-3">
               <div class="col-auto">
-                <a href={`/user-id/${account.value.id.toString()}`}>
+                <a href={`/user-id/${account.value.id}`}>
                   <img
                     class="avatar"
                     src={account.value.avatarUrl}
@@ -363,7 +341,7 @@ mountProtoPage(
                 <h1 class="mb-2">
                   <a
                     class="link-body-emphasis text-decoration-none"
-                    href={`/user-id/${account.value.id.toString()}`}
+                    href={`/user-id/${account.value.id}`}
                   >
                     {account.value.displayName}
                   </a>
@@ -378,7 +356,7 @@ mountProtoPage(
                       timeStyle="short"
                     />
                   </span>
-                  <a href={`/audit?user=${account.value.id.toString()}`}>
+                  <a href={`/audit?user=${account.value.id}`}>
                     <i class="bi bi-journal-text me-1-5" />
                     Audit logs
                   </a>
@@ -422,9 +400,7 @@ mountProtoPage(
                       }
                       return { userId: account.value.id }
                     }}
-                    onSuccess={(resp) => {
-                      window.location.href = resp.redirectUrl || "/"
-                    }}
+                    onSuccess={(_, ctx) => ctx.redirect("/")}
                     class="impersonate-form"
                   >
                     <button
@@ -443,10 +419,7 @@ mountProtoPage(
               <nav>
                 <ul class="nav nav-underline gap-2 gap-sm-3 justify-content-around justify-content-sm-start mb-4">
                   {TABS.map(([tab, label]) => (
-                    <li
-                      key={tab}
-                      class="nav-item"
-                    >
+                    <li class="nav-item">
                       <button
                         type="button"
                         class={`nav-link ${activeTab.value === tab ? "active" : ""}`}

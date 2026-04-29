@@ -90,14 +90,19 @@ const NoteListItem = ({ note }: { note: GetUserPageResponse_SummaryValid }) => {
                       relativeStyle="long"
                     />
                   </span>
-                  <span class="d-none d-md-block">·</span>
+                  <span
+                    class="d-none d-md-block"
+                    aria-hidden="true"
+                  >
+                    ·
+                  </span>
                 </>
               )}
               <a
                 class="stretched-link"
                 href={`/note/${note.id}`}
               >
-                {note.id.toString()}
+                {note.id}
               </a>
             </div>
           </div>
@@ -202,15 +207,22 @@ mountProtoPage(UserPageSchema, ({ user: { id: userId, displayName, avatarUrl } }
                       })
                     }
                   >
-                    <option value={GetUserPageRequest_StatusFilter.any}>
-                      {t("state.any")}
-                    </option>
-                    <option value={GetUserPageRequest_StatusFilter.open}>
-                      {t("state.unresolved")}
-                    </option>
-                    <option value={GetUserPageRequest_StatusFilter.closed}>
-                      {t("state.resolved")}
-                    </option>
+                    {[
+                      {
+                        value: GetUserPageRequest_StatusFilter.any,
+                        label: t("state.any"),
+                      },
+                      {
+                        value: GetUserPageRequest_StatusFilter.open,
+                        label: t("state.unresolved"),
+                      },
+                      {
+                        value: GetUserPageRequest_StatusFilter.closed,
+                        label: t("state.resolved"),
+                      },
+                    ].map(({ value, label }) => (
+                      <option value={value}>{label}</option>
+                    ))}
                   </select>
                 </div>
               </li>
@@ -229,6 +241,7 @@ mountProtoPage(UserPageSchema, ({ user: { id: userId, displayName, avatarUrl } }
                 commented,
                 status: route.query.value.status,
               }}
+              urlKey="page"
               small
               navTop
               navClassBottom="mb-0"

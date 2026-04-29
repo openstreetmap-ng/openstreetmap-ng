@@ -161,7 +161,6 @@ UNSUPPORTED_BROWSER_OVERRIDE_MAX_AGE = timedelta(days=365)
 EMAIL_MIN_LENGTH = 5
 EMAIL_MAX_LENGTH = EMAIL_MAX_LENGTH_RFC
 PASSWORD_MIN_LENGTH = 6  # TODO: check pwned passwords
-DISPLAY_NAME_MAX_LENGTH = 255
 ACTIVE_SESSIONS_DISPLAY_LIMIT = 100
 USER_PENDING_EXPIRE = timedelta(days=365)  # 1 year
 USER_SCHEDULED_DELETE_DELAY = timedelta(days=7)
@@ -325,7 +324,6 @@ TRACES_LIST_PAGE_SIZE = 30
 # Diary
 DIARY_LIST_PAGE_SIZE = 15
 DIARY_COMMENTS_PAGE_SIZE = 10
-LOCALE_CODE_MAX_LENGTH = 15
 
 # Messages
 MESSAGES_INBOX_PAGE_SIZE = 15
@@ -544,6 +542,12 @@ DIARY_BODY_MAX_LENGTH: int = _proto_validate(
 )
 DIARY_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     diary_pb2.AddCommentRequest, 'body.string.max_len'
+)
+DISPLAY_NAME_MAX_LENGTH: int = _proto_validate(
+    settings_pb2.UpdateSettingsRequest, 'display_name.string.max_len'
+)
+LOCALE_CODE_MAX_LENGTH: int = _proto_validate(
+    settings_pb2.UpdateSettingsRequest, 'language.string.max_len'
 )
 MESSAGE_BODY_MAX_LENGTH: int = _proto_validate(
     message_pb2.SendRequest, 'body.string.max_len'

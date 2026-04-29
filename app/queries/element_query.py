@@ -1,5 +1,5 @@
 from asyncio import TaskGroup
-from typing import Any, Literal, LiteralString
+from typing import Any, Literal, LiteralString, assert_never
 
 from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
@@ -500,7 +500,7 @@ class ElementQuery:
         elif parent_type == 'relation':
             conditions.append(SQL('typed_id >= 2305843009213693952'))
         else:
-            raise NotImplementedError(f'Unsupported parent type {parent_type!r}')
+            assert_never(parent_type)
 
         if limit is not None:
             limit_clause = SQL('LIMIT %s')

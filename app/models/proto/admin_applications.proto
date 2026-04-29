@@ -17,7 +17,7 @@ service Service {
 }
 
 message ListRequest {
-  optional StandardPaginationRequest state = 1;
+  StandardPaginationRequest state = 1;
   Filters filters = 2 [(buf.validate.field).required = true];
 }
 

@@ -16,16 +16,16 @@ import {
 } from "@lib/map/layers/focus-layer"
 import {
   type AddCommentResponseValid,
+  type DataValid,
   GetCommentsResponse_Comment_Event as Event,
   type GetCommentsResponse_CommentValid,
   type GetCommentsResponseValid,
-  type DataValid,
   Service,
   Status,
 } from "@lib/proto/note_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
-import { StandardPagination } from "@lib/standard-pagination"
+import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { setPageTitle } from "@lib/title"
 import {
   type ReadonlySignal,
@@ -34,6 +34,7 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import { assertNever } from "@std/assert/unstable-never"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { showLoginModal } from "../user/login"
@@ -65,6 +66,8 @@ const getEventLabel = (event: Event) => {
       return t("action.reactivated")
     case Event.hidden:
       return t("action.hidden")
+    default:
+      assertNever(event)
   }
 }
 
@@ -318,7 +321,7 @@ const SubscriptionForm = ({
     class="col-auto subscription-form"
     method={Service.method.updateSubscription}
     buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
-    onSuccess={(resp) => (isSubscribed.value = resp.isSubscribed)}
+    onSuccess={(_, ctx) => (isSubscribed.value = ctx.request.isSubscribed)}
   >
     <button
       class="btn btn-sm btn-soft"
@@ -482,8 +485,9 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           <StandardPagination
             method={Service.method.getComments}
             request={{ id: d.id }}
+            urlKey="page"
             ariaLabel={t("alt.comments_page_navigation")}
-            pageOrder="desc"
+            pageOrder={PageOrder.desc}
             responseSignal={preloadedComments}
             small
           >

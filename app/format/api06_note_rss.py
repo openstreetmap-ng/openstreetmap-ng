@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from typing import assert_never
 
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
@@ -125,4 +126,4 @@ async def _encode_note_comment(fe: FeedEntry, comment: NoteComment):
     elif comment_event == 'hidden':
         fe.title(t('api.notes.rss.hidden', place=place))
     else:
-        raise NotImplementedError(f'Unsupported note event {comment_event!r}')
+        assert_never(comment_event)

@@ -12,11 +12,11 @@ import { type FitBoundsOptions, fitBoundsIfNeeded } from "../bounds"
 import { renderObjects } from "../render-objects"
 import {
   type AddMapLayerOptions,
+  type LayerId,
+  type LayerType,
   addMapLayer,
   emptyFeatureCollection,
   getExtendedLayerId,
-  type LayerId,
-  type LayerType,
   layersConfig,
 } from "./layers"
 
@@ -149,14 +149,14 @@ export const focusObjects = (
 const getGeometryBounds = (g: Geometry) => {
   if (g.type === "Point") {
     const [lon, lat] = g.coordinates
-    return new LngLatBounds([lon, lat, lon, lat])
+    return new LngLatBounds([lon!, lat!, lon!, lat!])
   }
   if (g.type === "LineString") {
     return g.coordinates //
       .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), new LngLatBounds())
   }
   if (g.type === "Polygon") {
-    const outer = g.coordinates[0]
+    const outer = g.coordinates[0]!
     return outer
       .slice(0, -1)
       .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), new LngLatBounds())
@@ -164,7 +164,7 @@ const getGeometryBounds = (g: Geometry) => {
   if (g.type === "MultiPolygon") {
     let bounds = new LngLatBounds()
     for (const polygon of g.coordinates) {
-      const outer = polygon[0]
+      const outer = polygon[0]!
       bounds = outer
         .slice(0, -1)
         .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), bounds)

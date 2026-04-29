@@ -2,7 +2,7 @@ import logging
 from asyncio import TaskGroup
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Final, Literal, assert_never
 
 import cython
 import numpy as np
@@ -392,7 +392,7 @@ class OptimisticDiffPrepare:
         elif element_type == 'relation':
             self._push_bbox_relation_info(prev, element)
         else:
-            raise NotImplementedError(f'Unsupported element type {element_type!r}')
+            assert_never(element_type)
 
     def _push_bbox_node_info(self, prev: ElementInit | None, element: ElementInit):
         """Push bbox info for a node."""

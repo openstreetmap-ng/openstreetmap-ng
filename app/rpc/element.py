@@ -37,8 +37,12 @@ from app.models.proto.element_pb2 import (
     GetResponse,
     RenderData,
 )
-from app.models.proto.shared_pb2 import ElementIcon, ElementVersionRef, LonLat
-from app.models.proto.shared_pb2 import ElementType as ProtoElementType
+from app.models.proto.shared_pb2 import (
+    ElementIcon,
+    ElementType,
+    ElementVersionRef,
+    LonLat,
+)
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -81,7 +85,7 @@ class _Service(Service):
     async def get(self, request: GetRequest, ctx: RequestContext):
         ref_kind = request.WhichOneof('ref')
         ref: ElementVersionRef = getattr(request, ref_kind)
-        tid = typed_element_id(ProtoElementType.Name(ref.type), ElementId(ref.id))
+        tid = typed_element_id(ElementType.Name(ref.type), ElementId(ref.id))
 
         at_sequence_id = await ElementQuery.get_current_sequence_id()
 
@@ -109,9 +113,9 @@ class _Service(Service):
 
     @override
     async def get_history(self, request: GetHistoryRequest, ctx: RequestContext):
-        type = ProtoElementType.Name(request.element.type)
+        element_type = ElementType.Name(request.element.type)
         id = ElementId(request.element.id)
-        tid = typed_element_id(type, id)
+        tid = typed_element_id(element_type, id)
 
         elements, state = await sp_paginate_query(
             Element,

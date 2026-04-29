@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, TypedDict, assert_never
 
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
@@ -411,7 +411,7 @@ class UserQuery:
         elif sort == 'created_asc':
             order_dir = SQL('ASC')
         else:
-            raise NotImplementedError(f'Unsupported sort {sort!r}')
+            assert_never(sort)
 
         query = SQL("""
             SELECT id FROM "user"

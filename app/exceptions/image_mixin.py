@@ -8,9 +8,7 @@ class ImageExceptionsMixin:
         raise APIError(status.HTTP_404_NOT_FOUND, detail='Image not found')
 
     def image_too_big(self):
-        raise APIError(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, detail='Image is too large'
-        )
+        raise APIError(status.HTTP_413_CONTENT_TOO_LARGE, detail='Image is too large')
 
     def image_inappropriate(self):
         raise APIError(

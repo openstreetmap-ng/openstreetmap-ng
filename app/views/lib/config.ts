@@ -1,6 +1,5 @@
-import { base64Decode } from "@bufbuild/protobuf/wire"
 import { WebConfigSchema } from "@lib/proto/shared_pb"
-import { fromBinaryValid } from "@lib/rpc"
+import { fromBase64Valid } from "@lib/rpc"
 import { memoize } from "@std/cache/memoize"
 import { ENV, SENTRY_DSN, VERSION } from "./config.macro" with { type: "macro" }
 
@@ -22,9 +21,9 @@ const BOOTSTRAP_BREAKPOINT_ORDER = Object.keys(
 type BootstrapBreakpoint = keyof typeof BOOTSTRAP_BREAKPOINTS
 
 /** Global dataset options that are defined on <html> tag */
-export const config = fromBinaryValid(
+export const config = fromBase64Valid(
   WebConfigSchema,
-  base64Decode(document.documentElement.dataset.config!),
+  document.documentElement.dataset.config!,
 )
 console.info("Application version", VERSION)
 
@@ -39,7 +38,7 @@ export const activityTracking = config.userConfig?.activityTracking ?? DEFAULT_T
 export const isCrashReportingEnabled = (cfg: typeof config) =>
   Boolean(
     SENTRY_DSN &&
-      (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
+    (ENV === "test" || (cfg.userConfig?.crashReporting ?? DEFAULT_TRACKING)),
   )
 
 export const isLoggedIn = Boolean(config.userConfig)

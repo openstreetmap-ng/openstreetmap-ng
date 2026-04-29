@@ -32,22 +32,22 @@ export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
 export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
 
-export const LIBERTY_LAYER_CODE = "L" as LayerCode
-export const CYCLOSM_LAYER_CODE = "Y" as LayerCode
-export const CYCLEMAP_LAYER_CODE = "C" as LayerCode
-export const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
-export const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
-export const HOT_LAYER_CODE = "H" as LayerCode
+const LIBERTY_LAYER_CODE = "L" as LayerCode
+const CYCLOSM_LAYER_CODE = "Y" as LayerCode
+const CYCLEMAP_LAYER_CODE = "C" as LayerCode
+const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
+const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
+const HOT_LAYER_CODE = "H" as LayerCode
 
 export const AERIAL_LAYER_ID = "aerial" as LayerId
 export const NOTES_LAYER_ID = "notes" as LayerId
 export const DATA_LAYER_ID = "data" as LayerId
 export const GPS_LAYER_ID = "gps" as LayerId
 
-export const AERIAL_LAYER_CODE = "A" as LayerCode
+const AERIAL_LAYER_CODE = "A" as LayerCode
 export const NOTES_LAYER_CODE = "N" as LayerCode
 export const DATA_LAYER_CODE = "D" as LayerCode
-export const GPS_LAYER_CODE = "G" as LayerCode
+const GPS_LAYER_CODE = "G" as LayerCode
 
 const HIGH_RES_TILES = window.devicePixelRatio > 1
 const THUNDERFOREST_API_KEY = "9b990c27013343a99536213faee0983e"

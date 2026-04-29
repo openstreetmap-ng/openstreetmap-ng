@@ -11,7 +11,6 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import format_rfc2822_date, utcnow
 from app.lib.translation import nt, primary_translation_locale, t
 from app.lib.vite import vite_render_asset
-from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.models.db.oauth2_application import oauth2_app_avatar_url
 from app.models.db.user import (
     user_avatar_url,
@@ -148,7 +147,6 @@ def stripspecial(value: str):
 
 # configure template globals
 _J2.globals.update(
-    CONFIGURED_AUTH_PROVIDERS=CONFIGURED_AUTH_PROVIDERS,
     format_rfc2822_date=format_rfc2822_date,
     nt=nt,
     oauth2_app_avatar_url=oauth2_app_avatar_url,

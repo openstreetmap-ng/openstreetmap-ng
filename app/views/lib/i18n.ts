@@ -12,6 +12,7 @@ void init({
   lng: primaryLanguage,
   fallbackLng: primaryLanguage === "en" ? false : "en",
   contextSeparator: "__",
+  showSupportNotice: false,
   resources: resources,
 })
 
@@ -71,7 +72,7 @@ export const tRich = (key: string, options?: Record<string, unknown>) => {
     return [name, token]
   })
 
-  const translated = t(key, tokenized as any)
+  const translated = t(key, tokenized)
   // oxlint-disable-next-line typescript/no-base-to-string
   const content = typeof translated === "string" ? translated : String(translated)
   return interleaveTokens(content, replacements)

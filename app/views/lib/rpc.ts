@@ -6,9 +6,9 @@ import {
   type MessageInitShape,
   type MessageValidType,
 } from "@bufbuild/protobuf"
-import type { CallOptions, ConnectError } from "@connectrpc/connect"
-import { createClient } from "@connectrpc/connect"
+import { type CallOptions, ConnectError, createClient } from "@connectrpc/connect"
 import { createConnectTransport } from "@connectrpc/connect-web"
+import { base64Decode } from "@bufbuild/protobuf/wire"
 import { StandardFeedbackDetailSchema } from "@lib/proto/shared_pb"
 import { memoize } from "@std/cache/memoize"
 
@@ -17,16 +17,21 @@ export const fromBinaryValid = <Desc extends DescMessage>(
   bytes: Uint8Array,
 ) => fromBinary(schema, bytes) as MessageValidType<Desc>
 
-export const connectErrorToStandardFeedback = (err: ConnectError) => {
+export const fromBase64Valid = <Desc extends DescMessage>(schema: Desc, data: string) =>
+  fromBinaryValid(schema, base64Decode(data))
+
+export const connectErrorToStandardFeedback = (error: unknown) => {
+  const err = ConnectError.from(error)
   const entries = err
     .findDetails(StandardFeedbackDetailSchema)
     .flatMap((d) => d.entries)
   return entries.length ? entries : null
 }
 
-export const connectErrorToMessage = (err: ConnectError) => {
+export const connectErrorToMessage = (error: unknown) => {
+  const err = ConnectError.from(error)
   const feedback = connectErrorToStandardFeedback(err)
-  return feedback ? feedback[0].message : err.rawMessage
+  return feedback ? feedback[0]!.message : err.rawMessage
 }
 
 const rpcTransport = createConnectTransport({
@@ -74,7 +79,7 @@ export const rpcClient = memoize(
 export const rpcUnary = <I extends DescMessage, O extends DescMessage>(
   method: DescMethodUnary<I, O>,
 ) =>
-  rpcClient(method.parent)[method.localName] as (
+  rpcClient(method.parent)[method.localName]! as (
     request: LooseMessageInitShape<I>,
     options?: CallOptions,
   ) => Promise<MessageValidType<O>>

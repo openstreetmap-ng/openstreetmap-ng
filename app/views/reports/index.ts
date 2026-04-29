@@ -13,5 +13,7 @@ mount("reports-body", (body) => {
     window.location.search = FILTER_QUERY.encode({ status })
   })
 
-  configureStandardPagination(body.querySelector("div.reports-pagination"))
+  configureStandardPagination(body.querySelector("div.reports-pagination"), {
+    urlKey: "page",
+  })
 })

@@ -14,7 +14,7 @@ import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 
 // State machine for sidebar async resources
-export type SidebarResource<T> =
+type SidebarResource<T> =
   | { tag: "idle" }
   | { tag: "loading"; prev: T | null }
   | { tag: "ready"; data: T }
@@ -26,7 +26,7 @@ type SidebarFetchResult<T> = {
   data: ReadonlySignal<T | null>
 }
 
-export const SpinnerBorder = () => (
+const SpinnerBorder = () => (
   <output
     class="spinner-border text-body-secondary"
     aria-live="polite"

@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated, Literal, assert_never
 
 from fastapi import APIRouter
 
@@ -26,7 +26,7 @@ async def edit(
     if editor == 'remote':
         return await render_response('index/index')
 
-    raise NotImplementedError(f'Unsupported editor {editor!r}')
+    assert_never(editor)
 
 
 @router.get('/id')

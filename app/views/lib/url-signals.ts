@@ -3,38 +3,19 @@ import type {
   QueryContractEncodeInput,
   QueryContractState,
 } from "@lib/query-contract"
-import { type Signal, signal, useSignal, useSignalEffect } from "@preact/signals"
-
-type UpdateMode = "replace" | "push"
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import { currentUrlSignal, updateUrl, type UrlUpdateMode } from "./url-state"
 
 export type QueryContractSignal<C extends QueryContract<any>> = Signal<
   QueryContractState<C>
 >
 
-const currentUrl = signal(new URL(window.location.href))
-
-window.addEventListener(
-  "popstate",
-  () => (currentUrl.value = new URL(window.location.href)),
-)
-
-const updateUrl = (update: (url: URL) => void, mode: UpdateMode) => {
-  const prev = currentUrl.peek()
-  const url = new URL(prev.href)
-  update(url)
-
-  if (url.href === prev.href) return
-  if (mode === "push") history.pushState(null, "", url)
-  else history.replaceState(null, "", url)
-  currentUrl.value = url
-}
-
 export const useUrlQueryState = <C extends QueryContract<any>>(
   contract: C,
-  options?: { mode?: UpdateMode },
+  options?: { mode?: UrlUpdateMode },
 ) => {
   const mode = options?.mode ?? "replace"
-  const getValue = () => contract.parseSearch(currentUrl.value.search)
+  const getValue = () => contract.parseSearch(currentUrlSignal.value.search)
   const value = useSignal(getValue())
 
   // Effect: URL -> signal
@@ -52,13 +33,13 @@ export const useUrlQueryState = <C extends QueryContract<any>>(
 
 type PathSuffix = "" | `/${string}`
 type PathSuffixSwitchOptions<TKey extends string> = {
-  mode?: UpdateMode
+  mode?: UrlUpdateMode
   defaultKey?: TKey
 }
 
 type PathSuffixQueryStateOptions<TKey extends string> = {
-  pathMode?: UpdateMode
-  queryMode?: UpdateMode
+  pathMode?: UrlUpdateMode
+  queryMode?: UrlUpdateMode
   defaultKey?: TKey
 }
 
@@ -106,7 +87,7 @@ const usePathSuffixSwitch = <
     return { basePathname: pathname, key: fallbackKey }
   }
 
-  const getKeyFromUrl = () => parsePathname(currentUrl.value.pathname).key
+  const getKeyFromUrl = () => parsePathname(currentUrlSignal.value.pathname).key
   const key = useSignal(getKeyFromUrl())
 
   // Effect: URL -> signals
@@ -116,7 +97,7 @@ const usePathSuffixSwitch = <
   })
 
   const href = (nextKey: TKey, hrefOptions?: { search?: string; hash?: string }) => {
-    const prev = currentUrl.peek()
+    const prev = currentUrlSignal.peek()
     const basePathname = parsePathname(prev.pathname).basePathname
     const pathname = (basePathname === "/" ? "" : basePathname) + variants[nextKey]
     const search = hrefOptions?.search ?? prev.search

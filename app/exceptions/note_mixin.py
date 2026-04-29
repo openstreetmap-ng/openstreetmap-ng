@@ -12,7 +12,7 @@ class NoteExceptionsMixin:
     def note_not_found(self, note_id: NoteId):
         raise APIError(
             status.HTTP_404_NOT_FOUND,
-            detail=f'note/{note_id} not found',
+            detail='Note not found',
         )
 
     @abstractmethod

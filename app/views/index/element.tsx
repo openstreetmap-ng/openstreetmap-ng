@@ -12,7 +12,7 @@ import {
   Service,
 } from "@lib/proto/element_pb"
 import { type ElementIconValid, ElementType } from "@lib/proto/shared_pb"
-import { StandardPaginationNav } from "@lib/standard-pagination"
+import { PageOrder, StandardPaginationNav } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
@@ -40,7 +40,7 @@ export const elementFocusPaint: FocusLayerPaint = {
   "circle-stroke-width": 3,
 }
 
-export const ELEMENTS_PER_PAGE = 15
+const ELEMENTS_PER_PAGE = 15
 
 // Paginated element list section
 export const ElementsSection = <T,>({
@@ -80,8 +80,8 @@ export const ElementsSection = <T,>({
         <StandardPaginationNav
           ariaLabel={t("alt.elements_page_navigation")}
           currentPage={page}
-          targetPage={page}
-          pageOrder="asc"
+          setTargetPage={(nextPage) => (page.value = nextPage)}
+          pageOrder={PageOrder.asc}
           maxPage={totalPages}
           numPages={totalPages}
           small
@@ -99,7 +99,7 @@ export const getElementTypeSlug = (type: ElementType) =>
 
 export const ElementTypeParam = pathParam.enum(["node", "way", "relation"])
 export const ElementIdParam = pathParam.positive()
-export const ElementVersionParam = pathParam.positive()
+const ElementVersionParam = pathParam.positive()
 
 const formatElementLocation = ({ lon, lat }: LonLat) =>
   `${lat.toFixed(7)}, ${lon.toFixed(7)}`
@@ -238,12 +238,23 @@ const ElementHistoryLinks = ({ data }: { data: DataValid }) => {
               « v{prev}
             </a>
           )}
-          {prev && " · "}
+          {prev && (
+            <span
+              class="mx-1"
+              aria-hidden="true"
+            >
+              ·
+            </span>
+          )}
           <a href={`/${typeText}/${id}/history`}>{t("browse.view_history")}</a>
           {next && (
             <>
-              {" "}
-              ·{" "}
+              <span
+                class="mx-1"
+                aria-hidden="true"
+              >
+                ·
+              </span>
               <a
                 href={`/${typeText}/${id}/history/${next}`}
                 rel="next"
@@ -367,8 +378,7 @@ const ElementSidebar = ({
                     items={members}
                     title={(count) =>
                       d.ref.type === ElementType.way
-                        ? // @ts-expect-error
-                          t("browse.changeset.node", { count })
+                        ? t("browse.changeset.node", { count })
                         : `${t("browse.relation.members")} (${count})`
                     }
                     renderRow={(el) => <ElementRow element={el} />}
@@ -444,7 +454,12 @@ const ElementRow = ({ element }: { element: Data_Context_EntryValid }) => {
           {element.name && <span>{`#${id}`}</span>}
           {element.roles.length > 0 && (
             <>
-              <span aria-hidden="true"> · </span>
+              <span
+                class="mx-1"
+                aria-hidden="true"
+              >
+                ·
+              </span>
               <span>{element.roles.join(", ")}</span>
             </>
           )}
@@ -465,7 +480,7 @@ export const getElementTypeLabel = (type: ElementType) => {
   }
 }
 
-export const getPaginationCountLabel = (page: number, totalItems: number) => {
+const getPaginationCountLabel = (page: number, totalItems: number) => {
   if (totalItems > ELEMENTS_PER_PAGE) {
     const from = (page - 1) * ELEMENTS_PER_PAGE + 1
     const to = Math.min(page * ELEMENTS_PER_PAGE, totalItems)
