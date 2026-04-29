@@ -55,7 +55,6 @@ import "@lib/timezone-update"
 
 import "./index/app"
 
-import "@lib/auth-switcher"
 import "@lib/bootstrap"
 import "@lib/copy-group"
 import "@lib/multi-input"

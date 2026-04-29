@@ -1,12 +1,24 @@
 @use "sass:color";
 
-.signup-body {
+.signup\.Page {
   display: flex;
   flex-direction: column;
   height: 100vh;
 
+  @include media-breakpoint-up(xl) {
+    overflow: hidden;
+  }
+
+  > [data-page-root] {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .content-body {
+    display: flex;
     flex-grow: 1;
+    min-height: 0;
     padding-right: unset;
     padding-left: unset;
     margin: unset;
@@ -18,7 +30,9 @@
     }
 
     > .row {
+      flex: 1 1 auto;
       height: 100%;
+      min-height: 0;
     }
   }
 
@@ -67,8 +81,6 @@
   }
 
   .brand-title-sm {
-    @extend .display-4;
-
     color: color.adjust($vibrant-green, $saturation: 3%);
 
     img {
@@ -96,6 +108,7 @@
   .signup-content {
     display: flex;
     align-items: center;
+    min-height: 0;
     padding: 2rem;
     border-top: 2.5rem solid var(--bs-tertiary-bg);
 
@@ -115,32 +128,6 @@
         content: "";
         background: var(--bs-tertiary-bg);
       }
-    }
-  }
-
-  .divider {
-    position: relative;
-    text-align: center;
-
-    &::before {
-      @extend .bg-body-secondary;
-
-      position: absolute;
-      top: 50%;
-      right: 0;
-      left: 0;
-      height: 1px;
-      content: "";
-    }
-
-    .divider-text {
-      @extend .text-muted;
-
-      position: relative;
-      top: -1px;
-      padding: 0 1rem;
-      font-size: 0.875rem;
-      background: $modal-content-bg;
     }
   }
 }

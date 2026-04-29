@@ -1,11 +1,19 @@
 .auth-switcher {
-  display: flex;
+  display: grid;
+  grid-auto-columns: 100%;
+  grid-auto-flow: column;
   gap: 1.5rem;
-  overflow: hidden;
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
 
-  > div {
-    flex: 0 0 100%;
-  }
+.auth-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.auth-switcher-pane {
+  min-width: 0;
 }
 
 .auth-switcher-cta {
@@ -21,11 +29,5 @@
 @include color-mode(light) {
   .auth-switcher-cta .btn {
     @extend .link-primary;
-  }
-}
-
-.signup-body .content-body {
-  .auth-switcher-cta .btn {
-    --bs-btn-font-weight: 500;
   }
 }

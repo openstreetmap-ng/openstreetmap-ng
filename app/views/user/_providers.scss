@@ -1,10 +1,5 @@
 @use "sass:map";
 
-.auth-providers {
-  display: grid;
-  gap: 0.5rem;
-}
-
 .auth-providers .btn {
   --bs-btn-padding-y: 0.5rem;
 
