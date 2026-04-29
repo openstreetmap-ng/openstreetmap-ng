@@ -28,20 +28,14 @@ router = APIRouter()
 async def get_inbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_proto_page(
-        IndexPage(inbox=True),
-        title_prefix=t('messages.inbox.title'),
-    )
+    return await render_proto_page(IndexPage(), title_prefix=t('messages.inbox.title'))
 
 
 @router.get('/messages/outbox')
 async def get_outbox(
     _: Annotated[User, web_user()],
 ):
-    return await render_proto_page(
-        IndexPage(inbox=False),
-        title_prefix=t('messages.outbox.title'),
-    )
+    return await render_proto_page(IndexPage(), title_prefix=t('messages.outbox.title'))
 
 
 @router.get('/message/new')

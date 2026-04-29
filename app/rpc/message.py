@@ -160,7 +160,7 @@ class _Service(MessageServiceConnect):
             subject=request.subject,
             body=request.body,
         )
-        return SendResponse(redirect_url=f'/messages/outbox?show={message_id}')
+        return SendResponse(id=message_id)
 
 
 def _build_message_summary(

@@ -9,12 +9,11 @@ import { MultiInput } from "@lib/multi-input"
 import { Service, NewPageSchema } from "@lib/proto/message_pb"
 import { StandardForm } from "@lib/standard-form"
 import { t } from "i18next"
-import { useEffect, useId, useRef } from "preact/hooks"
+import { useEffect, useRef } from "preact/hooks"
 import { RichTextControl } from "../rich-text/_control"
 
 mountProtoPage(NewPageSchema, ({ recipients, subject, body }) => {
   const messageBodyRef = useRef<HTMLTextAreaElement>(null)
-  const recipientId = useId()
 
   useEffect(() => {
     const messageBody = messageBodyRef.current!
@@ -43,27 +42,20 @@ mountProtoPage(NewPageSchema, ({ recipients, subject, body }) => {
               body: formData.get("body") as string,
               recipient: formData.getAll("recipient") as string[],
             })}
-            onSuccess={({ redirectUrl }) => {
-              console.debug("NewMessage: Success", redirectUrl)
-              window.location.href = redirectUrl
-            }}
+            onSuccess={({ id }, ctx) => ctx.redirect(`/messages/outbox?show=${id}`)}
           >
-            <label
-              class="form-label d-block mb-3"
-              for={recipientId}
-            >
+            <label class="form-label d-block mb-3">
               <span class="required">{t("messages.compose.recipients")}</span>
               <div class="mt-2">
                 <MultiInput
                   name="recipient"
-                  id={recipientId}
                   placeholder={t("messages.compose.recipient_placeholder")}
                   defaultValue={recipients}
                   required
                   maxItems={[
                     MESSAGE_RECIPIENTS_LIMIT,
-                    t("validation.you_can_send_message_to_at_most_limit_recipients", {
-                      limit: MESSAGE_RECIPIENTS_LIMIT,
+                    t("validation.you_can_send_message_to_at_most_count_recipients", {
+                      count: MESSAGE_RECIPIENTS_LIMIT,
                     }),
                   ]}
                   maxItemLength={DISPLAY_NAME_MAX_LENGTH}

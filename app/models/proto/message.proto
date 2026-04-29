@@ -5,9 +5,7 @@ package message;
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
-message IndexPage {
-  bool inbox = 1;
-}
+message IndexPage {}
 
 message NewPage {
   string recipients = 1;
@@ -98,5 +96,5 @@ message SendRequest {
 }
 
 message SendResponse {
-  string redirect_url = 1;
+  uint64 id = 1;
 }

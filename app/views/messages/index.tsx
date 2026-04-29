@@ -2,14 +2,14 @@ import { ConnectError } from "@connectrpc/connect"
 import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import { mountProtoPage } from "@lib/proto-page"
 import {
-  type GetResponseValid,
   type GetPageResponse_SummaryValid,
-  Service,
+  type GetResponseValid,
   IndexPageSchema,
+  Service,
 } from "@lib/proto/message_pb"
 import type { UserValid } from "@lib/proto/shared_pb"
-import { mountProtoPage } from "@lib/proto-page"
 import { defineQueryContract } from "@lib/query-contract"
 import { ReportButton } from "@lib/report"
 import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
@@ -26,8 +26,16 @@ type PreviewState =
   | { status: "ready"; message: GetResponseValid }
   | { status: "error"; error: string }
 
-const MESSAGE_QUERY = defineQueryContract({ show: queryParam.positive() })
+const MESSAGE_QUERY = defineQueryContract({
+  show: queryParam.positive(),
+  page: queryParam.positiveInt(),
+})
 type MessageQuery = QueryContractSignal<typeof MESSAGE_QUERY>
+
+const getQueryWithoutShow = (query: MessageQuery) => {
+  const page = query.peek().page
+  return page === undefined ? {} : { page }
+}
 
 const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
   <img
@@ -48,7 +56,7 @@ const SummaryUserLink = ({ user }: { user: UserValid }) => (
 
 const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid }) => {
   if (message.recipientsCount <= 1) {
-    return <SummaryUserLink user={message.recipients[0]} />
+    return <SummaryUserLink user={message.recipients[0]!} />
   }
 
   return (
@@ -92,7 +100,7 @@ const MessagesListItem = ({
     if (!isUnmodifiedLeftClick(event)) return
     event.preventDefault()
     event.currentTarget.blur()
-    query.value = { show: messageId }
+    query.value = { ...query.peek(), show: messageId }
   }
 
   return (
@@ -122,7 +130,7 @@ const MessagesListItem = ({
         <span>
           <a
             class="stretched-link"
-            href={MESSAGE_QUERY.encode({ show: messageId })}
+            href={MESSAGE_QUERY.encode({ ...query.value, show: messageId })}
             onClick={handleOpen}
             aria-label={message.subject}
           />
@@ -262,9 +270,10 @@ const MessagePreview = ({
                   <span class="small text-muted me-2">{t("messages.to_prefix")}:</span>
                   <div class="message-recipients">
                     {message.recipients.map((recipient) => (
-                      <span key={recipient.id}>
-                        <SummaryUserLink user={recipient} />
-                      </span>
+                      <SummaryUserLink
+                        key={recipient.id}
+                        user={recipient}
+                      />
                     ))}
                   </div>
                 </div>
@@ -283,7 +292,7 @@ const MessagePreview = ({
               class="btn-close"
               aria-label={t("javascripts.close")}
               type="button"
-              onClick={() => (query.value = {})}
+              onClick={() => (query.value = getQueryWithoutShow(query))}
             />
           </div>
         </div>
@@ -337,7 +346,8 @@ const MessagePreview = ({
   )
 }
 
-mountProtoPage(IndexPageSchema, ({ inbox }) => {
+mountProtoPage(IndexPageSchema, () => {
+  const inbox = window.location.pathname.endsWith("/inbox")
   const messages = useSignal<GetPageResponse_SummaryValid[]>([])
   const query = useUrlQueryState(MESSAGE_QUERY)
   const previewState = useSignal<PreviewState>({ status: "loading" })
@@ -370,7 +380,7 @@ mountProtoPage(IndexPageSchema, ({ inbox }) => {
           updateMessageUnread(messageId, true)
           changeUnreadMessagesBadge(1)
         }
-        query.value = {}
+        query.value = getQueryWithoutShow(query)
       })
     } catch (error) {
       console.error("Messages: Failed to mark unread", messageId, error)
@@ -386,7 +396,7 @@ mountProtoPage(IndexPageSchema, ({ inbox }) => {
 
       batch(() => {
         removeMessage(messageId)
-        query.value = {}
+        query.value = getQueryWithoutShow(query)
       })
     } catch (error) {
       console.error("Messages: Failed to delete", messageId, error)
@@ -475,6 +485,7 @@ mountProtoPage(IndexPageSchema, ({ inbox }) => {
               <StandardPagination
                 method={Service.method.getPage}
                 request={{ inbox }}
+                urlKey="page"
                 onLoad={(data) => (messages.value = data.messages)}
               >
                 {() => (

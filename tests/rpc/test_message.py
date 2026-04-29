@@ -1,5 +1,3 @@
-from urllib.parse import parse_qs, urlsplit
-
 import pytest
 from httpx import AsyncClient
 from pydantic import PositiveInt
@@ -42,11 +40,7 @@ async def test_message_crud(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    # Parse message ID from redirect URL: /messages/outbox?show=123
-    create_resp = SendResponse.FromString(r.content)
-    parsed_url = urlsplit(create_resp.redirect_url)
-    query_params = parse_qs(parsed_url.query, strict_parsing=True)
-    message_id = MessageId(int(query_params['show'][0]))
+    message_id = MessageId(int(SendResponse.FromString(r.content).id))
 
     # Test sender can read their own sent message
     r = await client.post(

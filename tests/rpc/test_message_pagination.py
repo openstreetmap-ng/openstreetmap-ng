@@ -23,10 +23,7 @@ async def test_messages_inbox_page_standard_pagination(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    # Sanity check: ensure redirect looks like /messages/outbox?show=...
-    assert SendResponse.FromString(r.content).redirect_url.startswith(
-        '/messages/outbox?show='
-    )
+    assert SendResponse.FromString(r.content).id > 0
 
     client.headers['Authorization'] = 'User user2'
 
