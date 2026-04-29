@@ -9,11 +9,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import (
-    PASSWORD_MIN_LENGTH,
-    USER_NEW_DAYS,
-    USER_RECENT_ACTIVITY_ENTRIES,
-)
+from app.config import PASSWORD_MIN_LENGTH, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -23,10 +19,11 @@ from app.lib.statistics import user_activity_summary
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
-from app.models.proto.profile_pb2 import Page
+from app.models.proto.profile_pb2 import Page as ProfilePage
 from app.models.proto.settings_connections_pb2 import Provider
-from app.models.proto.shared_pb2 import UserSocial as ProtoUserSocial
+from app.models.proto.shared_pb2 import UserSocial
 from app.models.proto.signup_pb2 import Page as SignupPage
+from app.models.proto.trace_pb2 import Summary
 from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -199,7 +196,9 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         activity_t = tg.create_task(user_activity_summary(user_id))
         changesets_t = tg.create_task(changesets_task())
         changesets_count_t = tg.create_task(ChangesetQuery.count_by_user(user_id))
-        # TODO: changesets_comments_count_t = ...
+        changesets_comments_count_t = tg.create_task(
+            ChangesetCommentQuery.count_by_user(user_id)
+        )
         notes_t = tg.create_task(notes_task(tg))
         notes_count_t = tg.create_task(NoteQuery.count_by_user(user_id))
         notes_comments_count_t = tg.create_task(
@@ -220,7 +219,7 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
             else None
         )
 
-    changesets_comments_count = 0  # TODO: changesets_comments_count_t.result()
+    changesets_comments_count = changesets_comments_count_t.result()
 
     traces = traces_t.result()
 
@@ -238,9 +237,8 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         is_following = False
         is_followed_by = False
 
-    profile_page_state = Page(
+    profile_page_state = ProfilePage(
         user=user_proto(user),
-        is_self=is_self,
         is_new_user=is_new_user,
         is_administrator=user_is_admin(user),
         is_moderator=user_is_moderator(user),
@@ -248,7 +246,7 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         created_at=int(user['created_at'].timestamp()),
         chart=activity_t.result(),
         follow=(
-            Page.FollowState(
+            ProfilePage.FollowState(
                 target_user_id=user_id,
                 is_following=is_following,
                 is_followed_by=is_followed_by,
@@ -259,17 +257,17 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         description=user_profile['description'],
         description_rich=user_profile['description_rich'],  # type: ignore
         socials=[
-            ProtoUserSocial(service=s.service, value=s.value)
+            UserSocial(service=s.service, value=s.value)
             for s in user_profile['socials']
         ],
         changesets_count=changesets_count_t.result(),
         changesets_comments_count=changesets_comments_count,
         changesets=[
-            Page.ChangesetSummary(
+            ProfilePage.ChangesetSummary(
                 id=changeset['id'],
                 created_at=int(changeset['created_at'].timestamp()),
                 comment=changeset['tags'].get('comment'),
-                num_comments=changeset.get('num_comments') or 0,
+                num_comments=changeset['num_comments'],  # type: ignore
                 num_create=changeset['num_create'],
                 num_modify=changeset['num_modify'],
                 num_delete=changeset['num_delete'],
@@ -279,37 +277,37 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         notes_count=notes_count_t.result(),
         notes_comments_count=notes_comments_count_t.result(),
         notes=[
-            Page.NoteSummary(
+            ProfilePage.NoteSummary(
                 id=note['id'],
                 created_at=int(note['created_at'].timestamp()),
                 updated_at=int(note['updated_at'].timestamp()),
                 is_closed=note['closed_at'] is not None,
-                body=note['comments'][0].get('body') or '',  # type: ignore
-                num_comments=note.get('num_comments') or 0,
+                body=note['comments'][0]['body'],  # type: ignore
+                num_comments=note['num_comments'],  # type: ignore
             )
             for note in notes_t.result()
         ],
         traces_count=traces_count_t.result(),
         traces=[
-            Page.TraceSummary(
+            Summary(
                 id=trace['id'],
                 created_at=int(trace['created_at'].timestamp()),
                 description=trace['description'],
                 tags=trace['tags'],
                 visibility=trace['visibility'],
                 size=trace['size'],
-                line=encode_lonlat(trace['coords'].tolist(), 0),  # type: ignore
+                preview_line=encode_lonlat(trace['coords'].tolist(), 0),  # type: ignore
             )
             for trace in traces
         ],
         diaries_count=diaries_count_t.result(),
         diaries_comments_count=diaries_comments_count_t.result(),
         diaries=[
-            Page.DiarySummary(
+            ProfilePage.DiarySummary(
                 id=diary['id'],
                 created_at=int(diary['created_at'].timestamp()),
                 title=diary['title'],
-                num_comments=diary.get('num_comments') or 0,
+                num_comments=diary['num_comments'],  # type: ignore
             )
             for diary in diaries_t.result()
         ],

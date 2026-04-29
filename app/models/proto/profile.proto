@@ -3,6 +3,7 @@ syntax = "proto3";
 package profile;
 
 import "app/models/proto/shared.proto";
+import "app/models/proto/trace.proto";
 import "buf/validate/validate.proto";
 
 message Page {
@@ -37,23 +38,6 @@ message Page {
     uint32 num_comments = 6;
   }
 
-  message TraceSummary {
-    enum Visibility {
-      identifiable = 0;
-      public = 1;
-      trackable = 2;
-      private = 3;
-    }
-
-    uint64 id = 1;
-    uint64 created_at = 2;
-    string description = 3;
-    repeated string tags = 4;
-    Visibility visibility = 5 [(buf.validate.field).enum.defined_only = true];
-    uint32 size = 6;
-    string line = 7;
-  }
-
   message DiarySummary {
     uint64 id = 1;
     uint64 created_at = 2;
@@ -62,27 +46,26 @@ message Page {
   }
 
   User user = 1 [(buf.validate.field).required = true];
-  bool is_self = 2;
-  bool is_new_user = 3;
-  bool is_administrator = 4;
-  bool is_moderator = 5;
-  optional string background_url = 6;
-  uint64 created_at = 7;
-  ActivityChart chart = 8 [(buf.validate.field).required = true];
-  optional FollowState follow = 9;
-  optional string description = 10;
-  string description_rich = 11;
-  repeated UserSocial socials = 12;
-  uint64 changesets_count = 13;
-  uint64 changesets_comments_count = 14;
-  repeated ChangesetSummary changesets = 15;
-  uint64 notes_count = 16;
-  uint64 notes_comments_count = 17;
-  repeated NoteSummary notes = 18;
-  uint64 traces_count = 19;
-  repeated TraceSummary traces = 20;
-  uint64 diaries_count = 21;
-  uint64 diaries_comments_count = 22;
-  repeated DiarySummary diaries = 23;
-  uint64 groups_count = 24;
+  bool is_new_user = 2;
+  bool is_administrator = 3;
+  bool is_moderator = 4;
+  optional string background_url = 5;
+  uint64 created_at = 6;
+  ActivityChart chart = 7 [(buf.validate.field).required = true];
+  optional FollowState follow = 8;
+  optional string description = 9;
+  string description_rich = 10;
+  repeated UserSocial socials = 11;
+  uint64 changesets_count = 12;
+  uint64 changesets_comments_count = 13;
+  repeated ChangesetSummary changesets = 14;
+  uint64 notes_count = 15;
+  uint64 notes_comments_count = 16;
+  repeated NoteSummary notes = 17;
+  uint64 traces_count = 18;
+  repeated trace.Summary traces = 19;
+  uint64 diaries_count = 20;
+  uint64 diaries_comments_count = 21;
+  repeated DiarySummary diaries = 22;
+  uint64 groups_count = 23;
 }

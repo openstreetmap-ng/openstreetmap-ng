@@ -1,16 +1,11 @@
 import { BTooltip } from "@lib/bootstrap"
-import { USER_RECENT_ACTIVITY_ENTRIES } from "@lib/config"
+import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { FollowToggleForm } from "@lib/follow-toggle-form"
 import { tRich } from "@lib/i18n"
-import {
-  Page_TraceSummary_Visibility,
-  PageSchema,
-  type PageValid,
-} from "@lib/proto/profile_pb"
-import { Service, UpdateAvatarRequest_Preset } from "@lib/proto/settings_pb"
-import type { UserSocialValid } from "@lib/proto/shared_pb"
 import { mountProtoPage } from "@lib/proto-page"
+import { PageSchema, type PageValid } from "@lib/proto/profile_pb"
+import { Service, UpdateAvatarRequest_Preset } from "@lib/proto/settings_pb"
 import { ReportButton } from "@lib/report"
 import { formDataBytes, StandardForm } from "@lib/standard-form"
 import type { Signal } from "@preact/signals"
@@ -19,9 +14,9 @@ import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { useRef } from "preact/hooks"
-import { TraceLinePreview } from "../../traces/_line-preview"
-import { ProfileActivity } from "./_activity"
-import { DescriptionModal, ProfileAboutSection, SocialsModal } from "./_edit-modals"
+import { SummaryRow } from "../../traces/_summary"
+import { Activity } from "./_activity"
+import { DescriptionModal, AboutSection, SocialsModal } from "./_edit-modals"
 
 type ChangesetSummary = PageValid["changesets"][number]
 type NoteSummary = PageValid["notes"][number]
@@ -158,36 +153,7 @@ const ContributionCard = ({
   )
 }
 
-const traceVisibilityMeta = (visibility: Page_TraceSummary_Visibility) => {
-  switch (visibility) {
-    case Page_TraceSummary_Visibility.identifiable:
-      return {
-        className: "text-bg-green",
-        iconClass: "bi-eye",
-        label: toSentenceCase(t("traces.trace.identifiable")),
-      }
-    case Page_TraceSummary_Visibility.public:
-      return {
-        className: "text-bg-green",
-        iconClass: "bi-eye",
-        label: toSentenceCase(t("traces.trace.public")),
-      }
-    case Page_TraceSummary_Visibility.trackable:
-      return {
-        className: "text-bg-danger",
-        iconClass: "bi-eye-slash",
-        label: toSentenceCase(t("traces.trace.trackable")),
-      }
-    case Page_TraceSummary_Visibility.private:
-      return {
-        className: "text-bg-danger",
-        iconClass: "bi-eye-slash",
-        label: toSentenceCase(t("traces.trace.private")),
-      }
-  }
-}
-
-const ProfileBackgroundForm = ({
+const BackgroundForm = ({
   isSelf,
   backgroundUrl,
 }: {
@@ -211,8 +177,8 @@ const ProfileBackgroundForm = ({
         name="background_file"
         accept="image/*"
         ref={fileInputRef}
-        onChange={(event) => {
-          event.currentTarget.form!.requestSubmit()
+        onChange={(e) => {
+          e.currentTarget.form!.requestSubmit()
         }}
       />
       <img
@@ -238,7 +204,7 @@ const ProfileBackgroundForm = ({
             </li>
             <li>
               <button
-                class="dropdown-item upload-btn"
+                class="dropdown-item"
                 type="button"
                 onClick={() => {
                   fileInputRef.current!.click()
@@ -249,7 +215,7 @@ const ProfileBackgroundForm = ({
             </li>
             <li>
               <button
-                class="dropdown-item remove-btn"
+                class="dropdown-item"
                 type="button"
                 onClick={() => {
                   fileInputRef.current!.value = ""
@@ -266,7 +232,7 @@ const ProfileBackgroundForm = ({
   )
 }
 
-const ProfileAvatarForm = ({
+const AvatarForm = ({
   isSelf,
   avatarUrl,
 }: {
@@ -306,8 +272,8 @@ const ProfileAvatarForm = ({
         name="avatar_file"
         accept="image/*"
         ref={fileInputRef}
-        onChange={(event) => {
-          event.currentTarget.form!.requestSubmit()
+        onChange={(e) => {
+          e.currentTarget.form!.requestSubmit()
         }}
       />
       <img
@@ -333,7 +299,7 @@ const ProfileAvatarForm = ({
             </li>
             <li>
               <button
-                class="dropdown-item upload-btn"
+                class="dropdown-item"
                 type="button"
                 onClick={() => {
                   fileInputRef.current!.click()
@@ -344,7 +310,7 @@ const ProfileAvatarForm = ({
             </li>
             <li>
               <button
-                class="dropdown-item gravatar-btn"
+                class="dropdown-item"
                 type="button"
                 onClick={() => {
                   avatarPresetRef.current = UpdateAvatarRequest_Preset.gravatar
@@ -357,7 +323,7 @@ const ProfileAvatarForm = ({
             </li>
             <li>
               <button
-                class="dropdown-item remove-btn"
+                class="dropdown-item"
                 type="button"
                 onClick={() => {
                   avatarPresetRef.current = UpdateAvatarRequest_Preset.default
@@ -388,7 +354,7 @@ const ProfileAvatarForm = ({
   )
 }
 
-const ProfileFollowSection = ({
+const FollowSection = ({
   targetUserId,
   isFollowedBy,
   initialIsFollowing,
@@ -444,7 +410,7 @@ const ChangesetRow = ({ changeset }: { changeset: ChangesetSummary }) => (
         class="stretched-link"
         href={`/changeset/${changeset.id}`}
       >
-        {changeset.id.toString()}
+        {changeset.id}
       </a>
     </p>
     <div class="body">
@@ -539,7 +505,7 @@ const NoteRow = ({ note }: { note: NoteSummary }) => {
               class="stretched-link"
               href={`/note/${note.id}`}
             >
-              {note.id.toString()}
+              {note.id}
             </a>
           </p>
           <div class="body d-flex justify-content-between">
@@ -591,76 +557,6 @@ const NotesCard = ({
   </ContributionCard>
 )
 
-const TraceRow = ({ trace, userPath }: { trace: TraceSummary; userPath: string }) => {
-  const visibility = traceVisibilityMeta(trace.visibility)
-  const traceSize = trace.size
-  const traceHref = `/trace/${trace.id}`
-  const previewAnimated = useSignal(false)
-
-  return (
-    <li class="row g-2">
-      <TraceLinePreview
-        class="col-auto"
-        href={traceHref}
-        line={trace.line}
-        animate={previewAnimated.value}
-      />
-      <div class="col">
-        <div
-          class="social-entry clickable h-100"
-          onPointerEnter={() => (previewAnimated.value = true)}
-          onPointerLeave={() => (previewAnimated.value = false)}
-          onFocusIn={() => (previewAnimated.value = true)}
-          onFocusOut={(event) => {
-            if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
-            previewAnimated.value = false
-          }}
-        >
-          <p class="header text-muted d-flex justify-content-between">
-            <span>
-              {toSentenceCase(t("action.uploaded"))}{" "}
-              <Time
-                unix={trace.createdAt}
-                relativeStyle="long"
-              />
-            </span>
-            <a
-              class="stretched-link"
-              href={traceHref}
-            >
-              {trace.id.toString()}
-            </a>
-          </p>
-          <div class="body">
-            <p class="mb-0">
-              <span class="fst-italic me-1">{trace.description}</span>
-              {trace.tags.map((tag) => (
-                <a
-                  key={tag}
-                  class="hashtag"
-                  href={`${userPath}/traces/tag/${encodeURIComponent(tag)}`}
-                >
-                  #{tag}
-                </a>
-              ))}
-            </p>
-            <div class="trace-stats">
-              <span class={`stat-visibility ${visibility.className}`}>
-                <i class={`bi ${visibility.iconClass}`} />
-                {visibility.label}
-              </span>
-              <span class="stat-points text-bg-secondary">
-                <i class="bi bi-geo-alt" />
-                {t("traces.trace.count_points", { count: traceSize })}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </li>
-  )
-}
-
 const TracesCard = ({
   userPath,
   tracesCount,
@@ -683,10 +579,29 @@ const TracesCard = ({
     small
   >
     {traces.map((trace) => (
-      <TraceRow
+      <SummaryRow
         key={trace.id}
-        trace={trace}
-        userPath={userPath}
+        summary={trace}
+        href={`/trace/${trace.id}`}
+        tagBasePath={`${userPath}/traces`}
+        header={
+          <>
+            {toSentenceCase(t("action.uploaded"))}{" "}
+            <Time
+              unix={trace.createdAt}
+              relativeStyle="long"
+            />
+          </>
+        }
+        title={
+          <a
+            class="stretched-link"
+            href={`/trace/${trace.id}`}
+          >
+            {trace.id}
+          </a>
+        }
+        showPointIcon
       />
     ))}
   </ContributionCard>
@@ -706,7 +621,7 @@ const DiaryRow = ({ diary }: { diary: DiarySummary }) => (
         class="stretched-link"
         href={`/diary/${diary.id}`}
       >
-        {diary.id.toString()}
+        {diary.id}
       </a>
     </p>
     <div class="body d-flex justify-content-between">
@@ -756,7 +671,7 @@ const DiariesCard = ({
   </ContributionCard>
 )
 
-const ProfileGroupsSection = ({
+const GroupsSection = ({
   userPath,
   groupsCount,
 }: {
@@ -776,10 +691,7 @@ const ProfileGroupsSection = ({
 
       <ul class="groups-list social-list-sm list-unstyled">
         {GROUP_EXAMPLES.map((group) => (
-          <li
-            key={group.slug}
-            class="row g-2"
-          >
+          <li class="row g-2">
             <div class="col-auto">
               <img
                 src={group.banner}
@@ -838,7 +750,6 @@ mountProtoPage(
   PageSchema,
   ({
     user: profile,
-    isSelf,
     isNewUser,
     isAdministrator,
     isModerator,
@@ -869,12 +780,13 @@ mountProtoPage(
     const descriptionRich = useSignal(initialDescriptionRich)
     const socials = useSignal(initialSocials)
 
+    const isSelf = config.userConfig?.user.id === profile.id
     const userPath = `/user/${encodeURIComponent(profile.displayName)}`
 
     return (
       <>
         <div class="content-header px-0">
-          <ProfileBackgroundForm
+          <BackgroundForm
             isSelf={isSelf}
             backgroundUrl={backgroundUrl}
           />
@@ -882,7 +794,7 @@ mountProtoPage(
           <div class="header-footer">
             <div class="container">
               <div class="d-flex offset-xxl-1">
-                <ProfileAvatarForm
+                <AvatarForm
                   isSelf={isSelf}
                   avatarUrl={avatarUrl}
                 />
@@ -922,7 +834,7 @@ mountProtoPage(
                     {follow && (
                       <address>
                         <a
-                          href={`/message/new?to_id=${profile.id.toString()}`}
+                          href={`/message/new?to_id=${profile.id}`}
                           class="btn btn-sm btn-soft"
                         >
                           <i class="bi bi-envelope-plus me-2" />
@@ -941,7 +853,7 @@ mountProtoPage(
           <div class="container">
             <div class="row g-4 g-xl-5">
               <div class="col-lg-7">
-                <ProfileAboutSection
+                <AboutSection
                   isSelf={isSelf}
                   description={description}
                   descriptionRich={descriptionRich}
@@ -984,20 +896,20 @@ mountProtoPage(
                 </div>
               </div>
               <div class="col-lg-5">
-                <ProfileActivity
+                <Activity
                   chart={chart}
                   displayName={profile.displayName}
                 />
                 <hr />
 
-                <ProfileGroupsSection
+                <GroupsSection
                   userPath={userPath}
                   groupsCount={Number(groupsCount)}
                 />
 
                 {follow && (
                   <>
-                    <ProfileFollowSection
+                    <FollowSection
                       targetUserId={follow.targetUserId}
                       isFollowedBy={follow.isFollowedBy}
                       initialIsFollowing={follow.isFollowing}

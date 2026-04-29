@@ -89,7 +89,7 @@ const SocialLinks = ({
   )
 }
 
-export const ProfileAboutSection = ({
+export const AboutSection = ({
   isSelf,
   description,
   descriptionRich,
@@ -259,45 +259,46 @@ const SocialRow = ({
     <div class="social-row">
       <div class="d-flex align-items-center mb-1">
         <div class="btn-group btn-group-sm me-2">
-          <button
-            type="button"
-            class="btn btn-secondary move-up-btn"
-            title={t("socials.move_up")}
-            disabled={index === 0}
-            onClick={() => onMoveUp(row.id)}
-          >
-            <i class="bi bi-chevron-up" />
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary move-down-btn"
-            title={t("socials.move_down")}
-            disabled={index === total - 1}
-            onClick={() => onMoveDown(row.id)}
-          >
-            <i class="bi bi-chevron-down" />
-          </button>
+          {[
+            {
+              title: t("socials.move_up"),
+              disabled: index === 0,
+              icon: "chevron-up",
+              onClick: () => onMoveUp(row.id),
+            },
+            {
+              title: t("socials.move_down"),
+              disabled: index === total - 1,
+              icon: "chevron-down",
+              onClick: () => onMoveDown(row.id),
+            },
+          ].map(({ title, disabled, icon, onClick }) => (
+            <button
+              type="button"
+              class="btn btn-secondary"
+              title={title}
+              disabled={disabled}
+              onClick={onClick}
+            >
+              <i class={`bi bi-${icon}`} />
+            </button>
+          ))}
         </div>
 
         <select
           class="form-select form-select-sm w-auto"
           aria-label={t("user.edit_socials")}
           value={row.service}
-          onChange={(event) => onServiceChange(row.id, event.currentTarget.value)}
+          onChange={(e) => onServiceChange(row.id, e.currentTarget.value)}
         >
           {SOCIAL_OPTIONS.map((option) => (
-            <option
-              key={option.key}
-              value={option.key}
-            >
-              {t(option.titleKey)}
-            </option>
+            <option value={option.key}>{t(option.titleKey)}</option>
           ))}
         </select>
 
         <button
           type="button"
-          class="btn btn-link link-danger p-1 ms-auto remove-btn"
+          class="btn btn-link link-danger p-1 ms-auto"
           title={t("action.remove")}
           onClick={() => onRemove(row.id)}
         >
@@ -314,7 +315,7 @@ const SocialRow = ({
           placeholder={selectedOption.placeholder}
           value={row.value}
           required
-          onInput={(event) => onValueChange(row.id, event.currentTarget.value)}
+          onInput={(e) => onValueChange(row.id, e.currentTarget.value)}
         />
       </div>
     </div>
@@ -330,7 +331,7 @@ export const SocialsModal = ({
   const rows = useSignal<readonly SocialRowState[]>([])
   const nextId = useRef(0)
   const modalRef = useRef<HTMLDivElement>(null)
-  const defaultService = SOCIAL_OPTIONS[0].key
+  const defaultService = SOCIAL_OPTIONS[0]!.key
 
   const resetRows = () => {
     rows.value = knownSocials(socials.value).map((social, index) =>
@@ -358,7 +359,7 @@ export const SocialsModal = ({
     const target = index + direction
 
     const next = [...rows.value]
-    ;[next[index], next[target]] = [next[target], next[index]]
+    ;[next[index], next[target]] = [next[target]!, next[index]!]
     rows.value = next
   }
 
@@ -435,7 +436,7 @@ export const SocialsModal = ({
 
             <button
               type="button"
-              class="btn btn-sm btn-link add-btn"
+              class="btn btn-sm btn-link"
               onClick={addRow}
               hidden={rows.value.length >= USER_MAX_SOCIALS}
             >

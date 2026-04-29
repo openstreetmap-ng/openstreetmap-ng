@@ -81,11 +81,11 @@ const buildActivityDays = (chart: Page_ActivityChartValid) => {
 
   const weekRows = Array.from({ length: WEEKDAY_COUNT }, () => [] as ActivityDay[])
   for (const day of days) {
-    weekRows[day.weekday].push(day)
+    weekRows[day.weekday]!.push(day)
   }
 
   const weeks: ActivityWeek[] = monthLabels.map((label, week) => ({
-    key: weekStarts[week],
+    key: weekStarts[week]!,
     label,
   }))
 
@@ -151,7 +151,7 @@ const ActivityCell = ({
   )
 }
 
-const ProfileActivityChart = ({
+const ActivityChart = ({
   chart,
   displayName,
 }: {
@@ -202,7 +202,7 @@ const ProfileActivityChart = ({
   )
 }
 
-export const ProfileActivity = ({
+export const Activity = ({
   chart,
   displayName,
 }: {
@@ -227,7 +227,7 @@ export const ProfileActivity = ({
       <h3 class="ms-1">{t("user.activity.recent")}</h3>
       <p class="mb-2">{summary}</p>
 
-      <ProfileActivityChart
+      <ActivityChart
         chart={chart}
         displayName={displayName}
       />
