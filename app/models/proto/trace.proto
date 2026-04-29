@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package trace;
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+enum Visibility {
+  identifiable = 0;
+  public = 1;
+  trackable = 2;
+  private = 3;
+}
+
+message IndexPage {
+  message Self {}
+
+  oneof owner {
+    User profile = 1;
+    Self self = 2;
+  }
+
+  optional string tag = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 40
+  }];
+}
+
+message DetailsPage {
+  Data trace = 1 [(buf.validate.field).required = true];
+}
+
+message UploadPage {}
+
+message EditPage {
+  Data trace = 1 [(buf.validate.field).required = true];
+}
+
+service Service {
+  rpc GetPage(GetPageRequest) returns (GetPageResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc Upload(UploadRequest) returns (UploadResponse) {}
+
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+}
+
+message GetPageRequest {
+  StandardPaginationRequest state = 1;
+  optional uint64 user_id = 2 [(buf.validate.field).uint64.gt = 0];
+  optional string tag = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 40
+  }];
+}
+
+message GetPageResponse {
+  message Entry {
+    Summary summary = 1 [(buf.validate.field).required = true];
+    User user = 2 [(buf.validate.field).required = true];
+    string name = 3;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry traces = 2;
+}
+
+message UploadRequest {
+  bytes file = 1 [(buf.validate.field).bytes = {
+    min_len: 1
+    max_len: 52428800
+  }];
+  Metadata metadata = 2 [(buf.validate.field).required = true];
+}
+
+message UploadResponse {
+  uint64 id = 1;
+}
+
+message UpdateRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  Metadata metadata = 2 [(buf.validate.field).required = true];
+}
+
+message UpdateResponse {}
+
+message DeleteRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteResponse {}
+
+message Metadata {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string description = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  repeated string tags = 3 [(buf.validate.field).repeated = {
+    max_items: 10
+    unique: true
+    items: {
+      string: {
+        min_len: 1
+        max_len: 40
+      }
+    }
+  }];
+  Visibility visibility = 4 [(buf.validate.field).enum.defined_only = true];
+}
+
+message Summary {
+  uint64 id = 1;
+  uint64 created_at = 2;
+  string description = 3;
+  repeated string tags = 4;
+  Visibility visibility = 5 [(buf.validate.field).enum.defined_only = true];
+  uint32 size = 6;
+  string preview_line = 7;
+}
+
+message Data {
+  uint64 id = 1;
+  User user = 2 [(buf.validate.field).required = true];
+  Metadata metadata = 3 [(buf.validate.field).required = true];
+  uint32 size = 4;
+  uint64 created_at = 5;
+  string line = 6;
+}

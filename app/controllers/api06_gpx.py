@@ -12,8 +12,9 @@ from app.lib.auth_context import api_user
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
 from app.lib.xml_body import xml_body
+from app.models.db.trace import parse_trace_tags
 from app.models.db.user import User
-from app.models.proto.profile_types import Page_TraceSummary_Visibility
+from app.models.proto.trace_types import Visibility
 from app.models.types import TraceId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
@@ -30,7 +31,7 @@ async def upload_trace(
     file: Annotated[UploadFile, File()],
     description: Annotated[str, Form()],
     tags: Annotated[str, Form()] = '',
-    visibility: Annotated[Page_TraceSummary_Visibility | None, Form()] = None,
+    visibility: Annotated[Visibility | None, Form()] = None,
     public: Annotated[int, Form(deprecated=True)] = 0,
 ):
     if visibility is None:
@@ -40,8 +41,9 @@ async def upload_trace(
 
     trace_id = await TraceService.upload(
         file,
+        name=file.filename,
         description=description,
-        tags=tags,
+        tags=parse_trace_tags(tags),
         visibility=visibility,
     )
     return Response(str(trace_id), media_type='text/plain')

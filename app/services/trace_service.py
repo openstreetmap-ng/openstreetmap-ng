@@ -1,7 +1,6 @@
 import logging
 from typing import Any
 
-import cython
 from fastapi import UploadFile
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
@@ -18,9 +17,9 @@ from app.models.db.trace import (
     TraceInitValidator,
     TraceMetaInit,
     TraceMetaInitValidator,
-    validate_trace_tags,
+    normalize_trace_tags,
 )
-from app.models.proto.profile_types import Page_TraceSummary_Visibility
+from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 from app.services.audit_service import audit
@@ -29,23 +28,30 @@ from app.services.audit_service import audit
 class TraceService:
     @staticmethod
     async def upload(
-        file: UploadFile,
+        file: UploadFile | bytes,
         *,
+        name: str | None,
         description: str,
-        tags: str | list[str] | None,
-        visibility: Page_TraceSummary_Visibility,
+        tags: list[str],
+        visibility: Visibility,
     ) -> TraceId:
         """Process upload of a trace file. Returns the created trace id."""
-        tags = validate_trace_tags(tags)
+        tags = normalize_trace_tags(tags)
 
-        file_size = file.size
-        if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
-            raise_for.input_too_big(file_size or -1)
-        file_bytes = await file.read()
+        if isinstance(file, bytes):
+            if len(file) > TRACE_FILE_UPLOAD_MAX_SIZE:
+                raise_for.input_too_big(len(file))
+        else:
+            file_size = file.size
+            if file_size is None or file_size > TRACE_FILE_UPLOAD_MAX_SIZE:
+                raise_for.input_too_big(file_size or -1)
+            if name is None:
+                name = file.filename
+            file = await file.read()
 
         try:
             tracks: list[dict] = []
-            for gpx_bytes in TraceFile.extract(file_bytes):
+            for gpx_bytes in TraceFile.extract(file):
                 new_tracks = XMLToDict.parse(gpx_bytes).get('gpx', {}).get('trk', [])
                 tracks.extend(new_tracks)
         except Exception as e:
@@ -60,7 +66,7 @@ class TraceService:
 
         trace_init: TraceInit = {
             'user_id': auth_user(required=True)['id'],
-            'name': _get_file_name(file),
+            'name': name or f'{utcnow().isoformat(timespec="seconds")}.gpx',
             'description': description,
             'tags': tags,
             'visibility': visibility,
@@ -73,7 +79,7 @@ class TraceService:
         trace_init = TraceInitValidator.validate_python(trace_init)
 
         # Save the compressed file after validation to avoid unnecessary work
-        result = await TraceFile.compress(file_bytes)
+        result = await TraceFile.compress(file)
         trace_init['file_id'] = await TRACE_STORAGE.save(
             result.data, result.suffix, result.metadata
         )
@@ -122,11 +128,12 @@ class TraceService:
         name: str,
         description: str,
         tags: list[str],
-        visibility: Page_TraceSummary_Visibility,
+        visibility: Visibility,
     ):
         """Update a trace."""
         user_id = auth_user(required=True)['id']
         trace = await TraceQuery.get_by_id(trace_id)
+        tags = normalize_trace_tags(tags)
 
         audit_extra: dict[str, Any] = {'id': trace_id}
         if trace['name'] != name:
@@ -203,13 +210,3 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(row[0])
-
-
-@cython.cfunc
-def _get_file_name(file: UploadFile):
-    """
-    Get the file name from the upload file.
-
-    If not provided, use the current time as the file name.
-    """
-    return file.filename or f'{utcnow().isoformat(timespec="seconds")}.gpx'

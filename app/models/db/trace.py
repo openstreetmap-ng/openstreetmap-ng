@@ -7,10 +7,16 @@ from numpy.typing import NDArray
 from pydantic import TypeAdapter
 from shapely import MultiLineString
 
-from app.config import PYDANTIC_CONFIG, TRACE_TAG_MAX_LENGTH, TRACE_TAGS_LIMIT
+from app.config import (
+    PYDANTIC_CONFIG,
+    TRACE_DESCRIPTION_MAX_LENGTH,
+    TRACE_NAME_MAX_LENGTH,
+    TRACE_TAG_MAX_LENGTH,
+    TRACE_TAGS_LIMIT,
+)
 from app.lib.auth_context import auth_scopes, auth_user
 from app.models.db.user import UserDisplay, user_is_moderator
-from app.models.proto.profile_types import Page_TraceSummary_Visibility
+from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId, UserId
 from app.validators.filename import FileNameValidator
 from app.validators.geometry import GeometryValidator
@@ -25,25 +31,28 @@ class TraceMetaInit(TypedDict):
         str,
         FileNameValidator,
         MinLen(1),
-        MaxLen(255),
+        MaxLen(TRACE_NAME_MAX_LENGTH),
         XMLSafeValidator,
     ]
     description: Annotated[
         str,
         MinLen(1),
-        MaxLen(255),
+        MaxLen(TRACE_DESCRIPTION_MAX_LENGTH),
         XMLSafeValidator,
     ]
-    tags: list[
-        Annotated[
-            str,
-            MinLen(1),
-            MaxLen(255),
-            XMLSafeValidator,
-            UrlSafeValidator,
-        ]
-    ]  # TODO: validate size
-    visibility: Page_TraceSummary_Visibility
+    tags: Annotated[
+        list[
+            Annotated[
+                str,
+                MinLen(1),
+                MaxLen(TRACE_TAG_MAX_LENGTH),
+                XMLSafeValidator,
+                UrlSafeValidator,
+            ]
+        ],
+        MaxLen(TRACE_TAGS_LIMIT),
+    ]
+    visibility: Visibility
 
 
 class TraceInit(TraceMetaInit):
@@ -69,24 +78,40 @@ class Trace(TraceInit):
     coords: NotRequired[NDArray[np.number]]
 
 
-def validate_trace_tags(tags: str | list[str] | None) -> list[str]:
+def parse_trace_tags(tags: str | None) -> list[str]:
     if not tags:
         return []
 
-    if isinstance(tags, str):
-        # do as before for backwards compatibility
-        # BUG: this produces weird behavior: 'a b, c' -> ['a b', 'c']; 'a b' -> ['a', 'b']
-        sep = ',' if ',' in tags else None
-        tags = tags.split(sep, TRACE_TAGS_LIMIT)
+    # Legacy API 0.6 accepts comma-separated values and falls back to whitespace
+    # splitting when no comma is present.
+    separator = ',' if ',' in tags else None
+    return tags.split(separator, TRACE_TAGS_LIMIT)
+
+
+def normalize_trace_tags(tags: list[str] | None) -> list[str]:
+    if not tags:
+        return []
 
     if len(tags) > TRACE_TAGS_LIMIT:
         raise ValueError(f'Too many trace tags, current limit is {TRACE_TAGS_LIMIT}')
 
-    return list(
-        dict.fromkeys(
-            tag_ for tag in tags if (tag_ := tag.strip()[:TRACE_TAG_MAX_LENGTH].strip())
-        )
-    )
+    normalized: list[str] = []
+    seen = set[str]()
+
+    for raw_tag in tags:
+        tag = raw_tag.strip()
+        if not tag:
+            continue
+        if len(tag) > TRACE_TAG_MAX_LENGTH:
+            raise ValueError(
+                f'Trace tag too long, current limit is {TRACE_TAG_MAX_LENGTH}'
+            )
+        if tag in seen:
+            continue
+        seen.add(tag)
+        normalized.append(tag)
+
+    return normalized
 
 
 def trace_is_linked_to_user_in_api(trace: Trace):

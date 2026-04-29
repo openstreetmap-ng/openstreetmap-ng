@@ -34,6 +34,7 @@ from app.models.proto import (
     settings_applications_pb2,
     settings_pb2,
     settings_security_pb2,
+    trace_pb2,
 )
 from buf.validate import validate_pb2
 
@@ -130,7 +131,6 @@ VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 HTTP_TIMEOUT = timedelta(seconds=20)
 POSTGRES_STATEMENT_TIMEOUT = timedelta(seconds=30)
 URLSAFE_BLACKLIST = '/;.,?%#'
-TRACE_FILE_UPLOAD_MAX_SIZE = _ByteSize('50 MiB')
 XML_PARSE_MAX_SIZE = _ByteSize('50 MiB')  # the same as CGImap
 REQUEST_TARGET_MAX_BYTES = 8192
 
@@ -321,8 +321,6 @@ TRACE_POINT_QUERY_MAX_LIMIT = 5_000
 TRACE_POINT_QUERY_LEGACY_MAX_SKIP = 45_000
 TRACE_POINT_QUERY_CURSOR_EXPIRE = timedelta(hours=1)
 TRACES_LIST_PAGE_SIZE = 30
-TRACE_TAG_MAX_LENGTH = 40
-TRACE_TAGS_LIMIT = 10
 
 # Diary
 DIARY_LIST_PAGE_SIZE = 15
@@ -485,10 +483,6 @@ SECRET_32 = SecretBytes(sha256(SECRET.get_secret_value().encode()).digest())
 APP_DOMAIN = urlsplit(APP_URL).netloc
 API_DOMAIN = urlsplit(API_URL).netloc
 
-REQUEST_BODY_MAX_SIZE = (  #
-    max(TRACE_FILE_UPLOAD_MAX_SIZE, XML_PARSE_MAX_SIZE) + _ByteSize('8 KiB')
-)
-
 TEST_USER_EMAIL_SUFFIX = '@test.test'
 DELETED_USER_EMAIL_SUFFIX = '@deleted.invalid'  # SQL index depends on this value
 
@@ -585,11 +579,25 @@ REPORT_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
 SEARCH_QUERY_MAX_LENGTH: int = _proto_validate(
     search_pb2.SearchRequest, 'query.string.max_len'
 )
+TRACE_DESCRIPTION_MAX_LENGTH: int = _proto_validate(
+    trace_pb2.Metadata, 'description.string.max_len'
+)
+TRACE_FILE_UPLOAD_MAX_SIZE: int = _proto_validate(
+    trace_pb2.UploadRequest, 'file.bytes.max_len'
+)
+TRACE_NAME_MAX_LENGTH: int = _proto_validate(trace_pb2.Metadata, 'name.string.max_len')
+TRACE_TAG_MAX_LENGTH: int = _proto_validate(
+    trace_pb2.Metadata, 'tags.repeated.items.string.max_len'
+)
+TRACE_TAGS_LIMIT: int = _proto_validate(trace_pb2.Metadata, 'tags.repeated.max_items')
 USER_DESCRIPTION_MAX_LENGTH: int = _proto_validate(
     settings_pb2.UpdateDescriptionRequest, 'description.string.max_len'
 )
 USER_MAX_SOCIALS: int = _proto_validate(
     settings_pb2.UpdateSocialsRequest, 'socials.repeated.max_items'
+)
+REQUEST_BODY_MAX_SIZE = max(TRACE_FILE_UPLOAD_MAX_SIZE, XML_PARSE_MAX_SIZE) + _ByteSize(
+    '8 KiB'
 )
 
 # -------------------- Logging configuration --------------------
