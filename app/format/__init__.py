@@ -8,6 +8,7 @@ from app.format.api06_tag import Tag06Mixin
 from app.format.api06_trace import Trace06Mixin
 from app.format.api06_user import User06Mixin
 from app.format.api07_element import Element07Mixin
+from app.format.diary_rss import DiaryRSSMixin
 from app.format.render_changeset import RenderChangesetMixin
 from app.format.render_element import RenderElementMixin
 from app.format.render_note import RenderNoteMixin
@@ -30,6 +31,7 @@ class Format06(
 
 
 class FormatRSS06(
+    DiaryRSSMixin,
     ChangesetRSS06Mixin,
     NoteRSS06Mixin,
 ): ...

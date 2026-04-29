@@ -43,10 +43,6 @@ article.diary {
     display: inline-block !important;
   }
 
-  .diary-comments {
-    margin-top: 1rem;
-  }
-
   .diary-comments-btn {
     .badge {
       position: relative;
@@ -54,10 +50,6 @@ article.diary {
     }
 
     &.dropdown-toggle {
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
-
-      // Rotate Bootstrap caret when collapse is expanded
       &::after {
         transition: transform 160ms ease;
       }
@@ -66,6 +58,11 @@ article.diary {
         transform: rotate(180deg);
       }
     }
+  }
+
+  .btn-group > .diary-comments-btn.dropdown-toggle:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .share {

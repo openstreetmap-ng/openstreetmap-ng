@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package diary;
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+message IndexPage {
+  message Self {}
+
+  oneof context {
+    string language = 1 [(buf.validate.field).string.min_len = 1];
+    User profile = 2;
+    Self self = 3;
+  }
+}
+
+message DetailsPage {
+  Entry entry = 1 [(buf.validate.field).required = true];
+}
+
+message ComposePage {
+  optional uint64 diary_id = 1;
+  string title = 2;
+  string body = 3;
+  optional string language = 4;
+  optional LonLat location = 5;
+}
+
+message UserCommentsPage {
+  User user = 1 [(buf.validate.field).required = true];
+}
+
+service Service {
+  rpc GetPage(GetPageRequest) returns (GetPageResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc GetUserCommentsPage(GetUserCommentsPageRequest) returns (GetUserCommentsPageResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc CreateOrUpdate(CreateOrUpdateRequest) returns (CreateOrUpdateResponse) {}
+
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+
+  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
+}
+
+message GetPageRequest {
+  StandardPaginationRequest state = 1;
+  oneof filter {
+    uint64 user_id = 2 [(buf.validate.field).uint64.gt = 0];
+    string language = 3 [(buf.validate.field).string.min_len = 1];
+  }
+}
+
+message GetPageResponse {
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry diaries = 2;
+}
+
+message GetCommentsRequest {
+  StandardPaginationRequest state = 1;
+  uint64 diary_id = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message GetCommentsResponse {
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Comment comments = 2;
+}
+
+message GetUserCommentsPageRequest {
+  StandardPaginationRequest state = 1;
+  uint64 user_id = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message GetUserCommentsPageResponse {
+  message Entry {
+    uint64 id = 1;
+    uint64 created_at = 2;
+    uint64 diary_id = 3;
+    string diary_title = 4;
+    string body_rich = 5;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry entries = 2;
+}
+
+message CreateOrUpdateRequest {
+  optional uint64 diary_id = 1;
+  string title = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string body = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 100000
+  }];
+  string language = 4 [(buf.validate.field).string.min_len = 1];
+  optional LonLat location = 5;
+}
+
+message CreateOrUpdateResponse {
+  uint64 id = 1;
+}
+
+message DeleteRequest {
+  uint64 diary_id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteResponse {}
+
+message UpdateSubscriptionRequest {
+  uint64 diary_id = 1 [(buf.validate.field).uint64.gt = 0];
+  bool is_subscribed = 2;
+}
+
+message UpdateSubscriptionResponse {}
+
+message AddCommentRequest {
+  uint64 diary_id = 1 [(buf.validate.field).uint64.gt = 0];
+  string body = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 5000
+  }];
+}
+
+message AddCommentResponse {}
+
+message Entry {
+  uint64 id = 1;
+  User user = 2 [(buf.validate.field).required = true];
+  string title = 3;
+  uint64 created_at = 4;
+  uint64 updated_at = 5;
+  string language = 6;
+  string body_rich = 7;
+  optional string location_name = 8;
+  optional LonLat location = 9;
+  uint32 num_comments = 10;
+  bool is_subscribed = 11;
+}
+
+message Comment {
+  uint64 id = 1;
+  User user = 2 [(buf.validate.field).required = true];
+  uint64 created_at = 3;
+  string body_rich = 4;
+}

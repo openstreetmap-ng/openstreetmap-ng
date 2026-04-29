@@ -3,31 +3,34 @@ from typing import Annotated
 
 import cython
 from fastapi import APIRouter, Path, Query, Response
+from feedgen.feed import FeedGenerator
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import (
-    DIARY_BODY_MAX_LENGTH,
-    DIARY_COMMENT_BODY_MAX_LENGTH,
-    DIARY_TITLE_MAX_LENGTH,
-)
+from app.config import DIARY_LIST_PAGE_SIZE
+from app.format import FormatRSS06
 from app.lib.auth_context import auth_user, web_user
-from app.lib.locale import (
-    INSTALLED_LOCALES_NAMES_MAP,
-    LOCALES_NAMES_MAP,
-    normalize_locale,
-)
-from app.lib.render_response import render_response
-from app.lib.translation import primary_translation_locale
+from app.lib.locale import LOCALES_NAMES_MAP, normalize_locale
+from app.lib.render_response import render_proto_page, render_response
+from app.lib.translation import primary_translation_locale, t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.middlewares.request_context_middleware import get_request
 from app.models.db.diary import diaries_resolve_rich_text
-from app.models.db.user import User, UserDisplay
-from app.models.types import DiaryId, LocaleCode
+from app.models.db.user import User, user_proto
+from app.models.proto.diary_pb2 import (
+    ComposePage,
+    DetailsPage,
+    IndexPage,
+    UserCommentsPage,
+)
+from app.models.proto.shared_pb2 import LonLat
+from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.rpc.diary import _build_entry
 from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
 from app.validators.display_name import DisplayNameNormalizing
 
@@ -36,14 +39,9 @@ router = APIRouter()
 
 @router.get('/diary/new')
 async def new():
-    return await render_response(
-        'diary/compose',
-        {
-            'new': True,
-            'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
-            'DIARY_TITLE_MAX_LENGTH': DIARY_TITLE_MAX_LENGTH,
-            'DIARY_BODY_MAX_LENGTH': DIARY_BODY_MAX_LENGTH,
-        },
+    return await render_proto_page(
+        ComposePage(),
+        title_prefix=t('diary.new_entry').capitalize(),
     )
 
 
@@ -70,17 +68,16 @@ async def details(
         tg.create_task(UserSubscriptionQuery.resolve_is_subscribed('diary', diaries))
 
     profile = diary['user']  # type: ignore
-    data = _diary_page_meta(profile=profile, language=None)
 
-    return await render_response(
-        'diary/details',
-        {
-            **data,
-            'diary': diary,
+    return await render_proto_page(
+        DetailsPage(entry=_build_entry(diary)),
+        title_prefix=(
+            f'{t("diary_entries.index.user_title", user=profile["display_name"])}'
+            f' | {diary["title"]}'
+        ),
+        template_data={
             'unsubscribe_target': 'diary' if unsubscribe else None,
             'unsubscribe_id': diary_id if unsubscribe else None,
-            'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
-            'DIARY_COMMENT_BODY_MAX_LENGTH': DIARY_COMMENT_BODY_MAX_LENGTH,
         },
     )
 
@@ -117,42 +114,66 @@ async def edit(
 ):
     diary = await DiaryQuery.find_by_id(diary_id)
     if diary is None or diary['user_id'] != user['id']:
-        return render_response(
+        return await render_response(
             'diary/not-found',
             {'diary_id': diary_id},
             status=status.HTTP_404_NOT_FOUND,
         )
 
     point = diary['point']
-    return await render_response(
-        'diary/compose',
-        {
-            'new': False,
-            'LOCALES_NAMES_MAP': LOCALES_NAMES_MAP,
-            'DIARY_TITLE_MAX_LENGTH': DIARY_TITLE_MAX_LENGTH,
-            'DIARY_BODY_MAX_LENGTH': DIARY_BODY_MAX_LENGTH,
-            'diary_id': diary_id,
-            'title': diary['title'],
-            'body': diary['body'],
-            'language': diary['language'],
-            'lon': round(point.x, 7) if (point is not None) else '',
-            'lat': round(point.y, 7) if (point is not None) else '',
-        },
+    return await render_proto_page(
+        ComposePage(
+            diary_id=diary_id,
+            title=diary['title'],
+            body=diary['body'],
+            language=diary['language'],
+            location=LonLat(lon=point.x, lat=point.y) if point is not None else None,
+        ),
+        title_prefix=t('diary_entries.edit.title').capitalize(),
     )
 
 
 @router.get('/diary')
 async def index():
-    data = await _get_index_data(profile=None, language=None)
-    return await render_response('diary/index', data)
+    page = IndexPage()
+    return await render_proto_page(
+        page,
+        title_prefix=_build_heading(page),
+    )
+
+
+@router.get('/diary/rss')
+async def index_rss():
+    return await _get_rss_feed(IndexPage())
+
+
+@router.get('/diary/{language:str}/rss')
+async def language_index_rss(
+    language: Annotated[LocaleCode, Path(min_length=1)],
+):
+    normalized_language = normalize_locale(language)
+    if normalized_language is None:
+        return Response(None, status.HTTP_404_NOT_FOUND)
+
+    return await _get_rss_feed(
+        IndexPage(language=normalized_language),
+        language=normalized_language,
+    )
 
 
 @router.get('/diary/{language:str}')
 async def language_index(
     language: Annotated[LocaleCode, Path(min_length=1)],
 ):
-    data = await _get_index_data(profile=None, language=language)
-    return await render_response('diary/index', data)
+    normalized_language = normalize_locale(language)
+    if normalized_language is None:
+        return Response(None, status.HTTP_404_NOT_FOUND)
+
+    page = IndexPage(language=normalized_language)
+    return await render_proto_page(
+        page,
+        title_prefix=_build_heading(page),
+    )
 
 
 @router.get('/user/{display_name:str}/diary')
@@ -160,8 +181,57 @@ async def user_index(
     display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
 ):
     user = await UserQuery.find_by_display_name(display_name)
-    data = await _get_index_data(profile=user, language=None)
-    return await render_response('diary/index', data)
+    if user is None:
+        return await render_response(
+            'user/profile/not-found',
+            {'name': display_name},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    current_user = auth_user()
+    page = (
+        IndexPage(self=IndexPage.Self())
+        if current_user is not None and user['id'] == current_user['id']
+        else IndexPage(profile=user_proto(user))
+    )
+    return await render_proto_page(
+        page,
+        title_prefix=_build_heading(page),
+    )
+
+
+@router.get('/user/{display_name:str}/diary/rss')
+async def user_index_rss(
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
+):
+    user = await UserQuery.find_by_display_name(display_name)
+    if user is None:
+        return Response(None, status.HTTP_404_NOT_FOUND)
+
+    current_user = auth_user()
+    page = (
+        IndexPage(self=IndexPage.Self())
+        if current_user is not None and user['id'] == current_user['id']
+        else IndexPage(profile=user_proto(user))
+    )
+    return await _get_rss_feed(page, user_id=user['id'])
+
+
+@router.get('/user/{display_name:str}/diary/comments')
+async def user_comments(
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
+):
+    user = await UserQuery.find_by_display_name(display_name)
+    if user is None:
+        return await render_response(
+            'user/profile/not-found',
+            {'name': display_name},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    return await render_proto_page(
+        UserCommentsPage(user=user_proto(user)),
+        title_prefix=t('diary_entries.comments.heading', user=user['display_name']),
+    )
 
 
 @router.get('/user/{_:str}/diary/{diary_id:int}{suffix:path}')
@@ -171,76 +241,56 @@ async def legacy_user_diary(_, diary_id: DiaryId, suffix: str):
     )
 
 
-async def _get_index_data(
-    *,
-    profile: User | UserDisplay | None,
-    language: LocaleCode | None,
-):
-    data = _diary_page_meta(profile=profile, language=language)
-
-    pagination_action = '/api/web/diary/page'
-    if (profile := data['profile']) is not None:
-        pagination_action += f'?user_id={profile["id"]}'
-    elif (normalized_language := data['language']) is not None:
-        pagination_action += f'?language={normalized_language}'
-
-    data['pagination_action'] = pagination_action
-    return data
-
-
 @cython.cfunc
-def _diary_page_meta(
-    *,
-    profile: User | UserDisplay | None,
-    language: LocaleCode | None,
+def _build_heading(
+    page: IndexPage,
 ):
-    primary_locale = primary_translation_locale()
-    primary_locale_name = INSTALLED_LOCALES_NAMES_MAP[primary_locale].native
-
-    language = normalize_locale(language)
-    if language is not None:
-        locale_name = LOCALES_NAMES_MAP[language]
-        language_name = (
-            locale_name.native if language == primary_locale else locale_name.english
+    if page.HasField('language'):
+        language = normalize_locale(LocaleCode(page.language))
+        assert language is not None
+        if language == primary_translation_locale():
+            return t(
+                'diary_entries.index.in_language_title',
+                language=LOCALES_NAMES_MAP[primary_translation_locale()].display_name,
+            )
+        return t(
+            'diary_entries.index.in_language_title',
+            language=LOCALES_NAMES_MAP[language].display_name,
         )
-    else:
-        language_name = None
 
-    base_url = (
-        f'/user/{profile["display_name"]}/diary'  #
-        if profile is not None
-        else '/diary'
-    )
-    if language is not None:
-        base_url += f'/{language}'
+    if page.HasField('self'):
+        return t('diary_entries.index.my_diary')
 
-    return {
-        'profile': profile,
-        'active_tab': _get_active_tab(profile, language, primary_locale),
-        'primary_locale': primary_locale,
-        'primary_locale_name': primary_locale_name,
-        'base_url': base_url,
-        'language': language,
-        'language_name': language_name,
-    }
+    if page.HasField('profile'):
+        return t(
+            'diary_entries.index.user_title',
+            user=page.profile.display_name,
+        )
+
+    return t('layouts.user_diaries')
 
 
-@cython.cfunc
-def _get_active_tab(
-    profile: User | UserDisplay | None,
-    language: LocaleCode | None,
-    primary_locale: LocaleCode,
+async def _get_rss_feed(
+    page: IndexPage,
+    *,
+    user_id: UserId | None = None,
+    language: LocaleCode | None = None,
 ):
-    """Get the active tab number for the diaries page."""
-    if language is not None:
-        if language == primary_locale:
-            return 1  # viewing own language diaries
-        return 2  # viewing other language diaries
+    diaries = await DiaryQuery.find_recent(
+        user_id=user_id,
+        language=language,
+        limit=DIARY_LIST_PAGE_SIZE,
+    )
+    if diaries:
+        async with TaskGroup() as tg:
+            tg.create_task(UserQuery.resolve_users(diaries))
+            tg.create_task(diaries_resolve_rich_text(diaries))
 
-    if profile is not None:
-        current_user = auth_user()
-        if current_user is not None and profile['id'] == current_user['id']:
-            return 3  # viewing own diaries
-        return 4  # viewing other user's diaries
+    fg = FeedGenerator()
+    fg.language(primary_translation_locale())
+    fg.link(href=str(get_request().url), rel='self')
+    fg.title(_build_heading(page))
+    fg.subtitle(t('diary.index.description'))
 
-    return 0  # viewing all diaries
+    FormatRSS06.encode_diaries(fg, diaries)
+    return Response(fg.rss_str(), media_type='application/rss+xml; charset=utf-8')

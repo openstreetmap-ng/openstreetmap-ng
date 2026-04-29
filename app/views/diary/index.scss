@@ -1,5 +1,5 @@
-.diary-index-body,
-.diary-details-body {
+.diary\.IndexPage,
+.diary\.DetailsPage {
   .content-header {
     img.avatar {
       font-size: 3.3rem;
@@ -7,9 +7,10 @@
   }
 }
 
-#diary-scroll-nav {
+.diary-scroll-nav {
   max-height: max-content;
-  overflow: hidden scroll;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   nav {
     margin-left: 0.25rem;
@@ -24,11 +25,20 @@
   .nav-link {
     --bs-nav-link-padding-y: 0.425rem;
 
+    gap: 0.5rem;
+
     .title {
+      flex: 1 1 auto;
+      min-width: 0;
       display: -webkit-box;
       overflow: hidden;
+      overflow-wrap: anywhere;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+    }
+
+    .badge {
+      flex: 0 0 auto;
     }
 
     &:hover {

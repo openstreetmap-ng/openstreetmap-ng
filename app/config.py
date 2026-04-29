@@ -26,6 +26,7 @@ from app.lib.pydantic_settings_integration import pydantic_settings_integration
 from app.models.proto import (
     audit_types,
     changeset_pb2,
+    diary_pb2,
     message_pb2,
     note_pb2,
     report_pb2,
@@ -324,9 +325,6 @@ TRACE_TAG_MAX_LENGTH = 40
 TRACE_TAGS_LIMIT = 10
 
 # Diary
-DIARY_TITLE_MAX_LENGTH = 255
-DIARY_BODY_MAX_LENGTH = 100_000  # Q95: 1745, Q99: 3646, Q99.9: 10864, Q100: 636536
-DIARY_COMMENT_BODY_MAX_LENGTH = 5_000
 DIARY_LIST_PAGE_SIZE = 15
 DIARY_COMMENTS_PAGE_SIZE = 10
 LOCALE_CODE_MAX_LENGTH = 15
@@ -543,6 +541,15 @@ def _proto_validate(message_cls: type[Message], path: str):
 
 CHANGESET_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     changeset_pb2.AddCommentRequest, 'body.string.max_len'
+)
+DIARY_TITLE_MAX_LENGTH: int = _proto_validate(
+    diary_pb2.CreateOrUpdateRequest, 'title.string.max_len'
+)
+DIARY_BODY_MAX_LENGTH: int = _proto_validate(
+    diary_pb2.CreateOrUpdateRequest, 'body.string.max_len'
+)
+DIARY_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
+    diary_pb2.AddCommentRequest, 'body.string.max_len'
 )
 MESSAGE_BODY_MAX_LENGTH: int = _proto_validate(
     message_pb2.SendRequest, 'body.string.max_len'
