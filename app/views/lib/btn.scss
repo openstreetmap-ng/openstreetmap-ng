@@ -3,6 +3,21 @@
   top: unset;
 }
 
+.btn:has(> .bi):not([class^="d-"], [class*=" d-"]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-item:has(> .bi):not([class^="d-"], [class*=" d-"]) {
+  display: flex;
+  align-items: center;
+}
+
+:where(.btn, .dropdown-item):has(> .bi) > .bi {
+  line-height: 1;
+}
+
 @include color-mode(dark) {
   .btn-light {
     @extend .btn-dark;

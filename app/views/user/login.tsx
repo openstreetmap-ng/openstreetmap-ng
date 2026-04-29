@@ -1,5 +1,6 @@
 import type { MessageInitShape } from "@bufbuild/protobuf"
 import { ENV } from "@lib/config"
+import { mountProtoPage } from "@lib/proto-page"
 import {
   CredentialsSchema,
   LoginRequestSchema,
@@ -9,7 +10,6 @@ import {
 } from "@lib/proto/auth_pb"
 import { Action } from "@lib/proto/auth_provider_pb"
 import { PageSchema as LoginPageSchema } from "@lib/proto/login_pb"
-import { mountProtoPage } from "@lib/proto-page"
 import { StandardForm } from "@lib/standard-form"
 import { NON_DIGIT_RE, throwAbortError } from "@lib/utils"
 import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
@@ -774,7 +774,7 @@ const LoginCard = ({
               }}
             >
               <img
-                class="dark-filter-invert"
+                class="dark-filter-invert me-1-5"
                 src="/static/img/brand/passkeys-black.webp"
                 alt={t("alt.passkey_icon")}
                 draggable={false}

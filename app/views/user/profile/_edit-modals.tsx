@@ -69,7 +69,7 @@ const SocialLinks = ({
             target="_blank"
             rel="noopener nofollow"
             title={serviceTitle}
-            class="btn btn-sm btn-soft d-flex align-items-center"
+            class="btn btn-sm btn-soft"
           >
             <i class={`bi bi-${icon} me-1-5`} />
             {social.value}
@@ -77,7 +77,7 @@ const SocialLinks = ({
         ) : (
           <span
             key={`${social.service}:${social.value}`}
-            class="btn btn-sm btn-soft d-flex align-items-center"
+            class="btn btn-sm btn-soft"
             title={serviceTitle}
           >
             <i class={`bi bi-${icon} me-1-5`} />
