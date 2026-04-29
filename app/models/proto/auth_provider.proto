@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package auth_provider;
+
+import "app/models/proto/settings_connections.proto";
+import "buf/validate/validate.proto";
+
+enum Action {
+  login = 0;
+  signup = 1;
+  settings = 2;
+}
+
+message AccountNotFoundPage {
+  settings_connections.Provider provider = 1 [(buf.validate.field).enum.defined_only = true];
+}
+
+service Service {
+  rpc StartAuthorize(StartAuthorizeRequest) returns (StartAuthorizeResponse) {}
+}
+
+message StartAuthorizeRequest {
+  settings_connections.Provider provider = 1 [(buf.validate.field).enum.defined_only = true];
+  Action action = 2 [(buf.validate.field).enum.defined_only = true];
+  optional string referer = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message StartAuthorizeResponse {}
+
+message Identity {
+  settings_connections.Provider provider = 1 [(buf.validate.field).enum.defined_only = true];
+  optional string name = 2;
+  optional string email = 3;
+}

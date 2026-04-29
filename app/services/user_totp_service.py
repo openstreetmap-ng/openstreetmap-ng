@@ -19,7 +19,7 @@ from app.services.user_password_service import UserPasswordService
 
 class UserTOTPService:
     @staticmethod
-    async def setup_totp(secret: SecretStr, digits: int, code: str):
+    async def setup_totp(secret: SecretStr, digits: int, code: int):
         """
         Set up TOTP for the current user.
 
@@ -38,10 +38,11 @@ class UserTOTPService:
         except Exception as e:
             raise ValueError('Invalid secret format') from e
 
+        code_str = f'{code:0{digits}d}'
         time_window = totp_time_window()
         if not totp_verify(
             secret_bytes.get_secret_value(),
-            code,
+            code_str,
             digits=digits,
             time_window=time_window,
         ):
@@ -61,11 +62,11 @@ class UserTOTPService:
                 (user_id, secret_encrypted, digits),
             )
             if result.rowcount:
-                await _record_used_code(conn, user_id, code, time_window)
+                await _record_used_code(conn, user_id, code_str, time_window)
                 await audit('add_totp', conn, extra={'digits': digits})
 
     @staticmethod
-    async def verify_totp(user_id: UserId, code: str):
+    async def verify_totp(user_id: UserId, code: int):
         """Verify a TOTP code for a user."""
         async with db(True) as conn:
             totp = await UserTOTPQuery.find_one_by_user_id(user_id, conn=conn)
@@ -95,7 +96,8 @@ class UserTOTPService:
                     t('two_fa.too_many_failed_attempts_please_try_again_in_one_minute'),
                 )
 
-            if not await _record_used_code(conn, user_id, code, time_window):
+            code_str = f'{code:0{totp["digits"]}d}'
+            if not await _record_used_code(conn, user_id, code_str, time_window):
                 await audit(
                     'auth_fail',
                     conn,
@@ -106,7 +108,7 @@ class UserTOTPService:
 
             if not totp_verify(
                 decrypt(totp['secret_encrypted']).get_secret_value(),
-                code,
+                code_str,
                 digits=totp['digits'],
             ):
                 await audit(

@@ -1,6 +1,7 @@
 import logging
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from time import time
+from typing import assert_never
 
 import cython
 from fastapi import HTTPException
@@ -11,15 +12,23 @@ from app.config import (
     AUTH_PROVIDER_STATE_MAX_AGE,
     AUTH_PROVIDER_VERIFICATION_MAX_AGE,
     COOKIE_AUTH_MAX_AGE,
-    ENV,
 )
 from app.lib.auth_context import auth_user
+from app.lib.auth_provider import get_authorize_redirect
+from app.lib.cookie import (
+    delete_cookie,
+    set_auth_cookie,
+    set_cookie,
+)
 from app.lib.crypto import hash_compare, hmac_bytes
 from app.lib.referrer import secure_referrer
-from app.lib.render_response import render_response
-from app.models.db.connected_account import AUTH_PROVIDERS, AuthProviderAction
+from app.lib.render_response import render_proto_page
+from app.lib.translation import t
+from app.models.db.connected_account import AuthProviderAction
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
+from app.models.proto.auth_provider_pb2 import AccountNotFoundPage, Action, Identity
 from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerification
+from app.models.proto.settings_connections_pb2 import Provider as ProviderEnum
 from app.models.proto.settings_connections_types import Provider
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.services.audit_service import audit
@@ -31,14 +40,13 @@ from speedup import buffered_randbytes
 
 class AuthProviderService:
     @staticmethod
-    def continue_authorize(
+    async def start_authorize(
         *,
         provider: Provider,
         action: AuthProviderAction,
         referer: str | None,
-        redirect_uri: str,
-        redirect_params: dict[str, str],
     ):
+        redirect_uri, redirect_params = await get_authorize_redirect(provider)
         state, hmac = _create_signed_state(
             provider=provider,
             action=action,
@@ -48,13 +56,8 @@ class AuthProviderService:
             redirect_uri, {**redirect_params, 'state': hmac}
         )
         response = RedirectResponse(redirect_uri, status.HTTP_303_SEE_OTHER)
-        response.set_cookie(
-            key='auth_provider_state',
-            value=state,
-            max_age=int(AUTH_PROVIDER_STATE_MAX_AGE.total_seconds()),
-            secure=ENV != 'dev',
-            httponly=True,
-            samesite='lax',
+        set_cookie(
+            response, 'auth_provider_state', state, max_age=AUTH_PROVIDER_STATE_MAX_AGE
         )
         return response
 
@@ -77,7 +80,7 @@ class AuthProviderService:
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, 'Authorization timed out, please try again'
             )
-        if state.provider != provider:
+        if state.provider != ProviderEnum.Value(provider):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid state provider')
 
         return state
@@ -90,11 +93,8 @@ class AuthProviderService:
         name: str | None,
         email: str | None,
     ):
-        if state.provider not in AUTH_PROVIDERS:
-            raise NotImplementedError(f'Unsupported auth provider {state.provider!r}')
-
-        provider: Provider = state.provider
-        action: AuthProviderAction = state.action  # type: ignore
+        provider = ProviderEnum.Name(state.provider)
+        action = Action.Name(state.action)
         uid = str(uid)
 
         if action == 'login':
@@ -102,8 +102,9 @@ class AuthProviderService:
                 provider, uid
             )
             if user_id is None:
-                return await render_response(
-                    'user/auth-provider-not-found', {'provider': provider}
+                return await render_proto_page(
+                    AccountNotFoundPage(provider=provider),
+                    title_prefix=t('oauth.account_not_found'),
                 )
 
             audit(
@@ -120,19 +121,11 @@ class AuthProviderService:
             response = RedirectResponse(
                 secure_referrer(state.referer), status.HTTP_303_SEE_OTHER
             )
-            response.delete_cookie('auth_provider_state')
-            response.set_cookie(
-                key='auth',
-                value=access_token.token.get_secret_value(),
-                # TODO: remember option for auth providers
-                max_age=int(COOKIE_AUTH_MAX_AGE.total_seconds()),
-                secure=ENV != 'dev',
-                httponly=True,
-                samesite='lax',
-            )
+            delete_cookie(response, 'auth_provider_state')
+            set_auth_cookie(response, access_token.token, max_age=COOKIE_AUTH_MAX_AGE)
             return response
 
-        elif action == 'settings':
+        if action == 'settings':
             current_user = auth_user()
             if current_user is not None:
                 user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(
@@ -146,10 +139,10 @@ class AuthProviderService:
             response = RedirectResponse(
                 '/settings/connections', status.HTTP_303_SEE_OTHER
             )
-            response.delete_cookie('auth_provider_state')
+            delete_cookie(response, 'auth_provider_state')
             return response
 
-        elif action == 'signup':
+        if action == 'signup':
             user_id = await ConnectedAccountQuery.find_user_id_by_auth_provider(
                 provider, uid
             )
@@ -163,18 +156,16 @@ class AuthProviderService:
                 email=email,
             )
             response = RedirectResponse('/signup', status.HTTP_303_SEE_OTHER)
-            response.delete_cookie('auth_provider_state')
-            response.set_cookie(
-                key='auth_provider_verification',
-                value=verification,
-                max_age=int(AUTH_PROVIDER_VERIFICATION_MAX_AGE.total_seconds()),
-                secure=ENV != 'dev',
-                httponly=True,
-                samesite='lax',
+            delete_cookie(response, 'auth_provider_state')
+            set_cookie(
+                response,
+                'auth_provider_verification',
+                verification,
+                max_age=AUTH_PROVIDER_VERIFICATION_MAX_AGE,
             )
             return response
 
-        raise NotImplementedError(f'Unsupported auth provider action {action!r}')
+        assert_never(action)
 
     @staticmethod
     def validate_verification(s: str | None):
@@ -227,8 +218,8 @@ def _create_signed_state(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderState(
             issued_at=int(time()),
-            provider=provider,
-            action=action,
+            provider=ProviderEnum.Value(provider),
+            action=Action.Value(action),
             referer=referer,
             nonce=buffered_randbytes(16),
         ).SerializeToString()
@@ -253,10 +244,12 @@ def _create_signed_verification(
     buffer_b64 = urlsafe_b64encode(
         AuthProviderVerification(
             issued_at=int(time()),
-            provider=provider,
+            identity=Identity(
+                provider=ProviderEnum.Value(provider),
+                name=name,
+                email=email,
+            ),
             uid=uid,
-            name=name,
-            email=email,
         ).SerializeToString()
     )
     hmac_b64 = urlsafe_b64encode(hmac_bytes(buffer_b64))

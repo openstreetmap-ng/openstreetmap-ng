@@ -5,15 +5,26 @@ package auth;
 import "buf/validate/validate.proto";
 
 service Service {
+  rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc GetPasskeyChallenge(GetPasskeyChallengeRequest) returns (GetPasskeyChallengeResponse) {}
 }
 
-message GetPasskeyChallengeRequest {
-  message Credentials {
-    string display_name_or_email = 1 [(buf.validate.field).string.min_len = 1];
-    TransmitUserPassword password = 2 [(buf.validate.field).required = true];
-  }
+message LoginRequest {
+  optional Credentials credentials = 1;
+  optional PasskeyAssertion passkey = 2;
+  optional uint32 totp_code = 3 [(buf.validate.field).uint32.lt = 100000000];
+  optional string recovery_code = 4 [(buf.validate.field).string.min_len = 1];
+  bool bypass_2fa = 5;
+  bool remember = 6;
+}
 
+message LoginResponse {
+  optional bool passkey = 1;
+  optional uint32 totp = 2;
+  optional bool recovery = 3;
+}
+
+message GetPasskeyChallengeRequest {
   optional Credentials credentials = 1;
 }
 
@@ -56,9 +67,7 @@ message PasskeyChallenge {
   string user_email = 5;
 }
 
-// Login response for 2FA flow
-message LoginResponse {
-  optional bool passkey = 1;
-  optional uint32 totp = 2;
-  optional bool recovery = 3;
+message Credentials {
+  string display_name_or_email = 1 [(buf.validate.field).string.min_len = 1];
+  TransmitUserPassword password = 2 [(buf.validate.field).required = true];
 }

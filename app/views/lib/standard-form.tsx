@@ -33,13 +33,50 @@ import {
 } from "preact"
 import { useRef } from "preact/hooks"
 
-export interface APIDetail {
+interface APIDetail {
   type: "success" | "info" | "error"
   loc: [string | null, string | null]
   msg: string
 }
 
 type ValidationResult = string | APIDetail[] | null
+
+type StandardFormSuccessActions = {
+  redirect: (href: string | URL) => void
+  reload: () => void
+  keepPending: () => void
+}
+
+type ConfigureStandardFormSuccessContext = StandardFormSuccessActions & {
+  headers: Headers
+}
+
+type StandardFormSuccessController = {
+  actions: StandardFormSuccessActions
+  readonly shouldKeepPending: boolean
+}
+
+const createSuccessController = (): StandardFormSuccessController => {
+  let shouldKeepPending = false
+  const keepPending = () => (shouldKeepPending = true)
+
+  return {
+    actions: {
+      redirect: (href) => {
+        keepPending()
+        window.location.href = href.toString()
+      },
+      reload: () => {
+        keepPending()
+        window.location.reload()
+      },
+      keepPending,
+    },
+    get shouldKeepPending() {
+      return shouldKeepPending
+    },
+  }
+}
 
 export const formDataBytes = async (formData: FormData, name: string) =>
   new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
@@ -53,6 +90,35 @@ const removeEmptyData = (formData: FormData) => {
   }
   for (const key of keysToDelete) {
     formData.delete(key)
+  }
+}
+
+const PASSWORD_CONFIRM_SUFFIX = "_confirm"
+
+const configurePasswordConfirmations = (form: HTMLFormElement, scope: DisposeScope) => {
+  const passwordInputs = [...form.querySelectorAll('input[type="password"][name]')]
+
+  for (const confirmInput of passwordInputs) {
+    if (!confirmInput.name.endsWith(PASSWORD_CONFIRM_SUFFIX)) continue
+
+    const passwordInput = passwordInputs.find(
+      (input) =>
+        input.name === confirmInput.name.slice(0, -PASSWORD_CONFIRM_SUFFIX.length),
+    )
+    if (!passwordInput) continue
+
+    const sync = () => {
+      const mismatch =
+        confirmInput.value.length > 0 && passwordInput.value !== confirmInput.value
+      confirmInput.setCustomValidity(
+        mismatch ? t("validation.passwords_missmatch") : "",
+      )
+    }
+
+    sync()
+    scope.dom(passwordInput, "input", sync)
+    scope.dom(confirmInput, "input", sync)
+    scope.dom(form, "reset", () => queueMicrotask(sync))
   }
 }
 
@@ -222,7 +288,7 @@ const createStandardFormFeedbackRenderer = (
       ): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null =>
         form.querySelector(
           `input[name="${name}"], textarea[name="${name}"], select[name="${name}"]`,
-        ) ?? (name.includes(".") ? queryInput(name.split(".", 1)[0]) : null)
+        ) ?? (name.includes(".") ? queryInput(name.split(".", 1)[0]!) : null)
 
       const input = queryInput(field)
       console.debug("StandardForm: Processing field feedback", field, type)
@@ -276,20 +342,23 @@ type ConfigureStandardFormOptions = {
 export function configureStandardForm<Schema extends DescMessage>(
   form: HTMLFormElement | null,
   successCallback:
-    | ((data: MessageValidType<Schema>, headers: Headers) => void)
+    | ((
+        data: MessageValidType<Schema>,
+        ctx: ConfigureStandardFormSuccessContext,
+      ) => void)
     | undefined,
   options: Omit<ConfigureStandardFormOptions, "protobuf"> & { protobuf: Schema },
 ): (() => void) | void
 
-export function configureStandardForm<T = any>(
+export function configureStandardForm(
   form: HTMLFormElement | null,
-  successCallback?: (data: T, headers: Headers) => void,
+  successCallback?: (data: any, ctx: ConfigureStandardFormSuccessContext) => void,
   options?: ConfigureStandardFormOptions,
 ): (() => void) | void
 
 export function configureStandardForm<T = any>(
   form: HTMLFormElement | null,
-  successCallback?: (data: T, headers: Headers) => void,
+  successCallback?: (data: T, ctx: ConfigureStandardFormSuccessContext) => void,
   options?: ConfigureStandardFormOptions,
 ): (() => void) | void {
   if (!form || form.classList.contains("needs-validation")) return
@@ -317,6 +386,7 @@ export function configureStandardForm<T = any>(
     "button[type=submit], input[type=submit]",
   )
   const passwordState = createPasswordTransformState(form)
+  configurePasswordConfirmations(form, scope)
 
   const abortController = new AbortController()
   scope.defer(() => abortController.abort())
@@ -435,15 +505,17 @@ export function configureStandardForm<T = any>(
       if (detail) processFormFeedback(detail)
 
       // If the request was successful, call the callback
+      const success = createSuccessController()
+
       batch(() => {
         if (resp.ok) {
-          successCallback?.(data, resp.headers)
+          successCallback?.(data, { headers: resp.headers, ...success.actions })
         } else {
           errorCallback?.(new Error(detail))
         }
       })
 
-      setPendingState(false)
+      if (!success.shouldKeepPending) setPendingState(false)
     } catch (error) {
       if (error.name === "AbortError") return
       console.error("StandardForm: Submit failed", formAction, error)
@@ -497,8 +569,11 @@ export const StandardForm = <
       signal: AbortSignal
       request: R
       headers: Headers | null
+      redirect: (href: string | URL) => void
+      reload: () => void
+      keepPending: () => void
     }>,
-  ) => void
+  ) => any
   onError?: (
     err: ConnectError,
     ctx: Readonly<{
@@ -535,6 +610,7 @@ export const StandardForm = <
     feedbackRef.current = feedback
 
     passwordStateRef.current = createPasswordTransformState(form)
+    configurePasswordConfirmations(form, scope)
 
     return () => {
       abortControllerRef.current.abort()
@@ -584,13 +660,16 @@ export const StandardForm = <
         passwords: await passwordStateRef.current!.collect(formData),
       })
     } catch (error) {
+      if (abortControllerRef.current === abortController) {
+        isPending.value = false
+      }
       if (error.name === "AbortError") return
       console.error("StandardForm: buildRequest failed", error)
       feedback.handleFormFeedback("error", error.message)
-      isPending.value = false
       return
     }
 
+    const success = createSuccessController()
     const ctx = {
       form,
       submitter: e.submitter,
@@ -615,7 +694,15 @@ export const StandardForm = <
       if (Array.isArray(entries) && entries.length)
         feedback.processFormFeedback(entries)
 
-      onSuccess?.(response, { ...ctx, headers })
+      const successResult = onSuccess?.(response, {
+        ...ctx,
+        headers,
+        ...success.actions,
+      })
+      if (successResult instanceof Promise) await successResult
+
+      const location = (headers as Headers | null)?.get("location")
+      if (location) success.actions.redirect(location)
     } catch (error) {
       if (error.name === "AbortError") return
 
@@ -635,7 +722,10 @@ export const StandardForm = <
 
       onError?.(err, ctx)
     } finally {
-      if (abortControllerRef.current === abortController) {
+      if (
+        abortControllerRef.current === abortController &&
+        !success.shouldKeepPending
+      ) {
         isPending.value = false
       }
     }

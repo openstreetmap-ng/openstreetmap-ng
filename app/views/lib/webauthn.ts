@@ -1,60 +1,27 @@
-import { create, toBinary } from "@bufbuild/protobuf"
-import { ConnectError } from "@connectrpc/connect"
-import type { TransmitUserPasswordInit } from "@lib/password-hash"
+// oxlint-disable typescript/no-unnecessary-condition
+import { create } from "@bufbuild/protobuf"
 import {
+  CredentialsSchema,
   PasskeyAssertionSchema,
   PasskeyRegistrationSchema,
-  TransmitUserPasswordSchema,
+  Service,
 } from "@lib/proto/auth_pb"
-import { Service } from "@lib/proto/auth_pb"
-import { connectErrorToMessage, fromBinaryValid, rpcUnary } from "@lib/rpc"
+import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@lib/rpc"
 import { t } from "i18next"
 
-/** Fetch and parse passkey challenge from server, returns challenge or error string */
-const fetchPasskeyChallenge = async (
-  formData?: FormData,
-  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
-) => {
+type PasskeyChallengeCredentials = LooseMessageInitShape<typeof CredentialsSchema>
+
+const fetchPasskeyChallenge = async (credentials?: PasskeyChallengeCredentials) => {
   try {
-    const response = await rpcUnary(Service.method.getPasskeyChallenge)(
-      await buildPasskeyChallengeRequest(formData, passwords),
-    )
+    const response = await rpcUnary(Service.method.getPasskeyChallenge)({
+      credentials,
+    })
     return response.challenge
   } catch (error) {
-    return connectErrorToMessage(ConnectError.from(error))
+    throw new Error(connectErrorToMessage(error), { cause: error })
   }
 }
 
-/** Build passkey challenge request payload from login form state */
-const buildPasskeyChallengeRequest = async (
-  formData?: FormData,
-  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
-) => {
-  if (!formData) return {}
-
-  const displayNameOrEmail = formData.get("display_name_or_email")
-  if (!(typeof displayNameOrEmail === "string" && displayNameOrEmail)) return {}
-
-  let password = passwords?.password
-  if (!password) {
-    const formPassword = formData.get("password")
-    if (!(formPassword instanceof Blob && formPassword.size)) return {}
-
-    password = fromBinaryValid(
-      TransmitUserPasswordSchema,
-      new Uint8Array(await formPassword.arrayBuffer()),
-    )
-  }
-
-  return {
-    credentials: {
-      displayNameOrEmail,
-      password,
-    },
-  }
-}
-
-/** Build credential descriptors for WebAuthn allowCredentials/excludeCredentials */
 const buildCredentialDescriptors = (
   credentials: { credentialId: Uint8Array; transports: string[] }[],
 ) =>
@@ -64,24 +31,19 @@ const buildCredentialDescriptors = (
     type: "public-key" as const,
   }))
 
-/** Build assertion blob from credential response */
-const buildAssertionBlob = (credential: PublicKeyCredential) => {
+const buildAssertion = (credential: PublicKeyCredential) => {
   const response = credential.response as AuthenticatorAssertionResponse
-  const assertion = create(PasskeyAssertionSchema, {
+  return create(PasskeyAssertionSchema, {
     credentialId: new Uint8Array(credential.rawId),
     clientDataJson: new Uint8Array(response.clientDataJSON),
     authenticatorData: new Uint8Array(response.authenticatorData),
     signature: new Uint8Array(response.signature),
   })
-  return new Blob([toBinary(PasskeyAssertionSchema, assertion)])
 }
 
-/** Register a new passkey, returning registration payload or throwing on error */
 export const getPasskeyRegistration = async () => {
   const challenge = await fetchPasskeyChallenge()
-  if (typeof challenge === "string") throw new Error(challenge)
 
-  // Convert user ID to bytes for WebAuthn
   const userIdBytes = new Uint8Array(8)
   new DataView(userIdBytes.buffer).setBigUint64(0, challenge.userId)
 
@@ -117,64 +79,55 @@ export const getPasskeyRegistration = async () => {
   const registration = create(PasskeyRegistrationSchema, {
     clientDataJson: new Uint8Array(response.clientDataJSON),
     attestationObject: new Uint8Array(response.attestationObject),
+    // oxlint-disable-next-line typescript/no-unnecessary-condition
     transports: response.getTransports?.() ?? [],
   })
   return registration
 }
 
-/** Perform WebAuthn authentication, returning assertion blob or error string */
 export const getPasskeyAssertion = async (
-  formData?: FormData,
-  passwords?: Readonly<Record<string, TransmitUserPasswordInit>>,
+  credentials: PasskeyChallengeCredentials | undefined,
   userVerification: UserVerificationRequirement = "required",
 ) => {
-  const challenge = await fetchPasskeyChallenge(formData, passwords)
-  if (typeof challenge === "string") return challenge
+  const challenge = await fetchPasskeyChallenge(credentials)
 
-  let credential: PublicKeyCredential | null = null
   try {
-    credential = (await navigator.credentials.get({
+    const credential = (await navigator.credentials.get({
       publicKey: {
         challenge: challenge.challenge as BufferSource,
         userVerification,
         allowCredentials: buildCredentialDescriptors(challenge.credentials),
       },
     })) as PublicKeyCredential | null
+
+    return credential ? buildAssertion(credential) : undefined
   } catch (error) {
     console.warn("WebAuthn: Assertion failed", error)
+    return
   }
-  if (!credential) return ""
-
-  return buildAssertionBlob(credential)
 }
 
-/**
- * Start conditional mediation for passkey autofill.
- * Resolves when user selects a passkey from autofill, or never if they don't.
- * Returns assertion blob on success, null on cancel/error.
- */
 export const startConditionalMediation = async (signal: AbortSignal) => {
   console.debug("WebAuthn: Starting conditional mediation")
 
-  // Feature detection
   if (
     !(
       PublicKeyCredential?.isConditionalMediationAvailable &&
       (await PublicKeyCredential.isConditionalMediationAvailable())
     )
   )
-    return null
+    return
 
-  // Fetch challenge
-  const challenge = await fetchPasskeyChallenge()
-  if (typeof challenge === "string") {
-    console.error("WebAuthn: Conditional mediation challenge failed", challenge)
-    return null
+  let challenge
+  try {
+    challenge = await fetchPasskeyChallenge()
+  } catch (error) {
+    console.error("WebAuthn: Conditional mediation challenge failed", error)
+    return
   }
 
-  let credential: PublicKeyCredential | null = null
   try {
-    credential = (await navigator.credentials.get({
+    const credential = (await navigator.credentials.get({
       publicKey: {
         challenge: challenge.challenge as BufferSource,
         userVerification: "required",
@@ -182,12 +135,11 @@ export const startConditionalMediation = async (signal: AbortSignal) => {
       mediation: "conditional",
       signal,
     })) as PublicKeyCredential | null
+    return credential ? buildAssertion(credential) : undefined
   } catch (error) {
     if (error.name !== "AbortError") {
       console.warn("WebAuthn: Conditional mediation error", error)
     }
+    return
   }
-  if (!credential) return null
-
-  return buildAssertionBlob(credential)
 }

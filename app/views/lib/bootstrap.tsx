@@ -1,10 +1,13 @@
 import { useDisposeEffect } from "@lib/dispose-scope"
 import { Alert, Collapse, Popover, Tooltip } from "bootstrap"
 import {
+  cloneElement,
   type ComponentChild,
   type ComponentChildren,
+  type Ref,
   render,
   type TargetedMouseEvent,
+  type VNode,
 } from "preact"
 import { useEffect, useId, useRef, useState } from "preact/hooks"
 
@@ -98,34 +101,53 @@ export const BAccordion = ({
 export const BPopover = ({
   content,
   trigger,
+  disabled = false,
   children,
 }: {
   content: () => ComponentChild
   trigger?: Popover.Options["trigger"] | undefined
-  children: ComponentChild
+  disabled?: boolean
+  children: VNode
 }) => {
-  const wrapperRef = useRef<HTMLSpanElement>(null)
+  const targetRef = useRef<Element>(null)
+  const childRef = children.ref as Ref<Element> | undefined
+
+  const setTargetRef = (element: Element | null) => {
+    targetRef.current = element
+    if (typeof childRef === "function") {
+      childRef(element)
+    } else if (childRef) {
+      childRef.current = element
+    }
+  }
 
   useEffect(() => {
-    const contentNode = document.createElement("div")
-    render(content(), contentNode)
+    if (disabled) return
+
+    let contentNode: HTMLDivElement | undefined
 
     const options: Partial<Popover.Options> = {
       html: true,
       container: "body",
-      content: () => contentNode,
+      content: () => {
+        if (!contentNode) {
+          contentNode = document.createElement("div")
+          render(content(), contentNode)
+        }
+        return contentNode
+      },
     }
-    if (trigger !== undefined) options.trigger = trigger
+    if (trigger) options.trigger = trigger
 
-    const popover = new Popover(wrapperRef.current!, options)
+    const popover = new Popover(targetRef.current!, options)
 
     return () => {
       popover.dispose()
-      render(null, contentNode)
+      if (contentNode) render(null, contentNode)
     }
-  }, [content, trigger])
+  }, [content, disabled, trigger])
 
-  return <span ref={wrapperRef}>{children}</span>
+  return disabled ? children : cloneElement(children, { ref: setTargetRef })
 }
 
 export const BTooltip = ({
@@ -140,10 +162,10 @@ export const BTooltip = ({
   const wrapperRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (title === undefined) return
+    if (!title) return
 
     const options: Partial<Tooltip.Options> = { title }
-    if (placement !== undefined) options.placement = placement
+    if (placement) options.placement = placement
 
     const tooltip = new Tooltip(wrapperRef.current!, options)
     return () => tooltip.dispose()
@@ -152,24 +174,14 @@ export const BTooltip = ({
   return <span ref={wrapperRef}>{children}</span>
 }
 
-export const configureBootstrapTooltips = (root: ParentNode) => {
-  for (const element of root.querySelectorAll("[data-bs-toggle=tooltip]")) {
-    Tooltip.getOrCreateInstance(element)
-  }
+for (const element of document.querySelectorAll("[data-bs-toggle=tooltip]")) {
+  Tooltip.getOrCreateInstance(element)
 }
 
-export const configureBootstrapAlerts = (root: ParentNode) => {
-  for (const element of root.querySelectorAll(".alert")) {
-    Alert.getOrCreateInstance(element)
-  }
+for (const element of document.querySelectorAll(".alert")) {
+  Alert.getOrCreateInstance(element)
 }
 
-export const configureBootstrapPopovers = (root: ParentNode) => {
-  for (const element of root.querySelectorAll("[data-bs-toggle=popover]")) {
-    Popover.getOrCreateInstance(element)
-  }
+for (const element of document.querySelectorAll("[data-bs-toggle=popover]")) {
+  Popover.getOrCreateInstance(element)
 }
-
-configureBootstrapTooltips(document)
-configureBootstrapAlerts(document)
-configureBootstrapPopovers(document)

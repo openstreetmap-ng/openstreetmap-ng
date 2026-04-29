@@ -119,10 +119,6 @@
     {% block body %}
     {% endblock %}
 
-    {% if user is none and self.body_class() != 'login-body' %}
-      {% include 'user/login-modal' %}
-    {% endif %}
-
     {% if unsubscribe_target and unsubscribe_id %}
       {% include '_unsubscribe-discussion' %}
     {% endif %}

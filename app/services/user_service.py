@@ -25,7 +25,7 @@ from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, user_avatar_url, user_is_test
 from app.models.proto.admin_users_types import Role
 from app.models.proto.auth_pb2 import LoginResponse, PasskeyAssertion
-from app.models.types import DisplayName, Email, LocaleCode, Password, UserId
+from app.models.types import DisplayName, Email, LocaleCode, UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_recovery_code_query import UserRecoveryCodeQuery
@@ -47,9 +47,9 @@ class UserService:
     async def login(
         *,
         display_name_or_email: DisplayName | Email | None,
-        password: Password | None,
-        passkey: bytes | None,
-        totp_code: str | None,
+        password: PasswordLike | None,
+        passkey: PasskeyAssertion | None,
+        totp_code: int | None,
         recovery_code: str | None,
         bypass_2fa: bool = False,
     ):
@@ -439,10 +439,9 @@ class UserService:
                 await op(conn)
 
 
-async def _login_with_passkey(passkey: bytes, *, require_uv: bool):
+async def _login_with_passkey(passkey: PasskeyAssertion, *, require_uv: bool):
     """Authenticate via passkey."""
-    assertion = PasskeyAssertion.FromString(passkey)
-    result = await UserPasskeyService.verify_passkey(assertion, require_uv=require_uv)
+    result = await UserPasskeyService.verify_passkey(passkey, require_uv=require_uv)
     if result is None:
         StandardFeedback.raise_error(None, t('users.auth_failure.invalid_credentials'))
     return result
@@ -450,9 +449,9 @@ async def _login_with_passkey(passkey: bytes, *, require_uv: bool):
 
 async def _login_with_credentials(
     display_name_or_email: DisplayName | Email,
-    password: Password,
+    password: PasswordLike,
     *,
-    totp_code: str | None,
+    totp_code: int | None,
     recovery_code: str | None,
     bypass_2fa: bool,
 ):
@@ -511,9 +510,9 @@ async def _login_with_credentials(
         resp.passkey = True
     if totp is not None:
         resp.totp = totp['digits']
-    if has_recovery_t.result():
-        resp.recovery = True
     if resp.ByteSize() and not (bypass_2fa and ENV != 'prod'):
+        if has_recovery_t.result():
+            resp.recovery = True
         logging.debug('2FA required for user %d', user_id)
         return resp
 

@@ -36,6 +36,7 @@ import {
 } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
+import { showLoginModal } from "../user/login"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -522,8 +523,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
               <button
                 class="btn btn-link"
                 type="button"
-                data-bs-toggle="modal"
-                data-bs-target="#loginModal"
+                onClick={showLoginModal}
               >
                 {t("browse.changeset.join_discussion")}
               </button>

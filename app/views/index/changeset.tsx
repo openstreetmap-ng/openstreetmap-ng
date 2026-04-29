@@ -26,6 +26,7 @@ import { StandardForm } from "@lib/standard-form"
 import { StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
+import { showLoginModal } from "../user/login"
 import type { OSMChangeset } from "@lib/types"
 import {
   type ReadonlySignal,
@@ -436,8 +437,7 @@ const ChangesetSidebar = ({
                 <button
                   class="btn btn-link"
                   type="button"
-                  data-bs-toggle="modal"
-                  data-bs-target="#loginModal"
+                  onClick={showLoginModal}
                 >
                   {t("browse.changeset.join_discussion")}
                 </button>

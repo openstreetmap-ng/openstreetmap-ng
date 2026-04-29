@@ -7,6 +7,7 @@ import { runningReduce } from "@std/collections/running-reduce"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
 import { createRef, render } from "preact"
+import { showLoginModal } from "../user/login"
 import { LanguageSwitcher } from "./_language-switcher"
 import { ThemeSwitcher } from "./_theme-switcher"
 
@@ -255,8 +256,7 @@ const NavbarGuest = () => (
       <button
         class="btn btn-soft text-navbar fw-medium"
         type="button"
-        data-bs-toggle="modal"
-        data-bs-target="#loginModal"
+        onClick={showLoginModal}
       >
         {t("login.sign_in")}
       </button>

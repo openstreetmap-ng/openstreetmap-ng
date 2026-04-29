@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { dirname } from "node:path"
 import { escape as escapeRegexp } from "@std/regexp"
+import { Provider } from "./proto/settings_connections_pb"
 
 const getPackageDist = (pkgName: string) => {
   const pkgPath = `node_modules/${pkgName}/package.json`
@@ -14,6 +15,7 @@ export const {
   API_URL,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
   DISPLAY_NAME_MAX_LENGTH,
+  CONFIGURED_AUTH_PROVIDERS,
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
@@ -41,6 +43,7 @@ export const {
 }: {
   API_URL: string
   CHANGESET_COMMENT_BODY_MAX_LENGTH: number
+  CONFIGURED_AUTH_PROVIDERS: (keyof typeof Provider)[]
   DISPLAY_NAME_MAX_LENGTH: number
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
@@ -74,9 +77,11 @@ export const {
       `
 import json
 from app.config import *
+from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.lib.sentry import *
 print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "API_URL",
+        "CONFIGURED_AUTH_PROVIDERS",
         "CHANGESET_COMMENT_BODY_MAX_LENGTH",
         "DISPLAY_NAME_MAX_LENGTH",
         "EMAIL_MAX_LENGTH",
