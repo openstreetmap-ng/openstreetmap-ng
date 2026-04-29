@@ -1,9 +1,10 @@
 from app.db import db
 from app.lib.auth_context import auth_context
+from app.lib.password_hash import PasswordLike
 from app.lib.standard_feedback import StandardFeedback
 from app.lib.translation import primary_translation_locale, t
 from app.models.db.user import UserInit
-from app.models.types import DisplayName, Email, Password, UserId
+from app.models.types import DisplayName, Email, UserId
 from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
 from app.services.user_password_service import UserPasswordService
@@ -17,7 +18,7 @@ class UserSignupService:
         *,
         display_name: DisplayName,
         email: Email,
-        password: Password,
+        password: PasswordLike,
         tracking: bool,
         email_verified: bool,
     ) -> UserId:

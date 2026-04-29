@@ -3,7 +3,6 @@ from asyncio import TaskGroup
 from datetime import timedelta
 from typing import Annotated
 
-from email_validator.rfc_constants import EMAIL_MAX_LENGTH
 from fastapi import APIRouter, Cookie, Path, Query, Request
 from polyline_rs import encode_lonlat
 from pydantic import SecretStr
@@ -11,7 +10,6 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import (
-    EMAIL_MIN_LENGTH,
     PASSWORD_MIN_LENGTH,
     USER_NEW_DAYS,
     USER_RECENT_ACTIVITY_ENTRIES,
@@ -22,10 +20,13 @@ from app.lib.exceptions_context import raise_for
 from app.lib.image import Image
 from app.lib.render_response import render_proto_page, render_response
 from app.lib.statistics import user_activity_summary
+from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
 from app.models.proto.profile_pb2 import Page
+from app.models.proto.settings_connections_pb2 import Provider
 from app.models.proto.shared_pb2 import UserSocial as ProtoUserSocial
+from app.models.proto.signup_pb2 import Page as SignupPage
 from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -53,23 +54,15 @@ async def signup(auth_provider_verification: Annotated[str | None, Cookie()] = N
     if verification is not None:
         logging.debug(
             'Signup form contains auth provider verification by %r',
-            verification.provider,
+            Provider.Name(verification.identity.provider),
         )
-        display_name = verification.name or ''
-        email = verification.email or ''
+        page = SignupPage(verification=verification.identity)
     else:
-        display_name = ''
-        email = ''
+        page = SignupPage()
 
-    return await render_response(
-        'user/signup',
-        {
-            'display_name_value': display_name,
-            'email_value': email,
-            'EMAIL_MIN_LENGTH': EMAIL_MIN_LENGTH,
-            'EMAIL_MAX_LENGTH': EMAIL_MAX_LENGTH,
-            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-        },
+    return await render_proto_page(
+        page,
+        title_prefix=t('layouts.sign_up').capitalize(),
     )
 
 

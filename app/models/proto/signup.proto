@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package signup;
+
+import "app/models/proto/auth.proto";
+import "app/models/proto/auth_provider.proto";
+import "buf/validate/validate.proto";
+
+message Page {
+  optional auth_provider.Identity verification = 1;
+}
+
+service Service {
+  rpc Submit(SubmitRequest) returns (SubmitResponse) {}
+  rpc CancelProvider(CancelProviderRequest) returns (CancelProviderResponse) {}
+}
+
+message SubmitRequest {
+  string display_name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string email = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 254
+  }];
+  auth.TransmitUserPassword password = 3 [(buf.validate.field).required = true];
+  bool tracking = 4;
+}
+
+message SubmitResponse {
+  bool email_verified = 1;
+}
+
+message CancelProviderRequest {}
+
+message CancelProviderResponse {}
