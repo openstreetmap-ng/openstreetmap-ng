@@ -11,12 +11,12 @@
   padding: var(--bs-btn-padding-y) var(--bs-btn-padding-x);
   font-weight: 500;
 
-  > i,
-  > img {
+  > .auth-provider-icon {
     width: 1.25rem;
     height: 1.25rem;
     font-size: 1.25rem;
     line-height: 1;
+    object-fit: contain;
   }
 }
 

@@ -27,7 +27,7 @@ export const ProviderIdentity = ({
   <>
     <AuthProviderIcon
       provider={provider}
-      class="auth-provider-icon me-3 me-lg-4"
+      class="me-3 me-lg-4"
       decorative
     />
     <div>

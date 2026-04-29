@@ -1,38 +1,33 @@
 .settings_connections\.Page,
 .admin_users\.EditPage,
 .admin-user-edit-body {
-  img.auth-provider-icon {
-    object-fit: contain;
-  }
-
   .auth-provider-icon {
     @extend .rounded-2;
     @extend .p-2;
 
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
     background: var(--bs-secondary-bg);
+  }
 
-    &:not(.bi) {
-      width: 2.75rem;
-      height: 2.75rem;
-    }
+  .auth-provider-icon-img {
+    object-fit: contain;
+  }
 
-    &.bi {
-      display: flex;
-      font-size: 1.75rem;
-      line-height: 1;
-    }
+  .auth-provider-icon-bi {
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--auth-provider-icon-color);
+  }
 
-    &.bi-facebook {
-      color: #1877f2;
-
-      &::before {
-        background: $white;
-        clip-path: circle(calc(50% - 1px));
-      }
-    }
-
-    &.bi-github {
-      color: #24292e;
+  .auth-provider-icon-backed {
+    &::before {
+      background: $white;
+      clip-path: circle(calc(50% - 1px));
     }
   }
 
@@ -58,10 +53,8 @@
   .settings_connections\.Page,
   .admin_users\.EditPage,
   .admin-user-edit-body {
-    .auth-provider-icon {
-      &.bi-github {
-        color: #f6f8fa;
-      }
+    .auth-provider-icon-bi {
+      color: var(--auth-provider-icon-dark-color);
     }
   }
 }
