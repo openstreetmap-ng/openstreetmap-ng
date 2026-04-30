@@ -611,8 +611,10 @@ dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
+            '()': 'app.lib.logging_formatter.ConsoleFormatter',
             'format': '%(levelname)s | %(asctime)s | %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
+            'stream': 'ext://sys.stderr',
         },
     },
     'handlers': {
