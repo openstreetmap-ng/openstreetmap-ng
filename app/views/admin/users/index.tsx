@@ -6,9 +6,11 @@ import { mountProtoPage } from "@lib/proto-page"
 import type { ListResponse_EntryValid } from "@lib/proto/admin_users_pb"
 import {
   Filters_Sort,
+  Filters_SortSchema,
   FiltersSchema,
   PageSchema,
   Role,
+  RoleSchema,
   Service,
 } from "@lib/proto/admin_users_pb"
 import { defineProtoQueryContract } from "@lib/query-contract"
@@ -30,11 +32,11 @@ import { IpSummary } from "../_ip-summary"
 const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
   search: queryParam.text(),
   unverified: queryParam.flag(),
-  roles: queryParam.enumList(Role),
+  roles: queryParam.enumList(RoleSchema),
   createdAfter: queryParam.timestamp(),
   createdBefore: queryParam.timestamp(),
   applicationId: queryParam.positive(),
-  sort: queryParam.enum(Filters_Sort, {
+  sort: queryParam.enum(Filters_SortSchema, {
     default: Filters_Sort.created_desc,
   }),
 })

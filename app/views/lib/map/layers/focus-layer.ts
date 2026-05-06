@@ -157,17 +157,19 @@ const getGeometryBounds = (g: Geometry) => {
   }
   if (g.type === "Polygon") {
     const outer = g.coordinates[0]!
-    return outer
-      .slice(0, -1)
-      .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), new LngLatBounds())
+    const bounds = new LngLatBounds()
+    for (let i = 0; i < outer.length - 1; i++) {
+      bounds.extend(outer[i]! as LngLatLike)
+    }
+    return bounds
   }
   if (g.type === "MultiPolygon") {
-    let bounds = new LngLatBounds()
+    const bounds = new LngLatBounds()
     for (const polygon of g.coordinates) {
       const outer = polygon[0]!
-      bounds = outer
-        .slice(0, -1)
-        .reduce((bounds, coord) => bounds.extend(coord as LngLatLike), bounds)
+      for (let i = 0; i < outer.length - 1; i++) {
+        bounds.extend(outer[i]! as LngLatLike)
+      }
     }
     return bounds
   }

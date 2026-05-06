@@ -2,6 +2,7 @@ import { queryParam } from "@lib/codecs"
 import { Time } from "@lib/datetime-inputs"
 import {
   GetUserPageRequest_StatusFilter,
+  GetUserPageRequest_StatusFilterSchema,
   type GetUserPageResponse_SummaryValid,
   Service,
   Status,
@@ -16,7 +17,7 @@ import { t } from "i18next"
 import { useId } from "preact/hooks"
 
 const STATUS_QUERY = defineQueryContract({
-  status: queryParam.enum(GetUserPageRequest_StatusFilter, {
+  status: queryParam.enum(GetUserPageRequest_StatusFilterSchema, {
     default: GetUserPageRequest_StatusFilter.any,
   }),
 })

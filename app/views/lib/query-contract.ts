@@ -4,11 +4,6 @@ import { qsEncode, qsParseAll } from "@lib/qs"
 import { assert } from "@std/assert"
 import type { z } from "@zod/zod"
 
-type ProtoFieldDescriptor = {
-  readonly name: string
-  readonly localName: string
-}
-
 type QueryContractSpec = Readonly<Record<string, QuerySchema<any>>>
 
 type QueryOutput<Spec extends QueryContractSpec> = {
@@ -209,27 +204,23 @@ export const defineQueryContract = <const Spec extends QueryContractSpec>(
 }
 
 export const defineProtoQueryContract = <
-  Schema extends DescMessage & { readonly fields: readonly ProtoFieldDescriptor[] },
+  Schema extends DescMessage,
   const Spec extends ProtoQuerySpec<Schema>,
 >(
   schema: Schema,
   spec: NoExtraKeys<Spec, ProtoKeys<Schema>> & EnforceProtoFieldTypes<Schema, Spec>,
   options?: QueryContractOptions<Spec>,
 ): QueryContract<QueryOutput<Spec>> => {
-  const fieldNameByLocalName = new Map<string, string>(
-    schema.fields.map((field) => [field.localName, field.name]),
-  )
-
   const externalKeys: QueryContractExternalKeys<Spec> = {}
   if (options?.externalKeys) Object.assign(externalKeys, options.externalKeys)
   for (const property of Object.keys(spec) as (keyof Spec & string)[]) {
     if (externalKeys[property] !== undefined) continue
-    const fieldName = fieldNameByLocalName.get(property)
+    const field = schema.field[property]
     assert(
-      fieldName !== undefined,
+      field !== undefined,
       `Missing proto field '${property}' in schema '${schema.typeName}'`,
     )
-    externalKeys[property] = fieldName
+    externalKeys[property] = field.name
   }
 
   return defineQueryContract(spec, {

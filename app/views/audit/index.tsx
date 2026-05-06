@@ -8,6 +8,7 @@ import {
   PageSchema,
   Service,
   Type,
+  TypeSchema,
 } from "@lib/proto/audit_pb"
 import { defineProtoQueryContract } from "@lib/query-contract"
 import { StandardPagination } from "@lib/standard-pagination"
@@ -19,15 +20,13 @@ import { t } from "i18next"
 import type { SubmitEventHandler } from "preact"
 import { useId } from "preact/hooks"
 
-const AUDIT_TYPES = Object.entries(Type)
-  .filter(([, value]) => typeof value === "number")
-  .map(([name]) => name)
+const AUDIT_TYPES = TypeSchema.values.map((value) => value.name)
 
 const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
   ip: queryParam.text(),
   user: queryParam.text(),
   applicationId: queryParam.positive(),
-  type: queryParam.enum(Type),
+  type: queryParam.enum(TypeSchema),
   createdAfter: queryParam.timestamp(),
   createdBefore: queryParam.timestamp(),
 })

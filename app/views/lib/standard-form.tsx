@@ -430,7 +430,7 @@ export function configureStandardForm<T = any>(
 
     // Stage 3: Serialize form data
     setPendingState(true)
-    const formData = new FormData(form)
+    const formData = new FormData(form, e.submitter)
 
     await passwordState.apply(formData)
     if (removeEmptyFields) removeEmptyData(formData)
@@ -445,7 +445,9 @@ export function configureStandardForm<T = any>(
       body = formData
     } else if (method === "GET") {
       const params = new URLSearchParams()
-      formData.forEach((value, key) => params.append(key, value as string))
+      formData.forEach((value, key) => {
+        if (typeof value === "string") params.append(key, value)
+      })
       url = `${formAction}?${params}`
     } else {
       unreachable(`Unsupported standard form method ${method}`)

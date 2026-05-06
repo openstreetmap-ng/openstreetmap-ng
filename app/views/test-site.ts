@@ -5,6 +5,8 @@ import "bootstrap"
 const quizModal = document.getElementById("testSiteQuizModal")!
 const quizForm = quizModal.querySelector("form")!
 const submitButton = quizForm.querySelector('button[type="submit"]')!
+const allRadios = quizForm.querySelectorAll('input[type="radio"]')
+const questionCount = new Set(Array.from(allRadios, (input) => input.name)).size
 
 const updateAnswerStyles = (input: HTMLInputElement) => {
   // Clear all styles for this question
@@ -19,15 +21,12 @@ const updateAnswerStyles = (input: HTMLInputElement) => {
 }
 
 const checkQuizCompletion = () => {
-  const allRadios = quizForm.querySelectorAll('input[type="radio"]')
-  const checkedRadios = quizForm.querySelectorAll('input[type="radio"]:checked')
-
-  const questionCount = new Set(Array.from(allRadios, (input) => input.name)).size
-
-  const allAnswered = questionCount === checkedRadios.length
+  const checkedRadios = quizForm.querySelectorAll<HTMLInputElement>(
+    'input[type="radio"]:checked',
+  )
   const allCorrect = [...checkedRadios].every((radio) => radio.value === "correct")
 
-  submitButton.disabled = !(allAnswered && allCorrect)
+  submitButton.disabled = !(questionCount === checkedRadios.length && allCorrect)
 }
 
 quizForm.addEventListener("change", (e) => {
@@ -40,7 +39,7 @@ quizForm.addEventListener("change", (e) => {
 
 quizModal.addEventListener("hidden.bs.modal", () => {
   // Reset all inputs and styles
-  for (const radio of document.querySelectorAll('input[type="radio"]')) {
+  for (const radio of allRadios) {
     radio.checked = false
     updateAnswerStyles(radio)
   }

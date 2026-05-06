@@ -37,13 +37,10 @@ const createAccessToken = async (
 ) => {
   console.debug("SystemApp: Creating token")
 
-  const formData = new FormData()
-  formData.append("client_id", clientId)
-
   try {
     const resp = await fetch("/api/web/system-app/create-access-token", {
       method: "POST",
-      body: formData,
+      body: new URLSearchParams({ client_id: clientId }),
       priority: "high",
     })
     assert(resp.ok, `${resp.status} ${resp.statusText}`)

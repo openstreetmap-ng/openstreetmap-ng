@@ -4,6 +4,7 @@ import { tRich } from "@lib/i18n"
 import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
 import { mountProtoPage } from "@lib/proto-page"
 import { PageSchema, Service } from "@lib/proto/settings_pb"
+import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { t } from "i18next"
@@ -182,16 +183,15 @@ mountProtoPage(PageSchema, ({ email, language, passwordUpdatedAt }) => {
 
               <h3 class="mb-3">{t("report.account_support")}</h3>
               <p class="form-text">{t("report.account_support_description")}</p>
-              <button
+              <ReportButton
                 class="btn btn-outline-secondary"
-                type="button"
-                data-report-type="user"
-                data-report-type-id={config.userConfig!.user.id}
-                data-report-action="user_account"
+                reportType="user"
+                reportTypeId={config.userConfig!.user.id}
+                reportAction="user_account"
               >
                 <i class="bi bi-flag me-1" />
                 {t("report.report_problem")}
-              </button>
+              </ReportButton>
             </div>
           </div>
         </div>

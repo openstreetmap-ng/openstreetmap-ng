@@ -1,5 +1,5 @@
 import { useDisposeEffect } from "@lib/dispose-scope"
-import { Alert, Collapse, Popover, Tooltip } from "bootstrap"
+import { Collapse, Popover, Tooltip } from "bootstrap"
 import {
   cloneElement,
   type ComponentChild,
@@ -172,16 +172,4 @@ export const BTooltip = ({
   }, [title, placement])
 
   return <span ref={wrapperRef}>{children}</span>
-}
-
-for (const element of document.querySelectorAll("[data-bs-toggle=tooltip]")) {
-  Tooltip.getOrCreateInstance(element)
-}
-
-for (const element of document.querySelectorAll(".alert")) {
-  Alert.getOrCreateInstance(element)
-}
-
-for (const element of document.querySelectorAll("[data-bs-toggle=popover]")) {
-  Popover.getOrCreateInstance(element)
 }

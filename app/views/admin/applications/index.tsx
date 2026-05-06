@@ -6,6 +6,7 @@ import { mountProtoPage } from "@lib/proto-page"
 import type { ListResponse_EntryValid } from "@lib/proto/admin_applications_pb"
 import {
   Filters_Sort,
+  Filters_SortSchema,
   FiltersSchema,
   PageSchema,
   Service,
@@ -34,7 +35,7 @@ const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
   interactedUser: queryParam.text(),
   createdAfter: queryParam.timestamp(),
   createdBefore: queryParam.timestamp(),
-  sort: queryParam.enum(Filters_Sort, {
+  sort: queryParam.enum(Filters_SortSchema, {
     default: Filters_Sort.created_desc,
   }),
 })

@@ -1,3 +1,4 @@
+import type { GenEnum } from "@bufbuild/protobuf/codegenv2"
 import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
 import { polylineDecode, polylineEncode } from "@lib/polyline"
 import { z } from "@zod/zod"
@@ -26,8 +27,11 @@ export const pathParam = {
 
 export type QuerySchema<T = unknown> = z.ZodType<T, string[] | undefined>
 
-type ProtoEnumLike<TValue extends number> = Readonly<Record<string, TValue | string>> &
+type ProtoEnumObject<TValue extends number> = Readonly<
+  Record<string, TValue | string>
+> &
   Readonly<Record<number, string | undefined>>
+type ProtoEnumSource<TValue extends number> = ProtoEnumObject<TValue> | GenEnum<TValue>
 type EnumCodecDefaultOptions<TValue> = Readonly<{
   default: TValue
   omitDefault?: boolean
@@ -36,18 +40,33 @@ type EnumListCodecOptions = Readonly<{
   dedup?: boolean
 }>
 
-const protoEnumValue = <TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
-  name: string,
-) => {
-  const value = enumLike[name]
-  return typeof value === "number" ? value : undefined
-}
+const STRINGBOOL = z.stringbool()
 
-const protoEnumName = <TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
-  value: TValue,
-) => enumLike[value]
+const isProtoEnumDescriptor = <TValue extends number>(
+  value: ProtoEnumSource<TValue>,
+): value is GenEnum<TValue> => "kind" in value && value.kind === "enum"
+
+const protoEnumAccessors = <TValue extends number>(
+  enumLike: ProtoEnumSource<TValue>,
+) => {
+  if (isProtoEnumDescriptor(enumLike)) {
+    const valueByName = new Map<string, TValue>(
+      enumLike.values.map((value) => [value.name, value.number as TValue]),
+    )
+    return {
+      valueOf: (name: string) => valueByName.get(name),
+      nameOf: (value: TValue) => enumLike.value[value]?.name,
+    }
+  }
+
+  return {
+    valueOf: (name: string) => {
+      const value = enumLike[name]
+      return typeof value === "number" ? value : undefined
+    },
+    nameOf: (value: TValue) => enumLike[value],
+  }
+}
 
 const isStringTuple = (value: unknown): value is readonly [string, ...string[]] =>
   Array.isArray(value)
@@ -98,12 +117,14 @@ const queryEnumString = <const T extends readonly [string, ...string[]]>(
 }
 
 const queryEnumProto = <TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
+  enumLike: ProtoEnumSource<TValue>,
   options?: EnumCodecDefaultOptions<TValue>,
 ) => {
+  const enumAccessors = protoEnumAccessors(enumLike)
+
   if (options) {
     const { default: defaultValue, omitDefault = true } = options
-    if (protoEnumName(enumLike, defaultValue) === undefined)
+    if (enumAccessors.nameOf(defaultValue) === undefined)
       throw new Error(`Missing enum name for default value '${defaultValue}'`)
 
     return z.codec(
@@ -113,11 +134,11 @@ const queryEnumProto = <TValue extends number>(
         decode: (raw) => {
           const last = raw?.at(-1)
           if (last === undefined) return defaultValue
-          return protoEnumValue(enumLike, last) ?? defaultValue
+          return enumAccessors.valueOf(last) ?? defaultValue
         },
         encode: (value) => {
           if (omitDefault && value === defaultValue) return
-          const name = protoEnumName(enumLike, value)
+          const name = enumAccessors.nameOf(value as TValue)
           return name !== undefined ? [name] : undefined
         },
       },
@@ -133,11 +154,11 @@ const queryEnumProto = <TValue extends number>(
     {
       decode: (raw) => {
         const last = raw?.at(-1)
-        return last === undefined ? undefined : protoEnumValue(enumLike, last)
+        return last === undefined ? undefined : enumAccessors.valueOf(last)
       },
       encode: (value) => {
         if (value === undefined) return
-        const name = protoEnumName(enumLike, value)
+        const name = enumAccessors.nameOf(value as TValue)
         return name !== undefined ? [name] : undefined
       },
     },
@@ -152,10 +173,10 @@ function queryEnum<const T extends readonly [string, ...string[]]>(
   options: EnumCodecDefaultOptions<T[number]>,
 ): QuerySchema<T[number]>
 function queryEnum<TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
+  enumLike: ProtoEnumSource<TValue>,
 ): QuerySchema<TValue | undefined>
 function queryEnum<TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
+  enumLike: ProtoEnumSource<TValue>,
   options: EnumCodecDefaultOptions<TValue>,
 ): QuerySchema<TValue>
 function queryEnum(source: any, options?: any) {
@@ -186,10 +207,11 @@ const queryEnumListString = <const T extends readonly [string, ...string[]]>(
 }
 
 const queryEnumListProto = <TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
+  enumLike: ProtoEnumSource<TValue>,
   options?: EnumListCodecOptions,
 ) => {
   const dedup = options?.dedup ?? true
+  const enumAccessors = protoEnumAccessors(enumLike)
 
   return z.codec(
     z.array(z.string()).optional(),
@@ -198,7 +220,7 @@ const queryEnumListProto = <TValue extends number>(
       decode: (raw) => {
         if (!raw) return []
         const values = raw
-          .map((name) => protoEnumValue(enumLike, name))
+          .map((name) => enumAccessors.valueOf(name))
           .filter((value): value is TValue => value !== undefined)
         return dedup ? [...new Set(values)] : values
       },
@@ -206,7 +228,7 @@ const queryEnumListProto = <TValue extends number>(
         if (!value.length) return
         const entries = dedup ? [...new Set(value)] : value
         const names = entries
-          .map((entry) => protoEnumName(enumLike, entry))
+          .map((entry) => enumAccessors.nameOf(entry as TValue))
           .filter((name): name is string => name !== undefined)
         return names.length ? names : undefined
       },
@@ -219,7 +241,7 @@ function queryEnumList<const T extends readonly [string, ...string[]]>(
   options?: EnumListCodecOptions,
 ): QuerySchema<T[number][]>
 function queryEnumList<TValue extends number>(
-  enumLike: ProtoEnumLike<TValue>,
+  enumLike: ProtoEnumSource<TValue>,
   options?: EnumListCodecOptions,
 ): QuerySchema<TValue[]>
 function queryEnumList(source: any, options?: any) {
@@ -293,7 +315,7 @@ export const queryParam = {
       decode: (raw) => {
         const last = raw?.at(-1)
         if (!last) return false
-        const parsed = z.stringbool().safeDecode(last)
+        const parsed = STRINGBOOL.safeDecode(last)
         return parsed.success ? parsed.data : false
       },
       encode: (value) => (value ? ["1"] : undefined),
