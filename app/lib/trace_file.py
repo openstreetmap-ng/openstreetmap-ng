@@ -158,19 +158,29 @@ class _TarProcessor(_TraceProcessor):
             # pure tar uses no compression, so it's efficient to read files from the memory buffer
             # 'r:' opens for reading exclusively without compression (safety check)
             with tarfile.open(fileobj=BytesIO(buffer), mode='r:') as archive:
-                infos = [info for info in archive.getmembers() if info.isfile()]
+                result: list[bytes] = []
+
+                for info in archive:
+                    if not info.isfile():
+                        continue
+
+                    if len(result) >= TRACE_FILE_ARCHIVE_MAX_FILES:
+                        raise_for.trace_file_archive_too_many_files()
+
+                    file = archive.extractfile(info)
+                    assert file is not None
+                    with file:
+                        result.append(file.read())
+
                 logging.debug(
                     'Trace %r archive contains %d files',
                     cls.media_type,
-                    len(infos),
+                    len(result),
                 )
-
-                if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                    raise_for.trace_file_archive_too_many_files()
 
                 # not checking for the total size of the files - there is no compression
                 # the output size will not exceed the input size
-                return [archive.extractfile(info).read() for info in infos]  # pyright: ignore[reportOptionalMemberAccess]
+                return result
 
         except TarError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
@@ -184,26 +194,28 @@ class _ZipProcessor(_TraceProcessor):
     def decompress(cls, buffer: bytes):
         try:
             with ZipFile(BytesIO(buffer)) as archive:
-                infos = [info for info in archive.infolist() if not info.is_dir()]
-                logging.debug(
-                    'Trace %r archive contains %d files',
-                    cls.media_type,
-                    len(infos),
-                )
-
-                if len(infos) > TRACE_FILE_ARCHIVE_MAX_FILES:
-                    raise_for.trace_file_archive_too_many_files()
-
                 result: list[bytes] = []
                 remaining_size: cython.size_t = TRACE_FILE_DECOMPRESSED_MAX_SIZE
 
-                for info in infos:
+                for info in archive.infolist():
+                    if info.is_dir():
+                        continue
+
+                    if len(result) >= TRACE_FILE_ARCHIVE_MAX_FILES:
+                        raise_for.trace_file_archive_too_many_files()
+
                     with archive.open(info) as f:
                         file_data = f.read(remaining_size)
                         remaining_size -= len(file_data)
                         result.append(file_data)
                         if remaining_size == 0 and f.read(1):
                             raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
+
+                logging.debug(
+                    'Trace %r archive contains %d files',
+                    cls.media_type,
+                    len(result),
+                )
 
         except BadZipFile:
             raise_for.trace_file_archive_corrupted(cls.media_type)
