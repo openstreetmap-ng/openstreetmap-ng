@@ -22,25 +22,19 @@ class _Service(Service):
     async def list(self, request: ListRequest, ctx: RequestContext):
         require_web_user('role_administrator')
         tasks = await AdminTaskService.list_tasks()
-        return ListResponse(
-            tasks=[
-                ListResponse.Task(
-                    id=task['id'],
-                    arguments=[
-                        ListResponse.Task.Argument(
-                            name=name,
-                            type=arg['type'],
-                            required=arg['required'],
-                            default=arg['default'],
-                            numeric=arg['numeric'],
-                        )
-                        for name, arg in task['arguments'].items()
-                    ],
-                    running=task['running'],
-                )
-                for task in tasks
-            ]
-        )
+        response = ListResponse()
+        for task in tasks:
+            response_task = response.tasks.add()
+            response_task.id = task['id']
+            for name, arg in task['arguments'].items():
+                argument = response_task.arguments.add()
+                argument.name = name
+                argument.type = arg['type']
+                argument.required = arg['required']
+                argument.default = arg['default']
+                argument.numeric = arg['numeric']
+            response_task.running = task['running']
+        return response
 
     @override
     async def start(self, request: StartRequest, ctx: RequestContext):

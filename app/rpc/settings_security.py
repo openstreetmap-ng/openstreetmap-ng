@@ -95,7 +95,9 @@ class _Service(Service):
     ):
         require_web_user()
         await UserPasskeyService.register_passkey(request.registration)
-        return RegisterPasskeyResponse(passkeys=await _get_passkeys())
+        response = RegisterPasskeyResponse()
+        response.passkeys.extend(await _get_passkeys())
+        return response
 
     @override
     async def rename_passkey(self, request: RenamePasskeyRequest, ctx: RequestContext):
@@ -113,7 +115,9 @@ class _Service(Service):
         await UserPasskeyService.remove_passkey(
             request.credential_id, password=request.password
         )
-        return RemovePasskeyResponse(passkeys=await _get_passkeys())
+        response = RemovePasskeyResponse()
+        response.passkeys.extend(await _get_passkeys())
+        return response
 
     @override
     async def generate_recovery_codes(

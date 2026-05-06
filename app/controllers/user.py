@@ -21,9 +21,7 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
 from app.models.proto.profile_pb2 import Page as ProfilePage
 from app.models.proto.settings_connections_pb2 import Provider
-from app.models.proto.shared_pb2 import UserSocial
 from app.models.proto.signup_pb2 import Page as SignupPage
-from app.models.proto.trace_pb2 import Summary
 from app.models.types import UserId
 from app.queries.changeset_comment_query import ChangesetCommentQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -221,8 +219,6 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
 
     changesets_comments_count = changesets_comments_count_t.result()
 
-    traces = traces_t.result()
-
     # TODO: groups
     groups_count = 0
 
@@ -256,63 +252,57 @@ async def index(display_name: Annotated[DisplayNameNormalizing, Path(min_length=
         ),
         description=user_profile['description'],
         description_rich=user_profile['description_rich'],  # type: ignore
-        socials=[
-            UserSocial(service=s.service, value=s.value)
-            for s in user_profile['socials']
-        ],
         changesets_count=changesets_count_t.result(),
         changesets_comments_count=changesets_comments_count,
-        changesets=[
-            ProfilePage.ChangesetSummary(
-                id=changeset['id'],
-                created_at=int(changeset['created_at'].timestamp()),
-                comment=changeset['tags'].get('comment'),
-                num_comments=changeset['num_comments'],  # type: ignore
-                num_create=changeset['num_create'],
-                num_modify=changeset['num_modify'],
-                num_delete=changeset['num_delete'],
-            )
-            for changeset in changesets_t.result()
-        ],
         notes_count=notes_count_t.result(),
         notes_comments_count=notes_comments_count_t.result(),
-        notes=[
-            ProfilePage.NoteSummary(
-                id=note['id'],
-                created_at=int(note['created_at'].timestamp()),
-                updated_at=int(note['updated_at'].timestamp()),
-                is_closed=note['closed_at'] is not None,
-                body=note['comments'][0]['body'],  # type: ignore
-                num_comments=note['num_comments'],  # type: ignore
-            )
-            for note in notes_t.result()
-        ],
         traces_count=traces_count_t.result(),
-        traces=[
-            Summary(
-                id=trace['id'],
-                created_at=int(trace['created_at'].timestamp()),
-                description=trace['description'],
-                tags=trace['tags'],
-                visibility=trace['visibility'],
-                size=trace['size'],
-                preview_line=encode_lonlat(trace['coords'].tolist(), 0),  # type: ignore
-            )
-            for trace in traces
-        ],
         diaries_count=diaries_count_t.result(),
         diaries_comments_count=diaries_comments_count_t.result(),
-        diaries=[
-            ProfilePage.DiarySummary(
-                id=diary['id'],
-                created_at=int(diary['created_at'].timestamp()),
-                title=diary['title'],
-                num_comments=diary['num_comments'],  # type: ignore
-            )
-            for diary in diaries_t.result()
-        ],
         groups_count=groups_count,
     )
+
+    for social in user_profile['socials']:
+        item = profile_page_state.socials.add()
+        item.service = social.service
+        item.value = social.value
+
+    for changeset in changesets_t.result():
+        summary = profile_page_state.changesets.add()
+        summary.id = changeset['id']
+        summary.created_at = int(changeset['created_at'].timestamp())
+        if (comment := changeset['tags'].get('comment')) is not None:
+            summary.comment = comment
+        summary.num_comments = changeset['num_comments']  # type: ignore
+        summary.num_create = changeset['num_create']
+        summary.num_modify = changeset['num_modify']
+        summary.num_delete = changeset['num_delete']
+
+    for note in notes_t.result():
+        summary = profile_page_state.notes.add()
+        summary.id = note['id']
+        summary.created_at = int(note['created_at'].timestamp())
+        summary.updated_at = int(note['updated_at'].timestamp())
+        summary.is_closed = note['closed_at'] is not None
+        summary.body = note['comments'][0]['body']  # type: ignore
+        summary.num_comments = note['num_comments']  # type: ignore
+
+    for trace in traces_t.result():
+        summary = profile_page_state.traces.add()
+        summary.id = trace['id']
+        summary.created_at = int(trace['created_at'].timestamp())
+        summary.description = trace['description']
+        summary.tags.extend(trace['tags'])
+        summary.visibility = trace['visibility']
+        summary.size = trace['size']
+        summary.preview_line = encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore
+
+    for diary in diaries_t.result():
+        summary = profile_page_state.diaries.add()
+        summary.id = diary['id']
+        summary.created_at = int(diary['created_at'].timestamp())
+        summary.title = diary['title']
+        summary.num_comments = diary['num_comments']  # type: ignore
 
     return await render_proto_page(
         profile_page_state,

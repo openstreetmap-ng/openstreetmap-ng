@@ -48,7 +48,7 @@ def _standard_feedback_detail(detail: Any):
     if not detail or not isinstance(detail, (list, tuple)):
         return None
 
-    entries: list[StandardFeedbackDetail.Entry] = []
+    feedback = StandardFeedbackDetail()
     for item in detail:
         if not isinstance(item, dict):
             continue
@@ -59,15 +59,13 @@ def _standard_feedback_detail(detail: Any):
         if type is None or loc is None or msg is None:
             continue
 
-        entries.append(
-            StandardFeedbackDetail.Entry(
-                severity=type,
-                field=loc[1] if len(loc) >= 2 else None,
-                message=msg,
-            )
-        )
+        entry = feedback.entries.add()
+        entry.severity = type
+        if len(loc) >= 2 and loc[1] is not None:
+            entry.field = loc[1]
+        entry.message = msg
 
-    return StandardFeedbackDetail(entries=entries) if entries else None
+    return feedback if feedback.entries else None
 
 
 @cython.cfunc
@@ -97,19 +95,15 @@ def _http_exception_to_connect_error(exc: HTTPException):
 def _protovalidate_to_standard_feedback(
     violations: Iterable[validate_pb2.Violation],
 ):
-    return StandardFeedbackDetail(
-        entries=[
-            StandardFeedbackDetail.Entry(
-                severity='error',
-                message=violation.message,
-                field=(
-                    '.'.join(element.field_name for element in violation.field.elements)
-                    or None
-                ),
-            )
-            for violation in violations
-        ]
-    )
+    feedback = StandardFeedbackDetail()
+    for violation in violations:
+        entry = feedback.entries.add()
+        entry.severity = 'error'
+        entry.message = violation.message
+        field = '.'.join(element.field_name for element in violation.field.elements)
+        if field:
+            entry.field = field
+    return feedback
 
 
 class _ValidateInterceptor(UnaryInterceptor):

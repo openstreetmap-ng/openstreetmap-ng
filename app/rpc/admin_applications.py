@@ -24,7 +24,6 @@ from app.models.proto.admin_applications_pb2 import (
     ListRequest,
     ListResponse,
 )
-from app.models.proto.shared_pb2 import IpCount
 from app.models.types import ApplicationId
 from app.queries.audit_query import AuditQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -91,27 +90,27 @@ class _Service(Service):
         ip_counts = ip_counts_t.result()
         user_counts = user_counts_t.result()
 
-        entries = [
-            ListResponse.Entry(
-                id=app['id'],
-                name=app['name'],
-                avatar_url=oauth2_app_avatar_url(app),
-                client_id=app['client_id'],
-                confidential=app['confidential'],
-                redirect_uris=app['redirect_uris'],
-                scopes=app['scopes'],
-                owner=user_proto(app.get('user')),
-                user_count=user_counts.get(app['id'], 0),
-                created_at=int(app['created_at'].timestamp()),
-                ip_counts=[
-                    IpCount(ip=ip.packed, count=count)
-                    for ip, count in ip_counts.get(app['id'], ())
-                ],
-            )
-            for app in apps
-        ]
+        response = ListResponse()
+        response.state.CopyFrom(state)
+        for app in apps:
+            entry = response.entries.add()
+            entry.id = app['id']
+            entry.name = app['name']
+            entry.avatar_url = oauth2_app_avatar_url(app)
+            entry.client_id = app['client_id']
+            entry.confidential = app['confidential']
+            entry.redirect_uris.extend(app['redirect_uris'])
+            entry.scopes.extend(app['scopes'])
+            if (owner := user_proto(app.get('user'))) is not None:
+                entry.owner.CopyFrom(owner)
+            entry.user_count = user_counts.get(app['id'], 0)
+            entry.created_at = int(app['created_at'].timestamp())
+            for ip, count in ip_counts.get(app['id'], ()):
+                ip_count = entry.ip_counts.add()
+                ip_count.ip = ip.packed
+                ip_count.count = count
 
-        return ListResponse(entries=entries, state=state)
+        return response
 
     @override
     async def export_ids(self, request: ExportIdsRequest, ctx: RequestContext):

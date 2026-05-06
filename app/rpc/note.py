@@ -127,22 +127,21 @@ class _Service(NoteServiceConnect):
             tg.create_task(NoteCommentQuery.resolve_num_comments(notes))
             tg.create_task(UserQuery.resolve_users(comments))
 
-        summaries: list[GetUserPageResponse.Summary] = []
+        response = GetUserPageResponse()
+        response.state.CopyFrom(state)
         for note in notes:
             header = note['comments'][0]  # type: ignore[reportTypedDictNotRequiredAccess]
-            summaries.append(
-                GetUserPageResponse.Summary(
-                    id=note['id'],
-                    status=note_status(note),
-                    created_at=int(header['created_at'].timestamp()),
-                    created_by=user_proto(header.get('user')),
-                    body=header.get('body') or '',
-                    updated_at=int(note['updated_at'].timestamp()),
-                    num_comments=note.get('num_comments') or 0,
-                )
-            )
+            summary = response.notes.add()
+            summary.id = note['id']
+            summary.status = note_status(note)
+            summary.created_at = int(header['created_at'].timestamp())
+            if (created_by := user_proto(header.get('user'))) is not None:
+                summary.created_by.CopyFrom(created_by)
+            summary.body = header.get('body') or ''
+            summary.updated_at = int(note['updated_at'].timestamp())
+            summary.num_comments = note.get('num_comments') or 0
 
-        return GetUserPageResponse(state=state, notes=summaries)
+        return response
 
     @override
     async def create(self, request: CreateRequest, ctx: RequestContext):
@@ -243,16 +242,13 @@ async def _build_comments(note_id: NoteId, sp_state: bytes = b''):
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(note_comments_resolve_rich_text(comments))
 
-    page = GetCommentsResponse(
-        state=state,
-        comments=[
-            GetCommentsResponse.Comment(
-                user=user_proto(c.get('user')),
-                event=c['event'],
-                created_at=int(c['created_at'].timestamp()),
-                body_rich=c.get('body_rich', ''),
-            )
-            for c in comments
-        ],
-    )
+    page = GetCommentsResponse()
+    page.state.CopyFrom(state)
+    for c in comments:
+        comment = page.comments.add()
+        if (user := user_proto(c.get('user'))) is not None:
+            comment.user.CopyFrom(user)
+        comment.event = c['event']
+        comment.created_at = int(c['created_at'].timestamp())
+        comment.body_rich = c.get('body_rich', '')
     return page

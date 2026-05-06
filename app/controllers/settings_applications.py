@@ -16,10 +16,8 @@ from app.models.db.oauth2_application import (
 from app.models.db.user import User, user_proto
 from app.models.proto.settings_applications_pb2 import (
     AdminPage,
-    Application,
     AuthorizationsPage,
     EditPage,
-    Token,
     TokensPage,
 )
 from app.models.types import ApplicationId, OAuth2TokenId
@@ -38,21 +36,20 @@ async def applications_authorizations(
     apps = await OAuth2ApplicationQuery.resolve_applications(tokens)
     await UserQuery.resolve_users(apps)
 
-    entries = [
-        Application(
-            id=app['id'],
-            name=app['name'],
-            scopes=app['scopes'],
-            avatar_url=oauth2_app_avatar_url(app),
-            client_id=app['client_id'],
-            owner=user_proto(app.get('user')),
-            authorized_at=int(token['authorized_at'].timestamp()),  # type: ignore
-        )
-        for token in tokens
-        if (app := token['application'])['client_id'] != SYSTEM_APP_PAT_CLIENT_ID  # type: ignore
-    ]
-
-    page_state = AuthorizationsPage(entries=entries)
+    page_state = AuthorizationsPage()
+    for token in tokens:
+        app = token['application']  # type: ignore
+        if app['client_id'] == SYSTEM_APP_PAT_CLIENT_ID:
+            continue
+        entry = page_state.entries.add()
+        entry.id = app['id']
+        entry.name = app['name']
+        entry.scopes.extend(app['scopes'])
+        entry.avatar_url = oauth2_app_avatar_url(app)
+        entry.client_id = app['client_id']
+        if (owner := user_proto(app.get('user'))) is not None:
+            entry.owner.CopyFrom(owner)
+        entry.authorized_at = int(token['authorized_at'].timestamp())  # type: ignore
     return await render_proto_page(
         page_state,
         title_prefix=t('settings.authorizations.title'),
@@ -64,18 +61,14 @@ async def applications_admin(
     user: Annotated[User, web_user()],
 ):
     apps = await OAuth2ApplicationQuery.find_by_user(user['id'])
-    page_state = AdminPage(
-        entries=[
-            AdminPage.Entry(
-                id=app['id'],
-                name=app['name'],
-                scopes=app['scopes'],
-                avatar_url=oauth2_app_avatar_url(app),
-                created_at=int(app['created_at'].timestamp()),
-            )
-            for app in apps
-        ]
-    )
+    page_state = AdminPage()
+    for app in apps:
+        entry = page_state.entries.add()
+        entry.id = app['id']
+        entry.name = app['name']
+        entry.scopes.extend(app['scopes'])
+        entry.avatar_url = oauth2_app_avatar_url(app)
+        entry.created_at = int(app['created_at'].timestamp())
 
     return await render_proto_page(
         page_state,
@@ -117,20 +110,17 @@ async def get_tokens(
     expand: Annotated[OAuth2TokenId | None, Query()] = None,
 ):
     tokens = await OAuth2TokenQuery.find_pats_by_user(user['id'], limit=OAUTH_PAT_LIMIT)
-    page_state = TokensPage(
-        tokens=[
-            Token(
-                id=token['id'],
-                name=token['name'],  # type: ignore
-                scopes=token['scopes'],
-                token_preview=token['token_preview'],
-                created_at=int(token['created_at'].timestamp()),
-                authorized_at=datetime_unix(token['authorized_at']),
-            )
-            for token in tokens
-        ],
-        expanded_token_id=expand,
-    )
+    page_state = TokensPage(expanded_token_id=expand)
+    for token in tokens:
+        page_token = page_state.tokens.add()
+        page_token.id = token['id']
+        page_token.name = token['name']  # type: ignore
+        page_token.scopes.extend(token['scopes'])
+        if token['token_preview'] is not None:
+            page_token.token_preview = token['token_preview']
+        page_token.created_at = int(token['created_at'].timestamp())
+        if (authorized_at := datetime_unix(token['authorized_at'])) is not None:
+            page_token.authorized_at = authorized_at
 
     return await render_proto_page(
         page_state,

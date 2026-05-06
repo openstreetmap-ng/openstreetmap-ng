@@ -160,6 +160,8 @@ ignore = [
   "ARG001",  # unused-function-argument
   "ARG002",  # unused-method-argument
   "ASYNC109",  # async-function-with-timeout
+  "ASYNC240",  # blocking-path-method-in-async-function
+  "ASYNC250",  # blocking-input-in-async-function
   "B006",  # mutable-argument-default
   "B008",  # function-call-in-default-argument
   "B017",  # assert-raises-exception

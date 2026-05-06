@@ -200,7 +200,11 @@ class _Service(Service):
                 if older_tags is not None:
                     element_data.tags_old.update(older_tags)
 
-        return GetHistoryResponse(state=state, elements=elements_data)
+        response = GetHistoryResponse()
+        response.state.CopyFrom(state)
+        for element_data in elements_data:
+            response.elements.add().CopyFrom(element_data)
+        return response
 
 
 service = _Service()
@@ -317,4 +321,7 @@ async def _build_context(
         parents = await parents_task() if include_parents_entries else ()
 
     members, render = members_t.result()
-    return Data.Context(members=members, parents=parents, render=render)
+    result = Data.Context(render=render)
+    result.members.extend(members)
+    result.parents.extend(parents)
+    return result

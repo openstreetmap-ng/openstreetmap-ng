@@ -8,7 +8,7 @@ build-backend = "maturin"
 
 [tool.maturin]
 bindings = "pyo3"
+editable-profile = "release"
 features = ["pyo3/extension-module"]
 module-name = "speedup"
 profile = "release"
-editable-profile = "release"

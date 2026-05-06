@@ -83,10 +83,11 @@ class _Service(Service):
             apps = await OAuth2ApplicationQuery.resolve_applications(events)
             tg.create_task(UserQuery.resolve_users(apps))
 
-        return ListResponse(
-            state=state,
-            events=[_event_proto(event) for event in events],
-        )
+        response = ListResponse()
+        response.state.CopyFrom(state)
+        for event in events:
+            _event_proto(response.events.add(), event)
+        return response
 
 
 def _parse_ip_filter(value: str):
@@ -127,32 +128,30 @@ def _filters_parse(filters: Filters):
     return ip, user, application_id, audit_type, created_after, created_before
 
 
-def _event_proto(event: DBAuditEvent):
+def _event_proto(result: Event, event: DBAuditEvent):
     application = event.get('application')
     user = event.get('user')
     target_user = event.get('target_user')
     extra = event['extra']
 
-    return Event(
-        id=event['id'],
-        type=event['type'],
-        created_at=datetime_unix(event['created_at']),
-        ip=event['ip'].packed,
-        user_agent=event['user_agent'],
-        user=user_proto(user),
-        target_user=user_proto(target_user),
-        application=(
-            Event.Application(
-                id=application['id'],
-                name=application['name'],
-                avatar_url=oauth2_app_avatar_url(application),
-                owner=user_proto(application.get('user')),
-            )
-            if application is not None
-            else None
-        ),
-        extra=str(extra) if extra is not None else None,
-    )
+    result.id = event['id']
+    result.type = event['type']
+    result.created_at = datetime_unix(event['created_at'])
+    result.ip = event['ip'].packed
+    if event['user_agent'] is not None:
+        result.user_agent = event['user_agent']
+    if (user_msg := user_proto(user)) is not None:
+        result.user.CopyFrom(user_msg)
+    if (target_user_msg := user_proto(target_user)) is not None:
+        result.target_user.CopyFrom(target_user_msg)
+    if application is not None:
+        result.application.id = application['id']
+        result.application.name = application['name']
+        result.application.avatar_url = oauth2_app_avatar_url(application)
+        if (owner := user_proto(application.get('user'))) is not None:
+            result.application.owner.CopyFrom(owner)
+    if extra is not None:
+        result.extra = str(extra)
 
 
 service = _Service()

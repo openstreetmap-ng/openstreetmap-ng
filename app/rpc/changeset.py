@@ -42,7 +42,6 @@ from app.models.proto.changeset_pb2 import (
     UpdateSubscriptionRequest,
     UpdateSubscriptionResponse,
 )
-from app.models.proto.shared_pb2 import Bounds
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_comment_query import ChangesetCommentQuery
@@ -227,30 +226,34 @@ async def _build_data(changeset_id: ChangesetId):
         else []
     )
 
-    user = changeset.get('user')
-    return Data(
+    result = Data(
         id=changeset_id,
-        user=user_proto(user),
         created_at=int(changeset['created_at'].timestamp()),
-        closed_at=(
-            int(changeset['closed_at'].timestamp()) if changeset['closed_at'] else None
-        ),
         num_create=changeset['num_create'],
         num_modify=changeset['num_modify'],
         num_delete=changeset['num_delete'],
         comment_rich=comment_html,
         tags=tags,
-        bounds=[
-            Bounds(min_lon=b[0], min_lat=b[1], max_lon=b[2], max_lat=b[3])
-            for b in bboxes
-        ],
-        nodes=elements['node'],
-        ways=elements['way'],
-        relations=elements['relation'],
-        prev_changeset_id=prev_changeset_id,
-        next_changeset_id=next_changeset_id,
         is_subscribed=is_subscribed_t.result(),
     )
+    if (user := user_proto(changeset.get('user'))) is not None:
+        result.user.CopyFrom(user)
+    if changeset['closed_at']:
+        result.closed_at = int(changeset['closed_at'].timestamp())
+    for b in bboxes:
+        bound = result.bounds.add()
+        bound.min_lon = b[0]
+        bound.min_lat = b[1]
+        bound.max_lon = b[2]
+        bound.max_lat = b[3]
+    result.nodes.extend(elements['node'])
+    result.ways.extend(elements['way'])
+    result.relations.extend(elements['relation'])
+    if prev_changeset_id is not None:
+        result.prev_changeset_id = prev_changeset_id
+    if next_changeset_id is not None:
+        result.next_changeset_id = next_changeset_id
+    return result
 
 
 async def _build_comments(changeset_id: ChangesetId, sp_state: bytes = b''):
@@ -269,15 +272,11 @@ async def _build_comments(changeset_id: ChangesetId, sp_state: bytes = b''):
         tg.create_task(UserQuery.resolve_users(comments))
         tg.create_task(changeset_comments_resolve_rich_text(comments))
 
-    page = GetCommentsResponse(
-        state=state,
-        comments=[
-            GetCommentsResponse.Comment(
-                user=user_proto(c['user']),  # type: ignore
-                created_at=int(c['created_at'].timestamp()),
-                body_rich=c['body_rich'],  # type: ignore
-            )
-            for c in comments
-        ],
-    )
+    page = GetCommentsResponse()
+    page.state.CopyFrom(state)
+    for c in comments:
+        comment = page.comments.add()
+        comment.user.CopyFrom(user_proto(c['user']))  # type: ignore
+        comment.created_at = int(c['created_at'].timestamp())
+        comment.body_rich = c['body_rich']  # type: ignore
     return page

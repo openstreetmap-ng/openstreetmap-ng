@@ -17,7 +17,6 @@ from app.models.proto.settings_connections_pb2 import Page as ConnectionsPage
 from app.models.proto.settings_pb2 import EmailPage as SettingsEmailPage
 from app.models.proto.settings_pb2 import Page as SettingsPage
 from app.models.proto.settings_security_pb2 import Page as SecurityPage
-from app.models.proto.settings_security_pb2 import Passkey, RecoveryStatus
 from app.queries.audit_query import AuditQuery
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -73,57 +72,42 @@ async def settings_security(user: Annotated[User, web_user()]):
     current_session = current_t.result()
     assert current_session is not None
 
-    passkeys = [
-        Passkey(
-            credential_id=passkey['credential_id'],
-            name=passkey['name'],  # type: ignore
-            icons=passkey.get('icons', ()),
-            created_at=int(passkey['created_at'].timestamp()),
-        )
-        for passkey in passkeys_t.result()
-    ]
+    page = SecurityPage(email=user['email'])
+    for passkey in passkeys_t.result():
+        page_passkey = page.passkeys.add()
+        page_passkey.credential_id = passkey['credential_id']
+        page_passkey.name = passkey['name']  # type: ignore
+        page_passkey.icons.extend(passkey.get('icons', ()))
+        page_passkey.created_at = int(passkey['created_at'].timestamp())
 
+    if (totp := totp_t.result()) is not None:
+        page.totp_created_at = datetime_unix(totp['created_at'])
     recovery_codes_status = recovery_codes_status_t.result()
-    recovery_codes_status_msg = RecoveryStatus(
-        num_remaining=recovery_codes_status['num_remaining'],
-        created_at=datetime_unix(recovery_codes_status['created_at']),
-    )
+    page.recovery_codes_status.num_remaining = recovery_codes_status['num_remaining']
+    if (
+        recovery_codes_created_at := datetime_unix(recovery_codes_status['created_at'])
+    ) is not None:
+        page.recovery_codes_status.created_at = recovery_codes_created_at
 
-    active_sessions_msg = []
     for session in active_sessions:
         authorized_at = session['authorized_at']
         assert authorized_at is not None
 
         last_activity = session.get('last_activity')
-        active_sessions_msg.append(
-            SecurityPage.Session(
-                id=session['id'],
-                authorized_at=int(authorized_at.timestamp()),
-                current=session['id'] == current_session['id'],
-                last_activity=(
-                    SecurityPage.Session.Activity(
-                        created_at=int(last_activity['created_at'].timestamp()),
-                        ip=anonymize_ip(last_activity['ip']).packed,
-                        user_agent=last_activity['user_agent'],
-                    )
-                    if last_activity is not None
-                    else None
-                ),
+        active_session = page.active_sessions.add()
+        active_session.id = session['id']
+        active_session.authorized_at = int(authorized_at.timestamp())
+        active_session.current = session['id'] == current_session['id']
+        if last_activity is not None:
+            active_session.last_activity.created_at = int(
+                last_activity['created_at'].timestamp()
             )
-        )
+            active_session.last_activity.ip = anonymize_ip(last_activity['ip']).packed
+            if last_activity['user_agent'] is not None:
+                active_session.last_activity.user_agent = last_activity['user_agent']
 
     return await render_proto_page(
-        SecurityPage(
-            email=user['email'],
-            passkeys=passkeys,
-            totp_created_at=(
-                datetime_unix(totp['created_at'])
-                if (totp := totp_t.result()) is not None
-                else None
-            ),
-            recovery_codes_status=recovery_codes_status_msg,
-            active_sessions=active_sessions_msg,
-        ),
+        page,
         title_prefix=t('settings.password_and_security'),
     )
 

@@ -45,35 +45,29 @@ class ValhallaQuery:
             raise HTTPException(r.status_code, r.text)
 
         leg = cast(ValhallaResponse, data)['trip']['legs'][0]
-        routing_steps: list[RoutingResult.Step] = [
-            RoutingResult.Step(
-                num_coords=(
-                    maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1
-                ),
-                distance=maneuver['length'] * 1000,
-                duration_seconds=maneuver['time'],
-                icon_num=_MANEUVER_TYPE_TO_ICON_MAP.get(maneuver['type'], 0),
-                text=maneuver['instruction'],
-            )
-            for maneuver in leg['maneuvers']
-        ]
-
         elevations = np.diff(np.array(leg['elevation'], np.float64), 1)
         ascend = elevations[elevations > 0].sum()
         descend = -elevations[elevations < 0].sum()
-        return RoutingResult(
-            attribution=RoutingResult.Attribution(
-                href='https://gis-ops.com/global-open-valhalla-server-online/',
-                label='Valhalla (FOSSGIS)',
-            ),
-            steps=routing_steps,
-            line_quality=6,
-            line=leg['shape'],
-            elevation=RoutingResult.Elevation(
-                ascend=ascend,
-                descend=descend,
-            ),
+
+        result = RoutingResult(line_quality=6, line=leg['shape'])
+        result.attribution.href = (
+            'https://gis-ops.com/global-open-valhalla-server-online/'
         )
+        result.attribution.label = 'Valhalla (FOSSGIS)'
+        result.elevation.ascend = ascend
+        result.elevation.descend = descend
+
+        for maneuver in leg['maneuvers']:
+            step = result.steps.add()
+            step.num_coords = (
+                maneuver['end_shape_index'] - maneuver['begin_shape_index'] + 1
+            )
+            step.distance = maneuver['length'] * 1000
+            step.duration_seconds = maneuver['time']
+            step.icon_num = _MANEUVER_TYPE_TO_ICON_MAP.get(maneuver['type'], 0)
+            step.text = maneuver['instruction']
+
+        return result
 
 
 _MANEUVER_TYPE_TO_ICON_MAP = {

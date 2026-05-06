@@ -10,7 +10,6 @@ from app.lib.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from app.models.proto.element_pb2 import RenderData
-from app.models.proto.shared_pb2 import LonLat
 from speedup import element_id, element_type, split_typed_element_id
 
 
@@ -34,16 +33,21 @@ class RenderElementMixin:
                 ways.append(element)
 
         member_nodes = set[TypedElementId]()
-        render_ways = _render_ways(
-            ways=ways, node_id_map=node_id_map, areas=areas, member_nodes=member_nodes
+        render = RenderData()
+        _render_ways(
+            render=render,
+            ways=ways,
+            node_id_map=node_id_map,
+            areas=areas,
+            member_nodes=member_nodes,
         )
-        render_nodes = _render_nodes(
-            node_id_map=node_id_map, member_nodes=member_nodes, detailed=detailed
+        _render_nodes(
+            render=render,
+            node_id_map=node_id_map,
+            member_nodes=member_nodes,
+            detailed=detailed,
         )
-        return RenderData(
-            nodes=render_nodes,
-            ways=render_ways,
-        )
+        return render
 
     @staticmethod
     def encode_query_features(results: list[QueryFeatureResult]):
@@ -53,32 +57,35 @@ class RenderElementMixin:
         for result in results:
             type, id = split_typed_element_id(result.element['typed_id'])
             sequences = _geometry_to_sequences(result.geometry)
+            render = RenderData()
 
             if type == 'node':
                 point = sequences[0][0]
-                render_node = RenderData.Node(
-                    id=id, location=LonLat(lon=point[0], lat=point[1])
-                )
-                encoded.append(RenderData(nodes=[render_node]))
+                node = render.nodes.add()
+                node.id = id
+                node.location.lon = point[0]
+                node.location.lat = point[1]
+                encoded.append(render)
 
             elif type == 'way':
-                render_way = RenderData.Way(id=id, line=encode_lonlat(sequences[0], 6))
-                encoded.append(RenderData(ways=[render_way]))
+                way = render.ways.add()
+                way.id = id
+                way.line = encode_lonlat(sequences[0], 6)
+                encoded.append(render)
 
             elif type == 'relation':
-                nodes: list[RenderData.Node] = []
-                ways: list[RenderData.Way] = []
                 for seq in sequences:
                     if len(seq) == 1:
                         point = seq[0]
-                        nodes.append(
-                            RenderData.Node(
-                                id=id, location=LonLat(lon=point[0], lat=point[1])
-                            )
-                        )
+                        node = render.nodes.add()
+                        node.id = id
+                        node.location.lon = point[0]
+                        node.location.lat = point[1]
                     else:
-                        ways.append(RenderData.Way(id=id, line=encode_lonlat(seq, 6)))
-                encoded.append(RenderData(nodes=nodes, ways=ways))
+                        way = render.ways.add()
+                        way.id = id
+                        way.line = encode_lonlat(seq, 6)
+                encoded.append(render)
 
             else:
                 assert_never(type)
@@ -89,13 +96,12 @@ class RenderElementMixin:
 @cython.cfunc
 def _render_ways(
     *,
+    render: RenderData,
     ways: list[Element],
     node_id_map: dict[TypedElementId, Element],
     areas: cython.bint,
     member_nodes: set[TypedElementId],
 ):
-    result: list[RenderData.Way] = []
-
     for way in ways:
         way_members = way['members']
         if not way_members:
@@ -129,29 +135,32 @@ def _render_ways(
         for segment in segments:
             geom: list[list[float]] = get_coordinates(segment).tolist()
             line = encode_lonlat(geom, 6)
-            result.append(RenderData.Way(id=way_id, line=line, is_area=is_area))
-
-    return result
+            render_way = render.ways.add()
+            render_way.id = way_id
+            render_way.line = line
+            render_way.is_area = is_area
 
 
 @cython.cfunc
 def _render_nodes(
+    render: RenderData,
     node_id_map: dict[TypedElementId, Element],
     member_nodes: set[TypedElementId],
     detailed: cython.bint,
-) -> list[RenderData.Node]:
+):
     nodes = ElementsFilter.filter_nodes_interesting(
         node_id_map.values(), member_nodes, detailed=detailed
     )
     if not nodes:
-        return []
+        return
 
     points = [node['point'] for node in nodes]
     geoms: list[list[float]] = get_coordinates(points).tolist()
-    return [
-        RenderData.Node(id=node['typed_id'], location=LonLat(lon=geom[0], lat=geom[1]))
-        for node, geom in zip(nodes, geoms)
-    ]
+    for node, geom in zip(nodes, geoms):
+        render_node = render.nodes.add()
+        render_node.id = node['typed_id']
+        render_node.location.lon = geom[0]
+        render_node.location.lat = geom[1]
 
 
 _AREA_TAGS = frozenset[str]((

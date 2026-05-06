@@ -4,7 +4,6 @@ from app.models.proto.settings_pb2 import (
     UpdateDescriptionRequest,
     UpdateSocialsRequest,
 )
-from app.models.proto.shared_pb2 import UserSocial
 from app.models.types import DisplayName
 from app.queries.user_profile_query import UserProfileQuery
 from app.queries.user_query import UserQuery
@@ -51,15 +50,17 @@ async def test_update_socials_roundtrip(client: AsyncClient):
     user_id = user['id']
 
     # Set two socials: one templated (github), one URL (signal, auto-upgrades to https)
+    request = UpdateSocialsRequest()
+    social = request.socials.add()
+    social.service = 'github'
+    social.value = 'octocat'
+    social = request.socials.add()
+    social.service = 'signal'
+    social.value = 'http://example.com/group'
     r = await client.post(
         '/rpc/settings.Service/UpdateSocials',
         headers={'Content-Type': 'application/proto'},
-        content=UpdateSocialsRequest(
-            socials=[
-                UserSocial(service='github', value='octocat'),
-                UserSocial(service='signal', value='http://example.com/group'),
-            ]
-        ).SerializeToString(),
+        content=request.SerializeToString(),
     )
     assert r.is_success, r.text
 
@@ -89,15 +90,17 @@ async def test_update_socials_ignores_unsupported_services(client: AsyncClient):
     assert user is not None
     user_id = user['id']
 
+    request = UpdateSocialsRequest()
+    social = request.socials.add()
+    social.service = 'github'
+    social.value = 'octocat'
+    social = request.socials.add()
+    social.service = 'unsupported-service'
+    social.value = 'ignored'
     r = await client.post(
         '/rpc/settings.Service/UpdateSocials',
         headers={'Content-Type': 'application/proto'},
-        content=UpdateSocialsRequest(
-            socials=[
-                UserSocial(service='github', value='octocat'),
-                UserSocial(service='unsupported-service', value='ignored'),
-            ]
-        ).SerializeToString(),
+        content=request.SerializeToString(),
     )
     assert r.is_success, r.text
 

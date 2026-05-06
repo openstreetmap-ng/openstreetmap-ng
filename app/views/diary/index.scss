@@ -9,8 +9,7 @@
 
 .diary-scroll-nav {
   max-height: max-content;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden auto;
 
   nav {
     margin-left: 0.25rem;
@@ -28,12 +27,12 @@
     gap: 0.5rem;
 
     .title {
+      display: -webkit-box;
       flex: 1 1 auto;
       min-width: 0;
-      display: -webkit-box;
       overflow: hidden;
-      overflow-wrap: anywhere;
       -webkit-line-clamp: 2;
+      overflow-wrap: anywhere;
       -webkit-box-orient: vertical;
     }
 

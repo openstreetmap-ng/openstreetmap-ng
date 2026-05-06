@@ -81,17 +81,15 @@ class StandardFeedback:
     @property
     def feedback_detail(self) -> StandardFeedbackDetail:
         """Return the collected messages as an RPC-ready StandardFeedbackDetail."""
-        return StandardFeedbackDetail(
-            entries=[
-                StandardFeedbackDetail.Entry(
-                    severity=severity,
-                    field=field,
-                    message=message,
-                )
-                for field, messages in self._messages.items()
-                for severity, message in messages
-            ]
-        )
+        feedback = StandardFeedbackDetail()
+        for field, messages in self._messages.items():
+            for severity, message in messages:
+                entry = feedback.entries.add()
+                entry.severity = severity
+                if field is not None:
+                    entry.field = field
+                entry.message = message
+        return feedback
 
     @staticmethod
     def raise_error(
@@ -102,15 +100,12 @@ class StandardFeedback:
     ) -> NoReturn:
         """Collect an error message for a field and raise an appropriate exception."""
         if is_rpc_request():
-            feedback = StandardFeedbackDetail(
-                entries=[
-                    StandardFeedbackDetail.Entry(
-                        severity='error',
-                        field=field,
-                        message=message,
-                    )
-                ]
-            )
+            feedback = StandardFeedbackDetail()
+            entry = feedback.entries.add()
+            entry.severity = 'error'
+            if field is not None:
+                entry.field = field
+            entry.message = message
             raise ConnectError(
                 Code.INVALID_ARGUMENT, message, details=(feedback,)
             ) from exc

@@ -11,7 +11,6 @@ from app.models.proto.query_features_connect import (
     ServiceASGIApplication,
 )
 from app.models.proto.query_features_pb2 import NearbyRequest, NearbyResponse
-from app.models.proto.shared_pb2 import ElementIcon
 from app.queries.element_spatial_query import ElementSpatialQuery
 from speedup import split_typed_element_id
 
@@ -27,26 +26,21 @@ class _Service(Service):
         results = QueryFeatures.wrap_element_spatial(spatial_elements)
         renders = FormatRender.encode_query_features(results)
 
-        response_results: list[NearbyResponse.Result] = []
+        response = NearbyResponse()
         for result, render in zip(results, renders):
             type, id = split_typed_element_id(result.element['typed_id'])
-            icon = (
-                ElementIcon(icon=result.icon.filename, title=result.icon.title)
-                if result.icon is not None
-                else None
-            )
-            response_results.append(
-                NearbyResponse.Result(
-                    type=type,
-                    id=id,
-                    prefix=result.prefix,
-                    display_name=result.display_name,
-                    icon=icon,
-                    render=render,
-                )
-            )
+            response_result = response.results.add()
+            response_result.type = type
+            response_result.id = id
+            response_result.prefix = result.prefix
+            if result.display_name is not None:
+                response_result.display_name = result.display_name
+            if result.icon is not None:
+                response_result.icon.icon = result.icon.filename
+                response_result.icon.title = result.icon.title
+            response_result.render.CopyFrom(render)
 
-        return NearbyResponse(results=response_results)
+        return response
 
 
 service = _Service()

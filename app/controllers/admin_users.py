@@ -20,12 +20,10 @@ from app.models.db.user import (
     user_proto,
 )
 from app.models.proto.admin_users_pb2 import (
-    Account,
     EditPage,
     Page,
-    TwoFactorStatus,
 )
-from app.models.proto.settings_applications_pb2 import Application, Token
+from app.models.proto.settings_applications_pb2 import Application
 from app.models.types import UserId
 from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -66,82 +64,85 @@ async def user_edit(
 
     tfa_status = tfa_status_t.result()[user_id]
 
+    page_state = EditPage()
+    page_state.account.id = edit_user['id']
+    page_state.account.display_name = edit_user['display_name']
+    page_state.account.avatar_url = user_avatar_url(edit_user)
+    page_state.account.email = edit_user['email']
+    page_state.account.email_verified = edit_user['email_verified']
+    page_state.account.roles.extend(edit_user['roles'])
+    page_state.account.created_at = int(edit_user['created_at'].timestamp())
+    if (
+        scheduled_delete_at := datetime_unix(edit_user['scheduled_delete_at'])
+    ) is not None:
+        page_state.account.scheduled_delete_at = scheduled_delete_at
+    page_state.account.deleted = user_is_deleted(edit_user)
+
+    page_state.two_factor_status.has_passkeys = tfa_status['has_passkeys']
+    page_state.two_factor_status.has_totp = tfa_status['has_totp']
+    page_state.two_factor_status.has_recovery = tfa_status['has_recovery']
+
+    for account in accounts_t.result():
+        connected_account = page_state.connected_accounts.add()
+        connected_account.provider = account['provider']
+        connected_account.uid = account['uid']
+        connected_account.created_at = int(account['created_at'].timestamp())
+
+    for token in auths:
+        app = token.get('application')
+        if app is None or app['client_id'] == SYSTEM_APP_PAT_CLIENT_ID:
+            continue
+        _application_proto(
+            page_state.authorizations.add(),
+            app,
+            edit_user=edit_user,
+            authorized_at=token['authorized_at'],
+        )
+
+    for app in apps_t.result():
+        _application_proto(
+            page_state.applications.add(),
+            app,
+            edit_user=edit_user,
+            created_at=app['created_at'],
+        )
+
+    for token in tokens_t.result():
+        page_token = page_state.tokens.add()
+        page_token.id = token['id']
+        page_token.name = token['name']  # type: ignore
+        page_token.scopes.extend(token['scopes'])
+        if token['token_preview'] is not None:
+            page_token.token_preview = token['token_preview']
+        page_token.created_at = int(token['created_at'].timestamp())
+        if (authorized_at := datetime_unix(token['authorized_at'])) is not None:
+            page_token.authorized_at = authorized_at
+
     return await render_proto_page(
-        EditPage(
-            account=Account(
-                id=edit_user['id'],
-                display_name=edit_user['display_name'],
-                avatar_url=user_avatar_url(edit_user),
-                email=edit_user['email'],
-                email_verified=edit_user['email_verified'],
-                roles=edit_user['roles'],
-                created_at=int(edit_user['created_at'].timestamp()),
-                scheduled_delete_at=datetime_unix(edit_user['scheduled_delete_at']),
-                deleted=user_is_deleted(edit_user),
-            ),
-            two_factor_status=TwoFactorStatus(
-                has_passkeys=tfa_status['has_passkeys'],
-                has_totp=tfa_status['has_totp'],
-                has_recovery=tfa_status['has_recovery'],
-            ),
-            connected_accounts=[
-                EditPage.ConnectedAccount(
-                    provider=account['provider'],
-                    uid=account['uid'],
-                    created_at=int(account['created_at'].timestamp()),
-                )
-                for account in accounts_t.result()
-            ],
-            authorizations=[
-                _application_proto(
-                    app,
-                    edit_user=edit_user,
-                    authorized_at=token['authorized_at'],
-                )
-                for token in auths
-                if (app := token.get('application')) is not None
-                and app['client_id'] != SYSTEM_APP_PAT_CLIENT_ID
-            ],
-            applications=[
-                _application_proto(
-                    app,
-                    edit_user=edit_user,
-                    created_at=app['created_at'],
-                )
-                for app in apps_t.result()
-            ],
-            tokens=[
-                Token(
-                    id=token['id'],
-                    name=token['name'],  # type: ignore
-                    scopes=token['scopes'],
-                    token_preview=token['token_preview'],
-                    created_at=int(token['created_at'].timestamp()),
-                    authorized_at=datetime_unix(token['authorized_at']),
-                )
-                for token in tokens_t.result()
-            ],
-        ),
+        page_state,
         title_prefix=f'Users | {edit_user["display_name"]}',
     )
 
 
 def _application_proto(
+    result: Application,
     app: OAuth2Application,
     *,
     edit_user: User,
     created_at: datetime | None = None,
     authorized_at: datetime | None = None,
 ):
-    return Application(
-        id=app['id'],
-        name=app['name'],
-        avatar_url=oauth2_app_avatar_url(app),
-        client_id=app['client_id'],
-        scopes=app['scopes'],
-        owner=user_proto(
-            edit_user if app['user_id'] == edit_user['id'] else app.get('user')
-        ),
-        created_at=datetime_unix(created_at),
-        authorized_at=datetime_unix(authorized_at),
+    result.id = app['id']
+    result.name = app['name']
+    result.avatar_url = oauth2_app_avatar_url(app)
+    result.client_id = app['client_id']
+    result.scopes.extend(app['scopes'])
+    owner = user_proto(
+        edit_user if app['user_id'] == edit_user['id'] else app.get('user')
     )
+    if owner is not None:
+        result.owner.CopyFrom(owner)
+    if (created_at_unix := datetime_unix(created_at)) is not None:
+        result.created_at = created_at_unix
+    if (authorized_at_unix := datetime_unix(authorized_at)) is not None:
+        result.authorized_at = authorized_at_unix

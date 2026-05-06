@@ -3,25 +3,26 @@ from shapely import get_coordinates
 
 from app.models.db.note import Note, note_status
 from app.models.proto.note_pb2 import GetMapResponse
-from app.models.proto.shared_pb2 import LonLat
 
 
 class RenderNoteMixin:
     @staticmethod
     def encode_notes(notes: list[Note]):
         """Format notes into a minimal structure, suitable for map rendering."""
-        return GetMapResponse(notes=list(map(_encode_note, notes)))
+        response = GetMapResponse()
+        for note in notes:
+            _encode_note(response.notes.add(), note)
+        return response
 
 
 @cython.cfunc
-def _encode_note(note: Note):
+def _encode_note(result: GetMapResponse.Note, note: Note):
     x, y = get_coordinates(note['point'])[0].tolist()
     body = note['comments'][0]['body']  # pyright: ignore [reportTypedDictNotRequiredAccess]
     if len(body) > 100:
         body = body[:100] + '...'
-    return GetMapResponse.Note(
-        id=note['id'],
-        location=LonLat(lon=x, lat=y),
-        body=body,
-        status=note_status(note),
-    )
+    result.id = note['id']
+    result.location.lon = x
+    result.location.lat = y
+    result.body = body
+    result.status = note_status(note)

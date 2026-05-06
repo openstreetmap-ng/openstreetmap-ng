@@ -44,7 +44,9 @@ class OSRMQuery:
 
         leg = cast(OSRMResponse, data)['routes'][0]['legs'][0]
         points: list[tuple[float, float]] = []
-        routing_steps: list[RoutingResult.Step] = [None] * len(leg['steps'])  # type: ignore
+        result = RoutingResult(line_quality=6)
+        result.attribution.href = 'https://routing.openstreetmap.de/about.html'
+        result.attribution.label = 'OSRM (FOSSGIS)'
 
         i: cython.size_t
         for i, step in enumerate(leg['steps']):
@@ -55,23 +57,15 @@ class OSRMQuery:
             maneuver_id = _get_maneuver_id(
                 maneuver['type'], maneuver.get('modifier', '')
             )
-            routing_steps[i] = RoutingResult.Step(
-                num_coords=len(step_points),
-                distance=step['distance'],
-                duration_seconds=step['duration'],
-                icon_num=_MANEUVER_ID_TO_ICON_MAP.get(maneuver_id, 0),
-                text=_get_step_text(step, maneuver_id),
-            )
+            routing_step = result.steps.add()
+            routing_step.num_coords = len(step_points)
+            routing_step.distance = step['distance']
+            routing_step.duration_seconds = step['duration']
+            routing_step.icon_num = _MANEUVER_ID_TO_ICON_MAP.get(maneuver_id, 0)
+            routing_step.text = _get_step_text(step, maneuver_id)
 
-        return RoutingResult(
-            attribution=RoutingResult.Attribution(
-                href='https://routing.openstreetmap.de/about.html',
-                label='OSRM (FOSSGIS)',
-            ),
-            steps=routing_steps,
-            line_quality=6,
-            line=encode_latlon(points, 6),
-        )
+        result.line = encode_latlon(points, 6)
+        return result
 
 
 @cache

@@ -16,7 +16,6 @@ from app.models.proto.trace_pb2 import (
     DeleteResponse,
     GetPageRequest,
     GetPageResponse,
-    Summary,
     UpdateRequest,
     UpdateResponse,
     UploadRequest,
@@ -72,25 +71,20 @@ class _Service(Service):
                 TraceQuery.resolve_coords(traces, limit_per_trace=100, resolution=90)
             )
 
-        return GetPageResponse(
-            state=state,
-            traces=[
-                GetPageResponse.Entry(
-                    summary=Summary(
-                        id=trace['id'],
-                        created_at=int(trace['created_at'].timestamp()),
-                        description=trace['description'],
-                        tags=trace['tags'],
-                        visibility=trace['visibility'],
-                        size=trace['size'],
-                        preview_line=encode_lonlat(trace['coords'].tolist(), 0),  # type: ignore[reportTypedDictNotRequiredAccess]
-                    ),
-                    user=user_proto(trace['user']),  # type: ignore[reportTypedDictNotRequiredAccess]
-                    name=trace['name'],
-                )
-                for trace in traces
-            ],
-        )
+        response = GetPageResponse()
+        response.state.CopyFrom(state)
+        for trace in traces:
+            entry = response.traces.add()
+            entry.summary.id = trace['id']
+            entry.summary.created_at = int(trace['created_at'].timestamp())
+            entry.summary.description = trace['description']
+            entry.summary.tags.extend(trace['tags'])
+            entry.summary.visibility = trace['visibility']
+            entry.summary.size = trace['size']
+            entry.summary.preview_line = encode_lonlat(trace['coords'].tolist(), 0)  # type: ignore[reportTypedDictNotRequiredAccess]
+            entry.user.CopyFrom(user_proto(trace['user']))  # type: ignore[reportTypedDictNotRequiredAccess]
+            entry.name = trace['name']
+        return response
 
     @override
     async def upload(self, request: UploadRequest, ctx: RequestContext):

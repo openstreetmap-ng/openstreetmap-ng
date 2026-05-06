@@ -34,7 +34,6 @@ from app.models.proto.diary_pb2 import (
     UpdateSubscriptionRequest,
     UpdateSubscriptionResponse,
 )
-from app.models.proto.shared_pb2 import LonLat
 from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
@@ -79,10 +78,11 @@ class _Service(Service):
             tg.create_task(DiaryQuery.resolve_location_name(diaries))
             tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
 
-        return GetPageResponse(
-            state=state,
-            diaries=[_build_entry(diary) for diary in diaries],
-        )
+        response = GetPageResponse()
+        response.state.CopyFrom(state)
+        for diary in diaries:
+            _build_entry(response.diaries.add(), diary)
+        return response
 
     @override
     async def get_comments(
@@ -107,10 +107,11 @@ class _Service(Service):
             tg.create_task(UserQuery.resolve_users(comments))
             tg.create_task(diary_comments_resolve_rich_text(comments))
 
-        return GetCommentsResponse(
-            state=state,
-            comments=[_build_comment(comment) for comment in comments],
-        )
+        response = GetCommentsResponse()
+        response.state.CopyFrom(state)
+        for comment in comments:
+            _build_comment(response.comments.add(), comment)
+        return response
 
     @override
     async def get_user_comments_page(
@@ -136,10 +137,10 @@ class _Service(Service):
             tg.create_task(DiaryQuery.resolve_diary(comments))
             tg.create_task(diary_comments_resolve_rich_text(comments))
 
-        return GetUserCommentsPageResponse(
-            state=state,
-            entries=_user_comments_entries(comments),
-        )
+        response = GetUserCommentsPageResponse()
+        response.state.CopyFrom(state)
+        _add_user_comments_entries(response, comments)
+        return response
 
     @override
     async def create_or_update(
@@ -216,45 +217,40 @@ def _resolve_point(request: CreateOrUpdateRequest):
 
 
 @cython.cfunc
-def _user_comments_entries(comments: list[DiaryComment]):
-    return [
-        GetUserCommentsPageResponse.Entry(
-            id=comment['id'],
-            created_at=int(comment['created_at'].timestamp()),
-            diary_id=comment['diary_id'],
-            diary_title=comment['diary']['title'],  # type: ignore
-            body_rich=comment['body_rich'],  # type: ignore
-        )
-        for comment in comments
-    ]
+def _add_user_comments_entries(
+    response: GetUserCommentsPageResponse,
+    comments: list[DiaryComment],
+):
+    for comment in comments:
+        entry = response.entries.add()
+        entry.id = comment['id']
+        entry.created_at = int(comment['created_at'].timestamp())
+        entry.diary_id = comment['diary_id']
+        entry.diary_title = comment['diary']['title']  # type: ignore
+        entry.body_rich = comment['body_rich']  # type: ignore
 
 
-def _build_entry(diary: Diary):
+def _build_entry(result: Entry, diary: Diary):
     point = diary['point']
-    location = None
+    result.id = diary['id']
+    result.user.CopyFrom(user_proto(diary['user']))  # type: ignore
+    result.title = diary['title']
+    result.created_at = int(diary['created_at'].timestamp())
+    result.updated_at = int(diary['updated_at'].timestamp())
+    result.language = diary['language']
+    result.body_rich = diary['body_rich']  # type: ignore
+    if (location_name := diary.get('location_name')) is not None:
+        result.location_name = location_name
     if point is not None:
-        location = LonLat(lon=point.x, lat=point.y)
-
-    return Entry(
-        id=diary['id'],
-        user=user_proto(diary['user']),  # type: ignore
-        title=diary['title'],
-        created_at=int(diary['created_at'].timestamp()),
-        updated_at=int(diary['updated_at'].timestamp()),
-        language=diary['language'],
-        body_rich=diary['body_rich'],  # type: ignore
-        location_name=diary.get('location_name'),
-        location=location,
-        num_comments=diary['num_comments'],  # type: ignore
-        is_subscribed='is_subscribed' in diary,
-    )
+        result.location.lon = point.x
+        result.location.lat = point.y
+    result.num_comments = diary['num_comments']  # type: ignore
+    result.is_subscribed = 'is_subscribed' in diary
 
 
 @cython.cfunc
-def _build_comment(comment: DiaryComment):
-    return Comment(
-        id=comment['id'],
-        user=user_proto(comment['user']),  # type: ignore
-        created_at=int(comment['created_at'].timestamp()),
-        body_rich=comment['body_rich'],  # type: ignore
-    )
+def _build_comment(result: Comment, comment: DiaryComment):
+    result.id = comment['id']
+    result.user.CopyFrom(user_proto(comment['user']))  # type: ignore
+    result.created_at = int(comment['created_at'].timestamp())
+    result.body_rich = comment['body_rich']  # type: ignore

@@ -88,10 +88,11 @@ class _Service(MessageServiceConnect):
                 for r in m['recipients']  # pyright: ignore [reportTypedDictNotRequiredAccess]
             ])
 
-        summaries = [
-            _build_message_summary(message, inbox=inbox) for message in messages
-        ]
-        return GetPageResponse(state=state, messages=summaries)
+        response = GetPageResponse()
+        response.state.CopyFrom(state)
+        for message in messages:
+            _build_message_summary(response.messages.add(), message, inbox=inbox)
+        return response
 
     @override
     async def get(self, request: GetRequest, ctx: RequestContext):
@@ -119,18 +120,17 @@ class _Service(MessageServiceConnect):
                 else None
             )
 
-        return GetResponse(
+        response = GetResponse(
             was_unread=mark_read_t.result() if mark_read_t else False,
-            sender=user_proto(message['from_user']),  # type: ignore
-            recipients=[
-                user_proto(r['user'])  # type: ignore
-                for r in message['recipients']
-            ],
             is_recipient=is_recipient,
             created_at=int(message['created_at'].timestamp()),
             subject=message['subject'],
             body_rich=message['body_rich'],  # type: ignore
         )
+        response.sender.CopyFrom(user_proto(message['from_user']))  # type: ignore
+        for recipient in message['recipients']:
+            response.recipients.add().CopyFrom(user_proto(recipient['user']))  # type: ignore
+        return response
 
     @override
     async def update_read_state(
@@ -164,33 +164,29 @@ class _Service(MessageServiceConnect):
 
 
 def _build_message_summary(
+    result: GetPageResponse.Summary,
     message: Message,
     *,
     inbox: bool,
 ):
+    result.id = message['id']
     if inbox:
-        return GetPageResponse.Summary(
-            id=message['id'],
-            sender=user_proto(message['from_user']),  # type: ignore
-            recipients_count=0,
-            unread=not message['user_recipient']['read'],  # type: ignore
-            created_at=int(message['created_at'].timestamp()),
-            subject=message['subject'],
-            body_preview=_message_body_preview(message['body']),
-        )
+        result.sender.CopyFrom(user_proto(message['from_user']))  # type: ignore
+        result.recipients_count = 0
+        result.unread = not message['user_recipient']['read']  # type: ignore
+        result.created_at = int(message['created_at'].timestamp())
+        result.subject = message['subject']
+        result.body_preview = _message_body_preview(message['body'])
+        return
 
     recipients = message['recipients']  # type: ignore
-    recipients_users = [user_proto(r['user']) for r in recipients[:3]]  # type: ignore
-    return GetPageResponse.Summary(
-        id=message['id'],
-        sender=None,
-        recipients=recipients_users,
-        recipients_count=len(recipients),
-        unread=False,
-        created_at=int(message['created_at'].timestamp()),
-        subject=message['subject'],
-        body_preview=_message_body_preview(message['body']),
-    )
+    for recipient in recipients[:3]:
+        result.recipients.add().CopyFrom(user_proto(recipient['user']))  # type: ignore
+    result.recipients_count = len(recipients)
+    result.unread = False
+    result.created_at = int(message['created_at'].timestamp())
+    result.subject = message['subject']
+    result.body_preview = _message_body_preview(message['body'])
 
 
 def _message_body_preview(value: str, *, _PREVIEW_SIZE: cython.size_t = 250):

@@ -26,7 +26,6 @@ from app.models.proto.admin_users_connect import (
     ServiceASGIApplication,
 )
 from app.models.proto.admin_users_pb2 import (
-    Account,
     ExportIdsRequest,
     ExportIdsResponse,
     Filters,
@@ -36,13 +35,11 @@ from app.models.proto.admin_users_pb2 import (
     ListResponse,
     ResetTwoFactorRequest,
     ResetTwoFactorResponse,
-    TwoFactorStatus,
     UpdateRequest,
     UpdateResponse,
 )
 from app.models.proto.admin_users_pb2 import Role as ProtoRole
 from app.models.proto.admin_users_types import Role
-from app.models.proto.shared_pb2 import IpCount
 from app.models.types import ApplicationId, DisplayName, Email, UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_passkey_query import UserPasskeyQuery
@@ -130,33 +127,33 @@ class _Service(Service):
         tfa_status = tfa_status_t.result()
         ip_counts = ip_counts_t.result()
 
-        entries = [
-            ListResponse.Entry(
-                account=Account(
-                    id=user['id'],
-                    display_name=user['display_name'],
-                    avatar_url=user_avatar_url(user),
-                    email=user['email'],
-                    email_verified=user['email_verified'],
-                    roles=user['roles'],
-                    created_at=int(user['created_at'].timestamp()),
-                    scheduled_delete_at=datetime_unix(user['scheduled_delete_at']),
-                    deleted=user_is_deleted(user),
-                ),
-                two_factor_status=TwoFactorStatus(
-                    has_passkeys=tfa_status[user['id']]['has_passkeys'],
-                    has_totp=tfa_status[user['id']]['has_totp'],
-                    has_recovery=tfa_status[user['id']]['has_recovery'],
-                ),
-                ip_counts=[
-                    IpCount(ip=ip.packed, count=count)
-                    for ip, count in ip_counts.get(user['id'], ())
-                ],
-            )
-            for user in users
-        ]
+        response = ListResponse()
+        response.state.CopyFrom(state)
+        for user in users:
+            entry = response.entries.add()
+            entry.account.id = user['id']
+            entry.account.display_name = user['display_name']
+            entry.account.avatar_url = user_avatar_url(user)
+            entry.account.email = user['email']
+            entry.account.email_verified = user['email_verified']
+            entry.account.roles.extend(user['roles'])
+            entry.account.created_at = int(user['created_at'].timestamp())
+            if (
+                scheduled_delete_at := datetime_unix(user['scheduled_delete_at'])
+            ) is not None:
+                entry.account.scheduled_delete_at = scheduled_delete_at
+            entry.account.deleted = user_is_deleted(user)
 
-        return ListResponse(entries=entries, state=state)
+            status = tfa_status[user['id']]
+            entry.two_factor_status.has_passkeys = status['has_passkeys']
+            entry.two_factor_status.has_totp = status['has_totp']
+            entry.two_factor_status.has_recovery = status['has_recovery']
+            for ip, count in ip_counts.get(user['id'], ()):
+                ip_count = entry.ip_counts.add()
+                ip_count.ip = ip.packed
+                ip_count.count = count
+
+        return response
 
     @override
     async def export_ids(self, request: ExportIdsRequest, ctx: RequestContext):

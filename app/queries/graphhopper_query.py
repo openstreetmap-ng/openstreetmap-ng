@@ -50,30 +50,21 @@ class GraphHopperQuery:
             raise HTTPException(r.status_code, r.text)
 
         path = cast(GraphHopperResponse, data)['paths'][0]
-        routing_steps: list[RoutingResult.Step] = [
-            RoutingResult.Step(
-                num_coords=instr['interval'][1] - instr['interval'][0] + 1,
-                distance=instr['distance'],
-                duration_seconds=instr['time'] / 1000,
-                icon_num=_SIGN_TO_ICON_MAP.get(instr['sign'], 0),
-                text=instr['text'],
-            )
-            for instr in path['instructions']
-        ]
+        result = RoutingResult(line_quality=5, line=path['points'])
+        result.attribution.href = 'https://www.graphhopper.com'
+        result.attribution.label = 'GraphHopper'
+        result.elevation.ascend = path['ascend']
+        result.elevation.descend = path['descend']
 
-        return RoutingResult(
-            attribution=RoutingResult.Attribution(
-                href='https://www.graphhopper.com',
-                label='GraphHopper',
-            ),
-            steps=routing_steps,
-            line_quality=5,
-            line=path['points'],
-            elevation=RoutingResult.Elevation(
-                ascend=path['ascend'],
-                descend=path['descend'],
-            ),
-        )
+        for instr in path['instructions']:
+            step = result.steps.add()
+            step.num_coords = instr['interval'][1] - instr['interval'][0] + 1
+            step.distance = instr['distance']
+            step.duration_seconds = instr['time'] / 1000
+            step.icon_num = _SIGN_TO_ICON_MAP.get(instr['sign'], 0)
+            step.text = instr['text']
+
+        return result
 
 
 _SIGN_TO_ICON_MAP = {

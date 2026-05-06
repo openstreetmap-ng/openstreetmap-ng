@@ -348,15 +348,15 @@ def _cursor_codec(kind: _CursorKind):
         )
     if kind == 'datetime':
         return _SpCursorCodec(
-            encode=lambda value: _dt_to_us(value),
-            decode=lambda value: _us_to_dt(value),
+            encode=_dt_to_us,
+            decode=_us_to_dt,
             empty=0,
             storage='u64',
         )
     if kind == 'text':
         return _SpCursorCodec(
-            encode=lambda value: str(value),
-            decode=lambda value: str(value),
+            encode=str,
+            decode=str,
             empty='',
             storage='text',
         )

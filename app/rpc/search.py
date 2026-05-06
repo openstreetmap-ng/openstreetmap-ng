@@ -13,7 +13,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MIN,
     TypedElementId,
 )
-from app.models.proto.element_pb2 import RenderData
 from app.models.proto.search_connect import Service, ServiceASGIApplication
 from app.models.proto.search_pb2 import (
     Data,
@@ -22,7 +21,7 @@ from app.models.proto.search_pb2 import (
     SearchRequest,
     SearchResponse,
 )
-from app.models.proto.shared_pb2 import Bounds, ElementIcon, LonLat
+from app.models.proto.shared_pb2 import Bounds
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.queries.nominatim_query import NominatimQuery
@@ -108,7 +107,10 @@ async def _build_search_data(
     Search.improve_point_accuracy(results, members_map)
     Search.remove_overlapping_points(results)
 
-    response_results: list[Data.Result] = []
+    data = Data()
+    if bounds is not None:
+        data.bounds.CopyFrom(bounds)
+
     for result in results:
         x, y = get_coordinates(result.point)[0].tolist()
 
@@ -131,25 +133,22 @@ async def _build_search_data(
 
         # Ensure there is always a node. It's nice visually.
         if not render.nodes:
-            render.nodes.append(RenderData.Node(id=0, location=LonLat(lon=x, lat=y)))
+            node = render.nodes.add()
+            node.id = 0
+            node.location.lon = x
+            node.location.lat = y
 
         type, id = split_typed_element_id(result.element['typed_id'])
-        icon = (
-            ElementIcon(icon=result.icon.filename, title=result.icon.title)
-            if result.icon is not None
-            else None
-        )
+        response_result = data.results.add()
+        response_result.type = type
+        response_result.id = id
+        response_result.prefix = result.prefix
+        response_result.display_name = result.display_name
+        if result.icon is not None:
+            response_result.icon.icon = result.icon.filename
+            response_result.icon.title = result.icon.title
+        response_result.render.CopyFrom(render)
+        response_result.location.lon = x
+        response_result.location.lat = y
 
-        response_results.append(
-            Data.Result(
-                type=type,
-                id=id,
-                prefix=result.prefix,
-                display_name=result.display_name,
-                icon=icon,
-                render=render,
-                location=LonLat(lon=x, lat=y),
-            )
-        )
-
-    return Data(bounds=bounds, results=response_results)
+    return data

@@ -74,10 +74,8 @@ class _Service(Service):
                 else []
             )
 
-        challenge = PasskeyChallenge(
-            challenge=challenge_t.result(),
-            credentials=credentials,
-        )
+        challenge = PasskeyChallenge(challenge=challenge_t.result())
+        challenge.credentials.extend(credentials)
         if user is not None:
             challenge.user_id = user['id']
             challenge.user_display_name = user['display_name']
