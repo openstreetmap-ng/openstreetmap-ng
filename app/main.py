@@ -36,6 +36,7 @@ from app.config import (
     NAME,
 )
 from app.db import psycopg_pool_open
+from app.lib.http_client import HTTP, HTTP_INTERNAL
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware
@@ -94,7 +95,12 @@ if ENV != 'prod':
 
 @asynccontextmanager
 async def lifespan(_):
-    async with psycopg_pool_open(), AuditService.context():
+    async with (
+        psycopg_pool_open(),
+        HTTP.context(),
+        HTTP_INTERNAL.context(),
+        AuditService.context(),
+    ):
         if ENV != 'prod':
             await TestService.on_startup()
 

@@ -27,14 +27,14 @@ async def test_github_callback_token_exchange_error(
             provider=provider, query_state=query_state, cookie_state=cookie_state
         )
 
-    async def fake_post(*args, **kwargs):
+    async def fake_request(*args, **kwargs):
         return _FakeResponse({
             'error': 'bad_verification_code',
             'error_description': 'The code passed is incorrect or expired.',
         })
 
     monkeypatch.setattr(AuthProviderService, 'validate_state', fake_validate_state)
-    monkeypatch.setattr(auth_provider.HTTP, 'post', fake_post)
+    monkeypatch.setattr(auth_provider.HTTP, 'request', fake_request)
 
     r = await client.get(
         '/oauth2/github/callback',

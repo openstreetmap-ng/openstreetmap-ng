@@ -21,12 +21,12 @@ from starlette import status
 from app.config import OSM_OLD_REPLICATION_URL, OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
 from app.lib.compressible_geometry import point_to_compressible_wkb
+from app.lib.http_client import HTTP, http_context
 from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITOR_SLUG
 from app.lib.xmltodict import XMLToDict
 from app.models.element import TypedElementId
 from app.models.proto.shared_types import ElementType
-from app.utils import HTTP
 from speedup import typed_element_id
 
 type _Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
@@ -351,7 +351,7 @@ async def _iterate(state: AppState) -> AppState:
 
     # Attempt to fetch the replication data
     while True:
-        r = await HTTP.get(url + '.state.txt')
+        r = await HTTP.request('GET', url + '.state.txt', follow_redirects=True)
         if state.frequency == 'minute' and r.status_code == status.HTTP_404_NOT_FOUND:
             logging.debug('Minute state not yet available, waiting...')
             await sleep(60)
@@ -367,7 +367,12 @@ async def _iterate(state: AppState) -> AppState:
         r.raise_for_status()
         remote_replica = _parse_replica_state(r.text)
 
-        r = await HTTP.get(url + '.osc.gz', timeout=300)
+        r = await HTTP.request(
+            'GET',
+            url + '.osc.gz',
+            timeout=300,
+            follow_redirects=True,
+        )
         if state.frequency == 'minute' and r.status_code == status.HTTP_404_NOT_FOUND:
             logging.debug('Minute data not yet available, waiting...')
             await sleep(60)
@@ -464,7 +469,7 @@ async def _increase_frequency(state: AppState):
             )
 
         url = _get_replication_url(state.dataset, new_frequency, new_sequence_number)
-        r = await HTTP.get(url + '.state.txt')
+        r = await HTTP.request('GET', url + '.state.txt', follow_redirects=True)
 
         if r.status_code == status.HTTP_404_NOT_FOUND:
             if direction == 0:
@@ -502,6 +507,7 @@ async def _increase_frequency(state: AppState):
             new_sequence_number += step
 
 
+@http_context
 async def main():
     # Freeze all gc objects before starting for improved performance
     gc.collect()

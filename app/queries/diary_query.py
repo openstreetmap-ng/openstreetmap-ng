@@ -3,11 +3,11 @@ from collections import defaultdict
 from typing import Any
 
 import cython
-from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
 from app.db import db
+from app.lib.http_client import HTTPError
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
 from app.models.types import DiaryId, LocaleCode, UserId

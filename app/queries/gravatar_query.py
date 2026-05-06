@@ -4,10 +4,10 @@ from hashlib import md5
 from starlette import status
 
 from app.config import GRAVATAR_CACHE_EXPIRE
+from app.lib.http_client import HTTP
 from app.lib.image import DEFAULT_USER_AVATAR, Image
 from app.models.types import Email, StorageKey
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP
 
 _CTX = CacheContext('Gravatar')
 
@@ -20,7 +20,11 @@ class GravatarQuery:
 
         async def factory():
             logging.debug('Gravatar cache miss')
-            r = await HTTP.get(f'https://www.gravatar.com/avatar/{key}?s=512&d=404')
+            r = await HTTP.request(
+                'GET',
+                f'https://www.gravatar.com/avatar/{key}?s=512&d=404',
+                follow_redirects=True,
+            )
             if r.status_code == status.HTTP_404_NOT_FOUND:
                 return DEFAULT_USER_AVATAR
             r.raise_for_status()

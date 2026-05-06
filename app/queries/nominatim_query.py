@@ -16,6 +16,7 @@ from app.config import (
 from app.lib.crypto import hash_storage_key
 from app.lib.feature_icon import features_icons
 from app.lib.feature_prefix import features_prefixes
+from app.lib.http_client import HTTP
 from app.lib.search import SearchResult
 from app.lib.translation import primary_translation_locale
 from app.models.db.element import Element
@@ -24,7 +25,6 @@ from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.element_query import ElementQuery
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP
 from speedup import typed_element_id
 
 _CTX = CacheContext('Nominatim')
@@ -64,9 +64,11 @@ class NominatimQuery:
 
         async def factory():
             logging.debug('Nominatim reverse cache miss for path %r', path)
-            r = await HTTP.get(
+            r = await HTTP.request(
+                'GET',
                 NOMINATIM_URL + path,
                 timeout=NOMINATIM_REVERSE_HTTP_TIMEOUT.total_seconds(),
+                follow_redirects=True,
             )
             r.raise_for_status()
             return r.content
@@ -135,9 +137,11 @@ async def _search(
 
     async def factory():
         logging.debug('Nominatim search cache miss for path %r', path)
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             NOMINATIM_URL + path,
             timeout=NOMINATIM_SEARCH_HTTP_TIMEOUT.total_seconds(),
+            follow_redirects=True,
         )
         r.raise_for_status()
         return r.content

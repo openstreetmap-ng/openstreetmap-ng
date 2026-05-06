@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 import cython
 import re2
 from fastapi import HTTPException
-from httpx import HTTPError, HTTPStatusError
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
 from psycopg.sql import SQL
@@ -17,16 +16,17 @@ from zid import zids
 from app.config import (
     IMAGE_PROXY_CACHE_EXPIRE,
     IMAGE_PROXY_ERROR_CACHE_EXPIRE,
+    IMAGE_PROXY_FETCH_MAX_BYTES,
 )
 from app.db import db
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
+from app.lib.http_client import HTTP, HTTPError
 from app.lib.image import Image
 from app.models.db.image_proxy import ImageProxy
 from app.models.proto.server_pb2 import ImageProxyCache
 from app.models.types import ImageProxyId, StorageKey
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP
 
 _CACHE_CONTEXT = CacheContext('ImageProxy')
 _INLINE_RE = re2.compile(r'src="/api/web/img/proxy/(\d{1,20})"')
@@ -220,7 +220,12 @@ async def _generate(proxy_id: ImageProxyId):
 
         # Fetch image from URL
         try:
-            response = await HTTP.get(url)
+            response = await HTTP.request(
+                'GET',
+                url,
+                follow_redirects=True,
+                max_bytes=IMAGE_PROXY_FETCH_MAX_BYTES,
+            )
             response.raise_for_status()
         except HTTPError as e:
             logging.debug('Image proxy fetch failed for %s', url, exc_info=True)
@@ -230,7 +235,7 @@ async def _generate(proxy_id: ImageProxyId):
                     error=ImageProxyCache.HttpError(
                         status_code=(
                             e.response.status_code
-                            if isinstance(e, HTTPStatusError)
+                            if e.response is not None
                             else status.HTTP_502_BAD_GATEWAY
                         ),
                         message=str(e),

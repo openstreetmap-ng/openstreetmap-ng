@@ -8,10 +8,10 @@ from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
 from app.config import OSRM_URL
+from app.lib.http_client import HTTP
 from app.lib.translation import t
 from app.models.osrm import OSRMResponse, OSRMStep
 from app.models.proto.shared_pb2 import RoutingResult
-from app.utils import HTTP
 
 type OSRMProfile = Literal['car', 'bike', 'foot']
 OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile.__value__))
@@ -22,13 +22,15 @@ class OSRMQuery:
     async def route(start: Point, end: Point, *, profile: OSRMProfile):
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             f'{OSRM_URL}/route/v1/{profile}/{start_x},{start_y};{end_x},{end_y}',
             params={
                 'steps': 'true',
                 'geometries': 'polyline6',
                 'overview': 'false',
             },
+            follow_redirects=True,
         )
         content_type: str = r.headers.get('Content-Type', '')
         if not content_type.startswith('application/json'):

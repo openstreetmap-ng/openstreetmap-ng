@@ -6,8 +6,8 @@ from pathlib import Path
 
 import orjson
 
+from app.lib.http_client import HTTP, http_context
 from app.lib.retry import retry
-from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 
@@ -27,7 +27,7 @@ async def get_popularity(key: str, type: str, value: str) -> float:
         params = {'key': key, 'value': value}
 
     async with _download_limiter:
-        r = await HTTP.get(url, params=params)
+        r = await HTTP.request('GET', url, params=params, follow_redirects=True)
         r.raise_for_status()
         data = r.json()['data']
 
@@ -38,6 +38,7 @@ async def get_popularity(key: str, type: str, value: str) -> float:
     )
 
 
+@http_context
 async def main():
     async with TaskGroup() as tg:
         tasks: list[tuple[tuple, Task]] = []

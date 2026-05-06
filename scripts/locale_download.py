@@ -6,10 +6,10 @@ from pathlib import Path
 import orjson
 import re2
 
+from app.lib.http_client import HTTP, http_context
 from app.lib.locale import LocaleName
 from app.lib.retry import retry
 from app.models.types import LocaleCode
-from app.utils import HTTP
 
 _download_dir = Path('config/locale/download')
 _download_limiter = Semaphore(8)  # max concurrent downloads
@@ -24,9 +24,11 @@ _MESSAGES_HEADER_RE = re2.compile(
 
 
 async def get_download_locales():
-    r = await HTTP.get(
+    r = await HTTP.request(
+        'GET',
         'https://translatewiki.net/wiki/Special:ExportTranslations',
         params={'group': 'out-osm-site'},
+        follow_redirects=True,
     )
     r.raise_for_status()
     locales: list[LocaleCode] = []
@@ -40,13 +42,15 @@ async def get_download_locales():
 @retry(timedelta(minutes=2))
 async def download_locale(locale: LocaleCode):
     async with _download_limiter:
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             'https://translatewiki.net/wiki/Special:ExportTranslations',
             params={
                 'group': 'out-osm-site',
                 'language': locale,
                 'format': 'export-to-file',
             },
+            follow_redirects=True,
         )
         r.raise_for_status()
 
@@ -108,6 +112,7 @@ def add_extra_locales_names(locales_names: list[LocaleName]):
         print(f'[➕] Added extra name: {code}')  # noqa: RUF001
 
 
+@http_context
 async def main():
     _download_dir.mkdir(parents=True, exist_ok=True)
 

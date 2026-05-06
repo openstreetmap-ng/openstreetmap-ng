@@ -10,8 +10,8 @@ from urllib.parse import unquote_plus
 import orjson
 import re2
 
+from app.lib.http_client import HTTP, http_context
 from app.lib.retry import retry
-from app.utils import HTTP
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
@@ -29,7 +29,11 @@ class WikiPageInfo(NamedTuple):
 
 
 async def discover_sitemap_urls():
-    r = await HTTP.get('https://wiki.openstreetmap.org/sitemap-index-wiki.xml')
+    r = await HTTP.request(
+        'GET',
+        'https://wiki.openstreetmap.org/sitemap-index-wiki.xml',
+        follow_redirects=True,
+    )
     r.raise_for_status()
     matches = _SITEMAP_URL_RE.finditer(r.text)
     result = [match[0] for match in matches]
@@ -40,7 +44,7 @@ async def discover_sitemap_urls():
 @retry(timedelta(minutes=1))
 async def fetch_and_parse_sitemap(url: str):
     async with _download_limiter:
-        r = await HTTP.get(url)
+        r = await HTTP.request('GET', url, follow_redirects=True)
         r.raise_for_status()
 
     text = gzip.decompress(r.content).decode()
@@ -77,6 +81,7 @@ async def fetch_and_parse_sitemap(url: str):
     return result
 
 
+@http_context
 async def main():
     urls = await discover_sitemap_urls()
 

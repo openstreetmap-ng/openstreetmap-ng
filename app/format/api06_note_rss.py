@@ -3,10 +3,10 @@ from typing import assert_never
 
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
-from httpx import HTTPError
 from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
+from app.lib.http_client import HTTPError
 from app.lib.render_jinja import render_jinja
 from app.lib.translation import t
 from app.models.db.note import Note

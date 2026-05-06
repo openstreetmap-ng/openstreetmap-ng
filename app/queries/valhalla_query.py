@@ -5,10 +5,10 @@ from fastapi import HTTPException
 from shapely import Point, get_coordinates
 
 from app.config import VALHALLA_URL
+from app.lib.http_client import HTTP
 from app.lib.translation import primary_translation_locale
 from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
-from app.utils import HTTP
 
 type ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
 ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile.__value__))
@@ -19,7 +19,8 @@ class ValhallaQuery:
     async def route(start: Point, end: Point, *, profile: ValhallaProfile):
         start_x, start_y = get_coordinates(start)[0].tolist()
         end_x, end_y = get_coordinates(end)[0].tolist()
-        r = await HTTP.post(
+        r = await HTTP.request(
+            'POST',
             f'{VALHALLA_URL}/route',
             json={
                 'locations': [

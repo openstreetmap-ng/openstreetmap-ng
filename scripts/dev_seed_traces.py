@@ -1,14 +1,21 @@
+import asyncio
 import logging
 import random
 from argparse import ArgumentParser
-from concurrent.futures import ThreadPoolExecutor
+from asyncio import Lock, TaskGroup
 from hashlib import pbkdf2_hmac
-from queue import Queue
-from threading import Lock
 from time import monotonic
 from urllib.parse import urlparse
 
-import httpx
+from aiohttp import (
+    ClientResponseError,
+    ClientSession,
+    ClientTimeout,
+    CookieJar,
+    FormData,
+    TCPConnector,
+)
+from yarl import URL
 
 from app.models.proto.auth_pb2 import TransmitUserPassword
 from app.models.proto.shared_pb2 import IdResponse
@@ -68,7 +75,7 @@ def _parse_args():
         default='INFO',
         choices=('DEBUG', 'INFO', 'WARNING', 'ERROR'),
     )
-    return parser
+    return parser.parse_args()
 
 
 def _is_local_base_url(url: str):
@@ -149,42 +156,48 @@ def _build_gpx(points: list[tuple[float, float]], *, name: str):
     return ''.join(parts).encode()
 
 
-def _login_and_get_cookie(
-    client: httpx.Client, *, base_url: str, who: str, password: str
+async def _login_and_get_cookie(
+    client: ClientSession, *, base_url: str, who: str, password: str
 ):
     origin = _origin_from_base_url(base_url)
     transmit_password = _build_transmit_password_v1(password, origin=origin)
-    resp = client.post(
-        f'{origin}/api/web/user/login',
-        data={'display_name_or_email': who, 'remember': 'true'},
-        files={
-            'password': (
-                'password.bin',
-                transmit_password,
-                'application/octet-stream',
-            )
-        },
-        headers={'Accept': '*/*'},
+    form = FormData()
+    form.add_field('display_name_or_email', who)
+    form.add_field('remember', 'true')
+    form.add_field(
+        'password',
+        transmit_password,
+        filename='password.bin',
+        content_type='application/octet-stream',
     )
 
-    if resp.status_code == 204:
-        auth_cookie = client.cookies.get('auth')
-        if not auth_cookie:
-            raise RuntimeError("Login succeeded but 'auth' cookie missing.")
-        return auth_cookie
+    async with client.post(
+        f'{origin}/api/web/user/login',
+        data=form,
+        headers={'Accept': '*/*'},
+        allow_redirects=False,
+    ) as resp:
+        content = await resp.read()
+        text = content.decode()
 
-    if resp.status_code == 200 and resp.headers.get('Content-Type', '').startswith(
-        'application/x-protobuf'
-    ):
-        raise RuntimeError(
-            'Login requires additional steps (2FA/passkey). Use --auth-cookie or --dev-user instead.'
-        )
+        if resp.status == 204:
+            auth_cookie = client.cookie_jar.filter_cookies(URL(origin)).get('auth')
+            if auth_cookie is None:
+                raise RuntimeError("Login succeeded but 'auth' cookie missing.")
+            return auth_cookie.value
 
-    raise RuntimeError(f'Login failed: {resp.status_code} {resp.text[:200]}')
+        if resp.status == 200 and resp.headers.get('Content-Type', '').startswith(
+            'application/x-protobuf'
+        ):
+            raise RuntimeError(
+                'Login requires additional steps (2FA/passkey). Use --auth-cookie or --dev-user instead.'
+            )
+
+        raise RuntimeError(f'Login failed: {resp.status} {text[:200]}')
 
 
-def _upload_one(
-    client: httpx.Client,
+async def _upload_one(
+    client: ClientSession,
     *,
     base_url: str,
     index: int,
@@ -207,33 +220,43 @@ def _upload_one(
     tags = [city_name, rng.choice(('walk', 'bike', 'run', 'hike'))]
     visibility = _pick_visibility(rng, visibility_mode)
 
-    resp = client.post(
-        f'{base_url.rstrip("/")}/api/web/traces/upload',
-        files=[
-            ('description', (None, f'Dev seed trace {index} ({city_name})')),
-            ('visibility', (None, visibility)),
-            *[('tags', (None, tag)) for tag in tags],
-            (
-                'file',
-                (
-                    f'{trace_name}.gpx',
-                    gpx_bytes,
-                    'application/gpx+xml',
-                ),
-            ),
-        ],
-        headers={'Accept': 'application/x-protobuf'},
+    form = FormData()
+    form.add_field('description', f'Dev seed trace {index} ({city_name})')
+    form.add_field('visibility', visibility)
+    for tag in tags:
+        form.add_field('tags', tag)
+    form.add_field(
+        'file',
+        gpx_bytes,
+        filename=f'{trace_name}.gpx',
+        content_type='application/gpx+xml',
     )
-    resp.raise_for_status()
-    id_resp = IdResponse.FromString(resp.content)
+
+    async with client.post(
+        f'{base_url.rstrip("/")}/api/web/traces/upload',
+        data=form,
+        headers={'Accept': 'application/x-protobuf'},
+        allow_redirects=False,
+    ) as resp:
+        content = await resp.read()
+        if resp.status >= 400:
+            text = content.decode()
+            raise ClientResponseError(
+                resp.request_info,
+                resp.history,
+                status=resp.status,
+                message=text[:200],
+                headers=resp.headers,
+            )
+
+    id_resp = IdResponse.FromString(content)
     return int(id_resp.id)
 
 
-def main():
-    parser = _parse_args()
-    args = parser.parse_args()
+async def main():
+    args = _parse_args()
     logging.basicConfig(level=getattr(logging, args.log_level))
-    logging.getLogger('httpx').setLevel(
+    logging.getLogger('aiohttp').setLevel(
         logging.INFO if args.log_level == 'DEBUG' else logging.WARNING
     )
 
@@ -251,6 +274,8 @@ def main():
     end = start + total
     if total <= 0:
         raise SystemExit('--count must be > 0.')
+    if args.concurrency <= 0:
+        raise SystemExit('--concurrency must be > 0.')
 
     base_url = args.base_url.rstrip('/')
 
@@ -259,10 +284,11 @@ def main():
     if args.dev_user:
         auth_header = f'User {args.dev_user}'
     elif auth_cookie is None:
-        with httpx.Client(
-            timeout=httpx.Timeout(60.0), follow_redirects=False
+        async with ClientSession(
+            timeout=ClientTimeout(total=60),
+            cookie_jar=CookieJar(unsafe=True),
         ) as client:
-            auth_cookie = _login_and_get_cookie(
+            auth_cookie = await _login_and_get_cookie(
                 client,
                 base_url=base_url,
                 who=args.display_name_or_email,
@@ -276,65 +302,59 @@ def main():
     t0 = monotonic()
     lock = Lock()
 
-    queue: Queue[int | None] = Queue()
-    for i in range(start, end):
-        queue.put(i)
-    for _ in range(args.concurrency):
-        queue.put(None)
-
-    def worker(worker_id: int):
+    async def worker(worker_id: int, client: ClientSession):
         nonlocal created, failed, error_logs, last_log
 
-        with httpx.Client(
-            timeout=httpx.Timeout(60.0),
-            follow_redirects=False,
-            limits=httpx.Limits(
-                max_connections=8,
-                max_keepalive_connections=8,
+        for i in range(start + worker_id, end, args.concurrency):
+            try:
+                await _upload_one(
+                    client,
+                    base_url=base_url,
+                    index=i,
+                    rng_seed=args.seed,
+                    points=args.points,
+                    visibility_mode=args.visibility,
+                )
+                async with lock:
+                    created += 1
+            except Exception:
+                async with lock:
+                    failed += 1
+                    if error_logs < 10:
+                        error_logs += 1
+                        logging.exception(
+                            'Worker %d failed to upload trace %d', worker_id, i
+                        )
+
+            async with lock:
+                if created + failed - last_log >= 100:
+                    last_log = created + failed
+                    dt = monotonic() - t0
+                    rate = (created + failed) / dt if dt else 0.0
+                    logging.info(
+                        'Progress: %d/%d (created=%d failed=%d) %.1f req/s',
+                        created + failed,
+                        total,
+                        created,
+                        failed,
+                        rate,
+                    )
+
+    async with (
+        ClientSession(
+            timeout=ClientTimeout(total=60),
+            connector=TCPConnector(
+                limit=args.concurrency,
+                limit_per_host=args.concurrency,
             ),
             headers={'Authorization': auth_header} if auth_header else None,
             cookies={'auth': auth_cookie} if auth_cookie else None,
-        ) as client:
-            while True:
-                i = queue.get()
-                if i is None:
-                    return
-
-                try:
-                    _upload_one(
-                        client,
-                        base_url=base_url,
-                        index=i,
-                        rng_seed=args.seed,
-                        points=args.points,
-                        visibility_mode=args.visibility,
-                    )
-                    with lock:
-                        created += 1
-                except Exception:
-                    with lock:
-                        failed += 1
-                        if error_logs < 10:
-                            error_logs += 1
-                            logging.exception('Failed to upload trace %d', i)
-
-                with lock:
-                    if created + failed - last_log >= 100:
-                        last_log = created + failed
-                        dt = monotonic() - t0
-                        rate = (created + failed) / dt if dt else 0.0
-                        logging.info(
-                            'Progress: %d/%d (created=%d failed=%d) %.1f req/s',
-                            created + failed,
-                            total,
-                            created,
-                            failed,
-                            rate,
-                        )
-
-    with ThreadPoolExecutor(max_workers=args.concurrency) as executor:
+            cookie_jar=CookieJar(unsafe=True),
+        ) as client,
+        TaskGroup() as tg,
+    ):
         for worker_id in range(args.concurrency):
-            executor.submit(worker, worker_id)
+            tg.create_task(worker(worker_id, client))
 
     dt = monotonic() - t0
     logging.info(
@@ -348,4 +368,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

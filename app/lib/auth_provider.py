@@ -2,7 +2,6 @@ from typing import Any, TypedDict, assert_never
 
 import cython
 from fastapi import HTTPException
-from httpx import Response
 from pydantic import SecretStr
 from starlette import status
 
@@ -18,10 +17,10 @@ from app.config import (
     WIKIMEDIA_OAUTH_PUBLIC,
     WIKIMEDIA_OAUTH_SECRET,
 )
+from app.lib.http_client import HTTP, HTTPResponse
 from app.lib.openid import parse_openid_token_no_verify
 from app.models.proto.settings_connections_types import Provider
 from app.queries.openid_query import OpenIDQuery
-from app.utils import HTTP
 from speedup import buffered_rand_urlsafe
 
 _GOOGLE_REDIRECT_URI = f'{APP_URL}/oauth2/google/callback'
@@ -47,7 +46,7 @@ def _require_configured(public: str, service_name: str):
 @cython.cfunc
 def _require_oauth_value(
     service_name: str,
-    response: Response,
+    response: HTTPResponse,
     field: str,
 ):
     payload: dict[str, Any] = response.json()
@@ -125,7 +124,8 @@ async def resolve_code_identity(
 
     if provider == 'google':
         openid = await OpenIDQuery.discovery('https://accounts.google.com')
-        r = await HTTP.post(
+        r = await HTTP.request(
+            'POST',
             openid['token_endpoint'],
             data={
                 'client_id': GOOGLE_OAUTH_PUBLIC,
@@ -144,7 +144,8 @@ async def resolve_code_identity(
             'email': payload.get('email'),
         }
     if provider == 'facebook':
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             'https://graph.facebook.com/v22.0/oauth/access_token',
             params={
                 'client_id': FACEBOOK_OAUTH_PUBLIC,
@@ -156,7 +157,8 @@ async def resolve_code_identity(
         r.raise_for_status()
         access_token = _require_oauth_value('Facebook', r, 'access_token')
 
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             'https://graph.facebook.com/v22.0/me',
             params={
                 'access_token': access_token.get_secret_value(),
@@ -171,7 +173,8 @@ async def resolve_code_identity(
             'email': userinfo.get('email'),
         }
     if provider == 'github':
-        r = await HTTP.post(
+        r = await HTTP.request(
+            'POST',
             'https://github.com/login/oauth/access_token',
             headers={'Accept': 'application/json'},
             data={
@@ -183,7 +186,8 @@ async def resolve_code_identity(
         r.raise_for_status()
         access_token = _require_oauth_value('GitHub', r, 'access_token')
 
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             'https://api.github.com/user',
             headers={
                 'Authorization': f'Bearer {access_token.get_secret_value()}',
@@ -199,7 +203,8 @@ async def resolve_code_identity(
             'email': user.get('email'),
         }
     if provider == 'wikimedia':
-        r = await HTTP.post(
+        r = await HTTP.request(
+            'POST',
             'https://meta.wikimedia.org/w/rest.php/oauth2/access_token',
             data={
                 'client_id': WIKIMEDIA_OAUTH_PUBLIC,
@@ -211,7 +216,8 @@ async def resolve_code_identity(
         r.raise_for_status()
         access_token = _require_oauth_value('Wikimedia', r, 'access_token')
 
-        r = await HTTP.get(
+        r = await HTTP.request(
+            'GET',
             'https://meta.wikimedia.org/w/api.php',
             headers={'Authorization': f'Bearer {access_token.get_secret_value()}'},
             params={

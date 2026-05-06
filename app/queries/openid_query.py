@@ -5,8 +5,8 @@ import orjson
 
 from app.config import OPENID_DISCOVERY_HTTP_TIMEOUT
 from app.lib.crypto import hash_storage_key
+from app.lib.http_client import HTTP
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP
 
 _CTX = CacheContext('OpenID')
 
@@ -38,9 +38,11 @@ class OpenIDQuery:
 
         async def factory():
             logging.debug('OpenID discovery cache miss for %r', base_url)
-            r = await HTTP.get(
+            r = await HTTP.request(
+                'GET',
                 f'{base_url}/.well-known/openid-configuration',
                 timeout=OPENID_DISCOVERY_HTTP_TIMEOUT.total_seconds(),
+                follow_redirects=True,
             )
             r.raise_for_status()
             return r.content

@@ -174,6 +174,7 @@ BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
 BACKGROUND_MAX_RATIO = 2 * 5.5  # 2 * ratio on website
 IMAGE_MAX_FRAMES = 100
 IMAGE_PROXY_BLURHASH_MAX_COMPONENTS = 6
+IMAGE_PROXY_FETCH_MAX_BYTES = _ByteSize('10 MiB')
 IMAGE_PROXY_IMAGE_MAX_SIDE = 2048
 IMAGE_PROXY_RECOMPRESS_QUALITY = 80
 USER_ACTIVITY_CHART_WEEKS = 26
@@ -630,6 +631,7 @@ dictConfig({
             # reduce logging verbosity of some modules
             module: {'handlers': [], 'level': 'INFO'}
             for module in (
+                'aiohttp',
                 'botocore',
                 'celtypes',
                 'filelock',

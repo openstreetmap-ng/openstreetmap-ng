@@ -8,7 +8,7 @@ import orjson
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
 
-from app.utils import HTTP
+from app.lib.http_client import HTTP, http_context
 
 
 @contextmanager
@@ -51,8 +51,10 @@ def get_timezone_country_dict():
 
 async def get_country_bbox_dict():
     print('Downloading country data')
-    r = await HTTP.get(
-        'https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst'
+    r = await HTTP.request(
+        'GET',
+        'https://osm-countries-geojson.monicz.dev/osm-countries-0-1.geojson.zst',
+        follow_redirects=True,
     )
     r.raise_for_status()
 
@@ -106,6 +108,7 @@ def generate_typescript_file(data: dict[str, tuple[float, float, float, float]])
     )
 
 
+@http_context
 async def main():
     country_bbox = await get_country_bbox_dict()
     timezone_country = get_timezone_country_dict()

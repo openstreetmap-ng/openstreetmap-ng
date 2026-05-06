@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Any
 
 import cython
-from httpx import HTTPError
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
@@ -11,6 +10,7 @@ from shapely import Point, get_coordinates
 from app.db import db
 from app.lib.auth_context import auth_scopes, auth_user
 from app.lib.exceptions_context import raise_for
+from app.lib.http_client import HTTPError
 from app.lib.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note, NoteInit

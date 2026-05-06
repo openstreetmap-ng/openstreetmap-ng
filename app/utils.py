@@ -2,26 +2,9 @@ import builtins
 from os import process_cpu_count
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import cython
 from fastapi import Response
-from httpx import AsyncClient
-from httpx_secure import httpx_ssrf_protection
 
-from app.config import HTTP_TIMEOUT, USER_AGENT
 from app.models.proto.shared_pb2 import IdResponse
-
-
-@cython.cfunc
-def _get_http_client():
-    return AsyncClient(
-        headers={'User-Agent': USER_AGENT},
-        timeout=HTTP_TIMEOUT.total_seconds(),
-        follow_redirects=True,
-    )
-
-
-HTTP = httpx_ssrf_protection(_get_http_client())
-HTTP_INTERNAL = _get_http_client()
 
 # TODO: reporting of deleted accounts (prometheus)
 # NOTE: breaking change

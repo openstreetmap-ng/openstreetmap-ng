@@ -964,31 +964,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
 ]
 
-[package.optional-dependencies]
-brotli = [
-    { name = "brotli", marker = "platform_python_implementation == 'CPython'" },
-    { name = "brotlicffi", marker = "platform_python_implementation != 'CPython'" },
-]
-socks = [
-    { name = "socksio" },
-]
-zstd = [
-    { name = "zstandard" },
-]
-
-[[package]]
-name = "httpx-secure"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "httpx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/09/c1/a06452c56e05f2b5cb4771e7424099ba4c855466fecacaae894324c8f4b1/httpx_secure-1.2.0.tar.gz", hash = "sha256:6e4ec4fede8d19094e29312312d82e3468092c3cd8d53647d58c0f865cf8ec81", size = 18839, upload-time = "2025-08-16T11:10:38.544Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/c8/38966b87dbb7e1f2dffcbb9fc6168580eb970c336c810ff8bf3554a33699/httpx_secure-1.2.0-py3-none-any.whl", hash = "sha256:d97c806e4ba115c7b6e3f91c8e7f37d83823fae5d80f5e8f2fd86bf09f2888a7", size = 5631, upload-time = "2025-08-16T11:10:37.175Z" },
-]
-
 [[package]]
 name = "huggingface-hub"
 version = "0.36.0"
@@ -1368,8 +1343,7 @@ dependencies = [
     { name = "google-re2" },
     { name = "h2corn" },
     { name = "h3" },
-    { name = "httpx", extra = ["brotli", "socks", "zstd"] },
-    { name = "httpx-secure" },
+    { name = "httpx" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
     { name = "lxml" },
@@ -1403,7 +1377,7 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pyyaml" },
     { name = "rfc3986" },
-    { name = "sentry-sdk", extra = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
+    { name = "sentry-sdk", extra = ["aiohttp", "fastapi", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
     { name = "speedup" },
@@ -1448,8 +1422,7 @@ requires-dist = [
     { name = "google-re2" },
     { name = "h2corn" },
     { name = "h3" },
-    { name = "httpx", extras = ["socks", "brotli", "zstd"] },
-    { name = "httpx-secure" },
+    { name = "httpx" },
     { name = "jinja2" },
     { name = "jinja2-htmlmin" },
     { name = "lxml" },
@@ -1483,7 +1456,7 @@ requires-dist = [
     { name = "python-multipart" },
     { name = "pyyaml" },
     { name = "rfc3986" },
-    { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "httpx", "pure-eval"] },
+    { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
     { name = "speedup", editable = "speedup" },
@@ -2218,9 +2191,6 @@ aiohttp = [
 fastapi = [
     { name = "fastapi" },
 ]
-httpx = [
-    { name = "httpx" },
-]
 pure-eval = [
     { name = "asttokens" },
     { name = "executing" },
@@ -2279,15 +2249,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1b/e6/9c793c0e63eb723d1c0f768e3651bb6441bda45943d06778466d59685742/sizestr-1.2.1.tar.gz", hash = "sha256:c14c153bd7978a3cc926ea90e45301aef4bd1cb7c0a2ec873397dc1c2da71217", size = 12056, upload-time = "2025-04-11T15:04:59.599Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a5/f3/0472f88c0d29a42fe1fd1c3a07b8ed9317f3206a0aa658ef2e06c62a3931/sizestr-1.2.1-py3-none-any.whl", hash = "sha256:c880bedabb569ac5e7c770faee6344c7cbba23c533d84d29c111f17d239112ba", size = 2706, upload-time = "2025-04-11T15:04:58.499Z" },
-]
-
-[[package]]
-name = "socksio"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f8/5c/48a7d9495be3d1c651198fd99dbb6ce190e2274d0f28b9051307bdec6b85/socksio-1.0.0.tar.gz", hash = "sha256:f88beb3da5b5c38b9890469de67d0cb0f9d494b78b106ca1845f96c10b91c4ac", size = 19055, upload-time = "2020-04-17T15:50:34.664Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/c3/6eeb6034408dac0fa653d126c9204ade96b819c936e136c5e8a6897eee9c/socksio-1.0.0-py3-none-any.whl", hash = "sha256:95dc1f15f9b34e8d7b16f06d74b8ccf48f609af32ab33c608d08761c5dcbb1f3", size = 12763, upload-time = "2020-04-17T15:50:31.878Z" },
 ]
 
 [[package]]
@@ -2407,8 +2368,8 @@ dependencies = [
     { name = "typing-extensions", marker = "sys_platform == 'darwin'" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.8.0-cp313-cp313t-macosx_14_0_arm64.whl", hash = "sha256:fbe2e149c5174ef90d29a5f84a554dfaf28e003cb4f61fa2c8c024c17ec7ca58" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.8.0-cp313-none-macosx_11_0_arm64.whl", hash = "sha256:057efd30a6778d2ee5e2374cd63a63f63311aa6f33321e627c655df60abdd390" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0-cp313-cp313t-macosx_14_0_arm64.whl", hash = "sha256:fbe2e149c5174ef90d29a5f84a554dfaf28e003cb4f61fa2c8c024c17ec7ca58", upload-time = "2025-10-01T23:35:52Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0-cp313-none-macosx_11_0_arm64.whl", hash = "sha256:057efd30a6778d2ee5e2374cd63a63f63311aa6f33321e627c655df60abdd390", upload-time = "2025-10-01T23:35:55Z" },
 ]
 
 [[package]]

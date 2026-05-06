@@ -2,14 +2,13 @@ import logging
 
 import cython
 import orjson
-from httpx import Timeout
 from shapely import Point, get_coordinates
 
 from app.config import OVERPASS_CACHE_EXPIRE, OVERPASS_INTERPRETER_URL
 from app.lib.crypto import hash_storage_key
+from app.lib.http_client import HTTP
 from app.models.overpass import OverpassElement
 from app.services.cache_service import CacheContext, CacheService
-from app.utils import HTTP
 
 _CTX = CacheContext('Overpass')
 
@@ -36,10 +35,11 @@ class OverpassQuery:
                 point,
                 radius_meters,
             )
-            r = await HTTP.post(
+            r = await HTTP.request(
+                'POST',
                 OVERPASS_INTERPRETER_URL,
                 data={'data': query},
-                timeout=Timeout(timeout * 2),
+                timeout=timeout * 2,
             )
             r.raise_for_status()
             return r.content
@@ -72,10 +72,11 @@ class OverpassQuery:
 
         async def factory():
             logging.debug('Querying Overpass for enclosing elements at %r', point)
-            r = await HTTP.post(
+            r = await HTTP.request(
+                'POST',
                 OVERPASS_INTERPRETER_URL,
                 data={'data': query},
-                timeout=Timeout(timeout * 2),
+                timeout=timeout * 2,
             )
             r.raise_for_status()
             return r.content
