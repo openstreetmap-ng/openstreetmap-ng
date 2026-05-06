@@ -31,6 +31,9 @@ def _create_mentissa_mask():
 
 
 _MASK: np.uint64 = _create_mentissa_mask()
+_MASK_INT = int(_MASK)
+_FLOAT_STRUCT = struct.Struct('<d')
+_UINT64_STRUCT = struct.Struct('<Q')
 
 
 @overload
@@ -52,27 +55,47 @@ def compressible_geometry(
     return geometry
 
 
-_POINT_STRUCT = struct.Struct('<dd')
-_BBOX_STRUCT = struct.Struct('<dddddddddd')
+@cython.cfunc
+def _compressible_float(value: float):
+    return _UINT64_STRUCT.unpack(_FLOAT_STRUCT.pack(value))[0] & _MASK_INT
+
+
+_POINT_STRUCT = struct.Struct('<BIQQ')
+_BBOX_STRUCT = struct.Struct('<BIII10Q')
 
 
 def point_to_compressible_wkb(lon: float, lat: float):
     """Convert a coordinate pair to a compressible WKB hex format."""
-    lon, lat = compressible_geometry(np.array([lon, lat], dtype=np.float64)).tolist()
+    lon = _compressible_float(lon)
+    lat = _compressible_float(lat)
 
     # (byte order 1 = little endian + geometry type 1 = Point)
-    return b'\x01\x01\x00\x00\x00' + _POINT_STRUCT.pack(lon, lat)
+    return _POINT_STRUCT.pack(1, 1, lon, lat)
 
 
 def bbox_to_compressible_wkb(
     minlon: float, minlat: float, maxlon: float, maxlat: float
 ):
     """Convert a bounding box to a compressible WKB hex format."""
-    minlon, minlat, maxlon, maxlat = compressible_geometry(
-        np.array([minlon, minlat, maxlon, maxlat], dtype=np.float64)
-    ).tolist()
+    minlon = _compressible_float(minlon)
+    minlat = _compressible_float(minlat)
+    maxlon = _compressible_float(maxlon)
+    maxlat = _compressible_float(maxlat)
 
-    # (byte order 1 = little endian + geometry type 1 = Point + 1 ring + 5 points)
-    return b'\x01\x03\x00\x00\x00\x01\x00\x00\x00\x05\x00\x00\x00' + _BBOX_STRUCT.pack(
-        maxlon, minlat, maxlon, maxlat, minlon, maxlat, minlon, minlat, maxlon, minlat
+    # (byte order 1 = little endian + geometry type 3 = Polygon + 1 ring + 5 points)
+    return _BBOX_STRUCT.pack(
+        1,
+        3,
+        1,
+        5,
+        maxlon,
+        minlat,
+        maxlon,
+        maxlat,
+        minlon,
+        maxlat,
+        minlon,
+        minlat,
+        maxlon,
+        minlat,
     )
