@@ -55,7 +55,7 @@ class _Service(Service):
 
         traces, state = await sp_paginate_table(
             Trace,
-            request.state.SerializeToString(),
+            request.state,
             table='trace',
             where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
             params=tuple(params),

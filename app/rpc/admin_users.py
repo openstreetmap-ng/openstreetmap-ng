@@ -105,7 +105,7 @@ class _Service(Service):
 
         users, state = await sp_paginate_table(
             User,
-            request.state.SerializeToString(),
+            request.state,
             table='user',
             where=where_clause,
             params=params,

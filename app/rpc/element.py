@@ -119,7 +119,7 @@ class _Service(Service):
 
         elements, state = await sp_paginate_query(
             Element,
-            request.state.SerializeToString(),
+            request.state,
             select=SQL('*'),
             from_=Identifier('element'),
             where=SQL('typed_id = %s'),

@@ -1,4 +1,4 @@
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from connectrpc.request import RequestContext
 from pydantic import SecretStr
@@ -19,7 +19,6 @@ from app.models.proto.settings_security_pb2 import (
     DisableTotpResponse,
     GenerateRecoveryCodesRequest,
     GenerateRecoveryCodesResponse,
-    Passkey,
     RecoveryStatus,
     RegisterPasskeyRequest,
     RegisterPasskeyResponse,
@@ -42,6 +41,11 @@ from app.services.user_passkey_service import UserPasskeyService
 from app.services.user_password_service import UserPasswordService
 from app.services.user_recovery_code_service import UserRecoveryCodeService
 from app.services.user_totp_service import UserTOTPService
+
+if TYPE_CHECKING:
+    from app.models.proto.settings_security_pb2 import (
+        _settings_security_Passkey_RepeatedComposite,
+    )
 
 
 class _Service(Service):
@@ -96,7 +100,7 @@ class _Service(Service):
         require_web_user()
         await UserPasskeyService.register_passkey(request.registration)
         response = RegisterPasskeyResponse()
-        response.passkeys.extend(await _get_passkeys())
+        await _add_passkeys(response.passkeys)
         return response
 
     @override
@@ -116,7 +120,7 @@ class _Service(Service):
             request.credential_id, password=request.password
         )
         response = RemovePasskeyResponse()
-        response.passkeys.extend(await _get_passkeys())
+        await _add_passkeys(response.passkeys)
         return response
 
     @override
@@ -127,10 +131,10 @@ class _Service(Service):
         codes = await UserRecoveryCodeService.generate_recovery_codes(
             password=request.password
         )
-        return GenerateRecoveryCodesResponse(
-            codes=codes,
-            status=await _get_recovery_codes_status(),
-        )
+        response = GenerateRecoveryCodesResponse()
+        response.codes.extend(codes)
+        response.status.CopyFrom(await _get_recovery_codes_status())
+        return response
 
     @override
     async def revoke_token(self, request: RevokeTokenRequest, ctx: RequestContext):
@@ -139,25 +143,21 @@ class _Service(Service):
         return RevokeTokenResponse()
 
 
-async def _get_passkeys():
+async def _add_passkeys(
+    passkeys_out: '_settings_security_Passkey_RepeatedComposite',
+):
     user_id = auth_user(required=True)['id']
     passkeys = await UserPasskeyQuery.find_all_by_user_id(user_id)
 
-    result: list[Passkey] = []
     for passkey in passkeys:
         name = passkey['name']
         assert name is not None
 
-        result.append(
-            Passkey(
-                credential_id=passkey['credential_id'],
-                name=name,
-                icons=passkey.get('icons', ()),
-                created_at=int(passkey['created_at'].timestamp()),
-            )
-        )
-
-    return result
+        result = passkeys_out.add()
+        result.credential_id = passkey['credential_id']
+        result.name = name
+        result.icons.extend(passkey.get('icons', ()))
+        result.created_at = int(passkey['created_at'].timestamp())
 
 
 async def _get_recovery_codes_status():

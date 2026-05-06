@@ -13,8 +13,7 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import user_proto
 from app.models.proto.shared_pb2 import WebConfig
 
-_CONFIG_BASE = WebConfig()
-_CONFIG_DEFAULT = urlsafe_b64encode(_CONFIG_BASE.SerializeToString()).decode()
+_CONFIG_DEFAULT = urlsafe_b64encode(WebConfig().SerializeToString()).decode()
 
 
 async def render_response(
@@ -32,11 +31,11 @@ async def render_response(
 
     user = auth_user()
     if user is not None:
-        user_config = WebConfig.UserConfig(
-            user=user_proto(user),
-            activity_tracking=user['activity_tracking'],
-            crash_reporting=user['crash_reporting'],
-        )
+        web_config = WebConfig()
+        user_config = web_config.user_config
+        user_config.user.CopyFrom(user_proto(user))
+        user_config.activity_tracking = user['activity_tracking']
+        user_config.crash_reporting = user['crash_reporting']
 
         # user_home_point = user['home_point']
         # if user_home_point is not None:
@@ -52,8 +51,6 @@ async def render_response(
             if reports_count.administrator is not None:
                 user_config.reports_count_administrator = reports_count.administrator
 
-        web_config = WebConfig(user_config=user_config)
-        web_config.MergeFrom(_CONFIG_BASE)
         data['WEB_CONFIG'] = urlsafe_b64encode(web_config.SerializeToString()).decode()
 
     if template_data is not None:

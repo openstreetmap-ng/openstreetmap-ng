@@ -62,7 +62,7 @@ class _Service(Service):
 
         diaries, state = await sp_paginate_table(
             Diary,
-            request.state.SerializeToString(),
+            request.state,
             table='diary',
             where=where,
             params=params,
@@ -94,7 +94,7 @@ class _Service(Service):
 
         comments, state = await sp_paginate_table(
             DiaryComment,
-            request.state.SerializeToString(),
+            request.state,
             table='diary_comment',
             where=SQL('diary_id = %s'),
             params=(diary_id,),
@@ -123,7 +123,7 @@ class _Service(Service):
 
         comments, state = await sp_paginate_table(
             DiaryComment,
-            request.state.SerializeToString(),
+            request.state,
             table='diary_comment',
             where=SQL('user_id = %s'),
             params=(user_id,),

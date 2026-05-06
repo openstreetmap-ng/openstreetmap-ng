@@ -63,7 +63,7 @@ class _Service(Service):
 
         events, state = await sp_paginate_table(
             DBAuditEvent,
-            request.state.SerializeToString(),
+            request.state,
             table='audit',
             where=where_clause,
             params=params,

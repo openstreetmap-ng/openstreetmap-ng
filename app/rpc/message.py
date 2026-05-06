@@ -39,11 +39,10 @@ class _Service(MessageServiceConnect):
         user_id = require_web_user()['id']
 
         inbox = request.inbox
-        sp_state = request.state.SerializeToString()
         if inbox:
             messages, state = await sp_paginate_table(
                 Message,
-                sp_state,
+                request.state,
                 table='message',
                 where=SQL("""
                     EXISTS (
@@ -71,7 +70,7 @@ class _Service(MessageServiceConnect):
         else:
             messages, state = await sp_paginate_table(
                 Message,
-                sp_state,
+                request.state,
                 table='message',
                 where=SQL('from_user_id = %s AND NOT from_user_hidden'),
                 params=(user_id,),

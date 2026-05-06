@@ -51,7 +51,8 @@ class _Service(RoutingServiceConnect):
 
         route_fn, profile = _ENGINE_TABLE[request.engine]
         result = await route_fn(start_point, end_point, profile=profile)
-        result.MergeFrom(RoutingResult(start=start_endpoint, end=end_endpoint))
+        result.start.CopyFrom(start_endpoint)
+        result.end.CopyFrom(end_endpoint)
         return GetResponse(route=result)
 
 

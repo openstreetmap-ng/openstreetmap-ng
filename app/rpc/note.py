@@ -19,7 +19,10 @@ from app.lib.auth_context import require_web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import parse_bbox
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.standard_pagination import (
+    StandardPaginationRequestLike,
+    sp_paginate_table,
+)
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import user_proto
@@ -83,7 +86,7 @@ class _Service(NoteServiceConnect):
         if not await NoteQuery.find(note_ids=[id], limit=1):
             raise_for.note_not_found(id)
 
-        return await _build_comments(id, request.state.SerializeToString())
+        return await _build_comments(id, request.state)
 
     @override
     async def get_user_page(self, request: GetUserPageRequest, ctx: RequestContext):
@@ -109,7 +112,7 @@ class _Service(NoteServiceConnect):
 
         notes, state = await sp_paginate_table(
             Note,
-            request.state.SerializeToString(),
+            request.state,
             table='note',
             where=where_clause,
             params=params,
@@ -226,7 +229,9 @@ async def _build_data(note_id: NoteId):
     )
 
 
-async def _build_comments(note_id: NoteId, sp_state: bytes = b''):
+async def _build_comments(
+    note_id: NoteId, sp_state: StandardPaginationRequestLike = b''
+):
     comments, state = await sp_paginate_table(
         NoteComment,
         sp_state,

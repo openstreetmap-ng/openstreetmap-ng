@@ -36,7 +36,7 @@ from app.models.proto.shared_pb2 import (
 
 class _SpCursorCodec(NamedTuple):
     encode: Callable[[Any], int | str]
-    decode: Callable[[int | str], Any]
+    decode: Callable[[Any], Any]
     empty: int | str
     storage: Literal['u64', 'text']
 
@@ -49,6 +49,7 @@ class _StandardPaginationQueryPlan(NamedTuple):
     anchor_op: Literal['<', '>'] | None = None
 
 
+type StandardPaginationRequestLike = bytes | StandardPaginationRequest
 type StandardPaginationRequestBody = Annotated[
     bytes, Body(media_type='application/x-protobuf')
 ]
@@ -103,6 +104,18 @@ def _us_to_dt(value: int):
     return _EPOCH + timedelta(microseconds=value)
 
 
+def _standard_pagination_request(sp_state: StandardPaginationRequestLike):
+    if isinstance(sp_state, bytes):
+        if not sp_state:
+            return None
+        req = StandardPaginationRequest.FromString(sp_state)
+        violations = collect_violations(req)
+        assert not violations, violations[0].proto.message
+        return req
+
+    return sp_state
+
+
 def sp_num_pages(*, num_items: cython.size_t, page_size: cython.size_t):
     """
     Compute total pages from num_items/page_size.
@@ -113,7 +126,7 @@ def sp_num_pages(*, num_items: cython.size_t, page_size: cython.size_t):
 
 async def sp_paginate_table(
     row_type: type[T],
-    sp_state: bytes,
+    sp_state: StandardPaginationRequestLike,
     /,
     *,
     table: LiteralString,
@@ -153,7 +166,7 @@ async def sp_paginate_table(
 
 async def sp_paginate_query(
     _row_type: type[T],
-    sp_state: bytes,
+    sp_state: StandardPaginationRequestLike,
     /,
     *,
     select: Composable,
@@ -176,11 +189,7 @@ async def sp_paginate_query(
     if id_sql is None:
         id_sql = Identifier(id_key)
 
-    if sp_state:
-        req = StandardPaginationRequest.FromString(sp_state)
-        violations = collect_violations(req)
-        assert not violations, violations[0].proto.message
-
+    if req := _standard_pagination_request(sp_state):
         state = req.state if req.HasField('state') else None
         requested_page = req.requested_page if req.HasField('requested_page') else None
     else:

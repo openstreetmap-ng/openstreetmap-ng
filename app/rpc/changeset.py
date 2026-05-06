@@ -18,7 +18,10 @@ from app.lib.exceptions_context import raise_for
 from app.lib.geo_utils import meters_to_degrees, parse_bbox
 from app.lib.rich_text import process_rich_text_plain
 from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.standard_pagination import (
+    StandardPaginationRequestLike,
+    sp_paginate_table,
+)
 from app.lib.translation import t
 from app.models.db.changeset_comment import (
     ChangesetComment,
@@ -148,7 +151,7 @@ class _Service(Service):
         if await ChangesetQuery.find_by_id(id) is None:
             raise_for.changeset_not_found(id)
 
-        return await _build_comments(id, request.state.SerializeToString())
+        return await _build_comments(id, request.state)
 
     @override
     async def add_comment(self, request: AddCommentRequest, ctx: RequestContext):
@@ -256,7 +259,9 @@ async def _build_data(changeset_id: ChangesetId):
     return result
 
 
-async def _build_comments(changeset_id: ChangesetId, sp_state: bytes = b''):
+async def _build_comments(
+    changeset_id: ChangesetId, sp_state: StandardPaginationRequestLike = b''
+):
     comments, state = await sp_paginate_table(
         ChangesetComment,
         sp_state,

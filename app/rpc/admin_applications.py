@@ -64,7 +64,7 @@ class _Service(Service):
 
         apps, state = await sp_paginate_table(
             OAuth2Application,
-            request.state.SerializeToString(),
+            request.state,
             table='oauth2_application',
             where=where_clause,
             params=params,
