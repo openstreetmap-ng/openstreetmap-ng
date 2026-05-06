@@ -1,11 +1,11 @@
-import asyncio
 import socket
+from asyncio import AbstractEventLoop, IncompleteReadError, gather, get_running_loop
 from collections.abc import Callable, Coroutine, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import wraps
-from ipaddress import ip_address
+from ipaddress import IPv4Address, IPv6Address, IPv6Network, ip_address
 from typing import Any, Literal, ParamSpec, TypeVar, override
 from weakref import WeakKeyDictionary
 
@@ -20,14 +20,17 @@ from aiohttp import (
     TCPConnector,
 )
 from aiohttp.abc import AbstractResolver, ResolveResult
+from aiohttp.client import _RequestOptions
 from aiohttp.resolver import DefaultResolver
 from multidict import CIMultiDictProxy
 from yarl import URL
 
-from app.config import HTTP_TIMEOUT, USER_AGENT
+from app.config import DNS_CACHE_EXPIRE, HTTP_TIMEOUT, USER_AGENT
 
 _P = ParamSpec('_P')
 _R = TypeVar('_R')
+_IPAddress = IPv4Address | IPv6Address
+_NAT64_WELL_KNOWN_PREFIX = IPv6Network('64:ff9b::/96')
 
 
 class HTTPError(Exception):
@@ -81,6 +84,14 @@ class HTTPResponse:
         )
 
 
+def _is_global_ip(ip: _IPAddress):
+    if not ip.is_global:
+        return False
+    if isinstance(ip, IPv6Address) and ip in _NAT64_WELL_KNOWN_PREFIX:
+        return IPv4Address(ip.packed[-4:]).is_global
+    return True
+
+
 class _GlobalResolver(AbstractResolver):
     def __init__(self, resolver: AbstractResolver | None = None):
         self._resolver = resolver or DefaultResolver()
@@ -103,7 +114,7 @@ class _GlobalResolver(AbstractResolver):
             except ValueError as e:
                 raise SSRFProtectionError(host, resolved) from e
 
-            if ip.is_global:
+            if _is_global_ip(ip):
                 allowed.append(result)
             else:
                 last_blocked = resolved
@@ -140,17 +151,16 @@ class HTTPClient:
     ):
         self._ssrf_protection = ssrf_protection
         self._timeout = ClientTimeout(total=timeout.total_seconds())
-        self._sessions: WeakKeyDictionary[asyncio.AbstractEventLoop, ClientSession]
+        self._sessions: WeakKeyDictionary[AbstractEventLoop, ClientSession]
         self._sessions = WeakKeyDictionary()
 
     def _session(self):
-        loop = asyncio.get_running_loop()
+        loop = get_running_loop()
         session = self._sessions.get(loop)
         if session is None or session.closed:
-            connector = (
-                TCPConnector(resolver=_GlobalResolver(), ttl_dns_cache=600)
-                if self._ssrf_protection
-                else TCPConnector()
+            connector = TCPConnector(
+                resolver=_GlobalResolver() if self._ssrf_protection else None,
+                ttl_dns_cache=int(DNS_CACHE_EXPIRE.total_seconds()),
             )
             session = ClientSession(
                 connector=connector,
@@ -174,7 +184,7 @@ class HTTPClient:
             ip = ip_address(host)
         except ValueError:
             return await handler(request)
-        if not ip.is_global:
+        if not _is_global_ip(ip):
             raise SSRFProtectionError(host, str(ip))
         return await handler(request)
 
@@ -191,7 +201,7 @@ class HTTPClient:
         follow_redirects: bool = False,
         max_bytes: int | None = None,
     ) -> HTTPResponse:
-        kwargs: dict[str, Any] = {
+        kwargs: _RequestOptions = {
             'params': params,
             'data': data,
             'json': json,
@@ -214,7 +224,7 @@ class HTTPClient:
     async def aclose(self):
         sessions = list(self._sessions.values())
         self._sessions.clear()
-        await asyncio.gather(*(session.close() for session in sessions))
+        await gather(*(session.close() for session in sessions))
 
     @asynccontextmanager
     async def context(self):
@@ -234,7 +244,7 @@ async def _read_response(
     else:
         try:
             content = await response.content.readexactly(max_bytes + 1)
-        except asyncio.IncompleteReadError as e:
+        except IncompleteReadError as e:
             content = e.partial
         else:
             raise HTTPError(f'Response body exceeded {max_bytes} bytes')

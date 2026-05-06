@@ -76,12 +76,12 @@ def test_http_response_raise_for_status():
 
 def test_global_resolver_filters_non_global_answers():
     async def run():
-        fake = _FakeResolver('10.0.0.1', '8.8.8.8')
+        fake = _FakeResolver('10.0.0.1', '8.8.8.8', '64:ff9b::808:808')
         resolver = _GlobalResolver(fake)
 
         results = await resolver.resolve('example.com', 443)
 
-        assert [r['host'] for r in results] == ['8.8.8.8']
+        assert [r['host'] for r in results] == ['8.8.8.8', '64:ff9b::808:808']
         await resolver.close()
         assert fake.closed
 
@@ -90,7 +90,9 @@ def test_global_resolver_filters_non_global_answers():
 
 def test_global_resolver_rejects_all_non_global_answers():
     async def run():
-        resolver = _GlobalResolver(_FakeResolver('127.0.0.1', '10.0.0.1'))
+        resolver = _GlobalResolver(
+            _FakeResolver('127.0.0.1', '10.0.0.1', '64:ff9b::c0a8:101')
+        )
 
         with pytest.raises(SSRFProtectionError):
             await resolver.resolve('example.com', 443)
@@ -105,6 +107,8 @@ def test_http_client_rejects_non_global_ip_literals_before_connect():
         async with client.context():
             with pytest.raises(SSRFProtectionError):
                 await client.request('GET', 'http://127.0.0.1/')
+            with pytest.raises(SSRFProtectionError):
+                await client.request('GET', 'http://[64:ff9b::7f00:1]/')
 
     asyncio.run(run())
 
