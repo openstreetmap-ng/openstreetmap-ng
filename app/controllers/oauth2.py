@@ -1,4 +1,5 @@
 from base64 import b64decode
+from binascii import Error as BinasciiError
 from typing import Annotated, get_args
 
 from fastapi import APIRouter, Form, Header, Query, Request, Response
@@ -151,7 +152,11 @@ async def post_token(
     if client_id is None and client_secret is None and authorization is not None:
         scheme, _, param = authorization.partition(' ')
         if scheme.casefold() == 'basic':
-            client_id, _, client_secret_ = b64decode(param).decode().partition(':')  # type: ignore
+            try:
+                decoded = b64decode(param, validate=True).decode()
+            except (BinasciiError, UnicodeDecodeError):
+                raise_for.oauth_bad_client_id()
+            client_id, _, client_secret_ = decoded.partition(':')  # type: ignore
             client_secret = SecretStr(client_secret_) if client_secret_ else None
             del client_secret_
         del param
