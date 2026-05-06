@@ -47,7 +47,7 @@ class UserPasskeyService:
         if auth_data is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Missing credential data')
 
-        transports = list(set(registration.transports))
+        transports = list(dict.fromkeys(registration.transports))
         assert len(transports) <= 10
         assert all(len(tp) <= 20 for tp in transports)
 
