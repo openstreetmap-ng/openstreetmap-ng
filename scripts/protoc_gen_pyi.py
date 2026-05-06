@@ -40,6 +40,7 @@ _SCALAR_TYPE: dict[int, str] = {
     descriptor_pb2.FieldDescriptorProto.TYPE_SINT64: 'int',
 }
 
+
 def _scalar_rule_branch(field_type: int):
     if field_type not in _SCALAR_TYPE:
         return None
@@ -74,6 +75,7 @@ def _proto_to_module(proto_path: str, *, suffix: str):
     if not proto_path.endswith('.proto'):
         return proto_path.replace('/', '.')
     return proto_path[:-6].replace('/', '.') + suffix
+
 
 def _proto_to_output_path(proto_path: str, *, paths: str, suffix: str):
     # We only support source-relative output paths.
@@ -121,6 +123,12 @@ class _EnumDef:
     proto_name: str  # fully-qualified, leading dot
     symbol: _Symbol
     enum: descriptor_pb2.EnumDescriptorProto
+
+
+@dataclass(frozen=True)
+class _InitField:
+    name: str
+    annotation: str
 
 
 def _enum_alias_prefix(enum_sym: _Symbol):
@@ -239,6 +247,33 @@ def _build_enum_meta_table(
     return out
 
 
+def _build_message_table(
+    protos: Iterable[descriptor_pb2.FileDescriptorProto],
+):
+    out: dict[
+        str,
+        tuple[descriptor_pb2.FileDescriptorProto, descriptor_pb2.DescriptorProto],
+    ] = {}
+
+    def walk_message(
+        *,
+        file_proto: descriptor_pb2.FileDescriptorProto,
+        parent_proto: str,
+        msg: descriptor_pb2.DescriptorProto,
+    ):
+        msg_proto = f'{parent_proto}.{msg.name}'
+        out[msg_proto] = (file_proto, msg)
+        for nested in msg.nested_type:
+            walk_message(file_proto=file_proto, parent_proto=msg_proto, msg=nested)
+
+    for f in protos:
+        package = f'.{f.package}' if f.package else ''
+        for msg in f.message_type:
+            walk_message(file_proto=f, parent_proto=package, msg=msg)
+
+    return out
+
+
 def _iter_file_enums(
     *,
     file_proto: descriptor_pb2.FileDescriptorProto,
@@ -280,7 +315,6 @@ def _file_has_enums(file_proto: descriptor_pb2.FileDescriptorProto):
 
 _REPEATED_COMPOSITE_PROTO_SUPPORT = (
     'class _RepeatedComposite(Protocol[_TMessage]):',
-    '    def add(self, **kwargs: Any) -> _TMessage: ...',
     '    def append(self, value: _TMessage) -> None: ...',
     '    def extend(self, values: Iterable[_TMessage]) -> None: ...',
     '    def insert(self, index: int, value: _TMessage) -> None: ...',
@@ -460,9 +494,7 @@ class _Protovalidate:
 
         return bool(rules.required)
 
-    def field_repeated_min_items(
-        self, field: descriptor_pb2.FieldDescriptorProto
-    ):
+    def field_repeated_min_items(self, field: descriptor_pb2.FieldDescriptorProto):
         rules = self._field_rules(field)
         if rules is None:
             return None
@@ -470,9 +502,7 @@ class _Protovalidate:
             return int(rules.repeated.min_items)
         return None
 
-    def field_map_min_pairs(
-        self, field: descriptor_pb2.FieldDescriptorProto
-    ):
+    def field_map_min_pairs(self, field: descriptor_pb2.FieldDescriptorProto):
         rules = self._field_rules(field)
         if rules is None:
             return None
@@ -512,6 +542,7 @@ class _PyiWriter:
         self._imports: dict[str, str] = {}
         self._map_entry_cache: dict[str, descriptor_pb2.DescriptorProto | None] = {}
         self._enum_meta = _build_enum_meta_table(request.proto_file)
+        self._message_by_proto_name = _build_message_table(request.proto_file)
         self._module_by_file = {
             f.name: _proto_to_module(f.name, suffix='_pb2') for f in request.proto_file
         }
@@ -526,6 +557,7 @@ class _PyiWriter:
         self._needs_repeated_scalar: bool = False
         self._needs_repeated_enum: bool = False
         self._needs_message_map: bool = False
+        self._repeated_composite_protocols: dict[str, str] = {}
 
     def build(self):
         self._collect_imports()
@@ -535,6 +567,7 @@ class _PyiWriter:
         self._emit_wkt_file_augments()
         self._emit_enums_and_aliases()
         self._emit_messages()
+        self._emit_repeated_composite_protocols()
         return self._buf.getvalue()
 
     def _w(self, text: str = ''):
@@ -753,6 +786,18 @@ class _PyiWriter:
 
         return 'Any'
 
+    def _repeated_composite_type(self, proto_name: str):
+        self._needs_repeated_composite = True
+        if proto_name not in self._message_by_proto_name:
+            return f'_RepeatedComposite[{self._qual(proto_name)}]'
+
+        protocol_name = self._repeated_composite_protocols.get(proto_name)
+        if protocol_name is None:
+            proto_stem = proto_name.lstrip('.').replace('.', '_')
+            protocol_name = f'_{proto_stem}_RepeatedComposite'
+            self._repeated_composite_protocols[proto_name] = protocol_name
+        return protocol_name
+
     def _emit_wkt_message_augments(self, *, msg_proto: str, indent: str):
         msg_aug = _wkt_augments.message_augment(msg_proto)
         if msg_aug is None:
@@ -941,7 +986,8 @@ class _PyiWriter:
                     and field.type == descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE
                     and not is_map
                 ):
-                    self._needs_repeated_composite = True
+                    self._repeated_composite_type(field.type_name)
+                    self._collect_repeated_composite_protocol_imports(field.type_name)
 
                 if is_repeated and is_map and len(map_entry.field) >= 2:
                     val_f = map_entry.field[1]
@@ -970,6 +1016,16 @@ class _PyiWriter:
 
         for msg in self._file.message_type:
             walk_message(msg)
+
+    def _collect_repeated_composite_protocol_imports(self, proto_name: str):
+        target = self._message_by_proto_name.get(proto_name)
+        if target is None:
+            self._qual(proto_name)
+            return
+
+        file_proto, msg = target
+        self._qual(proto_name)
+        self._message_init_fields(msg=msg, syntax=file_proto.syntax)
 
     def _import_enum_types_module(self, proto_name: str):
         enum_sym = self._symbols.get(proto_name)
@@ -1140,7 +1196,9 @@ class _PyiWriter:
                 names.append(name)
         if not names:
             return None
-        return self._literal_type(names, field_type=descriptor_pb2.FieldDescriptorProto.TYPE_STRING)
+        return self._literal_type(
+            names, field_type=descriptor_pb2.FieldDescriptorProto.TYPE_STRING
+        )
 
     def _rules_for_field(
         self,
@@ -1176,7 +1234,7 @@ class _PyiWriter:
                 in_values = self._dedupe_values(int(v) for v in in_values_raw)
             not_in_values = self._dedupe_values(int(v) for v in not_in_values_raw)
             return _ValueSubset(
-                in_values=in_values if in_values else None,
+                in_values=in_values or None,
                 not_in_values=not_in_values,
                 defined_only=bool(enum_rules.defined_only),
             )
@@ -1195,7 +1253,7 @@ class _PyiWriter:
             in_values = self._dedupe_values(tuple(getattr(branch_rules, 'in')))
         not_in_values = self._dedupe_values(tuple(branch_rules.not_in))
         return _ValueSubset(
-            in_values=in_values if in_values else None,
+            in_values=in_values or None,
             not_in_values=not_in_values,
         )
 
@@ -1244,7 +1302,11 @@ class _PyiWriter:
         known_literal = self._literal_type(declared_numbers, field_type=field.type)
 
         if allowed_number_literal is not None:
-            getter = allowed_number_literal if typing_closed else f'{allowed_number_literal} | int'
+            getter = (
+                allowed_number_literal
+                if typing_closed
+                else f'{allowed_number_literal} | int'
+            )
         elif typing_closed:
             getter = known_literal or 'int'
         else:
@@ -1303,8 +1365,12 @@ class _PyiWriter:
         rules_override: object | None,
     ):
         if field.type == descriptor_pb2.FieldDescriptorProto.TYPE_ENUM:
-            return self._enum_getter_init_types(field=field, rules_override=rules_override)
-        return self._scalar_getter_init_types(field=field, rules_override=rules_override)
+            return self._enum_getter_init_types(
+                field=field, rules_override=rules_override
+            )
+        return self._scalar_getter_init_types(
+            field=field, rules_override=rules_override
+        )
 
     def _field_value_type(
         self,
@@ -1327,7 +1393,7 @@ class _PyiWriter:
                     return f'_MessageMap[{k}, {v}]'
                 return f'MutableMapping[{k}, {v}]'
             if field.type == descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE:
-                return f'_RepeatedComposite[{self._qual(field.type_name)}]'
+                return self._repeated_composite_type(field.type_name)
             item_rules = self._protovalidate.field_repeated_item_rules(field)
             value_type, init_type = self._singular_field_types(
                 field=field,
@@ -1374,10 +1440,77 @@ class _PyiWriter:
         )
         return init_type
 
+    def _field_init_param_type(
+        self,
+        *,
+        msg: descriptor_pb2.DescriptorProto,
+        field: descriptor_pb2.FieldDescriptorProto,
+        syntax: str | None = None,
+    ):
+        base = self._field_init_type(msg=msg, field=field)
+        if self._field_accepts_none(field=field, syntax=syntax):
+            return f'{base} | None'
+        return base
+
+    def _message_init_fields(
+        self,
+        *,
+        msg: descriptor_pb2.DescriptorProto,
+        syntax: str | None = None,
+    ):
+        regular: list[_InitField] = []
+        keyword_only: list[_InitField] = []
+
+        for field in msg.field:
+            field_type = self._field_init_param_type(
+                msg=msg,
+                field=field,
+                syntax=syntax,
+            )
+            py_name = _escape_field_ident(field.name)
+            if py_name is None:
+                keyword_only.append(_InitField(field.name, field_type))
+            else:
+                regular.append(_InitField(py_name, field_type))
+
+        return tuple(regular), tuple(keyword_only)
+
+    def _emit_typed_dict(
+        self,
+        *,
+        indent: str,
+        name: str,
+        fields: tuple[_InitField, ...],
+    ):
+        items = ', '.join(f'{field.name!r}: {field.annotation}' for field in fields)
+        self._w(f"{indent}{name} = TypedDict('{name}', {{{items}}}, total=False)")
+        self._w()
+
+    def _emit_keyword_signature(
+        self,
+        *,
+        indent: str,
+        name: str,
+        regular: tuple[_InitField, ...],
+        kwargs_type: str | None,
+        return_type: str,
+        force_star: bool = False,
+    ):
+        self._w(f'{indent}def {name}(')
+        self._w(f'{indent}    self,')
+        if force_star or regular:
+            self._w(f'{indent}    *,')
+        for field in regular:
+            self._w(f'{indent}    {field.name}: {field.annotation} = ...,')
+        if kwargs_type is not None:
+            self._w(f'{indent}    **kwargs: Unpack[{kwargs_type}],')
+        self._w(f'{indent}) -> {return_type}: ...')
+
     def _field_accepts_none(
         self,
         *,
         field: descriptor_pb2.FieldDescriptorProto,
+        syntax: str | None = None,
     ):
         # Constructor typing policy (DX-oriented):
         # - Repeated/map fields accept `None` at runtime and treat it like empty;
@@ -1395,7 +1528,7 @@ class _PyiWriter:
         if field.type == descriptor_pb2.FieldDescriptorProto.TYPE_MESSAGE:
             return True
         # In proto2, all singular scalar fields have presence.
-        if self._file.syntax != 'proto3':
+        if (syntax if syntax is not None else self._file.syntax) != 'proto3':
             return True
         return field.HasField('oneof_index')
 
@@ -1403,6 +1536,35 @@ class _PyiWriter:
         package = f'.{self._file.package}' if self._file.package else ''
         for msg in self._file.message_type:
             self._emit_message(msg=msg, parent_proto=package, indent='')
+            self._w()
+
+    def _emit_repeated_composite_protocols(self):
+        for proto_name, protocol_name in self._repeated_composite_protocols.items():
+            target = self._message_by_proto_name.get(proto_name)
+            if target is None:
+                continue
+
+            file_proto, msg = target
+            ret = self._qual(proto_name)
+            self._w(f'class {protocol_name}(_RepeatedComposite[{ret}], Protocol):')
+
+            regular_init, keyword_init = self._message_init_fields(
+                msg=msg,
+                syntax=file_proto.syntax,
+            )
+
+            if not regular_init and not keyword_init:
+                self._w(f'    def add(self) -> {ret}: ...')
+                self._w()
+                continue
+
+            self._emit_keyword_signature(
+                indent='    ',
+                name='add',
+                regular=regular_init,
+                kwargs_type=f'{ret}._InitKwargs' if keyword_init else None,
+                return_type=ret,
+            )
             self._w()
 
     def _emit_message(
@@ -1472,37 +1634,24 @@ class _PyiWriter:
 
         self._w()
 
-        keyword_init: dict[str, str] = {}
-        for field in msg.field:
-            if not keyword.iskeyword(field.name):
-                continue
-            base = self._field_init_type(msg=msg, field=field)
-            if self._field_accepts_none(field=field):
-                base = f'{base} | None'
-            keyword_init[field.name] = base
+        regular_init, keyword_init = self._message_init_fields(msg=msg)
 
         if keyword_init:
-            items = ', '.join(f'{k!r}: {v}' for k, v in keyword_init.items())
-            self._w(
-                f"{indent}    _InitKwargs = TypedDict('_InitKwargs', {{{items}}}, total=False)"
+            self._emit_typed_dict(
+                indent=f'{indent}    ',
+                name='_InitKwargs',
+                fields=keyword_init,
             )
-            self._w()
 
         # __init__
-        self._w(f'{indent}    def __init__(')
-        self._w(f'{indent}        self,')
-        self._w(f'{indent}        *,')
-        for field in msg.field:
-            py_name = _escape_field_ident(field.name)
-            if py_name is None:
-                continue
-            base = self._field_init_type(msg=msg, field=field)
-            if self._field_accepts_none(field=field):
-                base = f'{base} | None'
-            self._w(f'{indent}        {py_name}: {base} = ...,')
-        if keyword_init:
-            self._w(f'{indent}        **kwargs: Unpack[_InitKwargs],')
-        self._w(f'{indent}    ) -> None: ...')
+        self._emit_keyword_signature(
+            indent=f'{indent}    ',
+            name='__init__',
+            regular=regular_init,
+            kwargs_type='_InitKwargs' if keyword_init else None,
+            return_type='None',
+            force_star=True,
+        )
         self._w()
 
         # HasField/ClearField/WhichOneof
