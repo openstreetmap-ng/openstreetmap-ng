@@ -14,7 +14,8 @@ from app.config import (
     CHANGESET_OPEN_TIMEOUT,
 )
 from app.db import db, db_lock
-from app.lib.auth_context import auth_user
+from app.lib.auth_context import auth_context, auth_user
+from app.lib.changeset_note_closures import changeset_note_closures
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
 from app.lib.sentry import (
@@ -23,8 +24,12 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.db.user import User
+from app.models.types import ChangesetId, NoteId, UserId
+from app.queries.note_query import NoteQuery
+from app.queries.user_query import UserQuery
 from app.services.audit_service import audit
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -104,11 +109,12 @@ class ChangesetService:
     async def close(changeset_id: ChangesetId):
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
+        note_closures: list[tuple[int, str]]
 
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,12 +127,14 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                changeset_tags: dict[str, str]
+                changeset_user_id, closed_at, changeset_tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
                 if closed_at is not None:
                     raise_for.changeset_already_closed(changeset_id, closed_at)
+                note_closures = changeset_note_closures(changeset_tags)
 
             await conn.execute(
                 """
@@ -137,6 +145,13 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_changeset_notes(note_closures)
+
+    @staticmethod
+    async def close_tagged_notes(tags: dict[str, str]):
+        """Close open notes referenced by changeset close tags."""
+        await _close_changeset_notes(changeset_note_closures(tags))
 
     @staticmethod
     @asynccontextmanager
@@ -197,8 +212,10 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
+    closed_changesets: list[tuple[UserId | None, dict[str, str]]] = []
+
     async with db(True) as conn:
-        result = await conn.execute(
+        async with await conn.execute(
             """
             UPDATE changeset
             SET closed_at = statement_timestamp(), updated_at = DEFAULT
@@ -207,12 +224,44 @@ async def _close_inactive():
                 (updated_at >= statement_timestamp() - %s AND
                 created_at < statement_timestamp() - %s)
             )
+            RETURNING user_id, tags
             """,
             (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
-        )
+        ) as r:
+            closed_changesets = await r.fetchall()  # type: ignore
 
-        if result.rowcount:
-            logging.debug('Closed %d inactive changesets', result.rowcount)
+        if closed_changesets:
+            logging.debug('Closed %d inactive changesets', len(closed_changesets))
+
+    for user_id, tags in closed_changesets:
+        note_closures = changeset_note_closures(tags)
+        if not note_closures or user_id is None:
+            continue
+
+        user = await UserQuery.find_by_id(user_id)
+        if user is None:
+            continue
+
+        await _close_changeset_notes_as_user(user, note_closures)
+
+
+async def _close_changeset_notes(note_closures: list[tuple[int, str]]):
+    """Close open notes referenced by a changeset's close tags."""
+    for note_id_int, comment in note_closures:
+        note_id = NoteId(note_id_int)
+        notes = await NoteQuery.find(note_ids=[note_id], max_closed_days=None, limit=1)
+        if not notes or notes[0]['closed_at'] is not None:
+            continue
+
+        await NoteService.comment(note_id, comment, 'closed')
+
+
+async def _close_changeset_notes_as_user(
+    user: User, note_closures: list[tuple[int, str]]
+):
+    """Close tagged notes under a changeset owner's auth context."""
+    with auth_context(user):
+        await _close_changeset_notes(note_closures)
 
 
 async def _delete_empty():
