@@ -21,6 +21,7 @@ from app.models.db.user import User, user_proto
 from app.models.proto.diary_pb2 import (
     ComposePage,
     DetailsPage,
+    Entry,
     IndexPage,
     UserCommentsPage,
 )
@@ -69,8 +70,11 @@ async def details(
 
     profile = diary['user']  # type: ignore
 
+    entry = Entry()
+    _build_entry(entry, diary)
+
     return await render_proto_page(
-        DetailsPage(entry=_build_entry(diary)),
+        DetailsPage(entry=entry),
         title_prefix=(
             f'{t("diary_entries.index.user_title", user=profile["display_name"])}'
             f' | {diary["title"]}'
