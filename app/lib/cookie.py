@@ -1,6 +1,6 @@
 from datetime import timedelta
 from http.cookies import SimpleCookie
-from typing import Literal
+from typing import Literal, TypeAlias
 
 import cython
 from connectrpc.request import RequestContext
@@ -9,8 +9,8 @@ from starlette.responses import Response
 
 from app.config import ENV
 
-type CookieTarget = Response | RequestContext
-type CookieSameSite = Literal['lax', 'strict', 'none']
+CookieTarget: TypeAlias = Response | RequestContext  # noqa: UP040
+CookieSameSite: TypeAlias = Literal['lax', 'strict', 'none']  # noqa: UP040
 
 
 @cython.cfunc

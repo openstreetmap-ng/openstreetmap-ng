@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, TypeAlias
 
 from annotated_types import MaxLen, MinLen
 
@@ -9,12 +9,12 @@ from app.validators.url import UrlSafeValidator
 from app.validators.whitespace import BoundaryWhitespaceValidator
 from app.validators.xml import XMLSafeValidator
 
-type DisplayNameNormalizing = Annotated[
+DisplayNameNormalizing: TypeAlias = Annotated[  # noqa: UP040
     DisplayName,
     UnicodeValidator,
 ]
 
-type DisplayNameValidating = Annotated[
+DisplayNameValidating: TypeAlias = Annotated[  # noqa: UP040
     DisplayNameNormalizing,
     MinLen(3),
     MaxLen(DISPLAY_NAME_MAX_LENGTH),
