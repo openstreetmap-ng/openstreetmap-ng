@@ -16,4 +16,51 @@
     background: rgba($success, 0.3);
     border: 1px solid rgba($success, 0.5);
   }
+
+  .changeset-diff-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    .form-text {
+      flex-basis: 100%;
+      margin-top: 0;
+    }
+  }
+
+  .changeset-diff-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color);
+
+    span {
+      display: inline-flex;
+      gap: 0.25rem;
+      align-items: center;
+
+      &::before {
+        display: inline-block;
+        width: 0.65rem;
+        height: 0.65rem;
+        content: "";
+        border-radius: 50%;
+      }
+    }
+
+    .diff-create::before {
+      background: #22c55e;
+    }
+
+    .diff-modify::before {
+      background: #f59e0b;
+    }
+
+    .diff-delete::before {
+      background: #ef4444;
+    }
+  }
 }

@@ -27,7 +27,9 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
+from app.models.db.element import Element
 from app.models.db.user import user_proto
+from app.models.element import TypedElementId
 from app.models.proto.changeset_connect import (
     Service,
     ServiceASGIApplication,
@@ -36,8 +38,11 @@ from app.models.proto.changeset_pb2 import (
     AddCommentRequest,
     AddCommentResponse,
     Data,
+    DiffAction,
     GetCommentsRequest,
     GetCommentsResponse,
+    GetDiffRequest,
+    GetDiffResponse,
     GetMapRequest,
     GetMapResponse,
     GetRequest,
@@ -56,6 +61,7 @@ from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_comment_service import ChangesetCommentService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.unicode import normalize_display_name
+from speedup import element_type
 
 
 class _Service(Service):
@@ -144,6 +150,11 @@ class _Service(Service):
     async def get(self, request: GetRequest, ctx: RequestContext):
         id = ChangesetId(request.id)
         return GetResponse(changeset=await _build_data(id))
+
+    @override
+    async def get_diff(self, request: GetDiffRequest, ctx: RequestContext):
+        id = ChangesetId(request.id)
+        return await _build_diff(id)
 
     @override
     async def get_comments(self, request: GetCommentsRequest, ctx: RequestContext):
@@ -257,6 +268,78 @@ async def _build_data(changeset_id: ChangesetId):
     if next_changeset_id is not None:
         result.next_changeset_id = next_changeset_id
     return result
+
+
+async def _build_diff(changeset_id: ChangesetId):
+    if await ChangesetQuery.find_by_id(changeset_id) is None:
+        raise_for.changeset_not_found(changeset_id)
+
+    elements = await ElementQuery.find_by_changeset(changeset_id, sort_by='sequence_id')
+    if not elements:
+        return GetDiffResponse()
+
+    prev_refs: list[tuple[TypedElementId, int]] = [
+        (element['typed_id'], element['version'] - 1)
+        for element in elements
+        if not element['visible'] and element['version'] > 1
+    ]
+    prev_elements = await ElementQuery.find_by_versioned_refs(
+        prev_refs, limit=len(prev_refs)
+    )
+    prev_type_id_map = {element['typed_id']: element for element in prev_elements}
+
+    async with TaskGroup() as tg:
+        tasks = [
+            (
+                element,
+                tg.create_task(
+                    _render_diff_element(
+                        prev_type_id_map[element['typed_id']]
+                        if not element['visible']
+                        and element['typed_id'] in prev_type_id_map
+                        else element
+                    )
+                ),
+            )
+            for element in elements
+        ]
+
+    response = GetDiffResponse()
+    for element, task in tasks:
+        item = response.elements.add()
+        item.action = _changeset_element_action(element)
+        item.render.CopyFrom(task.result())
+    return response
+
+
+async def _render_diff_element(element: Element):
+    if not element['visible']:
+        return FormatRender.encode_elements([], detailed=True)
+
+    type = element_type(element['typed_id'])
+    if type == 'node':
+        return FormatRender.encode_elements([element], detailed=True)
+
+    if type == 'way':
+        members = element['members']
+        if not members:
+            return FormatRender.encode_elements([], detailed=True)
+        nodes = await ElementQuery.find_by_refs(
+            members,
+            at_sequence_id=element['sequence_id'],
+            limit=len(members),
+        )
+        return FormatRender.encode_elements([element, *nodes], detailed=True)
+
+    return FormatRender.encode_elements([], detailed=True)
+
+
+def _changeset_element_action(element: Element):
+    if not element['visible']:
+        return DiffAction.delete
+    if element['version'] == 1:
+        return DiffAction.create
+    return DiffAction.modify
 
 
 async def _build_comments(

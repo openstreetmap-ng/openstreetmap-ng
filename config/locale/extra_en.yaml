@@ -43,6 +43,11 @@ changeset:
   count_one: "changeset"
   count_other: "changesets"
   viewing_edits_from_date: Viewing edits from {{date}}
+  diff_mode: Diff mode
+  diff_legend: Changeset diff legend
+  created: Created
+  modified: Modified
+  deleted: Deleted
 changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below

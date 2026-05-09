@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package changeset;
 
+import "app/models/proto/element.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
@@ -11,6 +12,10 @@ service Service {
   }
 
   rpc Get(GetRequest) returns (GetResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  rpc GetDiff(GetDiffRequest) returns (GetDiffResponse) {
     option idempotency_level = NO_SIDE_EFFECTS;
   }
 
@@ -64,8 +69,27 @@ message GetRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
+message GetDiffRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
 message GetResponse {
   Data changeset = 1 [(buf.validate.field).required = true];
+}
+
+enum DiffAction {
+  create = 0;
+  modify = 1;
+  delete = 2;
+}
+
+message GetDiffResponse {
+  message Element {
+    DiffAction action = 1;
+    element.RenderData render = 2 [(buf.validate.field).required = true];
+  }
+
+  repeated Element elements = 1;
 }
 
 message GetCommentsRequest {

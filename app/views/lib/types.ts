@@ -1,10 +1,13 @@
 import type { Status } from "@lib/proto/note_pb"
 
+export type OSMDiffAction = "create" | "modify" | "delete"
+
 export interface OSMNode {
   type: "node"
   id: bigint
   geom: [number, number]
   version?: bigint
+  diffAction?: OSMDiffAction
 }
 
 export interface OSMWay {
@@ -13,6 +16,7 @@ export interface OSMWay {
   geom: [number, number][]
   version?: bigint
   area?: boolean
+  diffAction?: OSMDiffAction
 }
 
 interface OSMRelation {
