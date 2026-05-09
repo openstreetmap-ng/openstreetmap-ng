@@ -2,7 +2,7 @@ import logging
 from asyncio import TaskGroup
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Final, Literal, assert_never
+from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
@@ -28,7 +28,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from speedup import element_id, element_type, split_typed_element_id
 
-type OSMChangeAction = Literal['create', 'modify', 'delete']
+OSMChangeAction: TypeAlias = Literal['create', 'modify', 'delete']  # noqa: UP040
 
 
 @dataclass(kw_only=True, slots=True)

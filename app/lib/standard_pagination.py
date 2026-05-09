@@ -9,6 +9,7 @@ from typing import (
     Literal,
     LiteralString,
     NamedTuple,
+    TypeAlias,
     TypeVar,
     assert_never,
 )
@@ -49,13 +50,13 @@ class _StandardPaginationQueryPlan(NamedTuple):
     anchor_op: Literal['<', '>'] | None = None
 
 
-type StandardPaginationRequestLike = bytes | StandardPaginationRequest
-type StandardPaginationRequestBody = Annotated[
+StandardPaginationRequestLike: TypeAlias = bytes | StandardPaginationRequest  # noqa: UP040
+StandardPaginationRequestBody: TypeAlias = Annotated[  # noqa: UP040
     bytes, Body(media_type='application/x-protobuf')
 ]
 
-type _OrderDir = Literal['asc', 'desc']
-type _CursorKind = Literal['id', 'datetime', 'text']
+_OrderDir: TypeAlias = Literal['asc', 'desc']  # noqa: UP040
+_CursorKind: TypeAlias = Literal['id', 'datetime', 'text']  # noqa: UP040
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
