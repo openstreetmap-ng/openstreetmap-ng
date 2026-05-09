@@ -2,7 +2,9 @@ import { useDisposeEffect } from "@lib/dispose-scope"
 import { useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { union } from "@std/collections/union"
+import { t } from "i18next"
 import { primaryLanguage } from "./config"
+import { formatTagsForTextEdit } from "./tags-edit"
 import { getWikiData } from "./tags.macro" with { type: "macro" }
 
 const { localeSets, wikiPages: WIKI_PAGES } = getWikiData()
@@ -358,29 +360,106 @@ export const Tags = ({
   tags,
   tagsOld,
   diff = false,
+  editable = false,
 }: {
   tags: Record<string, string>
   tagsOld?: Record<string, string>
   diff?: boolean
+  editable?: boolean
 }) => {
   const rows = computeDiffRows(tags, tagsOld, diff)
-  if (!rows.length) return null
+  const isEditing = useSignal(false)
+  const editText = useSignal("")
+  if (!rows.length && !editable) return null
+
+  const showEditor = (target: HTMLElement) => {
+    const root = target.closest<HTMLElement>(".tags-editor")!
+    editText.value = formatTagsForTextEdit(
+      JSON.parse(root.dataset.tags!) as Record<string, string>,
+    )
+    isEditing.value = true
+  }
+
+  const textareaRows = Math.min(Math.max(Object.keys(tags).length + 1, 4), 12)
 
   return (
-    <div class="tags">
-      <table class="table table-sm">
-        <tbody dir="auto">
-          {rows.map((row) => (
-            <TagRow
-              key={row.key}
-              tagKey={row.key}
-              value={row.value}
-              oldValue={row.oldValue}
-              status={row.status}
+    <div
+      class="tags-editor"
+      data-tags={JSON.stringify(tags)}
+    >
+      {editable && (
+        <div class="tags-editor-title">
+          <h4>{t("browse.tag_details.tags")}</h4>
+          {!isEditing.value && (
+            <button
+              class="btn btn-link"
+              type="button"
+              onClick={(e) => showEditor(e.currentTarget)}
+            >
+              {t("element.edit_text")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {!isEditing.value && rows.length > 0 && (
+        <div class="tags">
+          <table class="table table-sm">
+            <tbody dir="auto">
+              {rows.map((row) => (
+                <TagRow
+                  key={row.key}
+                  tagKey={row.key}
+                  value={row.value}
+                  oldValue={row.oldValue}
+                  status={row.status}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {editable && isEditing.value && (
+        <form
+          class="tags-edit-form"
+          method="post"
+        >
+          <textarea
+            class="form-control font-monospace"
+            name="tags"
+            rows={textareaRows}
+            value={editText.value}
+            onInput={(e) => (editText.value = e.currentTarget.value)}
+          />
+
+          <label class="form-label d-block">
+            <span class="required">{t("changesets.changesets.comment")}</span>
+            <input
+              class="form-control mt-2"
+              name="comment"
+              type="text"
+              required
             />
-          ))}
-        </tbody>
-      </table>
+          </label>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button
+              class="btn btn-secondary"
+              type="button"
+              onClick={() => (isEditing.value = false)}
+            >
+              {t("element.discard_tag_changes")}
+            </button>
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              {t("action.submit")}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }

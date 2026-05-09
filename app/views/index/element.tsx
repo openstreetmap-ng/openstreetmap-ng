@@ -1,7 +1,7 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { pathParam } from "@lib/codecs"
-import { API_URL } from "@lib/config"
+import { API_URL, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -359,7 +359,10 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <Tags
+                tags={d.tags}
+                editable={isLoggedIn && d.visible && !d.nextVersion}
+              />
 
               {hasRelations && (
                 <div class="elements mt-3">
