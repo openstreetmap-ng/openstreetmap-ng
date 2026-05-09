@@ -62,6 +62,7 @@ export const renderObjects = (
       properties: {
         type: "node",
         id: node.id.toString(),
+        diffAction: node.diffAction,
       },
       geometry: {
         type: "Point",
@@ -74,6 +75,7 @@ export const renderObjects = (
     const properties = {
       type: "way",
       id: way.id.toString(),
+      diffAction: way.diffAction,
     }
     features.push({
       type: "Feature",

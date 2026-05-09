@@ -13,13 +13,24 @@ import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import {
+  addMapLayer,
+  emptyFeatureCollection,
+  hasMapLayer,
+  layersConfig,
+  type LayerId,
+} from "@lib/map/layers/layers"
+import { convertRenderElementsData, renderObjects } from "@lib/map/render-objects"
+import {
   type AddCommentResponseValid,
   type DataValid,
+  DiffAction,
+  type GetDiffResponse_ElementValid,
   Service,
   type Data_Element as Element,
   type GetCommentsResponse_CommentValid,
   type GetCommentsResponseValid,
 } from "@lib/proto/changeset_pb"
+import { connectErrorToMessage, rpcClient } from "@lib/rpc"
 import { ElementType } from "@lib/proto/shared_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
@@ -27,7 +38,7 @@ import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import { showLoginModal } from "../user/login"
-import type { OSMChangeset } from "@lib/types"
+import type { OSMDiffAction, OSMChangeset, OSMObject } from "@lib/types"
 import {
   type ReadonlySignal,
   type Signal,
@@ -36,7 +47,11 @@ import {
   useSignalEffect,
 } from "@preact/signals"
 import { t } from "i18next"
-import type { Map as MaplibreMap } from "maplibre-gl"
+import type {
+  ExpressionSpecification,
+  GeoJSONSource,
+  Map as MaplibreMap,
+} from "maplibre-gl"
 
 const focusPaint: FocusLayerPaint = {
   "fill-opacity": 0,
@@ -44,6 +59,46 @@ const focusPaint: FocusLayerPaint = {
   "line-opacity": 1,
   "line-width": 3,
 }
+
+const DIFF_LAYER_ID = "changeset-diff" as LayerId
+const diffActionColor: ExpressionSpecification = [
+  "match",
+  ["get", "diffAction"],
+  "create",
+  "#22c55e",
+  "modify",
+  "#f59e0b",
+  "delete",
+  "#ef4444",
+  "#f90",
+]
+
+layersConfig.set(DIFF_LAYER_ID, {
+  specification: {
+    type: "geojson",
+    data: emptyFeatureCollection,
+  },
+  layerTypes: ["fill", "line", "circle"],
+  layerOptions: {
+    layout: {
+      "line-cap": "round",
+      "line-join": "round",
+    },
+    paint: {
+      "circle-color": diffActionColor,
+      "circle-opacity": 0.9,
+      "circle-radius": 7,
+      "circle-stroke-color": "#fff",
+      "circle-stroke-width": 2,
+      "fill-color": diffActionColor,
+      "fill-opacity": 0.18,
+      "line-color": diffActionColor,
+      "line-opacity": 0.95,
+      "line-width": 4,
+    },
+  },
+  priority: 139,
+})
 
 export const ChangesetStats = ({
   numCreate,
@@ -68,6 +123,71 @@ const getChangesetElementsTitle = (type: ElementType) => {
     return (count: string) => t("browse.changeset.way", { count })
   return (count: string) => t("browse.changeset.relation", { count })
 }
+
+const getDiffAction = (action: DiffAction): OSMDiffAction => {
+  switch (action) {
+    case DiffAction.create:
+      return "create"
+    case DiffAction.modify:
+      return "modify"
+    case DiffAction.delete:
+      return "delete"
+  }
+  return "modify"
+}
+
+const getChangesetDiffObjects = (
+  elements: GetDiffResponse_ElementValid[],
+): OSMObject[] => {
+  const objects: OSMObject[] = []
+  for (const element of elements) {
+    const diffAction = getDiffAction(element.action)
+    for (const object of convertRenderElementsData(element.render)) {
+      objects.push({ ...object, diffAction })
+    }
+  }
+  return objects
+}
+
+const ChangesetDiffControls = ({
+  enabled,
+  error,
+  pending,
+}: {
+  enabled: Signal<boolean>
+  error: ReadonlySignal<string | null>
+  pending: ReadonlySignal<boolean>
+}) => (
+  <div class="changeset-diff-controls">
+    <button
+      class={`btn btn-sm ${enabled.value ? "btn-primary" : "btn-soft"}`}
+      type="button"
+      aria-pressed={enabled.value}
+      onClick={() => (enabled.value = !enabled.value)}
+    >
+      {pending.value ? (
+        <span
+          class="spinner-border spinner-border-sm me-1"
+          aria-hidden="true"
+        />
+      ) : (
+        <i class="bi bi-intersect me-1" />
+      )}
+      {t("changeset.diff_mode")}
+    </button>
+    {enabled.value && (
+      <div
+        class="changeset-diff-legend"
+        aria-label={t("changeset.diff_legend")}
+      >
+        <span class="diff-create">{t("changeset.created")}</span>
+        <span class="diff-modify">{t("changeset.modified")}</span>
+        <span class="diff-delete">{t("changeset.deleted")}</span>
+      </div>
+    )}
+    {error.value && <div class="form-text text-danger">{error.value}</div>}
+  </div>
+)
 
 const ChangesetHeader = ({ data }: { data: DataValid }) => {
   const isOpen = !data.closedAt
@@ -324,6 +444,11 @@ const ChangesetSidebar = ({
   map: MaplibreMap
   id: ReadonlySignal<bigint>
 }) => {
+  const diffMode = useSignal(false)
+  const diffObjects = useSignal<OSMObject[] | null>(null)
+  const diffPending = useSignal(false)
+  const diffError = useSignal<string | null>(null)
+  const diffChangesetId = useSignal<bigint | null>(null)
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
@@ -341,6 +466,12 @@ const ChangesetSidebar = ({
     } else if (r.tag === "ready") {
       const d = r.data
       isSubscribed.value = d.isSubscribed
+      if (diffChangesetId.peek() !== d.id) {
+        diffChangesetId.value = d.id
+        diffObjects.value = null
+        diffPending.value = false
+        diffError.value = null
+      }
       setPageTitle(`${t("browse.in_changeset")}: ${d.id}`)
     }
   })
@@ -360,11 +491,55 @@ const ChangesetSidebar = ({
 
   // Effect: Map focus
   useDisposeSignalEffect((scope) => {
-    if (!data.value?.bounds.length) return
+    if (!data.value?.bounds.length || diffMode.value) {
+      focusObjects(map)
+      return
+    }
 
     scope.defer(() => focusObjects(map))
     scope.map(map, "zoomend", () => refocus())
     refocus(true)
+  })
+
+  // Effect: Changeset diff mode
+  useDisposeSignalEffect((scope) => {
+    const clearDiff = () =>
+      map.getSource<GeoJSONSource>(DIFF_LAYER_ID)?.setData(emptyFeatureCollection)
+    scope.defer(clearDiff)
+
+    const d = data.value
+    if (!diffMode.value || !d) {
+      clearDiff()
+      diffPending.value = false
+      return
+    }
+
+    if (!hasMapLayer(map, DIFF_LAYER_ID)) addMapLayer(map, DIFF_LAYER_ID)
+    const cachedObjects = diffObjects.value
+    if (cachedObjects) {
+      map.getSource<GeoJSONSource>(DIFF_LAYER_ID)?.setData(renderObjects(cachedObjects))
+      return
+    }
+
+    diffPending.value = true
+    diffError.value = null
+    void rpcClient(Service)
+      .getDiff({ id: d.id }, { signal: scope.signal })
+      .then((response) => {
+        scope.signal.throwIfAborted()
+        const objects = getChangesetDiffObjects(response.elements)
+        diffObjects.value = objects
+        map.getSource<GeoJSONSource>(DIFF_LAYER_ID)?.setData(renderObjects(objects))
+      })
+      .catch((error: unknown) => {
+        if (scope.signal.aborted) return
+        console.error("ChangesetDiff: Failed to fetch", error)
+        diffError.value = connectErrorToMessage(error)
+        clearDiff()
+      })
+      .finally(() => {
+        if (!scope.signal.aborted) diffPending.value = false
+      })
   })
 
   return (
@@ -387,6 +562,11 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
+            <ChangesetDiffControls
+              enabled={diffMode}
+              error={diffError}
+              pending={diffPending}
+            />
             <Tags tags={d.tags} />
 
             {/* Report button */}
