@@ -1,5 +1,28 @@
 @use "sass:color";
 
+.tags-editor-title {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+
+  h4 {
+    margin-bottom: 0;
+  }
+
+  .btn-link {
+    padding: 0;
+  }
+}
+
+.tags-edit-form {
+  textarea {
+    margin-bottom: 0.75rem;
+    white-space: pre;
+  }
+}
+
 .tags {
   @extend .rounded-2;
 

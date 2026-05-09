@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, TypeAlias
 
 import cython
 from annotated_types import MaxLen, MinLen
@@ -34,7 +34,7 @@ def _validate_tags(
     return v
 
 
-type TagsValidating = Annotated[
+TagsValidating: TypeAlias = Annotated[  # noqa: UP040
     dict[
         Annotated[
             str,
