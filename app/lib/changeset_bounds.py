@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 import cython
 import numpy as np
 from numpy.typing import NDArray
@@ -16,7 +18,7 @@ from app.config import (
     CHANGESET_NEW_BBOX_MIN_RATIO,
 )
 
-type _BBox = list[float]
+_BBox: TypeAlias = list[float]  # noqa: UP040
 
 _FIXED_K_MAX_CANDIDATE_EDGES = 5_000_000
 

@@ -1,8 +1,9 @@
 import logging
 from functools import cache
-from typing import Literal, cast, get_args
+from typing import Literal, TypeAlias, cast, get_args
 
 import cython
+from app.models.proto.shared_pb2 import RoutingResult
 from fastapi import HTTPException
 from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
@@ -11,10 +12,9 @@ from app.config import OSRM_URL
 from app.lib.http_client import HTTP
 from app.lib.translation import t
 from app.models.osrm import OSRMResponse, OSRMStep
-from app.models.proto.shared_pb2 import RoutingResult
 
-type OSRMProfile = Literal['car', 'bike', 'foot']
-OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile.__value__))
+OSRMProfile: TypeAlias = Literal['car', 'bike', 'foot']  # noqa: UP040
+OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile))
 
 
 class OSRMQuery:
