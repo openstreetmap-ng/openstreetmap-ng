@@ -16,6 +16,7 @@ import type { RightSidebarKind } from "@index/sidebar/_toggle-button"
 import { LayersSidebarControl } from "@index/sidebar/layers"
 import { LegendSidebarControl } from "@index/sidebar/legend"
 import { ShareSidebarControl } from "@index/sidebar/share"
+import { isLoggedIn } from "@lib/config"
 import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
 import { wrapIdleCallbackStatic } from "@lib/utils"
 import { effect, signal } from "@preact/signals"
@@ -123,6 +124,12 @@ export const initMainMap = (
   onMapStateChange: (state: MapState) => void,
   onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
+  const searchParams = new URLSearchParams(window.location.search)
+  if (searchParams.get("edit_help") === "1" && isLoggedIn) {
+    window.location.replace("/edit#walkthrough=true")
+    return
+  }
+
   const map = createMainMap(container, onMapStateChange, onInitError)
   if (!map) return
 
