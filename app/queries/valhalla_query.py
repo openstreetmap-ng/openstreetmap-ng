@@ -1,17 +1,17 @@
-from typing import Literal, cast, get_args
+from typing import Literal, TypeAlias, cast, get_args
 
 import numpy as np
+from app.models.proto.shared_pb2 import RoutingResult
 from fastapi import HTTPException
 from shapely import Point, get_coordinates
 
 from app.config import VALHALLA_URL
 from app.lib.http_client import HTTP
 from app.lib.translation import primary_translation_locale
-from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
 
-type ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
-ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile.__value__))
+ValhallaProfile: TypeAlias = Literal['auto', 'bicycle', 'pedestrian']  # noqa: UP040
+ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile))
 
 
 class ValhallaQuery:
