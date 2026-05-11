@@ -6,6 +6,33 @@
   overflow: hidden;
   border: 1px solid $table-border-color;
 
+  .tags-header {
+    @extend .bg-body-tertiary;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.55rem;
+    border-bottom: 1px solid $table-border-color;
+
+    h4 {
+      margin: 0;
+    }
+
+    .btn {
+      padding-block: 0;
+    }
+  }
+
+  .tag-edit-form {
+    padding: 0.55rem;
+
+    textarea {
+      resize: vertical;
+      white-space: pre;
+    }
+  }
+
   table {
     margin-bottom: unset;
     vertical-align: middle;

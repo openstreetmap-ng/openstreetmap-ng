@@ -2,6 +2,7 @@ import { useDisposeEffect } from "@lib/dispose-scope"
 import { useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { union } from "@std/collections/union"
+import { t } from "i18next"
 import { primaryLanguage } from "./config"
 import { getWikiData } from "./tags.macro" with { type: "macro" }
 
@@ -354,33 +355,130 @@ const computeDiffRows = (
   return [...rows, ...deleted]
 }
 
+const serializeTags = (tags: Record<string, string>) =>
+  Object.keys(tags)
+    .sort((a, b) => a.localeCompare(b))
+    .map((key) => `${key}=${tags[key]}`)
+    .join("\n")
+
+const getSerializedTagsFromDataset = (
+  container: HTMLElement | null,
+  fallback: string,
+) => {
+  const rawTags = container?.dataset.tags
+  if (!rawTags) return fallback
+
+  try {
+    const parsed = JSON.parse(rawTags) as unknown
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") return fallback
+
+    const tags: Record<string, string> = {}
+    for (const [key, value] of Object.entries(parsed)) {
+      if (typeof value === "string") tags[key] = value
+    }
+    return serializeTags(tags)
+  } catch {
+    return fallback
+  }
+}
+
 export const Tags = ({
   tags,
   tagsOld,
   diff = false,
+  editable = false,
+  editAction,
 }: {
   tags: Record<string, string>
   tagsOld?: Record<string, string>
   diff?: boolean
+  editable?: boolean
+  editAction?: string
 }) => {
   const rows = computeDiffRows(tags, tagsOld, diff)
-  if (!rows.length) return null
+  const isEditing = useSignal(false)
+  const editText = useSignal("")
+  const serializedTags = serializeTags(tags)
+  if (!rows.length && !editable) return null
 
   return (
-    <div class="tags">
-      <table class="table table-sm">
-        <tbody dir="auto">
-          {rows.map((row) => (
-            <TagRow
-              key={row.key}
-              tagKey={row.key}
-              value={row.value}
-              oldValue={row.oldValue}
-              status={row.status}
+    <div
+      class="tags"
+      data-tags={JSON.stringify(tags)}
+    >
+      {editable && (
+        <div class="tags-header">
+          <h4>{t("browse.tag_details.tags")}</h4>
+          {!isEditing.value && (
+            <button
+              class="btn btn-link btn-sm"
+              type="button"
+              onClick={(event) => {
+                editText.value = getSerializedTagsFromDataset(
+                  event.currentTarget.closest<HTMLElement>(".tags"),
+                  serializedTags,
+                )
+                isEditing.value = true
+              }}
+            >
+              {t("element.edit_text")}
+            </button>
+          )}
+        </div>
+      )}
+      {!isEditing.value && rows.length > 0 && (
+        <table class="table table-sm">
+          <tbody dir="auto">
+            {rows.map((row) => (
+              <TagRow
+                key={row.key}
+                tagKey={row.key}
+                value={row.value}
+                oldValue={row.oldValue}
+                status={row.status}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+      {isEditing.value && (
+        <form
+          class="tag-edit-form"
+          method="post"
+          action={editAction}
+        >
+          <textarea
+            class="form-control font-monospace"
+            name="tags"
+            rows={Math.max(4, Math.min(12, rows.length + 1))}
+            defaultValue={editText.value}
+          />
+          <label class="form-label mt-2 mb-1">
+            {t("element.changeset_comment")}
+            <input
+              class="form-control"
+              name="comment"
+              type="text"
+              required
             />
-          ))}
-        </tbody>
-      </table>
+          </label>
+          <div class="d-flex gap-2 mt-2">
+            <button
+              class="btn btn-primary btn-sm"
+              type="submit"
+            >
+              {t("action.submit")}
+            </button>
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              type="button"
+              onClick={() => (isEditing.value = false)}
+            >
+              {t("action.discard")}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }

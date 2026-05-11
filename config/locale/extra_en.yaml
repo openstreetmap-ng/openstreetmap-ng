@@ -49,6 +49,8 @@ changesets_history:
 element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
+  edit_text: Edit text
+  changeset_comment: Changeset comment
 note:
   title: Note
   count_one: "note"
@@ -616,6 +618,7 @@ action:
   send: Send
   send_a_message: Send a message
   submit: Submit
+  discard: Discard
   continue: Continue
   view_all: View all
   view_more: View more
