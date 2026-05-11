@@ -2,6 +2,13 @@ from asyncio import TaskGroup
 from typing import Annotated
 
 import cython
+from app.models.proto.diary_pb2 import (
+    ComposePage,
+    DetailsPage,
+    IndexPage,
+    UserCommentsPage,
+)
+from app.models.proto.shared_pb2 import LonLat
 from fastapi import APIRouter, Path, Query, Response
 from feedgen.feed import FeedGenerator
 from pydantic import SecretStr
@@ -18,13 +25,6 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.diary import diaries_resolve_rich_text
 from app.models.db.user import User, user_proto
-from app.models.proto.diary_pb2 import (
-    ComposePage,
-    DetailsPage,
-    IndexPage,
-    UserCommentsPage,
-)
-from app.models.proto.shared_pb2 import LonLat
 from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery

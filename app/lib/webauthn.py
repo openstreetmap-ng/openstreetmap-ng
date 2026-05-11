@@ -1,12 +1,13 @@
 from hashlib import sha256
 from pathlib import Path
-from typing import Literal, NamedTuple, NotRequired, TypedDict
+from typing import Literal, NamedTuple, NotRequired, TypeAlias, TypedDict
 from urllib.parse import urlsplit
 from uuid import UUID
 
 import cbor2
 import cython
 import orjson
+from app.models.proto.auth_pb2 import PasskeyAssertion
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.ec import (
@@ -20,9 +21,8 @@ from starlette.exceptions import HTTPException
 
 from app.config import APP_URL
 from app.models.db.user_passkey import AAGUIDInfo, UserPasskey
-from app.models.proto.auth_pb2 import PasskeyAssertion
 
-type _ClientDataType = Literal['webauthn.create', 'webauthn.get']
+_ClientDataType: TypeAlias = Literal['webauthn.create', 'webauthn.get']  # noqa: UP040
 
 
 class _ClientData(TypedDict):
