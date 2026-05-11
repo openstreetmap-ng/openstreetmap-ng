@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from buf.validate import validate_pb2
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
 from google.protobuf.message import Message
@@ -36,7 +37,6 @@ from app.models.proto import (
     settings_security_pb2,
     trace_pb2,
 )
-from buf.validate import validate_pb2
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -172,6 +172,7 @@ AVATAR_MAX_RATIO = 2.0
 BACKGROUND_MAX_FILE_SIZE = _ByteSize('320 KiB')
 BACKGROUND_MAX_MEGAPIXELS = 4096 * 512  # (resolution)
 BACKGROUND_MAX_RATIO = 2 * 5.5  # 2 * ratio on website
+IMAGE_UPLOAD_MAX_FILE_SIZE = _ByteSize('10 MiB')
 IMAGE_MAX_FRAMES = 100
 IMAGE_PROXY_BLURHASH_MAX_COMPONENTS = 6
 IMAGE_PROXY_FETCH_MAX_BYTES = _ByteSize('10 MiB')

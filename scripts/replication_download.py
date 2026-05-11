@@ -9,12 +9,13 @@ from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from itertools import pairwise
 from time import monotonic
-from typing import Literal, get_args
+from typing import Literal, TypeAlias, get_args
 
 import cython
 import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
+from app.models.proto.shared_types import ElementType
 from sentry_sdk import set_context, set_tag, start_transaction
 from starlette import status
 
@@ -26,17 +27,16 @@ from app.lib.retry import retry
 from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITOR_SLUG
 from app.lib.xmltodict import XMLToDict
 from app.models.element import TypedElementId
-from app.models.proto.shared_types import ElementType
 from speedup import typed_element_id
 
-type _Dataset = Literal['replication', 'redaction-period', 'cc-by-sa']
-type _Frequency = Literal['minute', 'hour', 'day']
+_Dataset: TypeAlias = Literal['replication', 'redaction-period', 'cc-by-sa']  # noqa: UP040
+_Frequency: TypeAlias = Literal['minute', 'hour', 'day']  # noqa: UP040
 
 _APP_STATE_PATH = REPLICATION_DIR.joinpath('state.json')
 _LOCK_PATH = REPLICATION_DIR.joinpath('.lock')
 
 _NEXT_DATASET: dict[_Dataset, _Dataset] = {
-    from_: to for to, from_ in pairwise(get_args(_Dataset.__value__))
+    from_: to for to, from_ in pairwise(get_args(_Dataset))
 }
 
 _FREQUENCY_TIMEDELTA: dict[_Frequency, timedelta] = {

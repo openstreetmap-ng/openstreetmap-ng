@@ -22,6 +22,7 @@ export const {
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
+  IMAGE_UPLOAD_MAX_FILE_SIZE,
   MAP_QUERY_AREA_MAX_SIZE,
   MESSAGE_BODY_MAX_LENGTH,
   MESSAGE_RECIPIENTS_LIMIT,
@@ -58,6 +59,7 @@ export const {
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
+  IMAGE_UPLOAD_MAX_FILE_SIZE: number
   MAP_QUERY_AREA_MAX_SIZE: number
   MESSAGE_BODY_MAX_LENGTH: number
   MESSAGE_RECIPIENTS_LIMIT: number
@@ -104,6 +106,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
+        "IMAGE_UPLOAD_MAX_FILE_SIZE",
         "MAP_QUERY_AREA_MAX_SIZE",
         "MESSAGE_BODY_MAX_LENGTH",
         "MESSAGE_RECIPIENTS_LIMIT",

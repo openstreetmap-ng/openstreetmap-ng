@@ -1,5 +1,9 @@
 import { BTooltip } from "@lib/bootstrap"
-import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@lib/config"
+import {
+  config,
+  IMAGE_UPLOAD_MAX_FILE_SIZE,
+  USER_RECENT_ACTIVITY_ENTRIES,
+} from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { FollowToggleForm } from "@lib/follow-toggle-form"
 import { tRich } from "@lib/i18n"
@@ -17,6 +21,11 @@ import { useRef } from "preact/hooks"
 import { SummaryRow } from "../../traces/_summary"
 import { Activity } from "./_activity"
 import { DescriptionModal, AboutSection, SocialsModal } from "./_edit-modals"
+
+const imageUploadMaxSize = () => ({
+  maxSize: IMAGE_UPLOAD_MAX_FILE_SIZE,
+  maxSizeMessage: t("validation.image_file_too_big"),
+})
 
 type ChangesetSummary = PageValid["changesets"][number]
 type NoteSummary = PageValid["notes"][number]
@@ -167,7 +176,11 @@ const BackgroundForm = ({
       class="background-form"
       method={Service.method.updateBackground}
       buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
+        backgroundFile: await formDataBytes(
+          formData,
+          "background_file",
+          imageUploadMaxSize(),
+        ),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
@@ -247,7 +260,11 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await formDataBytes(
+          formData,
+          "avatar_file",
+          imageUploadMaxSize(),
+        )
         if (avatarFile.length) {
           return {
             avatar: {

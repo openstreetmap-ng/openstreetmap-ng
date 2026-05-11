@@ -1,4 +1,4 @@
-import { OAUTH_APP_NAME_MAX_LENGTH } from "@lib/config"
+import { IMAGE_UPLOAD_MAX_FILE_SIZE, OAUTH_APP_NAME_MAX_LENGTH } from "@lib/config"
 import { CopyButton } from "@lib/copy-group"
 import { mountProtoPage } from "@lib/proto-page"
 import { EditPageSchema, Service } from "@lib/proto/settings_applications_pb"
@@ -11,6 +11,11 @@ import { t } from "i18next"
 import { useRef } from "preact/hooks"
 import { Nav } from "../_nav"
 import { ApplicationsNav } from "./_nav"
+
+const imageUploadMaxSize = () => ({
+  maxSize: IMAGE_UPLOAD_MAX_FILE_SIZE,
+  maxSizeMessage: t("validation.image_file_too_big"),
+})
 
 mountProtoPage(
   EditPageSchema,
@@ -249,7 +254,11 @@ mountProtoPage(
                         method={Service.method.updateAvatar}
                         buildRequest={async ({ formData }) => ({
                           id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
+                          avatarFile: await formDataBytes(
+                            formData,
+                            "avatar_file",
+                            imageUploadMaxSize(),
+                          ),
                         })}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >

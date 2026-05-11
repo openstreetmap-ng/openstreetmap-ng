@@ -3,8 +3,13 @@ from pathlib import Path
 
 import pytest
 from PIL import Image as PILImage
+from PIL.Image import DecompressionBombError
+from starlette import status
 
 from app.config import IMAGE_MAX_FRAMES
+from app.exceptions import Exceptions
+from app.exceptions.api_error import APIError
+from app.lib.exceptions_context import exceptions_context
 from app.lib.image import Image
 
 
@@ -28,6 +33,29 @@ def test_get_avatar_url(image_type, image_id, expected):
 )
 def test_default_avatar_url(app, expected):
     assert Image.get_avatar_url(None, app=app) == expected
+
+
+async def test_normalize_avatar_rejects_unreadable_image():
+    with exceptions_context(Exceptions()), pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b'not-an-image')
+
+    exc = exc_info.value
+    assert exc.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert exc.detail == 'Image is not readable'
+
+
+async def test_normalize_avatar_maps_decompression_bomb_to_too_big(monkeypatch):
+    def raise_decompression_bomb(_):
+        raise DecompressionBombError('too big')
+
+    monkeypatch.setattr('app.lib.image.open_image', raise_decompression_bomb)
+
+    with exceptions_context(Exceptions()), pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b'fake-image-data')
+
+    exc = exc_info.value
+    assert exc.status_code == status.HTTP_413_CONTENT_TOO_LARGE
+    assert exc.detail == 'Image is too large'
 
 
 @pytest.fixture(scope='module')
