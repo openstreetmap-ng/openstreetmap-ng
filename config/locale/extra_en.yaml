@@ -49,6 +49,7 @@ changesets_history:
 element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
+  edit_tags_text: Edit text
 note:
   title: Note
   count_one: "note"
@@ -562,6 +563,7 @@ pagination:
 time:
   never: Never
 validation:
+  required: This field is required
   invalid_value: Invalid value
   display_name_is_taken: This display name is already taken
   new_email_is_current: The new email address is the same as the current one
@@ -638,6 +640,7 @@ state:
   any: Any
   hidden: Hidden
   latest: latest
+  saving: Saving
   preparing: Preparing
   resolved: Resolved
   unread: Unread

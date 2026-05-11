@@ -32,6 +32,38 @@
     font-size: 0.5em;
     cursor: help;
   }
+
+  .element-tags-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    justify-content: space-between;
+
+    h4 {
+      margin-bottom: 0.25rem;
+    }
+
+    .btn {
+      padding: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .tag-edit-form {
+    display: grid;
+    gap: 0.75rem;
+
+    .form-label {
+      display: grid;
+      gap: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    textarea {
+      min-height: 8rem;
+      resize: vertical;
+    }
+  }
 }
 
 .action-sidebar.element-history {

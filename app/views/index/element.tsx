@@ -1,7 +1,7 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { pathParam } from "@lib/codecs"
-import { API_URL } from "@lib/config"
+import { API_URL, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -23,7 +23,7 @@ import {
 } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { type ComponentChildren, Fragment } from "preact"
+import { type ComponentChildren, Fragment, type SubmitEventHandler } from "preact"
 
 const THEME_COLOR = "#f60"
 export const elementFocusPaint: FocusLayerPaint = {
@@ -103,6 +103,177 @@ const ElementVersionParam = pathParam.positive()
 
 const formatElementLocation = ({ lon, lat }: LonLat) =>
   `${lat.toFixed(7)}, ${lon.toFixed(7)}`
+
+const serializeXml = (doc: XMLDocument) => new XMLSerializer().serializeToString(doc)
+
+const createOsmDocument = () =>
+  document.implementation.createDocument("", "osm", null)
+
+const appendTagElements = (
+  doc: XMLDocument,
+  parent: Element,
+  tags: Record<string, string>,
+) => {
+  for (const key of Object.keys(tags).sort((a, b) => a.localeCompare(b))) {
+    const tag = doc.createElement("tag")
+    tag.setAttribute("k", key)
+    tag.setAttribute("v", tags[key]!)
+    parent.append(tag)
+  }
+}
+
+const formatTagsText = (tags: Record<string, string>) =>
+  Object.keys(tags)
+    .sort((a, b) => a.localeCompare(b))
+    .map((key) => `${key}=${tags[key]}`)
+    .join("\n")
+
+const parseTagsText = (text: string) => {
+  const tags: Record<string, string> = {}
+  const duplicateKeys = new Set<string>()
+
+  for (const [index, rawLine] of text.split(/\r?\n/).entries()) {
+    const line = rawLine.trim()
+    if (!line) continue
+
+    const separatorIndex = line.indexOf("=")
+    if (separatorIndex <= 0) {
+      throw new Error(`Line ${index + 1} must use key=value format.`)
+    }
+
+    const key = line.slice(0, separatorIndex).trim()
+    const value = line.slice(separatorIndex + 1).trim()
+    if (!key || !value) {
+      throw new Error(`Line ${index + 1} must include a key and value.`)
+    }
+    if (Object.hasOwn(tags, key)) duplicateKeys.add(key)
+    tags[key] = value
+  }
+
+  if (duplicateKeys.size) {
+    throw new Error(`Duplicate tag keys: ${[...duplicateKeys].join(", ")}`)
+  }
+
+  return tags
+}
+
+const responseError = async (response: Response) => {
+  const contentType = response.headers.get("content-type")
+  let message: string
+
+  if (contentType?.includes("application/json")) {
+    const data = await response.json()
+    message = typeof data.detail === "string" ? data.detail : JSON.stringify(data)
+  } else {
+    message = await response.text()
+  }
+
+  throw new Error(message || `${response.status} ${response.statusText}`)
+}
+
+const createTagEditChangeset = async (comment: string) => {
+  const doc = createOsmDocument()
+  const changeset = doc.createElement("changeset")
+  appendTagElements(doc, changeset, {
+    comment,
+    created_by: "OpenStreetMap-NG",
+  })
+  doc.documentElement.append(changeset)
+
+  const response = await fetch(`${API_URL}/api/0.6/changeset/create`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/xml" },
+    body: serializeXml(doc),
+  })
+  if (!response.ok) await responseError(response)
+  return (await response.text()).trim()
+}
+
+const closeChangeset = async (changesetId: string) => {
+  const response = await fetch(`${API_URL}/api/0.6/changeset/${changesetId}/close`, {
+    method: "PUT",
+  })
+  if (!response.ok) await responseError(response)
+}
+
+const buildElementUpdateXml = (
+  data: DataValid,
+  tags: Record<string, string>,
+  changesetId: string,
+) => {
+  const doc = createOsmDocument()
+  const typeSlug = getElementTypeSlug(data.ref.type)
+  const element = doc.createElement(typeSlug)
+
+  element.setAttribute("id", data.ref.id.toString())
+  element.setAttribute("version", data.ref.version.toString())
+  element.setAttribute("changeset", changesetId)
+
+  if (data.ref.type === ElementType.node) {
+    const location = data.location
+    if (!location) throw new Error("Node location is missing.")
+    element.setAttribute("lat", location.lat.toFixed(7))
+    element.setAttribute("lon", location.lon.toFixed(7))
+  } else if (data.ref.type === ElementType.way) {
+    for (const member of data.context.members) {
+      const node = doc.createElement("nd")
+      node.setAttribute("ref", member.ref.id.toString())
+      element.append(node)
+    }
+  } else if (data.ref.type === ElementType.relation) {
+    for (const member of data.context.members) {
+      const relationMember = doc.createElement("member")
+      relationMember.setAttribute("type", getElementTypeSlug(member.ref.type))
+      relationMember.setAttribute("ref", member.ref.id.toString())
+      relationMember.setAttribute("role", member.roles[0] ?? "")
+      element.append(relationMember)
+    }
+  }
+
+  appendTagElements(doc, element, tags)
+  doc.documentElement.append(element)
+  return serializeXml(doc)
+}
+
+const updateElementTags = async (
+  data: DataValid,
+  tags: Record<string, string>,
+  changesetId: string,
+) => {
+  const { type, id } = data.ref
+  const typeSlug = getElementTypeSlug(type)
+  const response = await fetch(`${API_URL}/api/0.6/${typeSlug}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/xml" },
+    body: buildElementUpdateXml(data, tags, changesetId),
+  })
+  if (!response.ok) await responseError(response)
+}
+
+const saveElementTags = async (
+  data: DataValid,
+  tags: Record<string, string>,
+  comment: string,
+) => {
+  let changesetId: string | undefined
+  let saved = false
+  try {
+    changesetId = await createTagEditChangeset(comment)
+    await updateElementTags(data, tags, changesetId)
+    saved = true
+  } catch (error) {
+    if (changesetId) {
+      try {
+        await closeChangeset(changesetId)
+      } catch {
+        // Preserve the original save failure.
+      }
+    }
+    throw error
+  }
+
+  if (saved && changesetId) await closeChangeset(changesetId)
+}
 
 const getElementTitleText = (data: DataValid) => {
   const { type, id } = data.ref
@@ -219,6 +390,110 @@ export const ElementLocation = ({
     </button>
   </p>
 )
+
+const ElementTagsSection = ({ data }: { data: DataValid }) => {
+  const editing = useSignal(false)
+  const saving = useSignal(false)
+  const error = useSignal<string | null>(null)
+  const canEdit = isLoggedIn && data.visible && !data.nextVersion
+  const hasTags = Object.keys(data.tags).length > 0
+
+  if (!hasTags && !canEdit) return null
+
+  const onSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
+    event.preventDefault()
+    const form = event.currentTarget
+    const formData = new FormData(form)
+
+    error.value = null
+    saving.value = true
+    try {
+      const tags = parseTagsText(String(formData.get("tags") ?? ""))
+      const comment = String(formData.get("comment") ?? "").trim()
+      if (!comment) throw new Error(t("validation.required"))
+      await saveElementTags(data, tags, comment)
+      window.location.assign(`/${getElementTypeSlug(data.ref.type)}/${data.ref.id}`)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      saving.value = false
+    }
+  }
+
+  return (
+    <section
+      class="element-tags"
+      data-tags={JSON.stringify(data.tags)}
+    >
+      <div class="element-tags-header">
+        <h4>{t("browse.tag_details.tags")}</h4>
+        {canEdit && !editing.value && (
+          <button
+            class="btn btn-link btn-sm"
+            type="button"
+            onClick={() => {
+              error.value = null
+              editing.value = true
+            }}
+          >
+            {t("element.edit_tags_text")}
+          </button>
+        )}
+      </div>
+
+      {editing.value ? (
+        <form
+          class="tag-edit-form"
+          onSubmit={onSubmit}
+        >
+          {error.value && <div class="alert alert-danger py-2">{error.value}</div>}
+          <label class="form-label">
+            <span>{t("browse.tag_details.tags")}</span>
+            <textarea
+              class="form-control font-monospace"
+              name="tags"
+              rows={Math.max(4, Object.keys(data.tags).length)}
+              defaultValue={formatTagsText(data.tags)}
+              disabled={saving.value}
+            />
+          </label>
+          <label class="form-label">
+            <span>{t("action.comment")}</span>
+            <input
+              class="form-control"
+              name="comment"
+              type="text"
+              required
+              disabled={saving.value}
+            />
+          </label>
+          <div class="d-flex justify-content-end gap-2">
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              disabled={saving.value}
+              onClick={() => {
+                error.value = null
+                editing.value = false
+              }}
+            >
+              {t("action.cancel")}
+            </button>
+            <button
+              class="btn btn-primary btn-sm"
+              type="submit"
+              disabled={saving.value}
+            >
+              {saving.value ? t("state.saving") : t("action.save")}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <Tags tags={data.tags} />
+      )}
+    </section>
+  )
+}
 
 const ElementHistoryLinks = ({ data }: { data: DataValid }) => {
   const { type, id, version } = data.ref
@@ -359,7 +634,7 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <ElementTagsSection data={d} />
 
               {hasRelations && (
                 <div class="elements mt-3">
