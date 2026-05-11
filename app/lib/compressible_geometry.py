@@ -57,7 +57,8 @@ def compressible_geometry(
 
 @cython.cfunc
 def _compressible_float(value: float):
-    return _UINT64_STRUCT.unpack(_FLOAT_STRUCT.pack(value))[0] & _MASK_INT
+    value_int: object = _UINT64_STRUCT.unpack(_FLOAT_STRUCT.pack(value))[0]
+    return int(value_int) & _MASK_INT
 
 
 _POINT_STRUCT = struct.Struct('<BIQQ')
@@ -66,21 +67,21 @@ _BBOX_STRUCT = struct.Struct('<BIII10Q')
 
 def point_to_compressible_wkb(lon: float, lat: float):
     """Convert a coordinate pair to a compressible WKB hex format."""
-    lon = _compressible_float(lon)
-    lat = _compressible_float(lat)
+    lon_int: object = _compressible_float(lon)
+    lat_int: object = _compressible_float(lat)
 
     # (byte order 1 = little endian + geometry type 1 = Point)
-    return _POINT_STRUCT.pack(1, 1, lon, lat)
+    return _POINT_STRUCT.pack(1, 1, lon_int, lat_int)
 
 
 def bbox_to_compressible_wkb(
     minlon: float, minlat: float, maxlon: float, maxlat: float
 ):
     """Convert a bounding box to a compressible WKB hex format."""
-    minlon = _compressible_float(minlon)
-    minlat = _compressible_float(minlat)
-    maxlon = _compressible_float(maxlon)
-    maxlat = _compressible_float(maxlat)
+    minlon_int: object = _compressible_float(minlon)
+    minlat_int: object = _compressible_float(minlat)
+    maxlon_int: object = _compressible_float(maxlon)
+    maxlat_int: object = _compressible_float(maxlat)
 
     # (byte order 1 = little endian + geometry type 3 = Polygon + 1 ring + 5 points)
     return _BBOX_STRUCT.pack(
@@ -88,14 +89,14 @@ def bbox_to_compressible_wkb(
         3,
         1,
         5,
-        maxlon,
-        minlat,
-        maxlon,
-        maxlat,
-        minlon,
-        maxlat,
-        minlon,
-        minlat,
-        maxlon,
-        minlat,
+        maxlon_int,
+        minlat_int,
+        maxlon_int,
+        maxlat_int,
+        minlon_int,
+        maxlat_int,
+        minlon_int,
+        minlat_int,
+        maxlon_int,
+        minlat_int,
     )

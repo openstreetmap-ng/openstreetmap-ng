@@ -25,6 +25,7 @@ from app.config import (
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_DECOMPRESSED_MAX_SIZE,
     TRACE_FILE_MAX_LAYERS,
+    TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
 )
 from app.lib.exceptions_context import raise_for
 from app.models.types import StorageKey
@@ -38,6 +39,9 @@ class _CompressResult(NamedTuple):
 
 _ZSTD_SUFFIX = '.zst'
 _ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
+_ZSTD_RECOMPRESS_METADATA: dict[str, str] = {
+    'zstd_level': str(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)
+}
 
 
 class TraceFile:
@@ -87,6 +91,19 @@ class TraceFile:
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+
+    @staticmethod
+    async def recompress(buffer: bytes):
+        """Recompress the trace file buffer with the heaviest configured zstd level."""
+        result = await to_thread(
+            ZstdCompressor(
+                level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+                threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
+            ).compress,
+            buffer,
+        )
+        logging.debug('Trace file zstd-recompressed size is %s', sizestr(len(result)))
+        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_RECOMPRESS_METADATA)
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):
