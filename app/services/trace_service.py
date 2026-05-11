@@ -1,7 +1,11 @@
 import logging
+from asyncio import get_running_loop
+from contextlib import suppress
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -19,7 +23,6 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 from app.services.audit_service import audit
@@ -85,6 +88,7 @@ class TraceService:
         )
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
+        trace_id: TraceId
         try:
             # Insert into database
             async with db(True) as conn:
@@ -114,12 +118,16 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        loop = get_running_loop()
+        loop.create_task(_recompress_task(trace_id, trace_init['file_id'], file))  # noqa: RUF006
+
+        return trace_id
 
     @staticmethod
     async def update(
@@ -210,3 +218,55 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(row[0])
+
+
+async def _recompress_task(
+    trace_id: TraceId, old_file_id: StorageKey, file_bytes: bytes
+) -> None:
+    """Recompress an uploaded trace file in the background."""
+    new_file_id: StorageKey | None = None
+    swapped = False
+
+    try:
+        result = await TraceFile.recompress(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+        logging.debug(
+            'Saved recompressed trace file %r for trace %d', new_file_id, trace_id
+        )
+
+        async with db(True) as conn:
+            update_result = await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %(new_file_id)s
+                WHERE id = %(trace_id)s AND file_id = %(old_file_id)s
+                """,
+                {
+                    'trace_id': trace_id,
+                    'new_file_id': new_file_id,
+                    'old_file_id': old_file_id,
+                },
+            )
+            swapped = bool(update_result.rowcount)
+
+        if swapped:
+            await TRACE_STORAGE.delete(old_file_id)
+            logging.debug(
+                'Deleted old trace file %r after recompressing trace %d',
+                old_file_id,
+                trace_id,
+            )
+        else:
+            await TRACE_STORAGE.delete(new_file_id)
+            new_file_id = None
+            logging.info(
+                'Skipped trace file recompression swap for trace %d', trace_id
+            )
+    except Exception:
+        capture_exception()
+        logging.warning('Failed to recompress trace file for trace %d', trace_id)
+        if new_file_id is not None and not swapped:
+            with suppress(Exception):
+                await TRACE_STORAGE.delete(new_file_id)
