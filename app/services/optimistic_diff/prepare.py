@@ -2,10 +2,11 @@ import logging
 from asyncio import TaskGroup
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Final, Literal, assert_never
+from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
@@ -21,14 +22,13 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.element_query import ElementQuery
 from speedup import element_id, element_type, split_typed_element_id
 
-type OSMChangeAction = Literal['create', 'modify', 'delete']
+OSMChangeAction: TypeAlias = Literal['create', 'modify', 'delete']  # noqa: UP040
 
 
 @dataclass(kw_only=True, slots=True)
