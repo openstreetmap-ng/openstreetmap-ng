@@ -41,6 +41,11 @@ interface APIDetail {
 
 type ValidationResult = string | APIDetail[] | null
 
+type FormDataBytesOptions = {
+  maxSize?: number
+  maxSizeMessage?: string
+}
+
 type StandardFormSuccessActions = {
   redirect: (href: string | URL) => void
   reload: () => void
@@ -78,8 +83,17 @@ const createSuccessController = (): StandardFormSuccessController => {
   }
 }
 
-export const formDataBytes = async (formData: FormData, name: string) =>
-  new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
+export const formDataBytes = async (
+  formData: FormData,
+  name: string,
+  options?: FormDataBytesOptions,
+) => {
+  const blob = formData.get(name) as Blob
+  if (options?.maxSize !== undefined && blob.size > options.maxSize) {
+    throw new Error(options.maxSizeMessage ?? t("validation.invalid_value"))
+  }
+  return new Uint8Array(await blob.arrayBuffer())
+}
 
 const removeEmptyData = (formData: FormData) => {
   const keysToDelete = []
