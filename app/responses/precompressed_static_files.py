@@ -4,7 +4,7 @@ from functools import lru_cache
 from mimetypes import guess_type
 from os import PathLike
 from os import stat_result as StatResultType  # noqa: N812
-from typing import override
+from typing import TypeAlias, override
 
 import cython
 from fastapi import HTTPException
@@ -17,8 +17,8 @@ from starlette_compress._utils import parse_accept_encoding
 
 from app.config import ENV, STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES
 
-type _CacheKey = tuple[str, str | None]
-type _CacheValue = tuple[str, StatResultType, str | None]
+_CacheKey: TypeAlias = tuple[str, str | None]  # noqa: UP040
+_CacheValue: TypeAlias = tuple[str, StatResultType, str | None]  # noqa: UP040
 
 
 class PrecompressedStaticFiles(StaticFiles):

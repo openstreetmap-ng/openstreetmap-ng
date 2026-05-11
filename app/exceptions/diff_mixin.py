@@ -21,3 +21,7 @@ class DiffExceptionsMixin:
     @abstractmethod
     def diff_update_bad_version(self, element: 'ElementInit') -> NoReturn:
         raise NotImplementedError
+
+    @abstractmethod
+    def diff_null_island(self, count: int) -> NoReturn:
+        raise NotImplementedError
