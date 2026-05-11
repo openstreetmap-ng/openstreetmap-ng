@@ -1,18 +1,18 @@
 from base64 import b64decode, b64encode
 from hashlib import md5, pbkdf2_hmac
 from hmac import compare_digest
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, TypeAlias
 
 import cython
+from app.models.proto.auth_pb2 import TransmitUserPassword
+from app.models.proto.server_pb2 import UserPassword
 from argon2 import PasswordHasher, Type
 from argon2.exceptions import VerifyMismatchError
 
 from app.config import SECRET_32
-from app.models.proto.auth_pb2 import TransmitUserPassword
-from app.models.proto.server_pb2 import UserPassword
 from app.models.types import Password
 
-type PasswordLike = Password | TransmitUserPassword
+PasswordLike: TypeAlias = Password | TransmitUserPassword  # noqa: UP040
 
 
 class VerifyResult(NamedTuple):
