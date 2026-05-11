@@ -57,7 +57,8 @@ def compressible_geometry(
 
 @cython.cfunc
 def _compressible_float(value: float):
-    return _UINT64_STRUCT.unpack(_FLOAT_STRUCT.pack(value))[0] & _MASK_INT
+    value_int: object = _UINT64_STRUCT.unpack(_FLOAT_STRUCT.pack(value))[0]
+    return int(value_int) & _MASK_INT
 
 
 _POINT_STRUCT = struct.Struct('<BIQQ')
