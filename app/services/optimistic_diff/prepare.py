@@ -15,6 +15,7 @@ from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -208,6 +209,15 @@ class OptimisticDiffPrepare:
                 )
             else:
                 entry.current = element
+
+        if not user_is_moderator(auth_user()):
+            null_island_count: cython.size_t = 0
+            for element in apply_elements:
+                point = element['point']
+                if point is not None and point.x == 0 and point.y == 0:
+                    null_island_count += 1
+            if null_island_count >= 2:
+                raise_for.diff_null_island(null_island_count)
 
         self._update_changeset_size(
             num_create=num_create,
