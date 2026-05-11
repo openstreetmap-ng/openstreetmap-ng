@@ -69,8 +69,11 @@ async def details(
 
     profile = diary['user']  # type: ignore
 
+    page = DetailsPage()
+    _build_entry(page.entry, diary)
+
     return await render_proto_page(
-        DetailsPage(entry=_build_entry(diary)),
+        page,
         title_prefix=(
             f'{t("diary_entries.index.user_title", user=profile["display_name"])}'
             f' | {diary["title"]}'
