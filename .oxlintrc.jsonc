@@ -5,6 +5,7 @@
     "app/views/lib/proto/**",
     "app/views/lib/timezone-bbox.ts",
     "app/views/lib/vector-styles/**",
+    "vendor/**",
   ],
   "plugins": [
     "eslint",

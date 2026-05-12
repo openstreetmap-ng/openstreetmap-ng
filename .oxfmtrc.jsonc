@@ -4,6 +4,7 @@
     "app/views/lib/vector-styles/*",
     "config/aaguid.json",
     "config/wiki_pages.json",
+    "vendor/**",
   ],
   "semi": false,
   "singleAttributePerLine": true,

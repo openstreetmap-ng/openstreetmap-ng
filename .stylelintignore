@@ -1,0 +1,5 @@
+app/static/vite/**
+app/views/lib/_generated/**
+app/views/lib/proto/**
+node_modules/**
+vendor/**

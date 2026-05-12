@@ -97,6 +97,7 @@ exclude = [
   "build",
   "data",
   "scripts/protoc_gen_pyi*",
+  "vendor",
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
@@ -147,6 +148,7 @@ extend-exclude = [
   "buf/validate/**",
   "scripts/protoc_gen_pyi*",
   "typings/google/protobuf/**",
+  "vendor",
 ]
 indent-width = 4
 line-length = 88
