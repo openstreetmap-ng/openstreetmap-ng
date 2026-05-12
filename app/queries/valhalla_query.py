@@ -1,4 +1,4 @@
-from typing import Literal, cast, get_args
+from typing import Literal, TypeAlias, cast, get_args
 
 import numpy as np
 from fastapi import HTTPException
@@ -10,8 +10,8 @@ from app.lib.translation import primary_translation_locale
 from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
 
-type ValhallaProfile = Literal['auto', 'bicycle', 'pedestrian']
-ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile.__value__))
+ValhallaProfile: TypeAlias = Literal['auto', 'bicycle', 'pedestrian']
+ValhallaProfiles = frozenset[ValhallaProfile](get_args(ValhallaProfile))
 
 
 class ValhallaQuery:

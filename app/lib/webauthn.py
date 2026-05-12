@@ -1,6 +1,6 @@
 from hashlib import sha256
 from pathlib import Path
-from typing import Literal, NamedTuple, NotRequired, TypedDict
+from typing import Literal, NamedTuple, NotRequired, TypeAlias, TypedDict
 from urllib.parse import urlsplit
 from uuid import UUID
 
@@ -22,7 +22,7 @@ from app.config import APP_URL
 from app.models.db.user_passkey import AAGUIDInfo, UserPasskey
 from app.models.proto.auth_pb2 import PasskeyAssertion
 
-type _ClientDataType = Literal['webauthn.create', 'webauthn.get']
+_ClientDataType: TypeAlias = Literal['webauthn.create', 'webauthn.get']
 
 
 class _ClientData(TypedDict):
@@ -195,7 +195,7 @@ def _verify_signature(
     *,
     data: bytes,
     signature: bytes,
-):
+) -> cython.bint:
     """Verify a cryptographic signature using the specified COSE algorithm."""
     algorithm = passkey['algorithm']
     public_key = passkey['public_key']

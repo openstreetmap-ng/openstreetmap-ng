@@ -1,6 +1,6 @@
 import logging
 from asyncio import Task, TaskGroup
-from typing import Annotated
+from typing import Annotated, TypeAlias
 
 from annotated_types import MaxLen, MinLen
 from dns.asyncresolver import Resolver
@@ -137,7 +137,7 @@ EmailValidator = BeforeValidator(validate_email)
 
 # ideally, should be defined in app/models/types.py
 # but this causes circular import
-type EmailValidating = Annotated[
+EmailValidating: TypeAlias = Annotated[
     Email,
     MinLen(EMAIL_MIN_LENGTH),
     MaxLen(EMAIL_MAX_LENGTH),

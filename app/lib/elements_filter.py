@@ -41,7 +41,7 @@ def _check_node_interesting(
     member_nodes: set[TypedElementId],
     *,
     detailed: cython.bint,
-):
+) -> cython.bint:
     if node['point'] is None:
         return False
 

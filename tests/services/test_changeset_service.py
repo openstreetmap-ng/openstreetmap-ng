@@ -141,7 +141,7 @@ async def _create_changeset(
     updated_at: datetime | None = None,
     closed_at: datetime | None = None,
 ) -> ChangesetId:
-    columns: list[str] = ['user_id', 'tags']
+    columns = ['user_id', 'tags']
     params: list[Any] = [None, {}]
 
     if created_at is not None:

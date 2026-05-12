@@ -62,7 +62,7 @@ class UnsupportedBrowserMiddleware:
 
 
 @cython.cfunc
-def _should_capture(message: Message):
+def _should_capture(message: Message) -> cython.bint:
     status_code: cython.size_t = message['status']
     if status_code < 200 or status_code >= 300:
         return False

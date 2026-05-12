@@ -7,7 +7,6 @@ from shapely import Point, get_coordinates
 from app.config import SEARCH_RESULTS_LIMIT
 from app.format import FormatRender
 from app.lib.search import Search, SearchResult
-from app.models.db.element import Element
 from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,
@@ -114,7 +113,7 @@ async def _build_search_data(
     for result in results:
         x, y = get_coordinates(result.point)[0].tolist()
 
-        full_data: list[Element] = [result.element]
+        full_data = [result.element]
         for member_tid in result.element['members'] or ():
             member = members_map.get(member_tid)
             if member is None:

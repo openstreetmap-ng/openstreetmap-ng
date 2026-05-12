@@ -35,7 +35,7 @@ class FormatGPX:
             coordinates: list[list[float]] = coordinates_.round(7).tolist()
             segment_nums: list[int] = segment_nums_.tolist()
 
-            current_segment_num: int = -1
+            current_segment_num = -1
             trkseg: list[dict] = []
             trkpt: list[dict] = []
 

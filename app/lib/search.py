@@ -224,7 +224,7 @@ class Search:
 
 
 @cython.cfunc
-def _should_use_global_search(task_results: list[list[SearchResult]]):
+def _should_use_global_search(task_results: list[list[SearchResult]]) -> cython.bint:
     """
     Determine whether to use global search or local search.
     Global search is used when there are no relevant local results.

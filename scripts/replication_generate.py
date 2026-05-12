@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from shutil import copyfile
-from typing import Literal, TypedDict, get_args
+from typing import Literal, TypeAlias, TypedDict, get_args
 
 import cython
 from psycopg import AsyncConnection
@@ -31,7 +31,7 @@ class _State(TypedDict):
     timestamp: datetime
 
 
-type _TimeSpan = Literal['minute', 'hour', 'day']
+_TimeSpan: TypeAlias = Literal['minute', 'hour', 'day']
 
 _TIMESPAN_DELTA: dict[_TimeSpan, timedelta] = {
     'minute': timedelta(minutes=1),
@@ -411,7 +411,7 @@ def main():
     parser = ArgumentParser(description='Generate replication diffs continuously')
     parser.add_argument(
         'timespan',
-        choices=get_args(_TimeSpan.__value__),
+        choices=get_args(_TimeSpan),
         help='Timespan for replication diffs',
     )
     parser.add_argument(

@@ -553,10 +553,10 @@ class _PyiWriter:
         self._file_enums = tuple(
             _iter_file_enums(file_proto=file_proto, symbols=symbols)
         )
-        self._needs_repeated_composite: bool = False
-        self._needs_repeated_scalar: bool = False
-        self._needs_repeated_enum: bool = False
-        self._needs_message_map: bool = False
+        self._needs_repeated_composite = False
+        self._needs_repeated_scalar = False
+        self._needs_repeated_enum = False
+        self._needs_message_map = False
         self._repeated_composite_protocols: dict[str, str] = {}
 
     def build(self):
@@ -1851,7 +1851,7 @@ def main():
     # dependency-closure subset we actually reference, under `typings/`.
     requested = set(request.file_to_generate)
     pending = list(requested)
-    closure: set[str] = set(requested)
+    closure = set(requested)
     while pending:
         name = pending.pop()
         f = files_by_name.get(name)

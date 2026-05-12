@@ -9,6 +9,7 @@ from typing import (
     Literal,
     LiteralString,
     NamedTuple,
+    TypeAlias,
     TypeVar,
     assert_never,
 )
@@ -49,13 +50,13 @@ class _StandardPaginationQueryPlan(NamedTuple):
     anchor_op: Literal['<', '>'] | None = None
 
 
-type StandardPaginationRequestLike = bytes | StandardPaginationRequest
-type StandardPaginationRequestBody = Annotated[
+StandardPaginationRequestLike: TypeAlias = bytes | StandardPaginationRequest
+StandardPaginationRequestBody: TypeAlias = Annotated[
     bytes, Body(media_type='application/x-protobuf')
 ]
 
-type _OrderDir = Literal['asc', 'desc']
-type _CursorKind = Literal['id', 'datetime', 'text']
+_OrderDir: TypeAlias = Literal['asc', 'desc']
+_CursorKind: TypeAlias = Literal['id', 'datetime', 'text']
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
@@ -701,19 +702,21 @@ def _sp_count_limit(
     *,
     page_size: cython.size_t,
     STANDARD_PAGINATION_COUNT_MAX_PAGES: cython.size_t = STANDARD_PAGINATION_COUNT_MAX_PAGES,
-):
+) -> cython.size_t:
     """Cap COUNT(*) to (N pages * page_size) + 1 rows."""
     return STANDARD_PAGINATION_COUNT_MAX_PAGES * page_size + 1
 
 
 @cython.cfunc
-def _sp_lookahead_limit(*, page_size: cython.size_t, distance: cython.size_t):
+def _sp_lookahead_limit(
+    *, page_size: cython.size_t, distance: cython.size_t
+) -> cython.size_t:
     """Probe at most (distance pages * page_size) + 1 rows beyond the current page."""
     return distance * page_size + 1
 
 
 @cython.cfunc
-def _ceil_div(a: cython.size_t, b: cython.size_t):
+def _ceil_div(a: cython.size_t, b: cython.size_t) -> cython.size_t:
     return (a + b - 1) // b
 
 

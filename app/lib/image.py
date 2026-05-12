@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from functools import partial
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, NamedTuple, overload
+from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
@@ -49,7 +49,7 @@ class _Animation(NamedTuple):
     loop: int
 
 
-type UserAvatarType = Literal['gravatar', 'custom'] | None
+UserAvatarType: TypeAlias = Literal['gravatar', 'custom'] | None
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()

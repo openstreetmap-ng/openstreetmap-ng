@@ -1,9 +1,9 @@
 from collections.abc import Iterable
-from typing import Literal, get_args
+from typing import Literal, TypeAlias, get_args
 
 from app.models.proto.shared_pb2 import Scope as ProtoScope
 
-type PublicScope = Literal[
+PublicScope: TypeAlias = Literal[
     'read_prefs',
     'write_prefs',
     'write_api',
@@ -12,9 +12,9 @@ type PublicScope = Literal[
     'write_notes',
 ]
 
-PUBLIC_SCOPES = frozenset[PublicScope](get_args(PublicScope.__value__))
+PUBLIC_SCOPES = frozenset[PublicScope](get_args(PublicScope))
 
-type Scope = (
+Scope: TypeAlias = (
     PublicScope
     | Literal[
         # additional scopes

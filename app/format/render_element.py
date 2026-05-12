@@ -202,7 +202,7 @@ def _geometry_to_sequences(geometry: BaseGeometry) -> list[list[list[float]]]:
 def _check_way_area(
     tags: dict[str, str] | None,
     members: list[TypedElementId],
-):
+) -> cython.bint:
     """Check if the way should be displayed as an area."""
     return (
         tags is not None
@@ -218,7 +218,7 @@ def _has_area_tag(
     /,
     *,
     _AREA_TAGS=_AREA_TAGS,
-):
+) -> cython.bint:
     if not tags:
         return False
 

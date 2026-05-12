@@ -24,7 +24,6 @@ from app.models.proto.admin_applications_pb2 import (
     ListRequest,
     ListResponse,
 )
-from app.models.types import ApplicationId
 from app.queries.audit_query import AuditQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
@@ -74,7 +73,7 @@ class _Service(Service):
             order_dir=order_dir,
         )
 
-        app_ids: list[ApplicationId] = [app['id'] for app in apps]
+        app_ids = [app['id'] for app in apps]
 
         async with TaskGroup() as tg:
             tg.create_task(UserQuery.resolve_users(apps))

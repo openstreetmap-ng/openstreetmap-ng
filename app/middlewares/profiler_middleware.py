@@ -41,7 +41,7 @@ class ProfilerMiddleware:
 
 
 @cython.cfunc
-def _has_query_param(query_string: bytes, name: bytes):
+def _has_query_param(query_string: bytes, name: bytes) -> cython.bint:
     if not query_string:
         return False
 

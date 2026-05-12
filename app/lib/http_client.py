@@ -9,6 +9,7 @@ from ipaddress import IPv4Address, IPv6Address, IPv6Network, ip_address
 from typing import Any, Literal, ParamSpec, TypeVar, override
 from weakref import WeakKeyDictionary
 
+import cython
 import orjson
 from aiohttp import (
     ClientError,
@@ -84,7 +85,8 @@ class HTTPResponse:
         )
 
 
-def _is_global_ip(ip: _IPAddress):
+@cython.cfunc
+def _is_global_ip(ip: _IPAddress) -> cython.bint:
     if not ip.is_global:
         return False
     if isinstance(ip, IPv6Address) and ip in _NAT64_WELL_KNOWN_PREFIX:
@@ -132,6 +134,7 @@ def _json_serialize(data: Any):
     return orjson.dumps(data).decode()
 
 
+@cython.cfunc
 def _timeout_value(
     timeout: float | timedelta | ClientTimeout,
 ) -> ClientTimeout:

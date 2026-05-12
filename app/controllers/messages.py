@@ -48,9 +48,9 @@ async def new_message(
     reply_diary: Annotated[DiaryId | None, Query()] = None,
     reply_diary_comment: Annotated[DiaryCommentId | None, Query()] = None,
 ):
-    recipients: str = ''
-    subject: str = ''
-    body: str = ''
+    recipients = ''
+    subject = ''
+    body = ''
 
     if reply is not None or reply_all is not None:
         reply_message = await MessageQuery.get_by_id(reply or reply_all)  # type: ignore

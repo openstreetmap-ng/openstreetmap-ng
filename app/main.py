@@ -185,8 +185,8 @@ app.mount(
 def _make_router(path: pathlib.Path, prefix: str):
     """Create a router from all modules in the given path."""
     router = APIRouter(prefix=prefix)
-    router_counter: int = 0
-    routes_counter: int = 0
+    router_counter = 0
+    routes_counter = 0
     for p in sorted(path.glob('*.py')):
         module_name = p.as_posix().replace('/', '.')[:-3]
         module = importlib.import_module(module_name)

@@ -25,7 +25,7 @@ _T = TypeVar('_T')
 def _hash(
     s: str | bytes,
     key: bytes | None,
-    size: int,
+    size: cython.size_t,
     *,
     CRYPTO_HASH_CACHE_MAX_ENTRIES: cython.size_t = CRYPTO_HASH_CACHE_MAX_ENTRIES,
     CRYPTO_HASH_CACHE_SIZE_LIMIT: cython.size_t = CRYPTO_HASH_CACHE_SIZE_LIMIT,

@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 import cython
 import numpy as np
 from numpy.typing import NDArray
@@ -16,7 +18,7 @@ from app.config import (
     CHANGESET_NEW_BBOX_MIN_RATIO,
 )
 
-type _BBox = list[float]
+_BBox: TypeAlias = list[float]
 
 _FIXED_K_MAX_CANDIDATE_EDGES = 5_000_000
 
@@ -109,8 +111,8 @@ def _merge_bbox(
     bboxes: list[_BBox],
     dirty_mask: list[bool],
     bbox: _BBox,
-    i: int,
-):
+    i: cython.size_t,
+) -> cython.bint:
     existing = bboxes[i]
     merged = _union_bbox(bbox, existing)
     if merged == existing:
@@ -168,7 +170,7 @@ def _reduce_labels_to_bboxes_xy(
     y: NDArray[np.float64],
     labels: NDArray[np.integer],
     num_clusters: int,
-):
+) -> NDArray[np.float64]:
     minx = np.full(num_clusters, np.inf, dtype=np.float64)
     miny = np.full(num_clusters, np.inf, dtype=np.float64)
     maxx = np.full(num_clusters, -np.inf, dtype=np.float64)
@@ -363,12 +365,12 @@ def _get_buffer_bbox(bound: _BBox, /) -> _BBox:
 
 
 @cython.cfunc
-def _bbox_intersects(a: _BBox, b: _BBox, /):
+def _bbox_intersects(a: _BBox, b: _BBox, /) -> cython.bint:
     return a[0] <= b[2] and a[2] >= b[0] and a[1] <= b[3] and a[3] >= b[1]
 
 
 @cython.cfunc
-def _bbox_distance2(a: _BBox, b: _BBox, /):
+def _bbox_distance2(a: _BBox, b: _BBox, /) -> cython.double:
     a0: cython.double
     a1: cython.double
     a2: cython.double

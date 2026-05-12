@@ -9,7 +9,7 @@ from app.lib.retry import retry
 
 @pytest.mark.extended
 async def test_retry():
-    runs: int = 0
+    runs = 0
 
     @retry(None)
     async def func():

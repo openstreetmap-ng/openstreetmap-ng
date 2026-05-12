@@ -4,7 +4,7 @@ from asyncio import TaskGroup
 from collections.abc import Collection, Generator, Iterable, Mapping, Sequence
 from html import escape
 from pathlib import Path
-from typing import Any, Literal, LiteralString, cast
+from typing import Any, Literal, LiteralString, TypeAlias, cast
 from urllib.parse import urlsplit, urlunsplit
 
 import cython
@@ -24,7 +24,7 @@ from app.models.types import ImageProxyId
 from app.services.cache_service import CacheContext, CacheService
 from app.services.image_proxy_service import ImageProxyService
 
-type TextFormat = Literal['html', 'markdown', 'plain']
+TextFormat: TypeAlias = Literal['html', 'markdown', 'plain']
 
 
 async def process_rich_text_markdown(text: str):
@@ -329,7 +329,7 @@ def _process_plain(text: str):
     else:
         result: list[str] = ['<p>']
 
-        last_pos: int = 0
+        last_pos = 0
         for match in matches:
             prefix = text[last_pos : match.index]
             href = match.url

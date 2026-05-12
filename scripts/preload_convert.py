@@ -94,7 +94,7 @@ def _get_csv_path(name: str):
 
 
 @cython.cfunc
-def _get_worker_path(base: Path, i: int):
+def _get_worker_path(base: Path, i: cython.size_t):
     return base.with_suffix(f'{base.suffix}.{i}')
 
 

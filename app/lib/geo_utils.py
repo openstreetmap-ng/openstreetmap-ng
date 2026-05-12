@@ -21,7 +21,7 @@ else:
 
 
 @cython.cfunc
-def _radians(degrees: cython.double):
+def _radians(degrees: cython.double) -> cython.double:
     return degrees * 0.017453292519943295  # pi / 180
 
 

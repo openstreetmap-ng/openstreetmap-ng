@@ -1,6 +1,6 @@
 import logging
 from functools import cache
-from typing import Literal, cast, get_args
+from typing import Literal, TypeAlias, cast, get_args
 
 import cython
 from fastapi import HTTPException
@@ -13,8 +13,8 @@ from app.lib.translation import t
 from app.models.osrm import OSRMResponse, OSRMStep
 from app.models.proto.shared_pb2 import RoutingResult
 
-type OSRMProfile = Literal['car', 'bike', 'foot']
-OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile.__value__))
+OSRMProfile: TypeAlias = Literal['car', 'bike', 'foot']
+OSRMProfiles = frozenset[OSRMProfile](get_args(OSRMProfile))
 
 
 class OSRMQuery:

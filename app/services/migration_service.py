@@ -275,7 +275,7 @@ def _get_element_typed_id_batches(
 ):
     # Create balanced batches
     current_chunk_start: int | None = None
-    current_chunk_size: int = 0
+    current_chunk_size = 0
     chunks: list[tuple[int, int]] = []
 
     for start, end in ranges:
