@@ -2,6 +2,13 @@ from asyncio import TaskGroup
 from typing import Annotated
 
 import cython
+from app.models.proto.diary_pb2 import (
+    ComposePage,
+    DetailsPage,
+    IndexPage,
+    UserCommentsPage,
+)
+from app.models.proto.shared_pb2 import LonLat
 from fastapi import APIRouter, Path, Query, Response
 from feedgen.feed import FeedGenerator
 from pydantic import SecretStr
@@ -18,13 +25,6 @@ from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.diary import diaries_resolve_rich_text
 from app.models.db.user import User, user_proto
-from app.models.proto.diary_pb2 import (
-    ComposePage,
-    DetailsPage,
-    IndexPage,
-    UserCommentsPage,
-)
-from app.models.proto.shared_pb2 import LonLat
 from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
@@ -69,8 +69,11 @@ async def details(
 
     profile = diary['user']  # type: ignore
 
+    page = DetailsPage()
+    _build_entry(page.entry, diary)
+
     return await render_proto_page(
-        DetailsPage(entry=_build_entry(diary)),
+        page,
         title_prefix=(
             f'{t("diary_entries.index.user_title", user=profile["display_name"])}'
             f' | {diary["title"]}'

@@ -6,7 +6,9 @@ from PIL import Image as PILImage
 from starlette import status
 
 from app.config import IMAGE_MAX_FRAMES
+from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
+from app.lib.exceptions_context import exceptions_context
 from app.lib.image import Image
 
 
@@ -47,7 +49,7 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
 
 
 async def test_normalize_avatar_rejects_unreadable_image():
-    with pytest.raises(APIError) as exc_info:
+    with pytest.raises(APIError) as exc_info, exceptions_context(Exceptions()):
         await Image.normalize_avatar(b'not an image')
 
     assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -60,7 +62,7 @@ async def test_normalize_avatar_rejects_decompression_bomb(monkeypatch):
 
     monkeypatch.setattr('app.lib.image.open_image', _raise_decompression_bomb)
 
-    with pytest.raises(APIError) as exc_info:
+    with pytest.raises(APIError) as exc_info, exceptions_context(Exceptions()):
         await Image.normalize_avatar(b'fake image')
 
     assert exc_info.value.status_code == status.HTTP_413_CONTENT_TOO_LARGE
