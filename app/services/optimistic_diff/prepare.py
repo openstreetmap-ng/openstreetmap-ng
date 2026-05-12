@@ -6,8 +6,9 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
-from shapely import Point, bounds, box
+from shapely import Point, bounds, box, get_coordinates
 
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_user
@@ -21,7 +22,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetBoundsQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -100,7 +100,24 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
-    def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /):
+    _reject_null_island: bool
+    """
+    Whether current edits must reject nodes located at 0,0.
+    """
+
+    _null_island_refs: set[TypedElementId]
+    """
+    Node refs from edited ways that need a null island coordinate check.
+    """
+
+    def __init__(
+        self,
+        conn: AsyncConnection,
+        elements: list[ElementInit],
+        /,
+        *,
+        reject_null_island: bool = False,
+    ):
         self.conn = conn
         self.apply_elements = []
         self._elements = list(map(dict.copy, elements))  # type: ignore
@@ -111,6 +128,8 @@ class OptimisticDiffPrepare:
         self._reference_override = defaultdict(set)
         self._bbox_points = []
         self._bbox_refs = set()
+        self._reject_null_island = reject_null_island
+        self._null_island_refs = set()
 
     async def prepare(self):
         await self._preload_changeset()
@@ -191,6 +210,9 @@ class OptimisticDiffPrepare:
                 logging.debug('Optimistic skipping delete for %s (is used)', typed_id)
                 continue
 
+            if self._reject_null_island and action != 'delete':
+                self._check_null_island_local(element, type)
+
             # Mark unassigned members
             if (members_arr := element.get('members_arr')) is not None:
                 indices = np.nonzero(members_arr & (1 << 59))[0]
@@ -213,6 +235,8 @@ class OptimisticDiffPrepare:
             num_modify=num_modify,
             num_delete=num_delete,
         )
+
+        await self._check_null_island_refs()
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -379,6 +403,65 @@ class OptimisticDiffPrepare:
 
         if not_found:
             self._elements_check_members_remote |= dict.fromkeys(not_found, parent_tid)
+
+    def _check_null_island_local(self, element: ElementInit, element_type: ElementType):
+        """Check the current edit for null island coordinates."""
+        if element_type == 'node':
+            point = element['point']
+            if point is not None and _is_null_island(point):
+                raise_for.bad_null_island_coordinates()
+            return
+
+        if element_type != 'way':
+            return
+
+        members = element['members']
+        if not members:
+            return
+
+        element_state = self.element_state
+        null_island_refs = self._null_island_refs
+
+        for member in members:
+            entry = element_state.get(member)
+            if entry is None:
+                null_island_refs.add(member)
+                continue
+
+            current = entry.current
+            point = current['point']
+            if current['visible'] and point is not None and _is_null_island(point):
+                raise_for.bad_null_island_coordinates()
+
+    async def _check_null_island_refs(self):
+        """Check way member nodes that were not already in the local element state."""
+        if not self._reject_null_island or not self._null_island_refs:
+            return
+
+        remote_refs: list[TypedElementId] = []
+        for typed_id in self._null_island_refs:
+            entry = self.element_state.get(typed_id)
+            if entry is None:
+                remote_refs.append(typed_id)
+                continue
+
+            current = entry.current
+            point = current['point']
+            if current['visible'] and point is not None and _is_null_island(point):
+                raise_for.bad_null_island_coordinates()
+
+        if not remote_refs:
+            return
+
+        elements = await ElementQuery.find_by_refs(
+            remote_refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=len(remote_refs),
+        )
+        for element in elements:
+            point = element['point']
+            if element['visible'] and point is not None and _is_null_island(point):
+                raise_for.bad_null_island_coordinates()
 
     def _push_bbox_info(
         self, prev: ElementInit | None, element: ElementInit, element_type: ElementType
@@ -628,3 +711,8 @@ class OptimisticDiffPrepare:
         hidden_ref = next(iter(hidden_refs))
         parent_typed_id = elements_check_members_remote[hidden_ref]
         raise_for.element_member_not_found(parent_typed_id, hidden_ref)
+
+
+def _is_null_island(point: Point):
+    x, y = get_coordinates(point).round(7)[0].tolist()
+    return x == 0 and y == 0
