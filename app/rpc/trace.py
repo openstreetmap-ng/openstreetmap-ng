@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from string.templatelib import Template
 from typing import override
 
 from connectrpc.request import RequestContext
@@ -31,8 +32,7 @@ from app.services.trace_service import TraceService
 class _Service(Service):
     @override
     async def get_page(self, request: GetPageRequest, ctx: RequestContext):
-        conditions = []
-        params = []
+        filters: list[Template] = []
 
         current_user = auth_user()
         request_user_id = (
@@ -43,22 +43,18 @@ class _Service(Service):
             or current_user['id'] != request_user_id
             or 'read_gpx' not in auth_scopes()
         ):
-            conditions.append(SQL("visibility IN ('identifiable', 'public')"))
-
+            filters.append(t"visibility IN ('identifiable', 'public')")
         if request_user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(request_user_id)
-
+            filters.append(t'user_id = {request_user_id}')
         if request.HasField('tag'):
-            conditions.append(SQL('tags @> ARRAY[%s]'))
-            params.append(request.tag)
+            tag = request.tag
+            filters.append(t'tags @> ARRAY[{tag}]')
 
         traces, state = await sp_paginate_table(
             Trace,
             request.state,
             table='trace',
-            where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            params=tuple(params),
+            where=SQL(' AND ').join(filters or [t'TRUE']),
             page_size=TRACES_LIST_PAGE_SIZE,
             cursor_column='id',
             cursor_kind='id',

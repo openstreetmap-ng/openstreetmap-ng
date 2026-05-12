@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+from string.templatelib import Template
 from typing import Any, Literal
 
 from psycopg.rows import dict_row
@@ -24,55 +25,44 @@ class NoteQuery:
         commented_other: bool,
         open: bool | None,
     ):
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         if commented_other:
             # Notes where user commented but didn't open them.
-            conditions.append(
-                SQL("""
-                    EXISTS (
-                        SELECT 1 FROM note_comment
-                        WHERE note_id = note.id
-                        AND user_id = %s
-                        AND event = 'commented'
-                    )
-                """)
-            )
-            conditions.append(
-                SQL("""
-                    NOT EXISTS (
-                        SELECT 1 FROM note_comment
-                        WHERE note_id = note.id
-                        AND user_id = %s
-                        AND event = 'opened'
-                    )
-                """)
-            )
-            params.extend((user_id, user_id))
+            filters.append(t"""
+                EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = {user_id}
+                    AND event = 'commented'
+                )
+            """)
+            filters.append(t"""
+                NOT EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = {user_id}
+                    AND event = 'opened'
+                )
+            """)
         else:
             # Notes opened by the user.
-            conditions.append(
-                SQL("""
-                    EXISTS (
-                        SELECT 1 FROM note_comment
-                        WHERE note_id = note.id
-                        AND user_id = %s
-                        AND event = 'opened'
-                    )
-                """)
-            )
-            params.append(user_id)
+            filters.append(t"""
+                EXISTS (
+                    SELECT 1 FROM note_comment
+                    WHERE note_id = note.id
+                    AND user_id = {user_id}
+                    AND event = 'opened'
+                )
+            """)
 
         # Only show hidden notes to moderators.
         if not user_is_moderator(auth_user()):
-            conditions.append(SQL('hidden_at IS NULL'))
+            filters.append(t'hidden_at IS NULL')
 
-        conditions.append(SQL('(%s::bool IS NULL OR (closed_at IS NULL) = %s)'))
-        params.extend((open, open))
+        filters.append(t'({open}::bool IS NULL OR (closed_at IS NULL) = {open})')
 
-        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
-        return where_clause, tuple(params)
+        return SQL(' AND ').join(filters)
 
     @staticmethod
     async def count_by_user(
@@ -85,14 +75,16 @@ class NoteQuery:
         Count the notes interacted with by the given user.
         If commented_other is True, it will count activity on non-own notes.
         """
-        where_clause, params = NoteQuery.user_page_where(
+        where = NoteQuery.user_page_where(
             user_id,
             commented_other=commented_other,
             open=open,
         )
-        query = SQL('SELECT COUNT(*) FROM note WHERE {}').format(where_clause)
 
-        async with db() as conn, await conn.execute(query, params) as r:
+        async with (
+            db() as conn,
+            await conn.execute(t'SELECT COUNT(*) FROM note WHERE {where:q}') as r,
+        ):
             return (await r.fetchone())[0]  # type: ignore
 
     @staticmethod

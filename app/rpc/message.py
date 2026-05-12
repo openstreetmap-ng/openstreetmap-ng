@@ -44,15 +44,14 @@ class _Service(MessageServiceConnect):
                 Message,
                 request.state,
                 table='message',
-                where=SQL("""
+                where=t"""
                     EXISTS (
                         SELECT 1 FROM message_recipient
                         WHERE message_id = id
-                          AND user_id = %s
+                          AND user_id = {user_id}
                           AND NOT hidden
                     )
-                """),
-                params=(user_id,),
+                """,
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',
@@ -72,8 +71,7 @@ class _Service(MessageServiceConnect):
                 Message,
                 request.state,
                 table='message',
-                where=SQL('from_user_id = %s AND NOT from_user_hidden'),
-                params=(user_id,),
+                where=t'from_user_id = {user_id} AND NOT from_user_hidden',
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',

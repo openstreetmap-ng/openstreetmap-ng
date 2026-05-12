@@ -27,11 +27,8 @@ def _messages_count_unread(tg: TaskGroup, path: str):
         return
 
     task = tg.create_task(MessageQuery.count_unread())
-    token = _MESSAGES_COUNT_UNREAD_CTX.set(task)
-    try:
+    with _MESSAGES_COUNT_UNREAD_CTX.set(task):
         yield
-    finally:
-        _MESSAGES_COUNT_UNREAD_CTX.reset(token)
 
 
 @contextmanager
@@ -50,11 +47,8 @@ def _reports_count_attention(tg: TaskGroup, path: str):
     # Determine visibility level based on user role
     visible_to = 'administrator' if user_is_admin(user) else 'moderator'
     task = tg.create_task(ReportQuery.count_requiring_attention(visible_to))
-    token = _REPORTS_COUNT_ATTENTION_CTX.set(task)
-    try:
+    with _REPORTS_COUNT_ATTENTION_CTX.set(task):
         yield
-    finally:
-        _REPORTS_COUNT_ATTENTION_CTX.reset(token)
 
 
 class ParallelTasksMiddleware:

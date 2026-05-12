@@ -10,11 +10,8 @@ _CTX = ContextVar[Exceptions]('Exceptions')
 @contextmanager
 def exceptions_context(implementation: Exceptions):
     """Context manager for setting the exceptions type in ContextVar."""
-    token = _CTX.set(implementation)
-    try:
+    with _CTX.set(implementation):
         yield
-    finally:
-        _CTX.reset(token)
 
 
 class _RaiseFor:

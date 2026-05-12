@@ -102,8 +102,7 @@ class UserFollowQuery:
                 user_follow uf
                 JOIN "user" u ON u.id = uf.{}
             """).format(join_column),
-            where=SQL('uf.{} = %s').format(where_column),
-            params=(user_id,),
+            where=t'uf.{where_column:i} = {user_id}',
             cursor_sql=Identifier('uf', 'created_at'),
             id_sql=Identifier('u', 'id'),
             cursor_key='created_at',

@@ -1,10 +1,11 @@
 from asyncio import TaskGroup
+from string.templatelib import Template
 from typing import override
 
 import cython
 from connectrpc.request import RequestContext
 from fastapi import HTTPException
-from psycopg.sql import SQL
+from psycopg.sql import SQL, Composable
 from shapely import Point
 from starlette import status
 
@@ -45,26 +46,23 @@ from app.services.diary_service import DiaryService
 class _Service(Service):
     @override
     async def get_page(self, request: GetPageRequest, ctx: RequestContext):
+        where: Template | Composable
         if request.HasField('user_id'):
             user_id = UserId(request.user_id)
-            where = SQL('user_id = %s')
-            params: tuple[object, ...] = (user_id,)
+            where = t'user_id = {user_id}'
         elif request.HasField('language'):
             language = normalize_locale(LocaleCode(request.language))
             if language is None:
                 raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid language')
-            where = SQL('language = %s')
-            params = (language,)
+            where = t'language = {language}'
         else:
             where = SQL('TRUE')
-            params = ()
 
         diaries, state = await sp_paginate_table(
             Diary,
             request.state,
             table='diary',
             where=where,
-            params=params,
             page_size=DIARY_LIST_PAGE_SIZE,
             cursor_column='id',
             cursor_kind='id',
@@ -105,8 +103,7 @@ class _Service(Service):
             DiaryComment,
             request.state,
             table='diary_comment',
-            where=SQL('user_id = %s'),
-            params=(user_id,),
+            where=t'user_id = {user_id}',
             page_size=DIARY_COMMENTS_PAGE_SIZE,
             cursor_column='id',
             cursor_kind='id',
@@ -189,8 +186,7 @@ async def _build_get_comments_response(
         DiaryComment,
         state_request,
         table='diary_comment',
-        where=SQL('diary_id = %s'),
-        params=(diary_id,),
+        where=t'diary_id = {diary_id}',
         page_size=DIARY_COMMENTS_PAGE_SIZE,
         order_dir='desc',
         display_dir='asc',

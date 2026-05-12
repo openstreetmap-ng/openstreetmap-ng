@@ -1,4 +1,4 @@
-from typing import Any
+from string.templatelib import Template
 
 import cython
 import numpy as np
@@ -110,57 +110,44 @@ class TraceQuery:
     ) -> list[Trace]:
         """Find recent traces."""
         order_desc: cython.bint = (after is None) or (before is not None)
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         # If unauthenticated, find public traces
         user = auth_user()
         if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes():
-            conditions.append(SQL("visibility IN ('identifiable', 'public')"))
-
+            filters.append(t"visibility IN ('identifiable', 'public')")
         if user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(user_id)
-
+            filters.append(t'user_id = {user_id}')
         if tag is not None:
-            conditions.append(SQL('tags @> ARRAY[%s]'))
-            params.append(tag)
-
+            filters.append(t'tags @> ARRAY[{tag}]')
         if before is not None:
-            conditions.append(SQL('id < %s'))
-            params.append(before)
-
+            filters.append(t'id < {before}')
         if after is not None:
-            conditions.append(SQL('id > %s'))
-            params.append(after)
+            filters.append(t'id > {after}')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT * FROM trace
-            WHERE {conditions}
-            ORDER BY id {order}
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            order=SQL('DESC' if order_desc else 'ASC'),
-            limit=limit_clause,
+        where = SQL(' AND ').join(filters) if filters else SQL('TRUE')
+        order = SQL('DESC') if order_desc else SQL('ASC')
+        limit_clause: Template | Composable = (
+            t'LIMIT {limit}' if limit is not None else SQL('')
         )
+
+        query = t"""
+            SELECT * FROM trace
+            WHERE {where:q}
+            ORDER BY id {order:q}
+            {limit_clause:q}
+        """
 
         # Always return in consistent order regardless of the query
         if not order_desc:
-            query = SQL("""
-                SELECT * FROM ({})
+            query = t"""
+                SELECT * FROM ({query:q})
                 ORDER BY id DESC
-            """).format(query)
+            """
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(query) as r,
         ):
             return await r.fetchall()  # type: ignore
 

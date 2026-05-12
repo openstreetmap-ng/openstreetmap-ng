@@ -48,11 +48,8 @@ def translation_context(locale: LocaleCode | None, /):
     else:
         processed = (DEFAULT_LOCALE,)
 
-    token = _CTX.set((processed, _get_translation(processed)))
-    try:
+    with _CTX.set((processed, _get_translation(processed))):
         yield
-    finally:
-        _CTX.reset(token)
 
 
 @cython.cfunc

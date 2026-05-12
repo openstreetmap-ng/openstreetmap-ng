@@ -52,7 +52,7 @@ class _Service(Service):
             created_before,
         ) = _filters_parse(request.filters)
 
-        where_clause, params = await AuditQuery.where_clause(
+        where = await AuditQuery.where_clause(
             ip=ip,
             user=user,
             application_id=application_id,
@@ -65,8 +65,7 @@ class _Service(Service):
             DBAuditEvent,
             request.state,
             table='audit',
-            where=where_clause,
-            params=params,
+            where=where,
             page_size=AUDIT_LIST_PAGE_SIZE,
             cursor_column='created_at',
             cursor_kind='datetime',

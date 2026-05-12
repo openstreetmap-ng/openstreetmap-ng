@@ -72,7 +72,7 @@ class _Service(Service):
             sort,
         ) = _filters_parse(request.filters)
 
-        where_clause, params = UserQuery.where_clause(
+        where = UserQuery.where_clause(
             search=search,
             unverified=unverified,
             roles=roles,
@@ -107,8 +107,7 @@ class _Service(Service):
             User,
             request.state,
             table='user',
-            where=where_clause,
-            params=params,
+            where=where,
             page_size=ADMIN_USER_LIST_PAGE_SIZE,
             cursor_column=cursor_column,
             cursor_kind=cursor_kind,

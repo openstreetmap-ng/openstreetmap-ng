@@ -1,5 +1,6 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
+from string.templatelib import Template
 from typing import Any, Literal, TypedDict, assert_never
 
 from psycopg.rows import dict_row
@@ -205,35 +206,28 @@ class UserQuery:
         limit: int | None = None,
     ) -> list[UserId]:
         """Find the ids of deleted users."""
-        conditions: list[Composable] = [SQL('email LIKE %s')]
-        params: list[Any] = [f'%{DELETED_USER_EMAIL_SUFFIX}']
+        email_suffix = f'%{DELETED_USER_EMAIL_SUFFIX}'
+        filters: list[Template] = [t'email LIKE {email_suffix}']
 
         if after is not None:
-            conditions.append(SQL('id > %s'))
-            params.append(after)
-
+            filters.append(t'id > {after}')
         if before is not None:
-            conditions.append(SQL('id < %s'))
-            params.append(before)
+            filters.append(t'id < {before}')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT id FROM "user"
-            WHERE {conditions}
-            ORDER BY id {order}
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions),
-            order=SQL(sort),
-            limit=limit_clause,
+        where = SQL(' AND ').join(filters)
+        order = SQL(sort)
+        limit_clause: Template | Composable = (
+            t'LIMIT {limit}' if limit is not None else SQL('')
         )
 
-        async with db() as conn, await conn.execute(query, params) as r:
+        query = t"""
+            SELECT id FROM "user"
+            WHERE {where:q}
+            ORDER BY id {order:q}
+            {limit_clause:q}
+        """
+
+        async with db() as conn, await conn.execute(query) as r:
             return [c for (c,) in await r.fetchall()]
 
     @staticmethod
@@ -321,68 +315,53 @@ class UserQuery:
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,
     ):
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         if search:
             try:
                 search_ip = ip_address(search)
-                conditions.append(
-                    SQL("""
-                        EXISTS (
-                        SELECT 1 FROM audit
-                        WHERE user_id = "user".id AND ip = %s
-                        )
-                    """)
-                )
-                params.append(search_ip)
-            except ValueError:
-                try:
-                    search_ip = ip_network(search, strict=False)
-                    conditions.append(
-                        SQL("""
-                            EXISTS (
-                                SELECT 1 FROM audit
-                                WHERE user_id = "user".id AND ip <<= %s
-                            )
-                        """)
-                    )
-                    params.append(search_ip)
-                except ValueError:
-                    conditions.append(SQL('(email ILIKE %s OR display_name ILIKE %s)'))
-                    pattern = f'%{search}%'
-                    params.extend((pattern, pattern))
-
-        if unverified:
-            conditions.append(SQL('NOT email_verified'))
-
-        if roles:
-            conditions.append(SQL('roles && %s'))
-            params.append(roles)
-
-        if created_after:
-            conditions.append(SQL('created_at >= %s'))
-            params.append(created_after)
-
-        if created_before:
-            conditions.append(SQL('created_at <= %s'))
-            params.append(created_before)
-
-        if application_id is not None:
-            conditions.append(
-                SQL("""
+                filters.append(t"""
                     EXISTS (
-                        SELECT 1 FROM oauth2_token
-                        WHERE user_id = "user".id
-                        AND application_id = %s
-                        AND authorized_at IS NOT NULL
+                        SELECT 1 FROM audit
+                        WHERE user_id = "user".id AND ip = {search_ip}
                     )
                 """)
-            )
-            params.append(application_id)
+            except ValueError:
+                try:
+                    search_net = ip_network(search, strict=False)
+                    filters.append(t"""
+                        EXISTS (
+                            SELECT 1 FROM audit
+                            WHERE user_id = "user".id AND ip <<= {search_net}
+                        )
+                    """)
+                except ValueError:
+                    pattern = f'%{search}%'
+                    filters.append(
+                        t'(email ILIKE {pattern} OR display_name ILIKE {pattern})'
+                    )
 
-        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
-        return where_clause, tuple(params)
+        if unverified:
+            filters.append(t'NOT email_verified')
+        if roles:
+            filters.append(t'roles && {roles}')
+        if created_after:
+            filters.append(t'created_at >= {created_after}')
+        if created_before:
+            filters.append(t'created_at <= {created_before}')
+        if application_id is not None:
+            filters.append(t"""
+                EXISTS (
+                    SELECT 1 FROM oauth2_token
+                    WHERE user_id = "user".id
+                    AND application_id = {application_id}
+                    AND authorized_at IS NOT NULL
+                )
+            """)
+
+        if not filters:
+            return SQL('TRUE')
+        return SQL(' AND ').join(filters)
 
     @staticmethod
     async def find_ids(
@@ -396,7 +375,7 @@ class UserQuery:
         application_id: ApplicationId | None = None,
         sort: Literal['created_asc', 'created_desc'] = 'created_desc',
     ) -> list[UserId]:
-        where_clause, params = UserQuery.where_clause(
+        where = UserQuery.where_clause(
             search=search,
             unverified=unverified,
             roles=roles,
@@ -413,15 +392,14 @@ class UserQuery:
         else:
             assert_never(sort)
 
-        query = SQL("""
+        query = t"""
             SELECT id FROM "user"
-            WHERE {where}
-            ORDER BY created_at {dir}, id {dir}
-            LIMIT %s
-        """).format(where=where_clause, dir=order_dir)
-        params = (*params, limit)
+            WHERE {where:q}
+            ORDER BY created_at {order_dir:q}, id {order_dir:q}
+            LIMIT {limit}
+        """
 
-        async with db() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query) as r:
             return [c for (c,) in await r.fetchall()]
 
     @staticmethod

@@ -1,10 +1,10 @@
 from asyncio import TaskGroup
 from collections import defaultdict
-from typing import Any
+from string.templatelib import Template
 
 import cython
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
+from psycopg.sql import SQL
 
 from app.db import db
 from app.lib.http_client import HTTPError
@@ -65,46 +65,37 @@ class DiaryQuery:
         )
 
         order_desc: cython.bint = (after is None) or (before is not None)
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         if user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(user_id)
-
+            filters.append(t'user_id = {user_id}')
         if language is not None:
-            conditions.append(SQL('language = %s'))
-            params.append(language)
-
+            filters.append(t'language = {language}')
         if before is not None:
-            conditions.append(SQL('id < %s'))
-            params.append(before)
-
+            filters.append(t'id < {before}')
         if after is not None:
-            conditions.append(SQL('id > %s'))
-            params.append(after)
+            filters.append(t'id > {after}')
 
-        query = SQL("""
+        where = SQL(' AND ').join(filters) if filters else SQL('TRUE')
+        order = SQL('DESC') if order_desc else SQL('ASC')
+
+        query = t"""
             SELECT * FROM diary
-            WHERE {where}
-            ORDER BY id {order}
-            LIMIT %s
-        """).format(
-            where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            order=SQL('DESC' if order_desc else 'ASC'),
-        )
-        params.append(limit)
+            WHERE {where:q}
+            ORDER BY id {order:q}
+            LIMIT {limit}
+        """
 
         # Always return in consistent order regardless of the query
         if not order_desc:
-            query = SQL("""
-                SELECT * FROM ({})
+            query = t"""
+                SELECT * FROM ({query:q})
                 ORDER BY id DESC
-            """).format(query)
+            """
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(query) as r,
         ):
             return await r.fetchall()  # type: ignore
 

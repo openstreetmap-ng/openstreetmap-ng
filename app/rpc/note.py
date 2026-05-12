@@ -101,7 +101,7 @@ class _Service(NoteServiceConnect):
         else:
             assert_never(request.status)
 
-        where_clause, params = NoteQuery.user_page_where(
+        where = NoteQuery.user_page_where(
             user_id,
             commented_other=request.commented,
             open=open,
@@ -111,8 +111,7 @@ class _Service(NoteServiceConnect):
             Note,
             request.state,
             table='note',
-            where=where_clause,
-            params=params,
+            where=where,
             page_size=NOTE_USER_PAGE_SIZE,
             cursor_column='updated_at',
             cursor_kind='datetime',
@@ -219,8 +218,7 @@ async def _build_comments(
         NoteComment,
         sp_state,
         table='note_comment',
-        where=SQL("note_id = %s AND event != 'opened'"),
-        params=(note_id,),
+        where=t"note_id = {note_id} AND event != 'opened'",
         page_size=NOTE_COMMENTS_PAGE_SIZE,
         order_dir='desc',
         display_dir='asc',

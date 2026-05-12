@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 from base64 import urlsafe_b64encode
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from string.templatelib import Template
 from typing import (
     Annotated,
     Any,
@@ -131,8 +130,7 @@ async def sp_paginate_table(
     /,
     *,
     table: LiteralString,
-    where: Composable = SQL('TRUE'),
-    params: tuple[Any, ...] = (),
+    where: Composable | Template = SQL('TRUE'),
     page_size: int,
     cursor_column: LiteralString = 'id',
     id_column: LiteralString = 'id',
@@ -147,14 +145,16 @@ async def sp_paginate_table(
     This is the standard entrypoint for most endpoints that paginate a table by
     some cursor column (e.g. `created_at`, `updated_at`, `display_name`) with a
     stable snapshot that prevents newly inserted rows from reshuffling results.
+
+    `where` carries its own parameter values inline (use t-string composition).
     """
+    table_id = Identifier(table)
     return await sp_paginate_query(
         row_type,
         sp_state,
         select=SQL('*'),
-        from_=Identifier(table),
+        from_=t'{table_id:i}',
         where=where,
-        params=params,
         cursor_key=cursor_column,
         id_key=id_column,
         page_size=page_size,
@@ -171,9 +171,8 @@ async def sp_paginate_query(
     /,
     *,
     select: Composable,
-    from_: Composable,
-    where: Composable = SQL('TRUE'),
-    params: tuple[Any, ...] = (),
+    from_: Composable | Template,
+    where: Composable | Template = SQL('TRUE'),
     cursor_key: LiteralString,
     id_key: LiteralString,
     page_size: int,
@@ -209,7 +208,6 @@ async def sp_paginate_query(
                 conn,
                 from_=from_,
                 where=where,
-                params=params,
                 cursor_sql=cursor_sql,
                 id_sql=id_sql,
             )
@@ -236,7 +234,6 @@ async def sp_paginate_query(
                 conn,
                 from_=from_,
                 where=where,
-                params=params,
                 cursor_sql=cursor_sql,
                 id_sql=id_sql,
                 snapshot=(snapshot_cursor_raw, snapshot_max_id),
@@ -274,7 +271,6 @@ async def sp_paginate_query(
             select=select,
             from_=from_,
             where=where,
-            params=params,
             cursor_sql=cursor_sql,
             id_sql=id_sql,
             snapshot=(snapshot_cursor_value, snapshot_max_id),
@@ -323,7 +319,6 @@ async def sp_paginate_query(
                 conn,
                 from_=from_,
                 where=where,
-                params=params,
                 cursor_sql=cursor_sql,
                 id_sql=id_sql,
                 snapshot=(snapshot_cursor_value, snapshot_max_id),
@@ -376,9 +371,8 @@ def _cursor_codec(kind: _CursorKind):
 async def _snapshot(
     conn: AsyncConnection,
     *,
-    from_: Composable,
-    where: Composable,
-    params: tuple[Any, ...],
+    from_: Composable | Template,
+    where: Composable | Template,
     cursor_sql: Composable,
     id_sql: Composable,
 ) -> tuple[Any | None, int]:
@@ -387,18 +381,11 @@ async def _snapshot(
     - snapshot_cursor: MAX(cursor_sql) (may be NULL for empty sets)
     - snapshot_max_id: MAX(id_sql) (0 for empty sets)
     """
-    query = SQL("""
-        SELECT MAX({cursor}), COALESCE(MAX({id}), 0)
-        FROM {from_}
-        WHERE {where}
-    """).format(
-        cursor=cursor_sql,
-        id=id_sql,
-        from_=from_,
-        where=where,
-    )
-
-    async with await conn.execute(query, params) as r:
+    async with await conn.execute(t"""
+        SELECT MAX({cursor_sql:i}), COALESCE(MAX({id_sql:i}), 0)
+        FROM {from_:q}
+        WHERE {where:q}
+    """) as r:
         return await r.fetchone()  # type: ignore
 
 
@@ -512,9 +499,8 @@ async def _select_page(
     conn: AsyncConnection,
     *,
     select: Composable,
-    from_: Composable,
-    where: Composable,
-    params: tuple[Any, ...],
+    from_: Composable | Template,
+    where: Composable | Template,
     cursor_sql: Composable,
     id_sql: Composable,
     snapshot: tuple[Any, int],
@@ -524,42 +510,30 @@ async def _select_page(
     if snapshot_max_id <= 0:
         return []
 
-    conditions: list[Composable] = [
-        where,
-        SQL('{} <= %s').format(id_sql),
-        SQL('({}, {}) <= (%s, %s)').format(cursor_sql, id_sql),
-    ]
-    query_params: list[Any] = [
-        *params,
-        snapshot_max_id,
-        snapshot_cursor,
-        snapshot_max_id,
-    ]
-
     if plan.anchor is not None:
         assert plan.anchor_op is not None
-        conditions.append(
-            SQL('({}, {}) {} (%s, %s)').format(cursor_sql, id_sql, SQL(plan.anchor_op))
-        )
-        query_params.extend(plan.anchor)
+        anchor_op = SQL(plan.anchor_op)
+        anchor_cursor, anchor_id = plan.anchor
+        anchor_clause: Template | Composable = t"""
+            AND ({cursor_sql:i}, {id_sql:i}) {anchor_op:q} ({anchor_cursor}, {anchor_id})
+        """
+    else:
+        anchor_clause = SQL('')
 
-    query = SQL("""
-        SELECT {select} FROM {from_}
-        WHERE {conditions}
-        ORDER BY {cursor} {dir}, {id} {dir}
-        OFFSET %s LIMIT %s
-    """).format(
-        select=select,
-        from_=from_,
-        conditions=SQL(' AND ').join(conditions),
-        cursor=cursor_sql,
-        id=id_sql,
-        dir=_order_dir_sql(plan.order_dir),
-    )
-    query_params.extend((plan.offset, plan.limit))
+    order = _order_dir_sql(plan.order_dir)
+    offset = plan.offset
+    limit = plan.limit
 
     async with (
-        await conn.cursor(row_factory=dict_row).execute(query, query_params) as r,
+        await conn.cursor(row_factory=dict_row).execute(t"""
+            SELECT {select:q} FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+              {anchor_clause:q}
+            ORDER BY {cursor_sql:i} {order:q}, {id_sql:i} {order:q}
+            OFFSET {offset} LIMIT {limit}
+        """) as r,
     ):
         return await r.fetchall()
 
@@ -567,9 +541,8 @@ async def _select_page(
 async def _count_limited(
     conn: AsyncConnection,
     *,
-    from_: Composable,
-    where: Composable,
-    params: tuple[Any, ...],
+    from_: Composable | Template,
+    where: Composable | Template,
     cursor_sql: Composable,
     id_sql: Composable,
     snapshot: tuple[Any, int],
@@ -580,38 +553,23 @@ async def _count_limited(
     if snapshot_max_id <= 0:
         return 0
 
-    query = SQL("""
+    async with await conn.execute(t"""
         SELECT COUNT(*) FROM (
-            SELECT 1 FROM {from_}
-            WHERE {where}
-              AND {id} <= %s
-              AND ({cursor}, {id}) <= (%s, %s)
-            LIMIT %s
+            SELECT 1 FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+            LIMIT {limit}
         ) AS subquery
-    """).format(
-        from_=from_,
-        where=where,
-        cursor=cursor_sql,
-        id=id_sql,
-    )
-    params = (
-        *params,
-        snapshot_max_id,
-        snapshot_cursor,
-        snapshot_max_id,
-        limit,
-    )
-
-    async with await conn.execute(query, params) as r:
+    """) as r:
         return (await r.fetchone())[0]  # type: ignore
 
 
 async def _count_beyond_limited(
     conn: AsyncConnection,
     *,
-    from_: Composable,
-    where: Composable,
-    params: tuple[Any, ...],
+    from_: Composable | Template,
+    where: Composable | Template,
     cursor_sql: Composable,
     id_sql: Composable,
     snapshot: tuple[Any, int],
@@ -628,33 +586,17 @@ async def _count_beyond_limited(
         return 0
 
     boundary_cursor, boundary_id = boundary
-    query = SQL("""
+    op = SQL(boundary_op)
+    async with await conn.execute(t"""
         SELECT COUNT(*) FROM (
-            SELECT 1 FROM {from_}
-            WHERE {where}
-              AND {id} <= %s
-              AND ({cursor}, {id}) <= (%s, %s)
-              AND ({cursor}, {id}) {op} (%s, %s)
-            LIMIT %s
+            SELECT 1 FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+              AND ({cursor_sql:i}, {id_sql:i}) {op:q} ({boundary_cursor}, {boundary_id})
+            LIMIT {limit}
         ) AS subquery
-    """).format(
-        from_=from_,
-        where=where,
-        cursor=cursor_sql,
-        id=id_sql,
-        op=SQL(boundary_op),
-    )
-    params = (
-        *params,
-        snapshot_max_id,
-        snapshot_cursor,
-        snapshot_max_id,
-        boundary_cursor,
-        boundary_id,
-        limit,
-    )
-
-    async with await conn.execute(query, params) as r:
+    """) as r:
         return (await r.fetchone())[0]  # type: ignore
 
 
@@ -730,9 +672,9 @@ def _reverse_dir(value: _OrderDir):
 
 
 @cython.cfunc
-def _order_dir_sql(value: _OrderDir):
+def _order_dir_sql(value: _OrderDir, *, _ASC=SQL('ASC'), _DESC=SQL('DESC')):
     if value == 'asc':
-        return SQL('ASC')
+        return _ASC
     if value == 'desc':
-        return SQL('DESC')
+        return _DESC
     assert_never(value)

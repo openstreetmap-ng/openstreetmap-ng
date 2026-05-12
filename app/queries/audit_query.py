@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv4Network, IPv6Address, IPv6Network
-from typing import Any
+from string.templatelib import Template
 
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
+from psycopg.sql import SQL
 
 from app.db import db
 from app.models.db.oauth2_token import OAuth2Token
@@ -180,17 +180,15 @@ class AuditQuery:
         created_before: datetime | None = None,
     ):
         """Build the WHERE clause for audit log filters."""
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         if ip is not None:
             if isinstance(ip, IPv4Network | IPv6Network):
-                conditions.append(SQL('ip BETWEEN %s AND %s'))
-                params.append(ip.network_address)
-                params.append(ip.broadcast_address)
+                net_start = ip.network_address
+                net_end = ip.broadcast_address
+                filters.append(t'ip BETWEEN {net_start} AND {net_end}')
             else:
-                conditions.append(SQL('ip = %s'))
-                params.append(ip)
+                filters.append(t'ip = {ip}')
 
         if user is not None:
             user_ids: list[UserId] = []
@@ -198,7 +196,7 @@ class AuditQuery:
             # Try to parse as user ID
             try:
                 user_ids.append(UserId(int(user)))
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 pass
 
             # Try to find by display name
@@ -207,30 +205,24 @@ class AuditQuery:
                 user_ids.append(user_by_name['id'])
 
             if not user_ids:
-                return SQL('FALSE'), ()
+                return SQL('FALSE')
 
-            conditions.append(SQL('(user_id = ANY(%s) OR target_user_id = ANY(%s))'))
-            params.append(user_ids)
-            params.append(user_ids)
+            filters.append(
+                t'(user_id = ANY({user_ids}) OR target_user_id = ANY({user_ids}))'
+            )
 
         if application_id is not None:
-            conditions.append(SQL('application_id = %s'))
-            params.append(application_id)
-
+            filters.append(t'application_id = {application_id}')
         if type is not None:
-            conditions.append(SQL('type = %s'))
-            params.append(type)
-
+            filters.append(t'type = {type}')
         if created_after is not None:
-            conditions.append(SQL('created_at >= %s'))
-            params.append(created_after)
-
+            filters.append(t'created_at >= {created_after}')
         if created_before is not None:
-            conditions.append(SQL('created_at <= %s'))
-            params.append(created_before)
+            filters.append(t'created_at <= {created_before}')
 
-        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
-        return where_clause, tuple(params)
+        if not filters:
+            return SQL('TRUE')
+        return SQL(' AND ').join(filters)
 
     @staticmethod
     async def resolve_last_activity(tokens: list[OAuth2Token]):

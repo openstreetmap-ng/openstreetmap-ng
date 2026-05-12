@@ -41,11 +41,8 @@ def format_style_context():
     if not is_modern_api:
         style = _LEGACY_EXTENSION_FORMATS.get(path.rsplit('.', 1)[-1], style)
 
-    token = _CTX.set(style)
-    try:
+    with _CTX.set(style):
         yield
-    finally:
-        _CTX.reset(token)
 
 
 def format_style():

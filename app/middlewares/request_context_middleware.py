@@ -50,12 +50,9 @@ class RequestContextMiddleware:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
 
-        token = _CTX.set(Request(scope, receive))
         audit_tasks: set[Task[None]] = set()
-        audit_tasks_token = _AUDIT_CTX.set(audit_tasks)
-        try:
-            return await self.app(scope, receive, send)
-        finally:
-            await gather(*audit_tasks, return_exceptions=True)
-            _CTX.reset(token)
-            _AUDIT_CTX.reset(audit_tasks_token)
+        with _CTX.set(Request(scope, receive)), _AUDIT_CTX.set(audit_tasks):
+            try:
+                return await self.app(scope, receive, send)
+            finally:
+                await gather(*audit_tasks, return_exceptions=True)

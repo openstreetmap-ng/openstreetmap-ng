@@ -45,7 +45,7 @@ class _Service(Service):
             _filters_parse(request.filters)
         )
 
-        where_clause, params = await OAuth2ApplicationQuery.where_clause(
+        where = await OAuth2ApplicationQuery.where_clause(
             search=search,
             owner=owner,
             interacted_user=interacted_user,
@@ -65,8 +65,7 @@ class _Service(Service):
             OAuth2Application,
             request.state,
             table='oauth2_application',
-            where=where_clause,
-            params=params,
+            where=where,
             page_size=ADMIN_APPLICATION_LIST_PAGE_SIZE,
             cursor_column='created_at',
             cursor_kind='datetime',

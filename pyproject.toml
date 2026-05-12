@@ -1,7 +1,7 @@
 [project]
 name = "openstreetmap-ng"
 version = "0.0.0"
-requires-python = "~=3.13.0"
+requires-python = "~=3.14.0"
 dependencies = [
   "Babel",
   "aioboto3",
@@ -65,8 +65,8 @@ dependencies = [
   "sizestr",
   "speedup",
   "starlette-compress",
-  "torch==2.8.0",
-  "torchvision==0.23.0",
+  "torch==2.11.0",
+  "torchvision==0.26.0",
   "totp-rs",
   "transformers[timm,vision]",
   "types-aioboto3[s3]",
@@ -99,7 +99,7 @@ exclude = [
 ]
 include = ["app", "scripts", "tests"]
 pythonPlatform = "All"
-pythonVersion = "3.13"
+pythonVersion = "3.14"
 reportConstantRedefinition = "warning"
 reportDeprecated = "warning"
 reportImplicitOverride = "warning"
@@ -150,7 +150,7 @@ extend-exclude = [
 ]
 indent-width = 4
 line-length = 88
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 exclude = ["typings/brotli/**", "typings/re2/**"]

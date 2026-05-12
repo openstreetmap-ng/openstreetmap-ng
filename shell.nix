@@ -91,11 +91,11 @@ let
       name = "python";
       paths = [
         # Enable compiler optimizations when in production
-        (if isDevelopment then python313 else python313.override { enableOptimizations = true; })
+        (if isDevelopment then python314 else python314.override { enableOptimizations = true; })
       ];
       buildInputs = [ makeWrapper ];
       postBuild = ''
-        wrapProgram "$out/bin/python3.13" \
+        wrapProgram "$out/bin/python3.14" \
           --prefix ${if stdenv.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH"} : \
           "${lib.makeLibraryPath pythonLibs}"
       '';

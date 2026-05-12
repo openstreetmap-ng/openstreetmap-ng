@@ -89,7 +89,7 @@ class OverpassQuery:
 
 
 @cython.cfunc
-def _sort_by_bounds(element: 'OverpassElement'):
+def _sort_by_bounds(element: OverpassElement):
     if element['type'] == 'node':
         return 0, -element['id']
     bounds = element['bounds']

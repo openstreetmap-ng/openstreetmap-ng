@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Any, Literal, assert_never
+from string.templatelib import Template
+from typing import Literal, assert_never
 
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
+from psycopg.sql import SQL
 
 from app.db import db
 from app.models.db.oauth2_application import OAuth2Application
@@ -108,18 +109,19 @@ class OAuth2ApplicationQuery:
         created_after: datetime | None = None,
         created_before: datetime | None = None,
     ):
-        conditions: list[Composable] = []
-        params: list[Any] = []
+        filters: list[Template] = []
 
         if search:
-            ors: list[Composable] = [SQL('name ILIKE %s'), SQL('client_id = %s')]
-            params.extend((f'%{search}%', search))
-
+            pattern = f'%{search}%'
+            ors: list[Template] = [
+                t'name ILIKE {pattern}',
+                t'client_id = {search}',
+            ]
             if search.isdigit():
-                ors.append(SQL('id = %s'))
-                params.append(int(search))
-
-            conditions.append(SQL('({})').format(SQL(' OR ').join(ors)))
+                search_id = int(search)
+                ors.append(t'id = {search_id}')
+            ors_joined = SQL(' OR ').join(ors)
+            filters.append(t'({ors_joined:q})')
 
         if owner:
             owner_ids: list[UserId] = []
@@ -127,7 +129,7 @@ class OAuth2ApplicationQuery:
             # Try to parse as user ID
             try:
                 owner_ids.append(UserId(int(owner)))
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 pass
 
             # Try to find by display name
@@ -136,10 +138,9 @@ class OAuth2ApplicationQuery:
                 owner_ids.append(user_by_name['id'])
 
             if not owner_ids:
-                return SQL('FALSE'), ()
+                return SQL('FALSE')
 
-            conditions.append(SQL('user_id = ANY(%s)'))
-            params.append(owner_ids)
+            filters.append(t'user_id = ANY({owner_ids})')
 
         if interacted_user:
             interactor_ids: list[UserId] = []
@@ -147,7 +148,7 @@ class OAuth2ApplicationQuery:
             # Try to parse as user ID
             try:
                 interactor_ids.append(UserId(int(interacted_user)))
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 pass
 
             # Try to find by display name
@@ -158,32 +159,25 @@ class OAuth2ApplicationQuery:
                 interactor_ids.append(user_by_name['id'])
 
             if not interactor_ids:
-                return SQL('FALSE'), ()
+                return SQL('FALSE')
 
-            conditions.append(
-                SQL(
-                    """
-                    EXISTS (
-                        SELECT 1 FROM oauth2_token
-                        WHERE application_id = oauth2_application.id
-                        AND user_id = ANY(%s)
-                        AND authorized_at IS NOT NULL
-                    )
-                    """
+            filters.append(t"""
+                EXISTS (
+                    SELECT 1 FROM oauth2_token
+                    WHERE application_id = oauth2_application.id
+                    AND user_id = ANY({interactor_ids})
+                    AND authorized_at IS NOT NULL
                 )
-            )
-            params.append(interactor_ids)
+            """)
 
         if created_after:
-            conditions.append(SQL('created_at >= %s'))
-            params.append(created_after)
-
+            filters.append(t'created_at >= {created_after}')
         if created_before:
-            conditions.append(SQL('created_at <= %s'))
-            params.append(created_before)
+            filters.append(t'created_at <= {created_before}')
 
-        where_clause = SQL(' AND ').join(conditions or (SQL('TRUE'),))
-        return where_clause, tuple(params)
+        if not filters:
+            return SQL('TRUE')
+        return SQL(' AND ').join(filters)
 
     @staticmethod
     async def find_ids(
@@ -196,7 +190,7 @@ class OAuth2ApplicationQuery:
         created_before: datetime | None = None,
         sort: Literal['created_asc', 'created_desc'] = 'created_desc',
     ) -> list[ApplicationId]:
-        where_clause, params = await OAuth2ApplicationQuery.where_clause(
+        where = await OAuth2ApplicationQuery.where_clause(
             search=search,
             owner=owner,
             interacted_user=interacted_user,
@@ -211,13 +205,12 @@ class OAuth2ApplicationQuery:
         else:
             assert_never(sort)
 
-        query = SQL("""
+        query = t"""
             SELECT id FROM oauth2_application
-            WHERE {where}
-            ORDER BY created_at {dir}, id {dir}
-            LIMIT %s
-        """).format(where=where_clause, dir=order_dir)
-        params = (*params, limit)
+            WHERE {where:q}
+            ORDER BY created_at {order_dir:q}, id {order_dir:q}
+            LIMIT {limit}
+        """
 
-        async with db() as conn, await conn.execute(query, params) as r:
+        async with db() as conn, await conn.execute(query) as r:
             return [c for (c,) in await r.fetchall()]
