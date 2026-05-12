@@ -32,6 +32,8 @@ const SHARE_FORMATS = [
   { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
   { mimeType: "image/png", suffix: ".png", label: "PNG" },
   { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
+  { mimeType: "image/svg+xml", suffix: ".svg", label: "SVG" },
+  { mimeType: "application/pdf", suffix: ".pdf", label: "PDF" },
 ] as const
 
 let urlMarker: Marker | null = null
