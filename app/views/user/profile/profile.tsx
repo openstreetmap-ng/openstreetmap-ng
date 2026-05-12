@@ -3,11 +3,12 @@ import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { FollowToggleForm } from "@lib/follow-toggle-form"
 import { tRich } from "@lib/i18n"
+import { imageFormDataBytes } from "@lib/image-upload"
 import { mountProtoPage } from "@lib/proto-page"
 import { PageSchema, type PageValid } from "@lib/proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@lib/proto/settings_pb"
 import { ReportButton } from "@lib/report"
-import { formDataBytes, StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@lib/standard-form"
 import type { Signal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
@@ -167,7 +168,7 @@ const BackgroundForm = ({
       class="background-form"
       method={Service.method.updateBackground}
       buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
+        backgroundFile: await imageFormDataBytes(formData, "background_file"),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
@@ -247,7 +248,7 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await imageFormDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
           return {
             avatar: {
