@@ -32,6 +32,18 @@
     font-size: 0.5em;
     cursor: help;
   }
+
+  .element-tags-section {
+    h3 {
+      font-size: 1.125rem;
+    }
+
+    textarea {
+      min-height: 8rem;
+      resize: vertical;
+      white-space: pre;
+    }
+  }
 }
 
 .action-sidebar.element-history {

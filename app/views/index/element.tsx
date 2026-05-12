@@ -1,7 +1,7 @@
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { pathParam } from "@lib/codecs"
-import { API_URL } from "@lib/config"
+import { API_URL, isLoggedIn } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -25,6 +25,7 @@ import {
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, Fragment } from "preact"
+import { useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 export const elementFocusPaint: FocusLayerPaint = {
@@ -265,6 +266,121 @@ const ElementHistoryLinks = ({ data }: { data: DataValid }) => {
   )
 }
 
+const formatTagsText = (tags: Record<string, string>) =>
+  Object.entries(tags)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n")
+
+const parseTagsDataset = (element: HTMLElement) => {
+  const rawTags = element.dataset.tags
+  if (!rawTags) return {}
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(rawTags)
+  } catch {
+    return {}
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {}
+
+  const tags: Record<string, string> = {}
+  for (const [key, value] of Object.entries(parsed)) {
+    tags[key] = String(value)
+  }
+  return tags
+}
+
+const ElementTagsSection = ({ data }: { data: DataValid }) => {
+  const { type, id } = data.ref
+  const isLatest = !data.nextVersion
+  const showEdit = isLoggedIn && data.visible && isLatest
+  const isEditing = useSignal(false)
+  const editing = showEdit && isEditing.value
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const tagCount = Object.keys(data.tags).length
+  const tagsJson = JSON.stringify(data.tags)
+
+  if (!tagCount) return null
+
+  return (
+    <div
+      class="element-tags-section mt-3"
+      data-tags={tagsJson}
+    >
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <h3 class="sidebar-title mb-0">{t("browse.tag_details.tags")}</h3>
+        {showEdit && !editing && (
+          <button
+            class="btn btn-link btn-sm p-0"
+            type="button"
+            onClick={(e) => {
+              const container = e.currentTarget.closest<HTMLElement>("[data-tags]")
+              const textarea = textareaRef.current
+              if (!container || !textarea) return
+
+              textarea.value = formatTagsText(parseTagsDataset(container))
+              isEditing.value = true
+            }}
+          >
+            Edit text
+          </button>
+        )}
+      </div>
+
+      {!editing && <Tags tags={data.tags} />}
+
+      {showEdit && (
+        <form
+          class={`element-tags-edit-form ${editing ? "" : "d-none"}`}
+          method="post"
+          action={`/api/0.7/${getElementTypeSlug(type)}/${id}`}
+        >
+          <input
+            type="hidden"
+            name="version"
+            value={data.ref.version.toString()}
+          />
+          <textarea
+            ref={textareaRef}
+            class="form-control font-monospace"
+            name="tags"
+            rows={Math.max(4, tagCount)}
+          />
+
+          <label class="form-label d-block mt-2 mb-3">
+            <span class="required">{t("action.comment")}</span>
+            <input
+              class="form-control mt-2"
+              type="text"
+              name="comment"
+              required
+            />
+          </label>
+
+          <div class="d-flex justify-content-between">
+            <button
+              class="btn btn-secondary px-3"
+              type="button"
+              onClick={(e) => {
+                e.currentTarget.form?.reset()
+                isEditing.value = false
+              }}
+            >
+              Discard
+            </button>
+            <button
+              class="btn btn-primary px-3"
+              type="submit"
+            >
+              {t("action.submit")}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
+
 const ElementSidebar = ({
   map,
   type,
@@ -348,7 +464,7 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <ElementTagsSection data={d} />
 
               {hasRelations && (
                 <div class="elements mt-3">
