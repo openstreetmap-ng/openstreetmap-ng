@@ -101,7 +101,13 @@ const PhoneLink = ({ text }: { text: string }) => {
   )
 }
 
-const WikipediaLink = ({ keyParts, text }: { keyParts: string[]; text: string }) => {
+const WikipediaLink = ({
+  keyParts,
+  text,
+}: {
+  keyParts: string[]
+  text: string
+}) => {
   let lang = "en"
   for (const part of keyParts) {
     if (WIKI_LANG_RE.test(part)) {
@@ -327,8 +333,8 @@ const computeDiffRows = (
 ) => {
   const rows: DiffRow[] = []
   const deleted: DiffRow[] = []
-  const allKeys = union(Object.keys(tags), Object.keys(tagsOld ?? {})).sort((a, b) =>
-    a.localeCompare(b),
+  const allKeys = union(Object.keys(tags), Object.keys(tagsOld ?? {})).sort(
+    (a, b) => a.localeCompare(b),
   )
 
   for (const key of allKeys) {
@@ -348,7 +354,12 @@ const computeDiffRows = (
         status,
       })
     } else if (diff && oldValue !== undefined) {
-      deleted.push({ key, value: oldValue, oldValue: undefined, status: "deleted" })
+      deleted.push({
+        key,
+        value: oldValue,
+        oldValue: undefined,
+        status: "deleted",
+      })
     }
   }
   return [...rows, ...deleted]
@@ -367,7 +378,10 @@ export const Tags = ({
   if (!rows.length) return null
 
   return (
-    <div class="tags">
+    <div
+      class="tags"
+      data-tags={JSON.stringify(tags)}
+    >
       <table class="table table-sm">
         <tbody dir="auto">
           {rows.map((row) => (
