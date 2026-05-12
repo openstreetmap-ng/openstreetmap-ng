@@ -31,16 +31,15 @@ from app.models.proto.diary_pb2 import (
     GetPageResponse,
     GetUserCommentsPageRequest,
     GetUserCommentsPageResponse,
-    UpdateSubscriptionRequest,
-    UpdateSubscriptionResponse,
 )
+from app.models.proto.shared_pb2 import StandardPaginationRequest
 from app.models.types import DiaryId, LocaleCode, UserId
 from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
+from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.diary_comment_service import DiaryCommentService
 from app.services.diary_service import DiaryService
-from app.services.user_subscription_service import UserSubscriptionService
 
 
 class _Service(Service):
@@ -81,7 +80,7 @@ class _Service(Service):
         response = GetPageResponse()
         response.state.CopyFrom(state)
         for diary in diaries:
-            _build_entry(response.diaries.add(), diary)
+            build_entry(response.diaries.add(), diary)
         return response
 
     @override
@@ -90,28 +89,9 @@ class _Service(Service):
         request: GetCommentsRequest,
         ctx: RequestContext,
     ):
-        diary_id = DiaryId(request.diary_id)
-
-        comments, state = await sp_paginate_table(
-            DiaryComment,
-            request.state,
-            table='diary_comment',
-            where=SQL('diary_id = %s'),
-            params=(diary_id,),
-            page_size=DIARY_COMMENTS_PAGE_SIZE,
-            order_dir='desc',
-            display_dir='asc',
+        return await _build_get_comments_response(
+            request.state, DiaryId(request.diary_id)
         )
-
-        async with TaskGroup() as tg:
-            tg.create_task(UserQuery.resolve_users(comments))
-            tg.create_task(diary_comments_resolve_rich_text(comments))
-
-        response = GetCommentsResponse()
-        response.state.CopyFrom(state)
-        for comment in comments:
-            _build_comment(response.comments.add(), comment)
-        return response
 
     @override
     async def get_user_comments_page(
@@ -177,34 +157,70 @@ class _Service(Service):
         return DeleteResponse()
 
     @override
-    async def update_subscription(
-        self,
-        request: UpdateSubscriptionRequest,
-        ctx: RequestContext,
-    ):
-        require_web_user()
-
-        diary_id = DiaryId(request.diary_id)
-        if request.is_subscribed:
-            await UserSubscriptionService.subscribe('diary', diary_id)
-        else:
-            await UserSubscriptionService.unsubscribe('diary', diary_id)
-
-        return UpdateSubscriptionResponse()
-
-    @override
     async def add_comment(
         self,
         request: AddCommentRequest,
         ctx: RequestContext,
     ):
         require_web_user()
-        await DiaryCommentService.comment(DiaryId(request.diary_id), request.body)
-        return AddCommentResponse()
+        diary_id = DiaryId(request.diary_id)
+        await DiaryCommentService.comment(diary_id, request.body)
+        # Refresh entry + first comments page in parallel so the response carries
+        # fresh state and the client can update in-place (no remount/refetch).
+        async with TaskGroup() as tg:
+            entry_task = tg.create_task(_build_entry_for_id(diary_id))
+            comments_task = tg.create_task(
+                _build_get_comments_response(StandardPaginationRequest(), diary_id)
+            )
+        return AddCommentResponse(
+            entry=entry_task.result(),
+            comments=comments_task.result(),
+        )
 
 
 service = _Service()
 asgi_app_cls = ServiceASGIApplication
+
+
+async def _build_get_comments_response(
+    state_request: StandardPaginationRequest, diary_id: DiaryId
+):
+    comments, state = await sp_paginate_table(
+        DiaryComment,
+        state_request,
+        table='diary_comment',
+        where=SQL('diary_id = %s'),
+        params=(diary_id,),
+        page_size=DIARY_COMMENTS_PAGE_SIZE,
+        order_dir='desc',
+        display_dir='asc',
+    )
+
+    async with TaskGroup() as tg:
+        tg.create_task(UserQuery.resolve_users(comments))
+        tg.create_task(diary_comments_resolve_rich_text(comments))
+
+    response = GetCommentsResponse()
+    response.state.CopyFrom(state)
+    for comment in comments:
+        _build_comment(response.comments.add(), comment)
+    return response
+
+
+async def _build_entry_for_id(diary_id: DiaryId):
+    diary = await DiaryQuery.find_by_id(diary_id)
+    if diary is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, 'Diary not found')
+    async with TaskGroup() as tg:
+        diaries = [diary]
+        tg.create_task(UserQuery.resolve_users(diaries))
+        tg.create_task(diaries_resolve_rich_text(diaries))
+        tg.create_task(DiaryQuery.resolve_location_name(diaries))
+        tg.create_task(DiaryCommentQuery.resolve_num_comments(diaries))
+        tg.create_task(UserSubscriptionQuery.resolve_is_subscribed('diary', diaries))
+    entry = Entry()
+    build_entry(entry, diary)
+    return entry
 
 
 @cython.cfunc
@@ -230,7 +246,7 @@ def _add_user_comments_entries(
         entry.body_rich = comment['body_rich']  # type: ignore
 
 
-def _build_entry(result: Entry, diary: Diary):
+def build_entry(result: Entry, diary: Diary):
     point = diary['point']
     result.id = diary['id']
     result.user.CopyFrom(user_proto(diary['user']))  # type: ignore
@@ -239,11 +255,11 @@ def _build_entry(result: Entry, diary: Diary):
     result.updated_at = int(diary['updated_at'].timestamp())
     result.language = diary['language']
     result.body_rich = diary['body_rich']  # type: ignore
-    if (location_name := diary.get('location_name')) is not None:
-        result.location_name = location_name
     if point is not None:
-        result.location.lon = point.x
-        result.location.lat = point.y
+        result.location.coords.lon = point.x
+        result.location.coords.lat = point.y
+        if (location_name := diary.get('location_name')) is not None:
+            result.location.name = location_name
     result.num_comments = diary['num_comments']  # type: ignore
     result.is_subscribed = 'is_subscribed' in diary
 

@@ -16,6 +16,10 @@ export const relativeTimeFormat = memoize(
   { getKey: (...args) => JSON.stringify(args) },
 )
 
+// NOTE: ideally we should fix translations
+const _STRIP_SPECIAL_RE = /^[!?:;., ]+|[!?:;., ]+$/g
+export const stripSpecial = (value: string) => value.replace(_STRIP_SPECIAL_RE, "")
+
 export const formatShortDate = (dateIso: string) =>
   dateTimeFormat(primaryLanguage, {
     day: "numeric",

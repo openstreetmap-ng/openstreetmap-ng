@@ -25,8 +25,6 @@ from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.types import ASGIApp
 from starlette_compress import CompressMiddleware
 
-import app.lib.cython_detect  # DO NOT REMOVE
-import app.lib.sentry
 from app.config import (
     COMPRESS_HTTP_BROTLI_QUALITY,
     COMPRESS_HTTP_GZIP_LEVEL,
@@ -36,6 +34,7 @@ from app.config import (
     NAME,
 )
 from app.db import psycopg_pool_open
+from app.lib import cython_detect, sentry  # noqa: F401  DO NOT REMOVE
 from app.lib.http_client import HTTP, HTTP_INTERNAL
 from app.lib.starlette_convertor import ElementTypeConvertor
 from app.lib.user_name_blacklist import user_name_blacklist_routes

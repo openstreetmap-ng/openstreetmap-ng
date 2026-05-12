@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package user_subscription;
+
+import "buf/validate/validate.proto";
+
+enum Target {
+  changeset = 0;
+  diary = 1;
+  note = 2;
+  user = 3;
+}
+
+service Service {
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
+}
+
+message UpdateRequest {
+  Target target = 1 [(buf.validate.field).enum.defined_only = true];
+  uint64 target_id = 2 [(buf.validate.field).uint64.gt = 0];
+  bool is_subscribed = 3;
+}
+
+message UpdateResponse {}

@@ -50,7 +50,7 @@
 .admin_users\.EditPage,
 .admin-user-edit-body,
 .admin_applications\.Page,
-.oauth-authorize-body {
+.oauth2_authorize\.Page {
   .scope {
     @extend .text-body-tertiary;
 

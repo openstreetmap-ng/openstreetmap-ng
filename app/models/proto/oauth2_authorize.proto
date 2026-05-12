@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package oauth2_authorize;
+
+import "app/models/proto/shared.proto";
+import "buf/validate/validate.proto";
+
+enum ResponseType {
+  code = 0;
+}
+
+enum ResponseMode {
+  query = 0;
+  fragment = 1;
+  form_post = 2;
+}
+
+enum CodeChallengeMethod {
+  plain = 0;
+  S256 = 1;
+}
+
+message Page {
+  OAuth2ApplicationSummary app = 1 [(buf.validate.field).required = true];
+  repeated Scope scopes = 2;
+  string redirect_uri = 3;
+  uint64 created_at = 4; // app's creation time, displayed in consent UI
+}
+
+service Service {
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse) {}
+}
+
+message AuthorizeRequest {
+  message Pkce {
+    CodeChallengeMethod method = 1 [(buf.validate.field).enum.defined_only = true];
+    string challenge = 2 [(buf.validate.field).string.min_len = 1];
+  }
+
+  // The original consent-screen query params, echoed back so the server
+  // re-derives the same authorization context the user just approved.
+  string client_id = 1 [(buf.validate.field).string.min_len = 1];
+  string redirect_uri = 2 [(buf.validate.field).string.min_len = 1];
+  ResponseType response_type = 3 [(buf.validate.field).enum.defined_only = true];
+  optional ResponseMode response_mode = 4 [(buf.validate.field).enum.defined_only = true];
+  string scope = 5;
+  optional Pkce pkce = 6;
+  optional string state = 7 [(buf.validate.field).string.min_len = 1];
+}
+
+message AuthorizeResponse {
+  message FormPost {
+    string action_url = 1;
+    map<string, string> fields = 2;
+  }
+
+  oneof outcome {
+    option (buf.validate.oneof).required = true;
+    // Browser should navigate to this URL (query or fragment response_mode).
+    string redirect_uri = 1;
+    // Render OOB code inline so the user can copy it.
+    string oob_code = 2;
+    // Build and auto-submit a POST form with these fields (form_post response_mode).
+    FormPost form_post = 3;
+  }
+}

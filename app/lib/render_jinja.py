@@ -139,12 +139,6 @@ def b64(value: bytes):
     return urlsafe_b64encode(value).rstrip(b'=').decode()
 
 
-# TODO: ideally we should fix translation
-def stripspecial(value: str):
-    """Strip special characters from the given string."""
-    return value.strip('!?:;., ')
-
-
 # configure template globals
 _J2.globals.update(
     format_rfc2822_date=format_rfc2822_date,
@@ -161,5 +155,4 @@ _J2.globals.update(
 # configure template filters
 _J2.filters.update(
     b64=b64,
-    stripspecial=stripspecial,
 )

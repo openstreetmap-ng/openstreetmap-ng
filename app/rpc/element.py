@@ -134,7 +134,7 @@ class _Service(Service):
         if state.snapshot_max_id == 0:
             raise_for.element_not_found(tid)
 
-        at_sequence_id: SequenceId = state.u64.snapshot  # type: ignore
+        at_sequence_id = SequenceId(state.u64.snapshot)
 
         num_items = state.snapshot_max_id
         state.known_total.num_items = num_items

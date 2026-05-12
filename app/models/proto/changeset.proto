@@ -19,10 +19,6 @@ service Service {
   }
 
   rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
-
-  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
-    option idempotency_level = IDEMPOTENT;
-  }
 }
 
 message GetMapRequest {
@@ -96,13 +92,6 @@ message AddCommentResponse {
   Data changeset = 1 [(buf.validate.field).required = true];
   GetCommentsResponse comments = 2 [(buf.validate.field).required = true];
 }
-
-message UpdateSubscriptionRequest {
-  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
-  bool is_subscribed = 2;
-}
-
-message UpdateSubscriptionResponse {}
 
 message Data {
   message Element {

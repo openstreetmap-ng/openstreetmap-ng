@@ -41,8 +41,6 @@ from app.models.proto.note_pb2 import (
     GetResponse,
     GetUserPageRequest,
     GetUserPageResponse,
-    UpdateSubscriptionRequest,
-    UpdateSubscriptionResponse,
 )
 from app.models.proto.shared_pb2 import LonLat
 from app.models.types import NoteId, UserId
@@ -51,7 +49,6 @@ from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.note_service import NoteService
-from app.services.user_subscription_service import UserSubscriptionService
 
 
 class _Service(NoteServiceConnect):
@@ -166,20 +163,6 @@ class _Service(NoteServiceConnect):
             comments_t = tg.create_task(_build_comments(id))
 
         return AddCommentResponse(note=note_t.result(), comments=comments_t.result())
-
-    @override
-    async def update_subscription(
-        self, request: UpdateSubscriptionRequest, ctx: RequestContext
-    ):
-        require_web_user()
-
-        id = NoteId(request.id)
-        if request.is_subscribed:
-            await UserSubscriptionService.subscribe('note', id)
-        else:
-            await UserSubscriptionService.unsubscribe('note', id)
-
-        return UpdateSubscriptionResponse()
 
 
 service = _Service()

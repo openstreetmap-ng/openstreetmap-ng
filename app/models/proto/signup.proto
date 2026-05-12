@@ -21,7 +21,8 @@ message SubmitRequest {
     max_len: 255
   }];
   string email = 2 [(buf.validate.field).string = {
-    min_len: 1
+    email: true
+    min_len: 5
     max_len: 254
   }];
   auth.TransmitUserPassword password = 3 [(buf.validate.field).required = true];

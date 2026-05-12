@@ -2,10 +2,24 @@ syntax = "proto3";
 
 package follow;
 
+import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
+
+enum Tab {
+  followers = 0;
+  following = 1;
+}
+
+message IndexPage {
+  uint32 followers_count = 1;
+  uint32 following_count = 2;
+}
 
 service Service {
   rpc Update(UpdateRequest) returns (UpdateResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
 }
 
 message UpdateRequest {
@@ -14,3 +28,19 @@ message UpdateRequest {
 }
 
 message UpdateResponse {}
+
+message ListRequest {
+  StandardPaginationRequest state = 1;
+  Tab tab = 2 [(buf.validate.field).enum.defined_only = true];
+}
+
+message ListResponse {
+  message Entry {
+    User user = 1 [(buf.validate.field).required = true];
+    uint64 since = 2;
+    bool is_following = 3;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry entries = 2;
+}

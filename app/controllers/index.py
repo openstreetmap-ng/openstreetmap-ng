@@ -6,17 +6,21 @@ from starlette import status
 from starlette.responses import RedirectResponse, Response
 
 from app.lib.auth_context import auth_user, web_user
-from app.lib.local_chapters import LOCAL_CHAPTERS
-from app.lib.locale import DEFAULT_LOCALE, is_installed_locale
+from app.lib.locale import is_installed_locale
 from app.lib.referrer import secure_referrer
-from app.lib.render_jinja import render_jinja
 from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import primary_translation_locale, t, translation_context
+from app.lib.translation import t, translation_context
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.middlewares.headers_middleware import CSP_HEADER
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
+from app.models.proto.about_pb2 import Page as AboutPage
+from app.models.proto.communities_pb2 import Page as CommunitiesPage
+from app.models.proto.copyright_pb2 import Page as CopyrightPage
+from app.models.proto.fixthemap_pb2 import Page as FixthemapPage
+from app.models.proto.help_pb2 import Page as HelpPage
 from app.models.proto.login_pb2 import Page as LoginPage
+from app.models.proto.welcome_pb2 import Page as WelcomePage
 from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
@@ -46,18 +50,8 @@ router = APIRouter()
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
 @router.get('/distance')
-async def index(
-    *,
-    unsubscribe_target: UserSubscriptionTarget | None = None,
-    unsubscribe_id: UserSubscriptionTargetId | None = None,
-):
-    return await render_response(
-        'index/index',
-        {
-            'unsubscribe_target': unsubscribe_target,
-            'unsubscribe_id': unsubscribe_id,
-        },
-    )
+async def index():
+    return await render_response('index/index')
 
 
 @router.get('/changeset/{changeset_id:int}/unsubscribe')
@@ -113,9 +107,7 @@ async def _get_unsubscribe(
         return RedirectResponse(
             f'/{unsubscribe_target}/{unsubscribe_id}', status.HTTP_303_SEE_OTHER
         )
-    return await index(
-        unsubscribe_target=unsubscribe_target, unsubscribe_id=unsubscribe_id
-    )
+    return await index()
 
 
 async def _post_unsubscribe(
@@ -133,69 +125,48 @@ async def _post_unsubscribe(
 
 @router.get('/communities')
 async def communities():
-    return await render_response('communities', {'local_chapters': LOCAL_CHAPTERS})
+    return await render_proto_page(
+        CommunitiesPage(),
+        title_prefix=t('layouts.communities'),
+    )
 
 
 @router.get('/copyright/{locale:str}')
 async def copyright_i18n(locale: LocaleCode):
     if not is_installed_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
-
     with translation_context(locale):
         title = t('layouts.copyright')
-        copyright_translated_title = t('site.copyright.legal_babble.title_html')
-        copyright_content = render_jinja('copyright/_content')
-
-    primary_locale = primary_translation_locale()
-    show_notice = locale != primary_locale or primary_locale != DEFAULT_LOCALE
-
-    return await render_response(
-        'copyright/copyright',
-        {
-            'title': title,
-            'copyright_content': copyright_content,
-            'copyright_translated_title': copyright_translated_title,
-            'show_notice': show_notice,
-        },
-    )
+    return await render_proto_page(CopyrightPage(), title_prefix=title)
 
 
 @router.get('/copyright')
 async def copyright_():
-    return await copyright_i18n(locale=primary_translation_locale())
+    return await render_proto_page(CopyrightPage(), title_prefix=t('layouts.copyright'))
 
 
 @router.get('/about/{locale:str}')
 async def about_i18n(locale: LocaleCode):
     if not is_installed_locale(locale):
         return Response(None, status.HTTP_404_NOT_FOUND)
-
     with translation_context(locale):
         title = t('layouts.about')
-        about_content = render_jinja('about/_content')
-
-    return await render_response(
-        'about/about',
-        {
-            'title': title,
-            'about_content': about_content,
-        },
-    )
+    return await render_proto_page(AboutPage(), title_prefix=title)
 
 
 @router.get('/about')
 async def about():
-    return await about_i18n(locale=primary_translation_locale())
+    return await render_proto_page(AboutPage(), title_prefix=t('layouts.about'))
 
 
 @router.get('/help')
 async def help_():
-    return await render_response('help')
+    return await render_proto_page(HelpPage(), title_prefix=t('layouts.help'))
 
 
 @router.get('/fixthemap')
 async def fixthemap():
-    return await render_response('fixthemap')
+    return await render_proto_page(FixthemapPage(), title_prefix=t('fixthemap.title'))
 
 
 @router.get('/login')
@@ -207,7 +178,7 @@ async def login(referer: Annotated[str | None, Query()] = None):
 
 @router.get('/welcome')
 async def welcome(_: Annotated[User, web_user()]):
-    return await render_response('welcome')
+    return await render_proto_page(WelcomePage(), title_prefix=t('site.welcome.title'))
 
 
 _EXPORT_EMBED_CSP_HEADER = CSP_HEADER.replace('frame-ancestors', 'frame-ancestors *', 1)

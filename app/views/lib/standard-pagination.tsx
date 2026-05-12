@@ -6,20 +6,12 @@ import {
   STANDARD_PAGINATION_DISTANCE,
   STANDARD_PAGINATION_MAX_FULL_PAGES,
 } from "@lib/config"
-import { resolveDatetimeLazy } from "@lib/datetime-inputs"
-import { createDisposeScope, useDisposeSignalEffect } from "@lib/dispose-scope"
-import {
-  type StandardPaginationRequest,
-  StandardPaginationRequestSchema,
-  type StandardPaginationState,
-  StandardPaginationStateSchema,
+import { useDisposeSignalEffect } from "@lib/dispose-scope"
+import type {
+  StandardPaginationRequest,
+  StandardPaginationState,
 } from "@lib/proto/shared_pb"
-import {
-  connectErrorToMessage,
-  fromBase64Valid,
-  type LooseMessageInitShape,
-  rpcUnary,
-} from "@lib/rpc"
+import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@lib/rpc"
 import {
   currentUrlSignal,
   readUrlQueryParam,
@@ -31,38 +23,18 @@ import {
   batch,
   type ReadonlySignal,
   type Signal,
-  signal,
   useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
-import { assert } from "@std/assert"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
-import { render } from "preact"
-
-const SP_HEADER = "X-StandardPagination"
 
 export enum PageOrder {
   asc,
   asc_range,
   desc,
   desc_range,
-}
-
-type StandardPaginationOptions = {
-  initialPage?: number
-  loadCallback?: (renderContainer: HTMLElement, page: number) => void
-  pageOrder?: PageOrder
-  urlKey?: string
-}
-
-type StandardPaginationElements = {
-  actionPagination: HTMLUListElement
-  paginationContainers: HTMLUListElement[]
-  renderContainer: HTMLElement
-  numItemsTargets: Element[]
-  numPagesTargets: Element[]
 }
 
 type PaginationResponse = {
@@ -572,252 +544,6 @@ export const StandardPagination = <I extends DescMessage, O extends DescMessage>
   />
 )
 
-// TODO: start of remove
-export const configureStandardPagination = (
-  container: Element | null,
-  options?: StandardPaginationOptions,
-) => {
-  if (!container) return () => {}
-
-  const elements = resolvePaginationElements(container)
-  return configureStandardPaginationElements(elements, options)
-}
-
-const configureStandardPaginationElements = (
-  elements: StandardPaginationElements,
-  options?: StandardPaginationOptions,
-) => {
-  const {
-    actionPagination,
-    paginationContainers,
-    renderContainer,
-    numItemsTargets,
-    numPagesTargets,
-  } = elements
-  const {
-    initialPage = 1,
-    loadCallback,
-    pageOrder = PageOrder.asc,
-    urlKey,
-  } = options ?? {}
-  const fetchUrl = actionPagination.dataset.action!
-  const resolvedInitialPage = urlKey ? (getUrlPage(urlKey) ?? initialPage) : initialPage
-
-  console.debug("Pagination: Initializing", fetchUrl)
-
-  const scope = createDisposeScope()
-  scope.defer(() => {
-    for (const paginationContainer of paginationContainers)
-      render(null, paginationContainer)
-  })
-
-  const targetPage = signal(resolvedInitialPage)
-  const currentPage = signal(targetPage.value)
-  const state = signal<StandardPaginationState | null>(null)
-  const setTargetPage = (page: number, urlMode?: UrlUpdateMode) => {
-    if (urlKey && urlMode) updateUrlPage(urlKey, page, urlMode)
-    targetPage.value = page
-  }
-
-  let firstLoad = true
-  let didInitialJump = false
-
-  const renderStatus = (content: ComponentChildren) => {
-    if (renderContainer.tagName === "TBODY") {
-      render(
-        <tr>
-          <td
-            colSpan={99}
-            class="p-0"
-          >
-            {content}
-          </td>
-        </tr>,
-        renderContainer,
-      )
-    } else if (renderContainer.tagName === "UL" || renderContainer.tagName === "OL") {
-      render(<li class="list-unstyled">{content}</li>, renderContainer)
-    } else {
-      render(content, renderContainer)
-    }
-  }
-
-  const setPendingState = (pending: boolean) => {
-    renderContainer.style.opacity = !firstLoad && pending ? "0.5" : ""
-
-    if (!(firstLoad && pending)) return
-    firstLoad = false
-
-    renderStatus(<PaginationSpinner />)
-  }
-
-  const afterLoad = (page: number) => {
-    resolveDatetimeLazy(renderContainer)
-    loadCallback?.(renderContainer, page)
-  }
-
-  scope.effect(() => {
-    if (!urlKey) return
-    const page = readUrlQueryParam(urlKey, PAGE_QUERY, currentUrlSignal.value)
-    const resolvedPage = page ?? 1
-    if (targetPage.peek() !== resolvedPage) targetPage.value = resolvedPage
-  })
-
-  // Effect: Load and render page content when targetPage changes (fetches or uses cache)
-  scope.effect(() => {
-    const targetPageValue = targetPage.value
-    const targetPageString = targetPageValue.toString()
-
-    console.debug("Pagination: Loading page", targetPageString)
-    const abortController = new AbortController()
-    setPendingState(true)
-
-    const fetchPage = async () => {
-      try {
-        const baseState = state.peek()
-        const resp = await fetch(
-          fetchUrl,
-          buildFetchInit(baseState, targetPageValue, abortController.signal),
-        )
-        assert(resp.ok, `Pagination: ${resp.status} ${resp.statusText}`)
-
-        const parsed = parsePaginationHeader(resp.headers)
-        applyState(parsed, state, currentPage)
-
-        let skipRender = false
-        if (!didInitialJump && resolvedInitialPage !== 1) {
-          didInitialJump = true
-          const maxPage = paginationMaxPage(parsed)
-          const resolvedPage = Math.min(resolvedInitialPage, maxPage)
-          if (resolvedPage !== parsed.currentPage) {
-            if (urlKey) updateUrlPage(urlKey, resolvedPage, "replace")
-            // Avoid rendering an intermediate "page 1" snapshot when we immediately
-            // jump to another page after receiving the initial pagination state.
-            batch(() => {
-              currentPage.value = resolvedPage
-              targetPage.value = resolvedPage
-            })
-            skipRender = true
-          }
-        }
-
-        if (!skipRender) {
-          render(null, renderContainer)
-          renderContainer.innerHTML = await resp.text()
-          afterLoad(parsed.currentPage)
-        }
-        console.debug("Pagination: Page loaded", targetPageString)
-      } catch (error) {
-        if (error.name === "AbortError") return
-        console.error(
-          "Pagination: Failed to load page",
-          targetPageString,
-          fetchUrl,
-          error,
-        )
-        render(null, renderContainer)
-        renderStatus(<PaginationError error={error.message} />)
-      } finally {
-        setPendingState(false)
-      }
-    }
-    void fetchPage()
-
-    return () => abortController.abort()
-  })
-
-  // Effect: Rebuild pagination UI buttons when page counts or current page changes
-  scope.effect(() => {
-    const currentState = state.value
-    const numPagesValue = paginationNumPages(currentState)
-    const maxPageValue = paginationMaxPage(currentState)
-    const showTailEllipsis = currentState !== null && numPagesValue === undefined
-    if ((numPagesValue ?? maxPageValue) <= 1) {
-      for (const paginationContainer of paginationContainers) {
-        paginationContainer.hidden = true
-        render(null, paginationContainer)
-      }
-      return
-    }
-
-    for (const paginationContainer of paginationContainers) {
-      paginationContainer.hidden = false
-      render(
-        <PaginationItems
-          setTargetPage={(page) => setTargetPage(page, "push")}
-          currentPage={currentPage}
-          maxPage={maxPageValue}
-          numPages={numPagesValue}
-          numItems={paginationNumItems(currentState)}
-          pageSize={currentState?.pageSize}
-          pageOrder={pageOrder}
-          showTailEllipsis={showTailEllipsis}
-        />,
-        paginationContainer,
-      )
-    }
-  })
-
-  // Effect: Update pagination meta targets (num items/pages)
-  scope.effect(() => {
-    const currentState = state.value
-    const numItemsValue = paginationNumItems(currentState)
-    const numPagesValue = paginationNumPages(currentState)
-
-    if (numItemsValue !== undefined) {
-      for (const element of numItemsTargets) {
-        element.textContent = numItemsValue.toString()
-      }
-    }
-    if (numPagesValue !== undefined) {
-      for (const element of numPagesTargets) {
-        element.textContent = numPagesValue.toString()
-      }
-    }
-  })
-
-  return scope.dispose
-}
-
-const resolvePaginationElements = (container: Element): StandardPaginationElements => {
-  const actionPagination = container.querySelector("ul.pagination[data-action]")!
-  const actionNav = actionPagination.closest("nav")!
-  const paginationRoot = actionNav.parentElement!
-  const paginationContainers = [
-    ...paginationRoot.querySelectorAll(":scope > nav > ul.pagination"),
-  ]
-
-  const renderSibling = (actionNav.previousElementSibling ??
-    paginationRoot.previousElementSibling) as HTMLElement
-
-  const renderContainer = renderSibling.matches("tbody, ul.list-unstyled")
-    ? renderSibling
-    : (renderSibling.querySelector("tbody, ul.list-unstyled") ?? renderSibling)
-
-  const numItemsTargets = [...container.querySelectorAll("[data-sp-num-items]")]
-  const numPagesTargets = [...container.querySelectorAll("[data-sp-num-pages]")]
-
-  return {
-    actionPagination,
-    paginationContainers,
-    renderContainer,
-    numItemsTargets,
-    numPagesTargets,
-  }
-}
-// TODO: end of remove
-
-const applyState = (
-  value: StandardPaginationState,
-  state: Signal<StandardPaginationState | null>,
-  currentPageSignal: Signal<number>,
-) => {
-  batch(() => {
-    state.value = value
-    currentPageSignal.value = value.currentPage
-  })
-}
-
 const computePagesToRender = (
   currentPage: number,
   maxPage: number,
@@ -855,30 +581,3 @@ const formatPageLabel = (
   if (itemMax === itemMin) return itemMax.toString()
   return isDesc ? `${itemMax}‐${itemMin}` : `${itemMin}‐${itemMax}`
 }
-
-const buildFetchInit = (
-  baseState: StandardPaginationState | null,
-  requestedPage: number,
-  abortSignal: AbortSignal,
-) => {
-  const fetchInit: RequestInit = {
-    signal: abortSignal,
-    priority: "high",
-    method: "POST",
-  }
-
-  if (baseState !== null || requestedPage !== 1) {
-    const requestBytes = toBinary(
-      StandardPaginationRequestSchema,
-      paginationRequest(requestedPage, baseState === null ? undefined : baseState),
-    )
-    fetchInit.body = new Blob([requestBytes], {
-      type: "application/x-protobuf",
-    })
-  }
-
-  return fetchInit
-}
-
-const parsePaginationHeader = (headers: Headers) =>
-  fromBase64Valid(StandardPaginationStateSchema, headers.get(SP_HEADER)!)

@@ -5,6 +5,7 @@ import type { ApplicationValid, TokenValid } from "@lib/proto/settings_applicati
 import { EditPageSchema, Role, Service } from "@lib/proto/admin_users_pb"
 import { mountProtoPage } from "@lib/proto-page"
 import { StandardForm } from "@lib/standard-form"
+import { UserLink } from "@lib/user-link"
 import { throwAbortError } from "@lib/utils"
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
@@ -28,9 +29,9 @@ const ApplicationEntry = ({ entry }: { entry: ApplicationValid }) => (
     avatarUrl={entry.avatarUrl}
     name={entry.name}
     timestamp={
-      entry.authorizedAt
-        ? { kind: "authorized", unix: entry.authorizedAt }
-        : { kind: "created", unix: entry.createdAt! }
+      entry.time.case === "authorizedAt"
+        ? { kind: "authorized", unix: entry.time.value }
+        : { kind: "created", unix: entry.time.value! }
     }
     descriptionExtra={
       entry.owner ? (
@@ -329,22 +330,20 @@ mountProtoPage(
 
             <div class="row mb-3">
               <div class="col-auto">
-                <a href={`/user-id/${account.value.id}`}>
-                  <img
-                    class="avatar"
-                    src={account.value.avatarUrl}
-                    alt={t("alt.profile_picture")}
-                  />
-                </a>
+                <UserLink
+                  user={account.value}
+                  admin
+                  showName={false}
+                />
               </div>
               <div class="col">
                 <h1 class="mb-2">
-                  <a
+                  <UserLink
                     class="link-body-emphasis text-decoration-none"
-                    href={`/user-id/${account.value.id}`}
-                  >
-                    {account.value.displayName}
-                  </a>
+                    user={account.value}
+                    admin
+                    showAvatar={false}
+                  />
                 </h1>
                 <div class="d-flex flex-wrap gap-3 text-body-secondary">
                   <span>

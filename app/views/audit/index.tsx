@@ -12,6 +12,7 @@ import {
 } from "@lib/proto/audit_pb"
 import { defineProtoQueryContract } from "@lib/query-contract"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { useUrlQueryState } from "@lib/url-signals"
 import { UserAgentIcons } from "@lib/user-agent-icons"
 import { formatPackedIp } from "@lib/utils"
@@ -38,27 +39,19 @@ const UserCell = ({ event }: { event: EventValid }) => {
 
   return (
     <>
-      <a href={`/user-id/${user.id}`}>
-        <img
-          class="avatar me-1-5"
-          src={user.avatarUrl}
-          alt={t("alt.profile_picture")}
-          loading="lazy"
-        />
-        <span class="display-name">{user.displayName}</span>
-      </a>
+      <UserLink
+        user={user}
+        admin
+        avatarClass="me-1-5"
+      />
       {targetUser && (
         <>
           <i class="bi bi-arrow-right-short me-1" />
-          <a href={`/user-id/${targetUser.id}`}>
-            <img
-              class="avatar me-1-5"
-              src={targetUser.avatarUrl}
-              alt={t("alt.profile_picture")}
-              loading="lazy"
-            />
-            <span class="display-name">{targetUser.displayName}</span>
-          </a>
+          <UserLink
+            user={targetUser}
+            admin
+            avatarClass="me-1-5"
+          />
         </>
       )}
     </>

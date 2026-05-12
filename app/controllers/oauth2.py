@@ -1,8 +1,8 @@
 from base64 import b64decode
 from binascii import Error as BinasciiError
-from typing import Annotated, get_args
+from typing import Annotated, assert_never, get_args
 
-from fastapi import APIRouter, Form, Header, Query, Request, Response
+from fastapi import APIRouter, Form, Header, Query, Response
 from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
@@ -10,8 +10,13 @@ from starlette.responses import RedirectResponse
 from app.config import APP_URL, ENV, OAUTH_CODE_CHALLENGE_MAX_LENGTH
 from app.lib.auth_context import api_user, web_user
 from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_response
-from app.models.db.oauth2_application import OAuth2Uri
+from app.lib.render_response import render_proto_page, render_response
+from app.lib.translation import t
+from app.models.db.oauth2_application import (
+    OAuth2Application,
+    OAuth2Uri,
+    oauth2_app_avatar_url,
+)
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,
     OAuth2GrantType,
@@ -20,7 +25,9 @@ from app.models.db.oauth2_token import (
     OAuth2TokenEndpointAuthMethod,
     OAuth2TokenOOB,
 )
-from app.models.db.user import User, user_avatar_url
+from app.models.db.user import User, user_avatar_url, user_proto
+from app.models.proto.oauth2_authorize_pb2 import Page as AuthorizePage
+from app.models.proto.shared_pb2 import OAuth2ApplicationSummary, Scope
 from app.models.scope import PUBLIC_SCOPES, scope_from_str
 from app.models.types import ClientId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
@@ -74,9 +81,62 @@ async def openid_configuration() -> OpenIDDiscovery:
 
 
 @router.get('/oauth2/authorize')
-@router.post('/oauth2/authorize')
 async def authorize(
-    request: Request,
+    _: Annotated[User, web_user()],
+    client_id: Annotated[ClientId, Query(min_length=1)],
+    redirect_uri: Annotated[OAuth2Uri, Query(min_length=1)],
+    response_type: Annotated[OAuth2ResponseType, Query()],
+    scope: Annotated[str, Query()] = '',
+    code_challenge_method: Annotated[OAuth2CodeChallengeMethod | None, Query()] = None,
+    code_challenge: Annotated[
+        str | None, Query(min_length=1, max_length=OAUTH_CODE_CHALLENGE_MAX_LENGTH)
+    ] = None,
+    state: Annotated[str | None, Query(min_length=1)] = None,
+):
+    """
+    Render the OAuth2 consent UI. The response_mode parameter is intentionally
+    not consumed here: it round-trips to the client via the URL query string and
+    is sent back through the Authorize RPC when the user approves.
+    """
+    if response_type != 'code':
+        assert_never(response_type)
+
+    scopes = scope_from_str(scope)
+    auth_result = await OAuth2TokenService.authorize(
+        init=True,
+        client_id=client_id,
+        redirect_uri=redirect_uri,
+        scopes=scopes,
+        code_challenge_method=code_challenge_method,
+        code_challenge=code_challenge,
+        state=state,
+    )
+
+    # init=True path always returns the OAuth2Application — render the consent UI.
+    app: OAuth2Application = auth_result  # type: ignore[assignment]
+    assert 'redirect_uris' in app, 'init=True must return OAuth2Application'
+    await UserQuery.resolve_users([app])
+    owner = app['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+
+    page = AuthorizePage(
+        app=OAuth2ApplicationSummary(
+            id=app['id'],
+            name=app['name'],
+            avatar_url=oauth2_app_avatar_url(app),
+            owner=user_proto(owner),
+        ),
+        scopes=[Scope.Value(s) for s in scopes],
+        redirect_uri=redirect_uri,
+        created_at=int(app['created_at'].timestamp()),
+    )
+    return await render_proto_page(
+        page,
+        title_prefix=t('oauth.authorization_request_app', name=app['name']),
+    )
+
+
+@router.post('/oauth2/authorize')
+async def authorize_post(
     _: Annotated[User, web_user()],
     client_id: Annotated[ClientId, Query(min_length=1)],
     redirect_uri: Annotated[OAuth2Uri, Query(min_length=1)],
@@ -89,12 +149,17 @@ async def authorize(
     ] = None,
     state: Annotated[str | None, Query(min_length=1)] = None,
 ):
+    """
+    Spec-compliant POST entry point for non-browser OAuth2 clients (CLI tools,
+    OAuth2 libraries). Browser flows go through the consent-screen TSX page +
+    the oauth2_authorize.Service/Authorize RPC instead.
+    """
     if response_type != 'code':
-        raise NotImplementedError(f'Unsupported response type {response_type!r}')
+        assert_never(response_type)
 
     scopes = scope_from_str(scope)
     auth_result = await OAuth2TokenService.authorize(
-        init=request.method == 'GET',
+        init=False,
         client_id=client_id,
         redirect_uri=redirect_uri,
         scopes=scopes,
@@ -113,14 +178,7 @@ async def authorize(
             response.headers['Test-OAuth2-Authorization-Code'] = authorization_code
         return response
 
-    if 'redirect_uris' in auth_result:  # is OAuth2Application
-        await UserQuery.resolve_users([auth_result])
-        return await render_response(
-            'oauth2/authorize',
-            {'app': auth_result, 'scopes': scopes, 'redirect_uri': redirect_uri},
-        )
-
-    if response_mode in {'query', 'fragment'}:
+    if response_mode in ('query', 'fragment'):
         is_fragment = response_mode == 'fragment'
         final_uri = extend_query_params(redirect_uri, auth_result, fragment=is_fragment)
         return RedirectResponse(final_uri, status.HTTP_303_SEE_OTHER)
@@ -131,7 +189,7 @@ async def authorize(
             {'redirect_uri': redirect_uri, 'auth_result': auth_result},
         )
 
-    raise NotImplementedError(f'Unsupported response mode {response_mode!r}')
+    assert_never(response_mode)
 
 
 @router.post('/oauth2/token')
@@ -147,7 +205,7 @@ async def post_token(
     authorization: Annotated[str | None, Header(min_length=1)] = None,
 ):
     if grant_type != 'authorization_code':
-        raise NotImplementedError(f'Unsupported grant type {grant_type!r}')
+        assert_never(grant_type)
 
     if client_id is None and client_secret is None and authorization is not None:
         scheme, _, param = authorization.partition(' ')

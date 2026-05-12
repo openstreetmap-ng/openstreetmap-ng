@@ -53,7 +53,7 @@ export const AuthProviderIcon = ({
 
   return iconStyle ? (
     <i
-      class={`${baseClass} auth-provider-icon-bi${iconStyle.backed ? " auth-provider-icon-backed" : ""} bi bi-${providerName}`}
+      class={`${baseClass} auth-provider-icon-bi ${iconStyle.backed ? "auth-provider-icon-backed" : ""} bi bi-${providerName}`}
       style={
         {
           "--auth-provider-icon-color": iconStyle.color,

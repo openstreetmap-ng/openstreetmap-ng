@@ -1,3 +1,4 @@
+import { useDisposeEffect } from "@lib/dispose-scope"
 import {
   PageSchema,
   Service,
@@ -9,7 +10,6 @@ import { rpcUnary } from "@lib/rpc"
 import { StandardForm } from "@lib/standard-form"
 import { useSignal } from "@preact/signals"
 import { SECOND } from "@std/datetime/constants"
-import { useEffect } from "preact/hooks"
 import { Nav } from "../settings/_nav"
 
 const AdminTaskCard = ({
@@ -84,12 +84,9 @@ mountProtoPage(PageSchema, () => {
     tasks.value = resp.tasks
   }
 
-  useEffect(() => {
+  useDisposeEffect((scope) => {
     void refresh()
-    const interval = setInterval(() => {
-      void refresh()
-    }, 20 * SECOND)
-    return () => clearInterval(interval)
+    scope.every(20 * SECOND, () => void refresh())
   }, [])
 
   return (

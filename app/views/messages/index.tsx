@@ -9,12 +9,12 @@ import {
   IndexPageSchema,
   Service,
 } from "@lib/proto/message_pb"
-import type { UserValid } from "@lib/proto/shared_pb"
 import { defineQueryContract } from "@lib/query-contract"
 import { ReportButton } from "@lib/report"
 import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
+import { UserLink } from "@lib/user-link"
 import { StandardPagination } from "@lib/standard-pagination"
-import { type QueryContractSignal, useUrlQueryState } from "@lib/url-signals"
+import { type QueryContractSignal, usePathSuffixQueryState } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
 import { batch, type ReadonlySignal, useSignal } from "@preact/signals"
 import { t } from "i18next"
@@ -37,34 +37,18 @@ const getQueryWithoutShow = (query: MessageQuery) => {
   return page === undefined ? {} : { page }
 }
 
-const UserAvatarImg = ({ user, title }: { user: UserValid; title?: string }) => (
-  <img
-    class="avatar"
-    src={user.avatarUrl}
-    alt={t("alt.profile_picture")}
-    loading="lazy"
-    title={title}
-  />
-)
-
-const SummaryUserLink = ({ user }: { user: UserValid }) => (
-  <a href={`/user/${user.displayName}`}>
-    <UserAvatarImg user={user} />
-    {user.displayName}
-  </a>
-)
-
 const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid }) => {
   if (message.recipientsCount <= 1) {
-    return <SummaryUserLink user={message.recipients[0]!} />
+    return <UserLink user={message.recipients[0]!} />
   }
 
   return (
     <span class="recipients-group">
       {message.recipients.map((recipient) => (
-        <UserAvatarImg
+        <UserLink
           key={recipient.id}
           user={recipient}
+          showName={false}
           title={recipient.displayName}
         />
       ))}
@@ -112,7 +96,7 @@ const MessagesListItem = ({
       <p class="header text-muted d-flex justify-content-between">
         {inbox ? (
           <span>
-            <SummaryUserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
+            <UserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
             <Time
               unix={message.createdAt}
               relativeStyle="long"
@@ -249,14 +233,16 @@ const MessagePreview = ({
             {message && (
               <>
                 <div class="message-sender d-flex">
-                  <UserAvatarImg user={sender!} />
+                  <UserLink
+                    user={sender!}
+                    showName={false}
+                  />
                   <div>
-                    <a
+                    <UserLink
                       class="d-inline-block"
-                      href={`/user/${sender!.displayName}`}
-                    >
-                      {sender!.displayName}
-                    </a>
+                      user={sender!}
+                      showAvatar={false}
+                    />
                     <div>
                       <Time
                         unix={message.createdAt}
@@ -270,7 +256,7 @@ const MessagePreview = ({
                   <span class="small text-muted me-2">{t("messages.to_prefix")}:</span>
                   <div class="message-recipients">
                     {message.recipients.map((recipient) => (
-                      <SummaryUserLink
+                      <UserLink
                         key={recipient.id}
                         user={recipient}
                       />
@@ -347,9 +333,14 @@ const MessagePreview = ({
 }
 
 mountProtoPage(IndexPageSchema, () => {
-  const inbox = window.location.pathname.endsWith("/inbox")
+  const route = usePathSuffixQueryState(
+    { inbox: "/inbox", outbox: "/outbox" },
+    MESSAGE_QUERY,
+    { defaultKey: "inbox" },
+  )
+  const inbox = route.value === "inbox"
+  const query = route.query
   const messages = useSignal<GetPageResponse_SummaryValid[]>([])
-  const query = useUrlQueryState(MESSAGE_QUERY)
   const previewState = useSignal<PreviewState>({ status: "loading" })
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) =>

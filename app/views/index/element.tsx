@@ -13,6 +13,7 @@ import {
 } from "@lib/proto/element_pb"
 import { type ElementIconValid, ElementType } from "@lib/proto/shared_pb"
 import { PageOrder, StandardPaginationNav } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import {
@@ -157,19 +158,7 @@ export const ElementMeta = ({ data }: { data: DataValid }) => {
     <div class="social-entry">
       <p class="header text-muted d-flex justify-content-between">
         <span>
-          {user ? (
-            <a href={`/user/${user.displayName}`}>
-              <img
-                class="avatar"
-                src={user.avatarUrl}
-                alt={t("alt.profile_picture")}
-                loading="lazy"
-              />
-              {user.displayName}
-            </a>
-          ) : (
-            t("browse.anonymous")
-          )}{" "}
+          {user ? <UserLink user={user} /> : t("browse.anonymous")}{" "}
           {data.visible ? t("action.edited") : t("action.deleted")}{" "}
           <Time
             unix={changeset.createdAt}

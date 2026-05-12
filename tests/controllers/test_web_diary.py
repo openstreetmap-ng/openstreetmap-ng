@@ -1,8 +1,5 @@
-from base64 import urlsafe_b64decode
-
 from httpx import AsyncClient
 from psycopg.rows import dict_row
-from re2 import search
 
 from app.db import db
 from app.models.proto.diary_pb2 import (
@@ -13,12 +10,7 @@ from app.models.proto.diary_pb2 import (
 )
 from app.models.types import DiaryId
 from app.queries.diary_query import DiaryQuery
-
-
-def _diary_state(html: str):
-    match = search(r'data-state="([^"]+)"', html)
-    assert match is not None
-    return DetailsPage.FromString(urlsafe_b64decode(match.group(1) + '=='))
+from tests.utils.page_state import decode_page_state
 
 
 async def _create_diary(
@@ -65,7 +57,7 @@ async def test_diary_lifecycle_with_image_proxy(client: AsyncClient):
     # Stage 2: Fetch diary page like a browser would
     r = await client.get(f'/diary/{diary_id}')
     assert r.is_success, r.text
-    state = _diary_state(r.text)
+    state = decode_page_state(r.text, DetailsPage)
 
     # Verify title and image proxy in page state
     assert state.entry.title == 'Test Diary'
@@ -110,7 +102,7 @@ async def test_diary_lifecycle_with_image_proxy(client: AsyncClient):
     # Stage 5: Fetch updated diary page
     r = await client.get(f'/diary/{diary_id}')
     assert r.is_success, r.text
-    state = _diary_state(r.text)
+    state = decode_page_state(r.text, DetailsPage)
 
     # Verify updated content and same proxy still used
     assert state.entry.title == 'Updated Title'

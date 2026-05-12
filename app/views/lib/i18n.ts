@@ -59,8 +59,8 @@ const interleaveTokens = (
   return result.length === 1 ? result[0] : result
 }
 
-export const tRich = (key: string, options?: Record<string, unknown>) => {
-  if (!options) return t(key)
+export const tRich = (key: string, options?: Record<string, unknown>, lng?: string) => {
+  if (!options) return lng ? t(key, { lng }) : t(key)
 
   const replacements = new Map<string, ComponentChild>()
   let tokenIndex = 0
@@ -72,8 +72,22 @@ export const tRich = (key: string, options?: Record<string, unknown>) => {
     return [name, token]
   })
 
-  const translated = t(key, tokenized)
+  const translated = lng ? t(key, { ...tokenized, lng }) : t(key, tokenized)
   // oxlint-disable-next-line typescript/no-base-to-string
   const content = typeof translated === "string" ? translated : String(translated)
   return interleaveTokens(content, replacements)
+}
+
+/**
+ * Bind `t()` and `tRich()` to a specific locale. Returns a pair of helpers
+ * with the same shape as the originals; when `lng` is undefined, falls back
+ * to the user's primary locale (i.e. behaves identically to `t`/`tRich`).
+ */
+export const i18nLocale = (lng: string | undefined) => {
+  if (!lng) return { t, tRich }
+  return {
+    t: (key: string, options?: Record<string, unknown>) =>
+      t(key, options ? { ...options, lng } : { lng }),
+    tRich: (key: string, options?: Record<string, unknown>) => tRich(key, options, lng),
+  }
 }

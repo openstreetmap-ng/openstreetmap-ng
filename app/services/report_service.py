@@ -1,6 +1,6 @@
 import logging
 from asyncio import TaskGroup
-from typing import Any
+from typing import Any, assert_never
 
 import cython
 from psycopg import AsyncConnection, IsolationLevel
@@ -18,11 +18,7 @@ from app.models.db.report_comment import (
     report_comments_resolve_rich_text,
 )
 from app.models.proto.admin_users_types import Role
-from app.models.proto.report_types import (
-    CreateRequest_Action,
-    CreateRequest_Category,
-    CreateRequest_Type,
-)
+from app.models.proto.report_types import Action, Category, Type
 from app.models.types import ReportId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.diary_query import DiaryQuery
@@ -40,12 +36,12 @@ class ReportService:
     @staticmethod
     async def create_report(
         *,
-        type: CreateRequest_Type,
+        type: Type,
         type_id: ReportTypeId,
-        action: CreateRequest_Action,
+        action: Action,
         action_id: ReportActionId,
         body: str,
-        category: CreateRequest_Category,
+        category: Category,
     ) -> ReportId:
         if action == 'comment' and not body:
             raise ValueError('Comment body cannot be empty')
@@ -316,7 +312,7 @@ class ReportService:
 
 
 @cython.cfunc
-def _category_to_visibility(category: CreateRequest_Category) -> Role:
+def _category_to_visibility(category: Category) -> Role:
     if category == 'privacy':
         return 'administrator'
 
@@ -325,9 +321,9 @@ def _category_to_visibility(category: CreateRequest_Category) -> Role:
 
 
 async def _validate_integrity(
-    type: CreateRequest_Type,
+    type: Type,
     type_id: ReportTypeId,
-    action: CreateRequest_Action,
+    action: Action,
     action_id: ReportActionId,
 ):
     if type == 'user':
@@ -335,7 +331,7 @@ async def _validate_integrity(
     elif type == 'anonymous_note':
         assert action == 'generic'
     else:
-        raise NotImplementedError(f'Unsupported report type {type!r}')
+        assert_never(type)
 
     if action == 'user_changeset':
         assert action_id is not None

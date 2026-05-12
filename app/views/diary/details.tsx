@@ -1,8 +1,8 @@
 import { config } from "@lib/config"
 import { mountProtoPage } from "@lib/proto-page"
 import { DetailsPageSchema } from "@lib/proto/diary_pb"
+import { UserLink } from "@lib/user-link"
 import { EntryCard, EntryMeta } from "./_entry"
-import { t } from "i18next"
 import { DiaryTab, Nav } from "./_nav"
 
 mountProtoPage(DetailsPageSchema, ({ entry }) => (
@@ -11,13 +11,10 @@ mountProtoPage(DetailsPageSchema, ({ entry }) => (
       <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
         <div class="row mb-3">
           <div class="col-auto">
-            <a href={`/user/${entry.user.displayName}`}>
-              <img
-                class="avatar"
-                src={entry.user.avatarUrl}
-                alt={t("alt.profile_picture")}
-              />
-            </a>
+            <UserLink
+              user={entry.user}
+              showName={false}
+            />
           </div>
           <div class="col">
             <h2>{entry.title}</h2>

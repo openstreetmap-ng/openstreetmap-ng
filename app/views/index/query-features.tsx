@@ -12,7 +12,8 @@ import {
 } from "@lib/map/layers/layers"
 import { convertRenderElementsData } from "@lib/map/render-objects"
 import type { LonLat, LonLatZoom } from "@lib/map/state"
-import { type NearbyResponse_ResultValid, Service } from "@lib/proto/query_features_pb"
+import type { NearbyMatchValid } from "@lib/proto/element_pb"
+import { Service } from "@lib/proto/query_features_pb"
 import { setPageTitle } from "@lib/title"
 import { type ReadonlySignal, useComputed, useSignalEffect } from "@preact/signals"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
@@ -71,7 +72,7 @@ const QueryFeaturesResultsList = ({
   results,
 }: {
   map: MaplibreMap
-  results: NearbyResponse_ResultValid[]
+  results: NearbyMatchValid[]
 }) => {
   const focusEntries = results.map((entry) => convertRenderElementsData(entry.render))
 

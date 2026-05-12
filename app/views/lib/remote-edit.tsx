@@ -99,12 +99,12 @@ export const openRemoteEdit = async ({
 export const RemoteEditButton = ({
   state,
   onBeforeOpen,
-  class: className = "",
+  class: className,
   children,
 }: {
   state: ReadonlySignal<LonLatZoom>
-  onBeforeOpen?: () => void
-  class?: string
+  onBeforeOpen: () => void
+  class: string
   children: ComponentChildren
 }) => {
   const pending = useSignal(false)
@@ -113,7 +113,7 @@ export const RemoteEditButton = ({
     if (pending.value) return
     pending.value = true
     try {
-      onBeforeOpen?.()
+      onBeforeOpen()
       await openRemoteEdit({
         state: state.value,
         target: routerRemoteEditTarget.value,

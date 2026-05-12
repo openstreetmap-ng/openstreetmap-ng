@@ -1,9 +1,7 @@
-from base64 import urlsafe_b64decode
 from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
-from re2 import search
 
 from app.models.proto.trace_pb2 import (
     DetailsPage,
@@ -16,14 +14,9 @@ from app.models.proto.trace_pb2 import (
     Visibility,
 )
 from app.models.proto.trace_types import Visibility as TraceVisibility
+from tests.utils.page_state import decode_page_state
 
 _GPX_BYTES = Path('tests/data/8473730.gpx').read_bytes()
-
-
-def _trace_state(html: str, message_cls):
-    match = search(r'data-state="([^"]*)"', html)
-    assert match is not None
-    return message_cls.FromString(urlsafe_b64decode(match.group(1) + '=='))
 
 
 async def _upload_trace(
@@ -86,19 +79,19 @@ async def test_trace_controller_flow(client: AsyncClient):
 
     r = await client.get('/traces')
     assert r.is_success, r.text
-    state = _trace_state(r.text, IndexPage)
+    state = decode_page_state(r.text, IndexPage)
     assert state.WhichOneof('owner') is None
 
     r = await client.get('/user/user1/traces')
     assert r.is_success, r.text
-    state = _trace_state(r.text, IndexPage)
+    state = decode_page_state(r.text, IndexPage)
     assert state.WhichOneof('owner') == 'self'
 
     client.headers.pop('Authorization')
 
     r = await client.get('/user/user1/traces')
     assert r.is_success, r.text
-    state = _trace_state(r.text, IndexPage)
+    state = decode_page_state(r.text, IndexPage)
     assert state.WhichOneof('owner') == 'profile'
     assert state.profile.display_name == 'user1'
 
@@ -106,11 +99,11 @@ async def test_trace_controller_flow(client: AsyncClient):
 
     r = await client.get('/trace/upload')
     assert r.is_success, r.text
-    _trace_state(r.text, UploadPage)
+    decode_page_state(r.text, UploadPage)
 
     r = await client.get(f'/trace/{trace_id}')
     assert r.is_success, r.text
-    details = _trace_state(r.text, DetailsPage)
+    details = decode_page_state(r.text, DetailsPage)
     assert details.trace.id == trace_id
     assert details.trace.user.display_name == 'user1'
     assert details.trace.metadata.description == 'test_trace_controller_flow'
@@ -118,7 +111,7 @@ async def test_trace_controller_flow(client: AsyncClient):
 
     r = await client.get(f'/trace/{trace_id}/edit')
     assert r.is_success, r.text
-    edit = _trace_state(r.text, EditPage)
+    edit = decode_page_state(r.text, EditPage)
     assert edit.trace.id == trace_id
     assert edit.trace.metadata.name == 'test_trace_controller_flow.gpx'
     assert edit.trace.metadata.description == 'test_trace_controller_flow'

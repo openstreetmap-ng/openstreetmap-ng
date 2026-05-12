@@ -9,8 +9,13 @@ import type {
   GetCommentsResponseValid,
 } from "@lib/proto/diary_pb"
 import { Service } from "@lib/proto/diary_pb"
+import {
+  Service as SubscriptionService,
+  Target as SubscriptionTarget,
+} from "@lib/proto/user_subscription_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
+import { UserLink } from "@lib/user-link"
 import { StandardPagination } from "@lib/standard-pagination"
 import type { Signal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
@@ -128,16 +133,7 @@ const DiaryCommentItem = ({ comment }: { comment: CommentValid }) => (
     class="social-entry"
   >
     <p class="header text-muted">
-      <a href={`/user/${comment.user.displayName}`}>
-        <img
-          class="avatar"
-          src={comment.user.avatarUrl}
-          alt={t("alt.profile_picture")}
-          loading="lazy"
-        />
-        {comment.user.displayName}
-      </a>{" "}
-      {t("action.commented")}{" "}
+      <UserLink user={comment.user} /> {t("action.commented")}{" "}
       <Time
         unix={comment.createdAt}
         relativeStyle="long"
@@ -160,7 +156,7 @@ const DiaryCommentsContent = ({
   onNumCommentsChange: ((numComments: number) => void) | undefined
 }) => {
   const isSubscribed = useSignal(entry.isSubscribed)
-  const reloadKey = useSignal(0)
+  const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
   return (
     <div class="pt-3">
@@ -171,9 +167,10 @@ const DiaryCommentsContent = ({
         {isLoggedIn && (
           <div class="col-auto">
             <StandardForm
-              method={Service.method.updateSubscription}
+              method={SubscriptionService.method.update}
               buildRequest={() => ({
-                diaryId: entry.id,
+                target: SubscriptionTarget.diary,
+                targetId: entry.id,
                 isSubscribed: !isSubscribed.value,
               })}
               onSuccess={(_, ctx) => {
@@ -200,15 +197,15 @@ const DiaryCommentsContent = ({
       </div>
 
       <StandardPagination
-        key={reloadKey.value}
         method={Service.method.getComments}
         request={{ diaryId: entry.id }}
         small
         navTop
         navClassBottom="mb-0"
         ariaLabel={t("alt.comments_page_navigation")}
+        responseSignal={preloadedComments}
       >
-        {(data: GetCommentsResponseValid) => (
+        {(data) => (
           <ul class="social-list-sm list-unstyled mb-2">
             {data.comments.map((comment) => (
               <DiaryCommentItem
@@ -227,11 +224,10 @@ const DiaryCommentsContent = ({
             diaryId: entry.id,
             body: formData.get("body") as string,
           })}
-          onSuccess={() => {
-            const nextNumComments = numComments.value + 1
-            numComments.value = nextNumComments
-            onNumCommentsChange?.(nextNumComments)
-            reloadKey.value++
+          onSuccess={(result) => {
+            numComments.value = result.entry.numComments
+            onNumCommentsChange?.(result.entry.numComments)
+            preloadedComments.value = result.comments
           }}
           resetOnSuccess
           class="comment-form"
@@ -271,8 +267,8 @@ const DiaryCommentsContent = ({
 }
 
 const getLocationText = (entry: EntryValid) => {
-  const location = entry.location
-  return location ? formatPoint([location.lon, location.lat], 5) : ""
+  const coords = entry.location?.coords
+  return coords ? formatPoint([coords.lon, coords.lat], 5) : ""
 }
 
 export const EntryMeta = ({
@@ -286,20 +282,12 @@ export const EntryMeta = ({
 }) => (
   <>
     <p class={className}>
-      <a
-        href={`/user/${entry.user.displayName}`}
+      <UserLink
+        user={entry.user}
         rel="author"
-      >
-        {showAvatar && (
-          <img
-            class="avatar d-md-none"
-            src={entry.user.avatarUrl}
-            alt={t("alt.profile_picture")}
-            loading="lazy"
-          />
-        )}
-        {entry.user.displayName}
-      </a>{" "}
+        showAvatar={showAvatar}
+        avatarClass="d-md-none"
+      />{" "}
       {t("action.posted")}{" "}
       <Time
         unix={entry.createdAt}
@@ -460,16 +448,16 @@ export const EntryCard = ({
             </div>
           )}
 
-          {entry.location && (
+          {entry.location?.coords && (
             <p class="diary-location fw-medium mb-3">
               <i class="bi bi-compass" />
               {t("diary_entries.form.location")}:{" "}
               <a
-                href={`/?mlat=${entry.location.lat.toFixed(5)}&mlon=${entry.location.lon.toFixed(5)}&zoom=14`}
+                href={`/?mlat=${entry.location.coords.lat.toFixed(5)}&mlon=${entry.location.coords.lon.toFixed(5)}&zoom=14`}
                 target="_blank"
               >
-                {entry.locationName ? (
-                  <abbr title={locationText}>{entry.locationName}</abbr>
+                {entry.location.name ? (
+                  <abbr title={locationText}>{entry.location.name}</abbr>
                 ) : (
                   locationText
                 )}

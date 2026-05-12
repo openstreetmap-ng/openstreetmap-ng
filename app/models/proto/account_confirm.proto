@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package account_confirm;
+
+import "app/models/proto/shared.proto";
+
+message Page {}
+
+service Service {
+  rpc Resend(ResendRequest) returns (ResendResponse) {}
+}
+
+message ResendRequest {}
+
+message ResendResponse {
+  StandardFeedbackDetail feedback = 1;
+  // True when the account is already verified — TSX should redirect to /welcome.
+  bool is_active = 2;
+}

@@ -2,8 +2,14 @@ from typing import NamedTuple
 
 from psycopg.sql import SQL, Identifier
 
+from app.config import FOLLOWS_LIST_PAGE_SIZE
 from app.db import db
 from app.lib.auth_context import auth_user
+from app.lib.standard_pagination import (
+    StandardPaginationRequestLike,
+    sp_paginate_query,
+)
+from app.models.db.user_follow import UserFollow
 from app.models.types import UserId
 
 
@@ -59,6 +65,53 @@ class UserFollowQuery:
             ) as r,
         ):
             return (await r.fetchone())[0]  # type: ignore
+
+    @staticmethod
+    async def paginate(
+        user_id: UserId,
+        sp_state: StandardPaginationRequestLike,
+        *,
+        followers: bool,
+    ):
+        """
+        Paginate either users followed by `user_id` (followers=False, "following")
+        or users that follow `user_id` (followers=True, "followers").
+
+        Returned rows include `is_following` indicating whether `user_id` follows
+        each row's user — i.e. on the followers tab this signals mutual follow.
+        """
+        join_column = Identifier('follower_id' if followers else 'followee_id')
+        where_column = Identifier('followee_id' if followers else 'follower_id')
+
+        return await sp_paginate_query(
+            UserFollow,
+            sp_state,
+            select=SQL("""
+                u.id,
+                u.display_name,
+                u.avatar_type,
+                u.avatar_id,
+                uf.created_at,
+                EXISTS (
+                    SELECT 1 FROM user_follow
+                    WHERE follower_id = uf.{}
+                      AND followee_id = u.id
+                ) AS is_following
+            """).format(where_column),
+            from_=SQL("""
+                user_follow uf
+                JOIN "user" u ON u.id = uf.{}
+            """).format(join_column),
+            where=SQL('uf.{} = %s').format(where_column),
+            params=(user_id,),
+            cursor_sql=Identifier('uf', 'created_at'),
+            id_sql=Identifier('u', 'id'),
+            cursor_key='created_at',
+            id_key='id',
+            page_size=FOLLOWS_LIST_PAGE_SIZE,
+            cursor_kind='datetime',
+            order_dir='desc',
+        )
 
     @staticmethod
     async def get_followee_ids(user_id: UserId) -> list[UserId]:

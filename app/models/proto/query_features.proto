@@ -17,14 +17,5 @@ message NearbyRequest {
 }
 
 message NearbyResponse {
-  message Result {
-    ElementType type = 1;
-    uint64 id = 2;
-    string prefix = 3;
-    optional string display_name = 4;
-    optional ElementIcon icon = 5;
-    element.RenderData render = 6 [(buf.validate.field).required = true];
-  }
-
-  repeated Result results = 1;
+  repeated element.NearbyMatch results = 1;
 }

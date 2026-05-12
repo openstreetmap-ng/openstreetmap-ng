@@ -63,7 +63,7 @@ type PathSuffixQueryState<
   ) => string
 }
 
-const usePathSuffixSwitch = <
+export const usePathSuffixSwitch = <
   const TVariants extends Readonly<Record<string, PathSuffix>>,
 >(
   variants: TVariants,
@@ -135,6 +135,9 @@ export const usePathSuffixQueryState = <
     options?.queryMode === undefined ? undefined : { mode: options.queryMode },
   )
 
+  // Capture the underlying path-only href before we shadow it on the merged
+  // object below — otherwise the new `href` would recurse into itself.
+  const pathHref = path.href
   const href = (
     nextKey: keyof TVariants & string,
     hrefOptions?: { query?: QueryContractEncodeInput<C>; hash?: string },
@@ -144,7 +147,7 @@ export const usePathSuffixQueryState = <
         ? query.value
         : ({ ...query.value, ...hrefOptions.query } as QueryContractEncodeInput<C>)
     const search = contract.encode(nextQuery)
-    return path.href(
+    return pathHref(
       nextKey,
       hrefOptions?.hash === undefined ? { search } : { search, hash: hrefOptions.hash },
     )

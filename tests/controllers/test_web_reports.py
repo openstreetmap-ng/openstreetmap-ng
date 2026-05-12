@@ -43,19 +43,3 @@ async def test_profile_report(client: AsyncClient):
     # Verify email contents
     assert f'/user-id/{user2["id"]}' in message['HTML']
     assert test_message in message['Text']
-
-    # Now authenticate as moderator to view reports page
-    client.headers['Authorization'] = 'User moderator'
-
-    # Get the first page of reports
-    r = await client.post(
-        '/api/web/reports/page',
-        params={'status': ''},
-        headers={'Content-Type': 'application/x-protobuf'},
-    )
-    assert r.is_success, r.text
-
-    # Verify the page contents
-    assert f'/user-id/{user1["id"]}' in r.text
-    assert f'/user-id/{user2["id"]}' in r.text
-    assert test_message in r.text

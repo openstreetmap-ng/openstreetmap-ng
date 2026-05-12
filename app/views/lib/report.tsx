@@ -1,10 +1,5 @@
 import { REPORT_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
-import {
-  CreateRequest_Action,
-  CreateRequest_Category,
-  CreateRequest_Type,
-  Service,
-} from "@lib/proto/report_pb"
+import { Action, Category, Service, Type } from "@lib/proto/report_pb"
 import { StandardForm } from "@lib/standard-form"
 import { computed, signal, useSignalEffect } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
@@ -14,9 +9,9 @@ import type { HTMLAttributes, TargetedMouseEvent } from "preact"
 import { render } from "preact"
 import { useId, useRef } from "preact/hooks"
 
-type ReportType = keyof typeof CreateRequest_Type
-type ReportAction = keyof typeof CreateRequest_Action
-type ReportCategory = keyof typeof CreateRequest_Category
+type ReportType = keyof typeof Type
+type ReportAction = keyof typeof Action
+type ReportCategory = keyof typeof Category
 
 interface ReportData {
   type: ReportType
@@ -72,12 +67,11 @@ const ReportModal = () => {
             buildRequest={({ formData }) => {
               const { type, typeId, action, actionId } = reportData.value!
               return {
-                type: CreateRequest_Type[type],
+                type: Type[type],
                 typeId,
-                action: CreateRequest_Action[action],
+                action: Action[action],
                 actionId,
-                category:
-                  CreateRequest_Category[formData.get("category") as ReportCategory],
+                category: Category[formData.get("category") as ReportCategory],
                 body: formData.get("body") as string,
               }
             }}

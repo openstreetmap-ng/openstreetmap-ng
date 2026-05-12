@@ -53,17 +53,15 @@ const getEditorImage = (editor: Editor) => {
 const EditorImg = ({
   editor,
   variant,
-  className = "",
 }: {
   editor: Editor
   variant: "primary" | "dropdown"
-  className?: string
 }) => {
   const { src, name, darkInvert } = getEditorImage(editor)
 
   return (
     <img
-      class={darkInvert ? `${className} dark-filter-invert` : className}
+      class={darkInvert ? "dark-filter-invert" : undefined}
       src={src}
       alt={t("alt.logo", { name })}
       loading={variant === "dropdown" ? "lazy" : undefined}

@@ -92,13 +92,6 @@ message Filters {
 }
 
 message Event {
-  message Application {
-    uint64 id = 1;
-    string name = 2;
-    string avatar_url = 3;
-    optional User owner = 4;
-  }
-
   uint64 id = 1;
   Type type = 2 [(buf.validate.field).enum.defined_only = true];
   uint64 created_at = 3;
@@ -106,6 +99,6 @@ message Event {
   optional string user_agent = 5;
   optional User user = 6;
   optional User target_user = 7;
-  optional Application application = 8;
+  optional OAuth2ApplicationSummary application = 8;
   optional string extra = 9;
 }

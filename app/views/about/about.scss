@@ -1,6 +1,6 @@
 $_icon-color: var(--bs-tertiary-color);
 
-.about-body {
+.about\.Page {
   .content-header {
     padding: 0;
     text-wrap: pretty;
@@ -106,7 +106,7 @@ $_icon-color: var(--bs-tertiary-color);
 }
 
 @include color-mode(dark) {
-  .about-body {
+  .about\.Page {
     .content-header {
       .landing-text {
         background: $black;

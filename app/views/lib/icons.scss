@@ -11,6 +11,22 @@
   margin: 10px;
 }
 
+// Wrapper that lets a white map-control icon (e.g. .icon.new-note) be rendered
+// in body text. The icon itself is baked white because in its native context it
+// sits on the map controls' dark backdrop; outside that context we need to
+// provide an equivalent backdrop or it disappears on light backgrounds.
+.note-link {
+  display: inline-block;
+  padding: 1px;
+  line-height: 1;
+  background: rgba($black, 0.6);
+  border-radius: var(--bs-border-radius-sm);
+
+  .icon.new-note {
+    margin: unset;
+  }
+}
+
 // https://maplibre.org/maplibre-gl-js/docs/API/classes/GeolocateControl/#state-diagram
 .maplibregl-ctrl-geolocate-active.maplibregl-ctrl-geolocate-waiting .icon.geolocate {
   transform-origin: 50% 50%;

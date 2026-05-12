@@ -23,9 +23,14 @@ import {
   Service,
   Status,
 } from "@lib/proto/note_pb"
+import {
+  Service as SubscriptionService,
+  Target as SubscriptionTarget,
+} from "@lib/proto/user_subscription_pb"
 import { ReportButton } from "@lib/report"
 import { StandardForm } from "@lib/standard-form"
 import { PageOrder, StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { setPageTitle } from "@lib/title"
 import {
   type ReadonlySignal,
@@ -74,19 +79,7 @@ const getEventLabel = (event: Event) => {
 const NoteComment = ({ comment }: { comment: GetCommentsResponse_CommentValid }) => (
   <li class="social-entry">
     <p class="header text-muted">
-      {comment.user ? (
-        <a href={`/user/${comment.user.displayName}`}>
-          <img
-            class="avatar"
-            src={comment.user.avatarUrl}
-            alt={t("alt.profile_picture")}
-            loading="lazy"
-          />
-          {comment.user.displayName}
-        </a>
-      ) : (
-        t("browse.anonymous")
-      )}{" "}
+      {comment.user ? <UserLink user={comment.user} /> : t("browse.anonymous")}{" "}
       {getEventLabel(comment.event)}{" "}
       <Time
         unix={comment.createdAt}
@@ -114,17 +107,10 @@ const NoteHeader = ({ data }: { data: DataValid }) => {
       <p class="header text-muted d-flex justify-content-between">
         <span>
           {header.user ? (
-            <a
-              href={`/user/${header.user.displayName}`}
+            <UserLink
+              user={header.user}
               rel="author"
-            >
-              <img
-                class="avatar"
-                src={avatarUrl}
-                alt={t("alt.profile_picture")}
-              />
-              {header.user.displayName}
-            </a>
+            />
           ) : (
             <>
               <img
@@ -319,8 +305,12 @@ const SubscriptionForm = ({
 }) => (
   <StandardForm
     class="col-auto subscription-form"
-    method={Service.method.updateSubscription}
-    buildRequest={() => ({ id: noteId, isSubscribed: !isSubscribed.value })}
+    method={SubscriptionService.method.update}
+    buildRequest={() => ({
+      target: SubscriptionTarget.note,
+      targetId: noteId,
+      isSubscribed: !isSubscribed.value,
+    })}
     onSuccess={(_, ctx) => (isSubscribed.value = ctx.request.isSubscribed)}
   >
     <button

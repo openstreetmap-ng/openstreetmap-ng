@@ -3,7 +3,7 @@ from datetime import timedelta
 import pytest
 
 from app.lib.date_utils import utcnow
-from app.lib.render_jinja import stripspecial, timeago
+from app.lib.render_jinja import timeago
 from app.lib.translation import translation_context
 from app.models.types import LocaleCode
 
@@ -24,14 +24,3 @@ def test_timeago(delta, expected):
 def test_timeago_never():
     with translation_context(LocaleCode('en')):
         assert timeago(None) == 'Never'
-
-
-@pytest.mark.parametrize(
-    ('input', 'expected'),
-    [
-        ('Hello World!', 'Hello World'),
-        (', Hello', 'Hello'),
-    ],
-)
-def test_stripspecial(input, expected):
-    assert stripspecial(input) == expected

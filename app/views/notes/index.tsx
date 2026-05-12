@@ -11,6 +11,7 @@ import {
 import { mountProtoPage } from "@lib/proto-page"
 import { defineQueryContract } from "@lib/query-contract"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { usePathSuffixQueryState } from "@lib/url-signals"
 import { isUnmodifiedLeftClick } from "@lib/utils"
 import { t } from "i18next"
@@ -22,13 +23,7 @@ const STATUS_QUERY = defineQueryContract({
   }),
 })
 
-const NoteStatusMarker = ({
-  status,
-  className = "",
-}: {
-  status: Status
-  className?: string
-}) => {
+const NoteStatusMarker = ({ status }: { status: Status }) => {
   const marker =
     status === Status.open
       ? { src: "/static/img/marker/open.webp", alt: t("state.unresolved") }
@@ -38,7 +33,7 @@ const NoteStatusMarker = ({
 
   return (
     <img
-      class={`marker ${className}`}
+      class="marker"
       src={marker.src}
       alt={marker.alt}
       draggable={false}
@@ -62,18 +57,10 @@ const NoteListItem = ({ note }: { note: GetUserPageResponse_SummaryValid }) => {
               {!note.createdBy ? (
                 t("browse.anonymous")
               ) : (
-                <a
-                  href={`/user/${note.createdBy.displayName}`}
+                <UserLink
+                  user={note.createdBy}
                   rel="author"
-                >
-                  <img
-                    class="avatar"
-                    src={note.createdBy.avatarUrl}
-                    alt={t("alt.profile_picture")}
-                    loading="lazy"
-                  />
-                  {note.createdBy.displayName}
-                </a>
+                />
               )}{" "}
               {t("browse.created").toLowerCase()}{" "}
               <Time
@@ -127,7 +114,8 @@ const NoteListItem = ({ note }: { note: GetUserPageResponse_SummaryValid }) => {
   )
 }
 
-mountProtoPage(UserPageSchema, ({ user: { id: userId, displayName, avatarUrl } }) => {
+mountProtoPage(UserPageSchema, ({ user }) => {
+  const { id: userId, displayName } = user
   const route = usePathSuffixQueryState(
     { created: "", commented: "/commented" },
     STATUS_QUERY,
@@ -149,10 +137,9 @@ mountProtoPage(UserPageSchema, ({ user: { id: userId, displayName, avatarUrl } }
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2 col-xxl-6 offset-xxl-3">
           <div class="row mb-3">
             <div class="col-auto">
-              <img
-                class="avatar"
-                src={avatarUrl}
-                alt={t("alt.profile_picture")}
+              <UserLink
+                user={user}
+                showName={false}
               />
             </div>
             <div class="col">

@@ -13,6 +13,7 @@ _I18NEXT_MAP_PATH = _I18NEXT_DIR.joinpath('map.json')
 _INCLUDE_PREFIXES = [
     'javascripts.map.layers.title',
     'javascripts.share.title',
+    'osm_community_index.communities',
     'service',
     'site.key.table.entry',
     'socials.label',

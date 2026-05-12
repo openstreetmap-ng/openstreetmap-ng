@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from app.models.db.user import UserDisplay
-from app.models.proto.report_types import CreateRequest_Type
+from app.models.proto.report_types import Type
 from app.models.types import NoteId, ReportId, UserId
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ type ReportTypeId = NoteId | UserId
 
 class ReportInit(TypedDict):
     id: ReportId
-    type: CreateRequest_Type
+    type: Type
     type_id: ReportTypeId
 
 

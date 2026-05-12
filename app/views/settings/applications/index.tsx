@@ -232,7 +232,7 @@ const AuthorizationEntry = ({
       name={application.name}
       timestamp={{
         kind: "authorized",
-        unix: application.authorizedAt!,
+        unix: application.time.case === "authorizedAt" ? application.time.value : 0n,
       }}
       descriptionExtra={<AuthorizationsOwnerInfo application={application} />}
       scopes={application.scopes}

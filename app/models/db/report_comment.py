@@ -8,7 +8,7 @@ from app.models.db.oauth2_application import OAuth2Application
 from app.models.db.trace import Trace
 from app.models.db.user import UserDisplay
 from app.models.proto.admin_users_types import Role
-from app.models.proto.report_types import CreateRequest_Action, CreateRequest_Category
+from app.models.proto.report_types import Action, Category
 from app.models.types import (
     ApplicationId,
     ChangesetId,
@@ -30,10 +30,10 @@ class ReportCommentInit(TypedDict):
     id: ReportCommentId
     report_id: ReportId
     user_id: UserId
-    action: CreateRequest_Action
+    action: Action
     action_id: ReportActionId
     body: str  # TODO: validate size
-    category: CreateRequest_Category | None
+    category: Category | None
     visible_to: Role
 
 

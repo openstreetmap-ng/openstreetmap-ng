@@ -47,10 +47,10 @@ const getSocialLink = (social: SocialValue, option: SocialServiceOption) => {
 
 const SocialLinks = ({
   socials,
-  class: className = "",
+  class: className,
 }: {
   socials: readonly UserSocialValid[]
-  class?: string
+  class: string
 }) => {
   if (!socials.length) return null
 

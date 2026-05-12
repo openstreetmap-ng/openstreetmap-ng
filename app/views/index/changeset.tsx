@@ -21,7 +21,12 @@ import {
   type GetCommentsResponseValid,
 } from "@lib/proto/changeset_pb"
 import { ElementType } from "@lib/proto/shared_pb"
+import {
+  Service as SubscriptionService,
+  Target as SubscriptionTarget,
+} from "@lib/proto/user_subscription_pb"
 import { ReportButton } from "@lib/report"
+import { UserLink } from "@lib/user-link"
 import { StandardForm } from "@lib/standard-form"
 import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
@@ -77,18 +82,10 @@ const ChangesetHeader = ({ data }: { data: DataValid }) => {
         <p class="header text-muted d-flex justify-content-between">
           <span>
             {data.user ? (
-              <a
-                href={`/user/${data.user.displayName}`}
+              <UserLink
+                user={data.user}
                 rel="author"
-              >
-                <img
-                  class="avatar"
-                  src={data.user.avatarUrl}
-                  alt={t("alt.profile_picture")}
-                  loading="lazy"
-                />
-                {data.user.displayName}
-              </a>
+              />
             ) : (
               t("browse.anonymous")
             )}{" "}
@@ -134,9 +131,10 @@ const SubscriptionForm = ({
 }) => (
   <StandardForm
     class="col-auto subscription-form"
-    method={Service.method.updateSubscription}
+    method={SubscriptionService.method.update}
     buildRequest={() => ({
-      id: changesetId,
+      target: SubscriptionTarget.changeset,
+      targetId: changesetId,
       isSubscribed: !isSubscribed.value,
     })}
     onSuccess={(_, ctx) => (isSubscribed.value = ctx.request.isSubscribed)}
@@ -197,16 +195,7 @@ const ChangesetComment = ({
 }) => (
   <li class="social-entry">
     <p class="header text-muted">
-      <a href={`/user/${comment.user!.displayName}`}>
-        <img
-          class="avatar"
-          src={comment.user!.avatarUrl}
-          alt={t("alt.profile_picture")}
-          loading="lazy"
-        />
-        {comment.user!.displayName}
-      </a>{" "}
-      {t("action.commented")}{" "}
+      <UserLink user={comment.user!} /> {t("action.commented")}{" "}
       <Time
         unix={comment.createdAt}
         relativeStyle="long"

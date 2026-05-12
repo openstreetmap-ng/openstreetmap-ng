@@ -1,20 +1,5 @@
-.fixthemap-body {
+.fixthemap\.Page {
   .bi {
     line-height: 1.1;
-  }
-
-  // Add background to the note icon
-  // (it's used as an example at the fixthemap page)
-  .note-link {
-    @extend .rounded-1;
-
-    display: inline-block;
-    padding: 1px;
-    line-height: 1;
-    background: rgba($black, 0.6);
-
-    .icon.new-note {
-      margin: unset;
-    }
   }
 }

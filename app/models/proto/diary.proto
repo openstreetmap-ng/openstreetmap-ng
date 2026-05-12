@@ -48,10 +48,6 @@ service Service {
 
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 
-  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
-    option idempotency_level = IDEMPOTENT;
-  }
-
   rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
 }
 
@@ -120,13 +116,6 @@ message DeleteRequest {
 
 message DeleteResponse {}
 
-message UpdateSubscriptionRequest {
-  uint64 diary_id = 1 [(buf.validate.field).uint64.gt = 0];
-  bool is_subscribed = 2;
-}
-
-message UpdateSubscriptionResponse {}
-
 message AddCommentRequest {
   uint64 diary_id = 1 [(buf.validate.field).uint64.gt = 0];
   string body = 2 [(buf.validate.field).string = {
@@ -135,9 +124,17 @@ message AddCommentRequest {
   }];
 }
 
-message AddCommentResponse {}
+message AddCommentResponse {
+  Entry entry = 1 [(buf.validate.field).required = true];
+  GetCommentsResponse comments = 2 [(buf.validate.field).required = true];
+}
 
 message Entry {
+  message Location {
+    LonLat coords = 1 [(buf.validate.field).required = true];
+    optional string name = 2;
+  }
+
   uint64 id = 1;
   User user = 2 [(buf.validate.field).required = true];
   string title = 3;
@@ -145,10 +142,9 @@ message Entry {
   uint64 updated_at = 5;
   string language = 6;
   string body_rich = 7;
-  optional string location_name = 8;
-  optional LonLat location = 9;
-  uint32 num_comments = 10;
-  bool is_subscribed = 11;
+  optional Location location = 8;
+  uint32 num_comments = 9;
+  bool is_subscribed = 10;
 }
 
 message Comment {

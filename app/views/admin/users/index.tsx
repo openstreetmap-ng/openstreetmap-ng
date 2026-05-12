@@ -16,6 +16,7 @@ import {
 import { defineProtoQueryContract } from "@lib/query-contract"
 import { rpcUnary } from "@lib/rpc"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { useUrlQueryState } from "@lib/url-signals"
 import { useComputed, useSignal } from "@preact/signals"
 import { t } from "i18next"
@@ -43,17 +44,12 @@ const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
 
 const IdentityCell = ({ entry: { account } }: { entry: ListResponse_EntryValid }) => (
   <>
-    <a href={`/user-id/${account.id}`}>
-      <img
-        class="avatar me-1-5"
-        src={account.avatarUrl}
-        alt={t("alt.profile_picture")}
-        loading="lazy"
-      />
-      <span class={`display-name ${account.deleted ? "text-muted" : ""}`}>
-        {account.displayName}
-      </span>
-    </a>
+    <UserLink
+      user={account}
+      admin
+      avatarClass="me-1-5"
+      class={account.deleted ? "text-muted" : undefined}
+    />
     <span class="roles">
       {account.roles.map((role) => (
         <BTooltip

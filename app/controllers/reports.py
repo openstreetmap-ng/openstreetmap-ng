@@ -1,29 +1,20 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, Query
-from starlette import status
+from fastapi import APIRouter, Path
 
 from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
+from app.lib.render_response import render_proto_page
 from app.models.db.user import User
+from app.models.proto.report_pb2 import IndexPage, ShowPage
 from app.models.types import ReportId
-from app.queries.report_query import ReportQuery
-from app.queries.user_query import UserQuery
+from app.rpc.report import build_report_header
 
 router = APIRouter()
 
 
 @router.get('/reports')
-async def reports_index(
-    _: Annotated[User, web_user('role_moderator')],
-    status: Annotated[Literal['', 'open', 'closed'], Query()] = '',
-):
-    return await render_response(
-        'reports/index',
-        {
-            'status': status,
-        },
-    )
+async def reports_index(_: Annotated[User, web_user('role_moderator')]):
+    return await render_proto_page(IndexPage(), title_prefix='Reports')
 
 
 @router.get('/reports/{report_id:int}')
@@ -31,22 +22,8 @@ async def report_show(
     _: Annotated[User, web_user('role_moderator')],
     report_id: Annotated[ReportId, Path()],
 ):
-    report = await ReportQuery.find_by_id(report_id)
-    if report is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, 'Report not found')
-
-    reports = [report]
-
-    if report['type'] == 'user':
-        await UserQuery.resolve_users(
-            reports,
-            user_id_key='type_id',
-            user_key='reported_user',
-        )
-
-    return await render_response(
-        'reports/show',
-        {
-            'report': report,
-        },
+    header = await build_report_header(report_id)
+    return await render_proto_page(
+        ShowPage(report_id=report_id, header=header),
+        title_prefix=f'Report {report_id}',
     )

@@ -1,9 +1,8 @@
-from base64 import urlsafe_b64decode, urlsafe_b64encode
+from base64 import urlsafe_b64encode
 from time import time
 
 import pytest
 from httpx import AsyncClient
-from re2 import search
 from starlette import status
 
 from app.lib.crypto import hmac_bytes
@@ -12,12 +11,7 @@ from app.models.proto.server_pb2 import AuthProviderVerification
 from app.models.proto.settings_connections_types import Provider
 from app.models.proto.signup_pb2 import Page as SignupPage
 from app.queries.user_query import UserQuery
-
-
-def _signup_state(html: str):
-    match = search(r'data-state="([^"]+)"', html)
-    assert match is not None
-    return SignupPage.FromString(urlsafe_b64decode(match.group(1) + '=='))
+from tests.utils.page_state import decode_page_state
 
 
 def _signed_auth_provider_verification(*, provider: Provider, name: str, email: str):
@@ -69,7 +63,7 @@ async def test_signup_prefills_auth_provider_verification(client: AsyncClient):
     )
     assert r.is_success, r.text
 
-    state = _signup_state(r.text)
+    state = decode_page_state(r.text, SignupPage)
     assert state.verification.provider == Identity(provider='github').provider
     assert state.verification.name == 'GitHub User'
     assert state.verification.email == 'github@example.com'

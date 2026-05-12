@@ -168,8 +168,8 @@ const SearchResultsList = ({
     <ul class="search-list social-list list-unstyled mb-0">
       {results.map((result, i) => (
         <ElementResultEntry
-          key={`${result.type}:${result.id}`}
-          result={result}
+          key={`${result.match.type}:${result.match.id}`}
+          result={result.match}
           hovered={hoveredIndex.value === i}
           entryRef={(el) => {
             entryRefs[i] = el
@@ -294,8 +294,8 @@ const SearchSidebar = ({
       if (featureIndex === null) return
       const result = data.peek()?.results[featureIndex]
       if (!result) return
-      const typeSlug = getElementTypeSlug(result.type)
-      routerNavigate(ElementRoute, { type: typeSlug, id: result.id })
+      const typeSlug = getElementTypeSlug(result.match.type)
+      routerNavigate(ElementRoute, { type: typeSlug, id: result.match.id })
     })
 
     scope.mapLayer(map, "mousemove", LAYER_ID, (e) => {
@@ -340,7 +340,7 @@ const SearchSidebar = ({
 
     entryRefs.current.length = d.results.length
     elementsByIndex.current = d.results.map((r) =>
-      memoize(() => convertRenderElementsData(r.render)),
+      memoize(() => convertRenderElementsData(r.match.render)),
     )
 
     const features: Feature[] = d.results.map((result, i) => ({

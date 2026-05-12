@@ -10,6 +10,7 @@ import {
 } from "@lib/proto/trace_pb"
 import type { UserValid } from "@lib/proto/shared_pb"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { t } from "i18next"
 import { SummaryRow } from "./_summary"
 
@@ -125,16 +126,7 @@ const Row = ({
       tagBasePath={tagBasePath}
       header={
         <>
-          <a href={`/user/${trace.user.displayName}`}>
-            <img
-              class="avatar"
-              src={trace.user.avatarUrl}
-              alt={t("alt.profile_picture")}
-              loading="lazy"
-            />
-            {trace.user.displayName}
-          </a>{" "}
-          {t("action.uploaded")}{" "}
+          <UserLink user={trace.user} /> {t("action.uploaded")}{" "}
           <Time
             unix={trace.summary.createdAt}
             relativeStyle="long"
@@ -186,13 +178,10 @@ mountProtoPage(IndexPageSchema, ({ owner, tag }) => {
           <div class="row mb-3">
             {profile && (
               <div class="col-auto">
-                <a href={`/user/${profile.displayName}`}>
-                  <img
-                    class="avatar"
-                    src={profile.avatarUrl}
-                    alt={t("alt.profile_picture")}
-                  />
-                </a>
+                <UserLink
+                  user={profile}
+                  showName={false}
+                />
               </div>
             )}
             <div class="col">

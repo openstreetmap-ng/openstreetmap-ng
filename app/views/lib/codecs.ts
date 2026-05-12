@@ -1,6 +1,7 @@
 import type { GenEnum } from "@bufbuild/protobuf/codegenv2"
 import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
 import { polylineDecode, polylineEncode } from "@lib/polyline"
+import { distinct } from "@std/collections/distinct"
 import { z } from "@zod/zod"
 
 const PATH_POSITIVE_INT_RE = /^(?:0*[1-9][0-9]*)$/
@@ -196,12 +197,11 @@ const queryEnumListString = <const T extends readonly [string, ...string[]]>(
     decode: (raw) => {
       if (!raw) return []
       const names = raw.filter((name): name is T[number] => nameSet.has(name))
-      return dedup ? [...new Set(names)] : names
+      return dedup ? distinct(names) : names
     },
     encode: (value) => {
       if (!value.length) return
-      const names = dedup ? [...new Set(value)] : value
-      return [...names]
+      return dedup ? distinct(value) : [...value]
     },
   })
 }
@@ -222,11 +222,11 @@ const queryEnumListProto = <TValue extends number>(
         const values = raw
           .map((name) => enumAccessors.valueOf(name))
           .filter((value): value is TValue => value !== undefined)
-        return dedup ? [...new Set(values)] : values
+        return dedup ? distinct(values) : values
       },
       encode: (value) => {
         if (!value.length) return
-        const entries = dedup ? [...new Set(value)] : value
+        const entries = dedup ? distinct(value) : value
         const names = entries
           .map((entry) => enumAccessors.nameOf(entry as TValue))
           .filter((name): name is string => name !== undefined)

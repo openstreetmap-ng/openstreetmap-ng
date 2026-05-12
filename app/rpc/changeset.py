@@ -42,8 +42,6 @@ from app.models.proto.changeset_pb2 import (
     GetMapResponse,
     GetRequest,
     GetResponse,
-    UpdateSubscriptionRequest,
-    UpdateSubscriptionResponse,
 )
 from app.models.types import ChangesetId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
@@ -54,7 +52,6 @@ from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_comment_service import ChangesetCommentService
-from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.unicode import normalize_display_name
 
 
@@ -168,20 +165,6 @@ class _Service(Service):
             changeset=changeset_t.result(),
             comments=comments_t.result(),
         )
-
-    @override
-    async def update_subscription(
-        self, request: UpdateSubscriptionRequest, ctx: RequestContext
-    ):
-        require_web_user()
-
-        id = ChangesetId(request.id)
-        if request.is_subscribed:
-            await UserSubscriptionService.subscribe('changeset', id)
-        else:
-            await UserSubscriptionService.unsubscribe('changeset', id)
-
-        return UpdateSubscriptionResponse()
 
 
 service = _Service()

@@ -21,6 +21,15 @@ message User {
   string avatar_url = 3;
 }
 
+// Compact reference to an OAuth2 application; used wherever a third-party app
+// is mentioned (audit events, authorize consent, etc.).
+message OAuth2ApplicationSummary {
+  uint64 id = 1;
+  string name = 2;
+  string avatar_url = 3;
+  optional User owner = 4;
+}
+
 message UserSocial {
   string service = 1 [(buf.validate.field).string.max_len = 32];
   string value = 2 [(buf.validate.field).string.max_len = 500];

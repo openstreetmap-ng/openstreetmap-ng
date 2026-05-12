@@ -382,7 +382,7 @@ mountProtoPage(
     const totpCreatedAt = useSignal(initialTotpCreatedAt)
     const recoveryCodesStatus = useSignal(initialRecoveryCodesStatus)
     const activeSessions = useSignal(initialActiveSessions)
-    const disableCtx = useSignal<DisableAuthMethodContext | undefined>()
+    const disableCtx = useSignal<DisableAuthMethodContext>()
 
     const renamePasskey = async (passkey: PasskeyValid) => {
       const oldName = passkey.name
@@ -526,19 +526,12 @@ mountProtoPage(
                     onRename={renamePasskey}
                     onRegister={(nextPasskeys) => (passkeys.value = nextPasskeys)}
                     onRequestRemove={(passkey) =>
-                      (disableCtx.value = {
-                        method: "passkey",
-                        credentialId: passkey.credentialId,
-                      })
+                      (disableCtx.value = passkey.credentialId)
                     }
                   />
                   <TotpMethod
                     totpCreatedAt={totpCreatedAt.value}
-                    onRequestDisable={() =>
-                      (disableCtx.value = {
-                        method: "totp",
-                      })
-                    }
+                    onRequestDisable={() => (disableCtx.value = "totp")}
                   />
                   <RecoveryCodesMethod
                     recoveryCodesStatus={recoveryCodesStatus.value}

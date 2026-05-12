@@ -14,10 +14,22 @@ router = APIRouter()
 
 
 @router.get('/user/{display_name:str}/notes')
-@router.get('/user/{display_name:str}/notes/commented')
-async def index(
+async def submitted(
     display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
 ):
+    return await _user_notes(display_name, title_prefix=t('note.user.created_notes'))
+
+
+@router.get('/user/{display_name:str}/notes/commented')
+async def commented(
+    display_name: Annotated[DisplayNameNormalizing, Path(min_length=1)],
+):
+    return await _user_notes(
+        display_name, title_prefix=t('note.user.commented_on_notes')
+    )
+
+
+async def _user_notes(display_name: DisplayNameNormalizing, *, title_prefix: str):
     user = await UserQuery.find_by_display_name(display_name)
     if user is None:
         return await render_response(
@@ -28,5 +40,5 @@ async def index(
 
     return await render_proto_page(
         UserPage(user=user_proto(user)),
-        title_prefix=t('notes.index.heading', user=user['display_name']),
+        title_prefix=title_prefix,
     )

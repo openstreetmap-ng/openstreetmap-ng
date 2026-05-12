@@ -67,7 +67,6 @@ const removeUrlMarker = () => {
 
 export const ShareSidebar = ({ close }: { close: () => void }) => {
   const map = mainMap.value!
-  const shareMarkerEnabled = useSignal(false)
   const shareMarkerRef = useRef<Marker>(null)
 
   const locationFilterEnabled = useSignal(false)
@@ -79,6 +78,9 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   const shareView = useSignal<LonLatZoom>()
   const shareLayersCode = useSignal<string>()
   const shareBounds = useSignal<LngLatBounds>()
+  // null = marker disabled, LngLat = marker at that position. The single signal
+  // serves both as the "is the marker enabled" discriminator and the position
+  // payload, avoiding a redundant boolean shadow.
   const shareMarkerLngLat = useSignal<LngLat | null>(null)
 
   const shareExportFileSuffix = useComputed(
@@ -109,11 +111,6 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
     return getMapEmbedHtml(state, bounds, baseLayerId, shareMarkerLngLat.value)
   })
 
-  const getMarkerLngLat = () => {
-    if (!shareMarkerEnabled.value) return null
-    return shareMarkerRef.current!.getLngLat()
-  }
-
   const updateView = () => {
     batch(() => {
       const center = map.getCenter().wrap()
@@ -127,14 +124,11 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
     })
   }
 
-  const updateMarkerLngLat = () => (shareMarkerLngLat.value = getMarkerLngLat())
-
   const updateLayersCode = () => (shareLayersCode.value = getMapLayersCode(map))
 
   useDisposeEffect((scope) => {
     scope.map(map, "moveend", updateView)
     updateView()
-    updateMarkerLngLat()
     scope.defer(addLayerEventHandler(updateLayersCode))
     updateLayersCode()
 
@@ -145,14 +139,12 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   }, [])
 
   useSignalEffect(() => {
+    const lngLat = shareMarkerLngLat.value
     let marker = shareMarkerRef.current
-    if (!shareMarkerEnabled.value) {
+    if (lngLat === null) {
       marker?.remove()
-      updateMarkerLngLat()
       return
     }
-
-    const lngLat = marker?.getLngLat() ?? map.getCenter()
     if (!marker) {
       marker = new Marker({
         anchor: MARKER_ICON_ANCHOR,
@@ -160,11 +152,11 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
         draggable: true,
       })
       shareMarkerRef.current = marker
-      marker.on("dragend", updateMarkerLngLat)
+      marker.on("dragend", () => {
+        shareMarkerLngLat.value = marker!.getLngLat()
+      })
     }
-
     marker.setLngLat(lngLat).addTo(map)
-    updateMarkerLngLat()
   })
 
   useSignalEffect(() => {
@@ -197,7 +189,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
         shareExportFormatStorage.value,
         map,
         filterBounds,
-        getMarkerLngLat(),
+        shareMarkerLngLat.peek(),
         withAttribution.value,
       )
       const url = URL.createObjectURL(blob)
@@ -230,8 +222,12 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
               class="form-check-input"
               type="checkbox"
               autoComplete="off"
-              checked={shareMarkerEnabled.value}
-              onChange={(e) => (shareMarkerEnabled.value = e.currentTarget.checked)}
+              checked={shareMarkerLngLat.value !== null}
+              onChange={(e) => {
+                shareMarkerLngLat.value = e.currentTarget.checked
+                  ? map.getCenter()
+                  : null
+              }}
             />
             {t("javascripts.share.include_marker")}
             <span class="text-body-tertiary ms-1">

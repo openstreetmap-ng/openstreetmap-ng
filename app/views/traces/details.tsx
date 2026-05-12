@@ -3,6 +3,7 @@ import { Time } from "@lib/datetime-inputs"
 import { mountProtoPage } from "@lib/proto-page"
 import { DetailsPageSchema } from "@lib/proto/trace_pb"
 import { ReportButton } from "@lib/report"
+import { UserLink } from "@lib/user-link"
 import { t } from "i18next"
 import { MapPreview } from "./_map-preview"
 import { SummaryCard } from "./_summary"
@@ -38,16 +39,7 @@ mountProtoPage(DetailsPageSchema, ({ trace }) => {
                   tagBasePath="/traces"
                   header={
                     <>
-                      <a href={`/user/${trace.user.displayName}`}>
-                        <img
-                          class="avatar"
-                          src={trace.user.avatarUrl}
-                          alt={t("alt.profile_picture")}
-                          loading="lazy"
-                        />
-                        {trace.user.displayName}
-                      </a>{" "}
-                      {t("action.uploaded")}{" "}
+                      <UserLink user={trace.user} /> {t("action.uploaded")}{" "}
                       <Time
                         unix={trace.createdAt}
                         relativeStyle="long"

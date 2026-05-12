@@ -101,3 +101,14 @@ message RenderData {
   repeated Node nodes = 1;
   repeated Way ways = 2;
 }
+
+// Compact element identity + display chrome used by search and query-features
+// for "this is a nearby/matching element with renderable shape".
+message NearbyMatch {
+  ElementType type = 1 [(buf.validate.field).enum.defined_only = true];
+  uint64 id = 2 [(buf.validate.field).uint64.gt = 0];
+  string prefix = 3;
+  optional string display_name = 4;
+  optional ElementIcon icon = 5;
+  RenderData render = 6 [(buf.validate.field).required = true];
+}

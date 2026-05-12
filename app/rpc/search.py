@@ -140,14 +140,15 @@ async def _build_search_data(
 
         type, id = split_typed_element_id(result.element['typed_id'])
         response_result = data.results.add()
-        response_result.type = type
-        response_result.id = id
-        response_result.prefix = result.prefix
-        response_result.display_name = result.display_name
+        match = response_result.match
+        match.type = type
+        match.id = id
+        match.prefix = result.prefix
+        match.display_name = result.display_name
         if result.icon is not None:
-            response_result.icon.icon = result.icon.filename
-            response_result.icon.title = result.icon.title
-        response_result.render.CopyFrom(render)
+            match.icon.icon = result.icon.filename
+            match.icon.title = result.icon.title
+        match.render.CopyFrom(render)
         response_result.location.lon = x
         response_result.location.lat = y
 

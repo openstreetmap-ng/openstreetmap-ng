@@ -9,7 +9,7 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.config import PASSWORD_MIN_LENGTH, USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
+from app.config import USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
 from app.lib.auth_context import auth_user, web_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
@@ -19,7 +19,9 @@ from app.lib.statistics import user_activity_summary
 from app.lib.translation import t
 from app.lib.user_token_struct_utils import UserTokenStructUtils
 from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
+from app.models.proto.account_confirm_pb2 import Page as AccountConfirmPage
 from app.models.proto.profile_pb2 import Page as ProfilePage
+from app.models.proto.reset_password_pb2 import Page as ResetPasswordPage
 from app.models.proto.settings_connections_pb2 import Provider
 from app.models.proto.signup_pb2 import Page as SignupPage
 from app.models.types import UserId
@@ -71,34 +73,36 @@ async def account_confirm_pending(user: Annotated[User, web_user()]):
     if user['email_verified']:
         return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
-    return await render_response('user/account-confirm')
+    return await render_proto_page(
+        AccountConfirmPage(),
+        title_prefix=t('confirmations.confirm.heading'),
+    )
 
 
 @router.get('/reset-password')
 async def reset_password(
     token: Annotated[SecretStr | None, Query(min_length=1)] = None,
 ):
-    if token is None:
-        return await render_response('user/reset-password')
+    page = ResetPasswordPage()
+    current_user = auth_user()
+    if current_user is not None:
+        page.current_email = current_user['email']
 
-    # TODO: check errors
-    token_struct = UserTokenStructUtils.from_str(token)
+    if token is not None:
+        # TODO: check errors
+        token_struct = UserTokenStructUtils.from_str(token)
+        user_token = await UserTokenQuery.find_by_token_struct(
+            'reset_password', token_struct, check_email_hash=False
+        )
+        if user_token is not None:
+            await UserQuery.resolve_users([user_token])
+            profile = user_token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+            page.confirm.token = token.get_secret_value()
+            page.confirm.profile.CopyFrom(user_proto(profile))
 
-    user_token = await UserTokenQuery.find_by_token_struct(
-        'reset_password', token_struct, check_email_hash=False
-    )
-    if user_token is None:
-        return await render_response('user/reset-password')
-
-    await UserQuery.resolve_users([user_token])
-
-    return await render_response(
-        'user/reset-password-token',
-        {
-            'token': token.get_secret_value(),
-            'profile': user_token['user'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
-            'PASSWORD_MIN_LENGTH': PASSWORD_MIN_LENGTH,
-        },
+    return await render_proto_page(
+        page,
+        title_prefix=t('passwords.edit.title'),
     )
 
 

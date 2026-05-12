@@ -2,42 +2,64 @@ syntax = "proto3";
 
 package report;
 
+import "app/models/proto/admin_users.proto";
 import "app/models/proto/shared.proto";
 import "buf/validate/validate.proto";
 
+enum Type {
+  anonymous_note = 0;
+  user = 1;
+}
+
+enum Action {
+  comment = 0;
+  close = 1;
+  reopen = 2;
+  generic = 3;
+  user_account = 4;
+  user_changeset = 5;
+  user_diary = 6;
+  user_message = 7;
+  user_note = 8;
+  user_oauth2_application = 9;
+  user_profile = 10;
+  user_trace = 11;
+}
+
+enum Category {
+  spam = 0;
+  vandalism = 1;
+  harassment = 2;
+  privacy = 3;
+  other = 4;
+}
+
+enum Status {
+  any = 0;
+  open = 1;
+  closed = 2;
+}
+
+message IndexPage {}
+
+message ShowPage {
+  uint64 report_id = 1 [(buf.validate.field).uint64.gt = 0];
+  Header header = 2 [(buf.validate.field).required = true];
+}
+
 service Service {
   rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc List(ListRequest) returns (ListResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse) {}
+  rpc UpdateCommentVisibility(UpdateCommentVisibilityRequest) returns (UpdateCommentVisibilityResponse) {}
 }
 
 message CreateRequest {
-  enum Type {
-    anonymous_note = 0;
-    user = 1;
-  }
-
-  enum Action {
-    comment = 0;
-    close = 1;
-    reopen = 2;
-    generic = 3;
-    user_account = 4;
-    user_changeset = 5;
-    user_diary = 6;
-    user_message = 7;
-    user_note = 8;
-    user_oauth2_application = 9;
-    user_profile = 10;
-    user_trace = 11;
-  }
-
-  enum Category {
-    spam = 0;
-    vandalism = 1;
-    harassment = 2;
-    privacy = 3;
-    other = 4;
-  }
-
   Type type = 1 [(buf.validate.field).enum.defined_only = true];
   uint64 type_id = 2 [(buf.validate.field).uint64.gt = 0];
   Action action = 3 [(buf.validate.field).enum.defined_only = true];
@@ -51,4 +73,118 @@ message CreateRequest {
 
 message CreateResponse {
   StandardFeedbackDetail feedback = 1;
+}
+
+message ListRequest {
+  StandardPaginationRequest state = 1;
+  Status status = 2 [(buf.validate.field).enum.defined_only = true];
+}
+
+message ListResponse {
+  message Entry {
+    Header header = 1 [(buf.validate.field).required = true];
+    uint32 num_comments = 2;
+    optional CommentBody last_comment = 3;
+  }
+
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Entry entries = 2;
+}
+
+message ListCommentsRequest {
+  StandardPaginationRequest state = 1;
+  uint64 report_id = 2 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ListCommentsResponse {
+  StandardPaginationState state = 1 [(buf.validate.field).required = true];
+  repeated Comment entries = 2;
+}
+
+message AddCommentRequest {
+  // `comment` requires a non-empty body; `close`/`reopen` may carry an empty
+  // body when the moderator only wants to flip the report state.
+  option (buf.validate.message).cel_expression = "this.event != 0 || size(this.body) > 0";
+
+  uint64 report_id = 1 [(buf.validate.field).uint64.gt = 0];
+  // Only the moderator-event subset of `Action` is valid here:
+  // `comment` (0), `close` (1), `reopen` (2). The remaining values are
+  // initial-report kinds (`user_*`) and not accepted by this RPC.
+  Action event = 2 [(buf.validate.field).enum = {
+    defined_only: true
+    in: [
+      0,
+      1,
+      2
+    ]
+  }];
+  string body = 3 [(buf.validate.field).string.max_len = 50000];
+}
+
+message AddCommentResponse {
+  Header header = 1 [(buf.validate.field).required = true];
+  ListCommentsResponse comments = 2 [(buf.validate.field).required = true];
+}
+
+message UpdateCommentVisibilityRequest {
+  uint64 comment_id = 1 [(buf.validate.field).uint64.gt = 0];
+  admin_users.Role visible_to = 2 [(buf.validate.field).enum.defined_only = true];
+}
+
+message UpdateCommentVisibilityResponse {}
+
+message Header {
+  uint64 id = 1;
+  // Deleted users still appear as a regular `User` (display_name
+  // `deleted_<UID>`), so this oneof only carries the two intrinsic target kinds.
+  oneof target {
+    option (buf.validate.oneof).required = true;
+    User reported_user = 2;
+    uint64 anonymous_note_id = 3;
+  }
+  uint64 updated_at = 4;
+  optional uint64 closed_at = 5;
+}
+
+// Body of a report comment, shared between list-row previews and the full comments list.
+// Splitting metadata into Comment (which embeds CommentBody) keeps preview-only callers
+// from accidentally referencing moderator-internal fields.
+message CommentBody {
+  Action action = 1 [(buf.validate.field).enum.defined_only = true];
+  optional Category category = 2;
+  optional uint64 action_id = 3;
+  // Rich-text HTML rendering of the comment body. Field presence encodes
+  // viewer access: unset means the comment is hidden across visibility tiers
+  // (server omits the content entirely), set means access is granted (empty
+  // string is valid — e.g., a close/reopen action with no comment text).
+  optional string body_rich = 4;
+  optional User user = 5;
+  optional ObjectInfo object = 6;
+}
+
+// Full comment record exposed in the show page. Embeds CommentBody for the rendering
+// layer, plus moderator-only fields (id / created_at / visible_to).
+message Comment {
+  uint64 id = 1;
+  uint64 created_at = 2;
+  admin_users.Role visible_to = 3 [(buf.validate.field).enum.defined_only = true];
+  CommentBody body = 4 [(buf.validate.field).required = true];
+}
+
+// Resolved object info for actions that reference a separate entity. The oneof case
+// matches the action; mismatched action+kind combinations are impossible to construct.
+// Unset = the referenced object was deleted.
+message ObjectInfo {
+  message OAuth2App {
+    string name = 1;
+    repeated string redirect_uris = 2;
+  }
+
+  oneof kind {
+    option (buf.validate.oneof).required = true;
+    string diary_title = 1;
+    string message_subject = 2;
+    OAuth2App oauth2_app = 3;
+    string trace_name = 4;
+  }
 }

@@ -42,6 +42,7 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import { UserLink } from "@lib/user-link"
 import { minBy } from "@std/collections/min-by"
 import { SECOND } from "@std/datetime/constants"
 import { t } from "i18next"
@@ -859,15 +860,7 @@ const ChangesetEntry = ({
         <span>
           <span class="me-1">
             {changeset.user ? (
-              <a href={`/user/${changeset.user.displayName}`}>
-                <img
-                  class="avatar"
-                  src={changeset.user.avatarUrl}
-                  alt={t("alt.profile_picture")}
-                  loading="lazy"
-                />
-                {changeset.user.displayName}
-              </a>
+              <UserLink user={changeset.user} />
             ) : (
               t("browse.anonymous")
             )}

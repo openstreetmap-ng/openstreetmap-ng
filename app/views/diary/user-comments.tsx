@@ -6,6 +6,7 @@ import {
 } from "@lib/proto/diary_pb"
 import { mountProtoPage } from "@lib/proto-page"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { t } from "i18next"
 
 mountProtoPage(UserCommentsPageSchema, ({ user }) => (
@@ -36,15 +37,7 @@ mountProtoPage(UserCommentsPageSchema, ({ user }) => (
                     class="social-entry clickable"
                   >
                     <p class="header text-muted">
-                      <a href={`/user/${user.displayName}`}>
-                        <img
-                          class="avatar"
-                          src={user.avatarUrl}
-                          alt={t("alt.profile_picture")}
-                        />
-                        {user.displayName}
-                      </a>{" "}
-                      {t("action.commented")}{" "}
+                      <UserLink user={user} /> {t("action.commented")}{" "}
                       <Time
                         unix={entry.createdAt}
                         relativeStyle="long"

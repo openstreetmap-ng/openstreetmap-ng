@@ -1,4 +1,5 @@
-import { config } from "@lib/config"
+import { config, isAdministrator, isModerator } from "@lib/config"
+import { createDisposeScope } from "@lib/dispose-scope"
 import { mainMap } from "@lib/map/main-map"
 import { encodeMapState, getInitialMapState } from "@lib/map/state"
 import { isHrefCurrentPage } from "@lib/utils"
@@ -130,7 +131,7 @@ const NavbarUser = () => {
   const showBadges = Boolean(
     messagesCountUnread.value || reportsCountModerator || reportsCountAdministrator,
   )
-  const showReports = Boolean(reportsCountModerator || reportsCountAdministrator)
+  const showReports = isModerator || isAdministrator
   const showFindHome = Boolean(mainMap.value && userConfig.homePoint)
 
   const onFindHomeClick = () => {
@@ -296,6 +297,7 @@ const configureResponsiveNavbarLinks = (
   list: HTMLUListElement,
   more: HTMLDivElement,
 ) => {
+  const scope = createDisposeScope()
   const desktopMedia = window.matchMedia("(min-width: 992px)")
   let linkPrefixWidths: number[] | undefined
   let moreButtonWidth: number | undefined
@@ -350,20 +352,14 @@ const configureResponsiveNavbarLinks = (
     navVisibleCount.value = nextCount
   }
 
-  let raf = 0
-  const update = () => {
-    if (raf) return
-    raf = requestAnimationFrame(() => {
-      raf = 0
-      updateNow()
-    })
-  }
-
+  const update = scope.frame(updateNow)
   updateNow()
 
   const resizeObserver = new ResizeObserver(update)
   resizeObserver.observe(container)
-  desktopMedia.addEventListener("change", update)
+  scope.defer(() => resizeObserver.disconnect())
+  scope.dom(desktopMedia, "change", update)
+  return scope.dispose
 }
 
 const navbarRightRoot = document.getElementById("NavbarRight")

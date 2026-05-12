@@ -38,13 +38,8 @@ message ReverseResponse {
 
 message Data {
   message Result {
-    ElementType type = 1;
-    uint64 id = 2;
-    string prefix = 3;
-    string display_name = 4;
-    optional ElementIcon icon = 5;
-    element.RenderData render = 6 [(buf.validate.field).required = true];
-    LonLat location = 7 [(buf.validate.field).required = true];
+    element.NearbyMatch match = 1 [(buf.validate.field).required = true];
+    LonLat location = 2 [(buf.validate.field).required = true];
   }
 
   optional Bounds bounds = 1;

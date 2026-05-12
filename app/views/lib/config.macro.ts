@@ -15,6 +15,7 @@ export const {
   API_URL,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
   CONFIGURED_AUTH_PROVIDERS,
+  DEFAULT_LOCALE,
   DIARY_BODY_MAX_LENGTH,
   DIARY_COMMENT_BODY_MAX_LENGTH,
   DIARY_TITLE_MAX_LENGTH,
@@ -22,6 +23,7 @@ export const {
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
+  LOCAL_CHAPTERS,
   MAP_QUERY_AREA_MAX_SIZE,
   MESSAGE_BODY_MAX_LENGTH,
   MESSAGE_RECIPIENTS_LIMIT,
@@ -51,6 +53,7 @@ export const {
   API_URL: string
   CHANGESET_COMMENT_BODY_MAX_LENGTH: number
   CONFIGURED_AUTH_PROVIDERS: (keyof typeof Provider)[]
+  DEFAULT_LOCALE: string
   DIARY_BODY_MAX_LENGTH: number
   DIARY_COMMENT_BODY_MAX_LENGTH: number
   DIARY_TITLE_MAX_LENGTH: number
@@ -58,6 +61,7 @@ export const {
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
+  LOCAL_CHAPTERS: { id: string; url: string }[]
   MAP_QUERY_AREA_MAX_SIZE: number
   MESSAGE_BODY_MAX_LENGTH: number
   MESSAGE_RECIPIENTS_LIMIT: number
@@ -91,12 +95,16 @@ export const {
       `
 import json
 from app.config import *
+from app.lib.local_chapters import LOCAL_CHAPTERS as _local_chapters
+from app.lib.locale import DEFAULT_LOCALE
 from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.lib.sentry import *
+LOCAL_CHAPTERS = [c._asdict() for c in _local_chapters]
 print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "API_URL",
         "CHANGESET_COMMENT_BODY_MAX_LENGTH",
         "CONFIGURED_AUTH_PROVIDERS",
+        "DEFAULT_LOCALE",
         "DIARY_BODY_MAX_LENGTH",
         "DIARY_COMMENT_BODY_MAX_LENGTH",
         "DIARY_TITLE_MAX_LENGTH",
@@ -104,6 +112,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
+        "LOCAL_CHAPTERS",
         "MAP_QUERY_AREA_MAX_SIZE",
         "MESSAGE_BODY_MAX_LENGTH",
         "MESSAGE_RECIPIENTS_LIMIT",

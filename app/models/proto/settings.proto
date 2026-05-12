@@ -73,7 +73,10 @@ message UpdateSettingsRequest {
     min_len: 1
     max_len: 255
   }];
-  string language = 2 [(buf.validate.field).string.max_len = 15];
+  string language = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 15
+  }];
   bool activity_tracking = 3;
   bool crash_reporting = 4;
 }
@@ -85,6 +88,7 @@ message UpdateSettingsResponse {
 message UpdateEmailRequest {
   string email = 1 [(buf.validate.field).string = {
     email: true
+    min_len: 5
     max_len: 254
   }];
   auth.TransmitUserPassword password = 2 [(buf.validate.field).required = true];
@@ -95,7 +99,10 @@ message UpdateEmailResponse {
 }
 
 message UpdateTimezoneRequest {
-  string timezone = 1 [(buf.validate.field).string.max_len = 32];
+  string timezone = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 32
+  }];
 }
 
 message UpdateTimezoneResponse {}

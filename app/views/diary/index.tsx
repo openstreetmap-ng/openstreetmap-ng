@@ -12,6 +12,7 @@ import {
 import type { UserValid } from "@lib/proto/shared_pb"
 import { configureScrollspy } from "@lib/scrollspy"
 import { StandardPagination } from "@lib/standard-pagination"
+import { UserLink } from "@lib/user-link"
 import { useSignal } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
 import { Offcanvas } from "bootstrap"
@@ -104,13 +105,10 @@ mountProtoPage(IndexPageSchema, ({ context }) => {
           <div class="row mb-3">
             {user && (
               <div class="col-auto">
-                <a href={`/user/${user.displayName}`}>
-                  <img
-                    class="avatar"
-                    src={user.avatarUrl}
-                    alt={t("alt.profile_picture")}
-                  />
-                </a>
+                <UserLink
+                  user={user}
+                  showName={false}
+                />
               </div>
             )}
             <div class="col">

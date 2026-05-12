@@ -91,7 +91,7 @@ const ContributionCard = ({
   title: ComponentChildren
   count: number
   viewMoreHref: string
-  listClassName?: string
+  listClassName: string
   small?: boolean
   menuItem?: {
     href: string
@@ -102,7 +102,7 @@ const ContributionCard = ({
   const titleClass = menuItem
     ? "card-title d-flex justify-content-between align-items-center ms-1"
     : "card-title ms-1"
-  const listClass = `content-list${small ? " content-list-sm" : ""} social-list-sm list-unstyled${listClassName ? ` ${listClassName}` : ""}`
+  const listClass = `content-list ${small ? "content-list-sm" : ""} social-list-sm list-unstyled ${listClassName}`
 
   return (
     <div class="card">

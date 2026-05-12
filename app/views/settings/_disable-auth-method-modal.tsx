@@ -9,21 +9,20 @@ import { useId, useRef } from "preact/hooks"
 
 export const DISABLE_AUTH_METHOD_MODAL_ID = "SettingsSecurityDisableAuthMethodModal"
 
-export type DisableAuthMethodContext =
-  | {
-      method: "totp"
-    }
-  | {
-      method: "passkey"
-      credentialId: Uint8Array
-    }
+/**
+ * Discriminator for which auth method the modal is targeting:
+ * - `Uint8Array` → remove that passkey (the value IS the credentialId)
+ * - `"totp"`     → disable the TOTP authenticator app
+ * - `undefined`  → modal closed / no pending action
+ */
+export type DisableAuthMethodContext = Uint8Array | "totp" | undefined
 
 export const DisableAuthMethodModal = ({
   ctx,
   passkeys,
   totpCreatedAt,
 }: {
-  ctx: Signal<DisableAuthMethodContext | undefined>
+  ctx: Signal<DisableAuthMethodContext>
   passkeys: Signal<readonly PasskeyValid[]>
   totpCreatedAt: Signal<bigint | undefined>
 }) => {
@@ -44,9 +43,9 @@ export const DisableAuthMethodModal = ({
 
   const current = ctx.value
   const title =
-    current?.method === "passkey"
+    current instanceof Uint8Array
       ? t("two_fa.remove_passkey")
-      : current?.method === "totp"
+      : current === "totp"
         ? t("two_fa.disable_authenticator_app")
         : undefined
 
@@ -76,11 +75,11 @@ export const DisableAuthMethodModal = ({
             />
           </div>
 
-          {current?.method === "passkey" ? (
+          {current instanceof Uint8Array ? (
             <StandardForm
               method={Service.method.removePasskey}
               buildRequest={({ passwords }) => ({
-                credentialId: current.credentialId,
+                credentialId: current,
                 password: passwords.password,
               })}
               onSuccess={(resp) => {
@@ -128,7 +127,7 @@ export const DisableAuthMethodModal = ({
                 </button>
               </div>
             </StandardForm>
-          ) : current?.method === "totp" ? (
+          ) : current === "totp" ? (
             <StandardForm
               method={Service.method.disableTotp}
               buildRequest={({ passwords }) => ({

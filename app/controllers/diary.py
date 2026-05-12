@@ -30,7 +30,7 @@ from app.queries.diary_comment_query import DiaryCommentQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
-from app.rpc.diary import _build_entry
+from app.rpc.diary import build_entry
 from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeService
 from app.validators.display_name import DisplayNameNormalizing
 
@@ -46,11 +46,7 @@ async def new():
 
 
 @router.get('/diary/{diary_id:int}')
-async def details(
-    diary_id: DiaryId,
-    *,
-    unsubscribe: bool = False,
-):
+async def details(diary_id: DiaryId):
     diary = await DiaryQuery.find_by_id(diary_id)
     if diary is None:
         return await render_response(
@@ -69,16 +65,14 @@ async def details(
 
     profile = diary['user']  # type: ignore
 
+    page = DetailsPage()
+    build_entry(page.entry, diary)
     return await render_proto_page(
-        DetailsPage(entry=_build_entry(diary)),
+        page,
         title_prefix=(
             f'{t("diary_entries.index.user_title", user=profile["display_name"])}'
             f' | {diary["title"]}'
         ),
-        template_data={
-            'unsubscribe_target': 'diary' if unsubscribe else None,
-            'unsubscribe_id': diary_id if unsubscribe else None,
-        },
     )
 
 
@@ -89,7 +83,7 @@ async def get_unsubscribe(
 ):
     if not await UserSubscriptionQuery.is_subscribed('diary', diary_id):
         return RedirectResponse(f'/diary/{diary_id}', status.HTTP_303_SEE_OTHER)
-    return await details(diary_id, unsubscribe=True)
+    return await details(diary_id)
 
 
 @router.post('/diary/{diary_id:int}/unsubscribe')
