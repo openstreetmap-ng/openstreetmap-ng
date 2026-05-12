@@ -3,8 +3,10 @@ from pathlib import Path
 
 import pytest
 from PIL import Image as PILImage
+from starlette import status
 
 from app.config import IMAGE_MAX_FRAMES
+from app.exceptions.api_error import APIError
 from app.lib.image import Image
 
 
@@ -42,3 +44,24 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
     assert len(normalized[0]) < len(animation)
     assert result.is_animated  # type: ignore
     assert 1 < result.n_frames <= IMAGE_MAX_FRAMES  # type: ignore
+
+
+async def test_normalize_avatar_rejects_unreadable_image():
+    with pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b'not an image')
+
+    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert exc_info.value.detail == 'Image is not readable'
+
+
+async def test_normalize_avatar_rejects_decompression_bomb(monkeypatch):
+    def _raise_decompression_bomb(_):
+        raise PILImage.DecompressionBombError('image is too large')
+
+    monkeypatch.setattr('app.lib.image.open_image', _raise_decompression_bomb)
+
+    with pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b'fake image')
+
+    assert exc_info.value.status_code == status.HTTP_413_CONTENT_TOO_LARGE
+    assert exc_info.value.detail == 'Image is too large'
