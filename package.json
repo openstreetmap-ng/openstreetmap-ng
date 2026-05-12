@@ -64,8 +64,7 @@
     "vite": "latest"
   },
   "overrides": {
-    "core-js": "3.47.0",
-    "vite": "npm:rolldown-vite@latest"
+    "core-js": "3.47.0"
   },
   "babel": {
     "presets": [

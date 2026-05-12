@@ -1,11 +1,14 @@
+import base64
+import hashlib
+import secrets
 import sys
 from itertools import product
-from typing import get_args
-from urllib.parse import parse_qs, urlsplit
+from typing import Any, Literal, get_args
+from urllib.parse import parse_qs, urlencode, urlsplit
 
+import httpx
 import pytest
 from annotated_types import Ge
-from authlib.integrations.httpx_client import AsyncOAuth2Client
 from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
@@ -22,6 +25,104 @@ from app.models.db.oauth2_token import (
 )
 from speedup import buffered_rand_urlsafe
 from tests.utils.assert_model import assert_model
+
+
+class _OAuth2TestClient(httpx.AsyncClient):
+    """
+    Minimal async OAuth2 client for exercising the OAuth2 server endpoints.
+    Implements RFC 6749 (auth code grant) + RFC 7636 (PKCE) primitives.
+    """
+
+    def __init__(
+        self,
+        *,
+        base_url: httpx.URL,
+        transport: httpx.AsyncBaseTransport,
+        client_id: str,
+        client_secret: str | None = None,
+        scope: str = '',
+        redirect_uri: str,
+        token_endpoint_auth_method: Literal[
+            'client_secret_basic', 'client_secret_post', 'none'
+        ]
+        | None = None,
+    ) -> None:
+        super().__init__(base_url=base_url, transport=transport)
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._scope = scope
+        self._redirect_uri = redirect_uri
+        self._auth_method = token_endpoint_auth_method or (
+            'client_secret_basic' if client_secret else 'none'
+        )
+
+    def create_authorization_url(
+        self,
+        path: str,
+        *,
+        code_challenge: str | None = None,
+        code_challenge_method: Literal['plain', 'S256'] | None = None,
+        code_verifier: str | None = None,
+        response_mode: str | None = None,
+    ) -> tuple[str, str]:
+        state = secrets.token_urlsafe(16)
+        params: dict[str, str] = {
+            'response_type': 'code',
+            'client_id': self._client_id,
+            'redirect_uri': self._redirect_uri,
+            'scope': self._scope,
+            'state': state,
+        }
+        if code_challenge is not None:
+            params['code_challenge'] = code_challenge
+            params['code_challenge_method'] = code_challenge_method or 'S256'
+        elif code_verifier is not None:
+            if code_challenge_method == 'plain':
+                params['code_challenge'] = code_verifier
+                params['code_challenge_method'] = 'plain'
+            else:
+                digest = hashlib.sha256(code_verifier.encode('ascii')).digest()
+                params['code_challenge'] = (
+                    base64.urlsafe_b64encode(digest).rstrip(b'=').decode('ascii')
+                )
+                params['code_challenge_method'] = 'S256'
+        if response_mode is not None:
+            params['response_mode'] = response_mode
+        return f'{path}?{urlencode(params)}', state
+
+    async def fetch_token(
+        self,
+        path: str,
+        *,
+        grant_type: str = 'authorization_code',
+        code: str,
+        code_verifier: str | None = None,
+    ) -> dict[str, Any]:
+        data: dict[str, str] = {
+            'grant_type': grant_type,
+            'code': code,
+            'redirect_uri': self._redirect_uri,
+        }
+        if code_verifier is not None:
+            data['code_verifier'] = code_verifier
+
+        kwargs: dict[str, Any] = {}
+        if self._auth_method == 'client_secret_basic':
+            assert self._client_secret is not None
+            kwargs['auth'] = (self._client_id, self._client_secret)
+        elif self._auth_method == 'client_secret_post':
+            assert self._client_secret is not None
+            data['client_id'] = self._client_id
+            data['client_secret'] = self._client_secret
+        else:  # 'none'
+            data['client_id'] = self._client_id
+
+        r = await self.post(path, data=data, **kwargs)
+        r.raise_for_status()
+        result: dict[str, Any] = r.json()
+        if 'access_token' in result:
+            self.headers['Authorization'] = f'Bearer {result["access_token"]}'
+        return result
 
 
 async def test_openid_configuration(client: AsyncClient):
@@ -41,7 +142,7 @@ async def test_openid_configuration(client: AsyncClient):
 
 async def test_authorize_invalid_system_app(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id=SYSTEM_APP_WEB_CLIENT_ID,
@@ -58,7 +159,7 @@ async def test_authorize_invalid_system_app(client: AsyncClient):
 
 async def test_authorize_invalid_extra_scopes(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp-minimal',
@@ -88,28 +189,22 @@ async def test_authorize_token_oob(
     token_endpoint_auth_method: OAuth2TokenEndpointAuthMethod,
 ):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp-secret',
         client_secret='testapp.secret',  # noqa: S106
         scope='',
         redirect_uri='urn:ietf:wg:oauth:2.0:oob',
-        code_challenge_method=code_challenge_method,
         token_endpoint_auth_method=token_endpoint_auth_method,
     )
     code_verifier = buffered_rand_urlsafe(32)
 
-    if code_challenge_method == 'plain':  # authlib doesn't support plain method
-        authorization_url, state = auth_client.create_authorization_url(
-            '/oauth2/authorize',
-            code_challenge=code_verifier,
-            code_challenge_method='plain',
-        )
-    else:
-        authorization_url, state = auth_client.create_authorization_url(
-            '/oauth2/authorize', code_verifier=code_verifier
-        )
+    authorization_url, state = auth_client.create_authorization_url(
+        '/oauth2/authorize',
+        code_verifier=code_verifier,
+        code_challenge_method=code_challenge_method,
+    )
 
     # Perform authorization
     r = await client.post(authorization_url)
@@ -120,10 +215,9 @@ async def test_authorize_token_oob(
     assert state == state_response, 'State must match in authorization response'
 
     # Exchange token
-    data: dict = await auth_client.fetch_token(
+    data = await auth_client.fetch_token(
         '/oauth2/token',
         grant_type='authorization_code',
-        auth=('testapp-secret', 'testapp.secret'),
         code=authorization_code,
         code_verifier=code_verifier,
     )
@@ -148,7 +242,7 @@ async def test_authorize_token_oob(
 @pytest.mark.parametrize('is_fragment', [False, True])
 async def test_authorize_response_redirect(client: AsyncClient, is_fragment):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp-secret',
@@ -176,10 +270,9 @@ async def test_authorize_response_redirect(client: AsyncClient, is_fragment):
     assert state == state_response, 'State parameter must match in response'
 
     # Exchange token
-    data: dict = await auth_client.fetch_token(
+    data = await auth_client.fetch_token(
         '/oauth2/token',
         grant_type='authorization_code',
-        auth=('testapp-secret', 'testapp.secret'),
         code=authorization_code,
     )
 
@@ -202,7 +295,7 @@ async def test_authorize_response_redirect(client: AsyncClient, is_fragment):
 
 async def test_authorize_response_form_post(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp-secret',
@@ -230,7 +323,7 @@ async def test_authorize_response_form_post(client: AsyncClient):
 )
 async def test_token_introspection_and_userinfo(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp',
@@ -249,7 +342,7 @@ async def test_token_introspection_and_userinfo(client: AsyncClient):
     assert state == state_response, 'State must match in authorization response'
 
     # Exchange token
-    data: dict = await auth_client.fetch_token(
+    data = await auth_client.fetch_token(
         '/oauth2/token', grant_type='authorization_code', code=authorization_code
     )
     access_token = data['access_token']
@@ -298,7 +391,7 @@ async def test_token_introspection_and_userinfo(client: AsyncClient):
 
 async def test_token_revocation(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp',
@@ -316,7 +409,7 @@ async def test_token_revocation(client: AsyncClient):
     assert state == state_response, 'State must match in authorization response'
 
     # Exchange token
-    data: dict = await auth_client.fetch_token(
+    data = await auth_client.fetch_token(
         '/oauth2/token', grant_type='authorization_code', code=authorization_code
     )
     access_token = data['access_token']
@@ -341,7 +434,7 @@ async def test_token_revocation(client: AsyncClient):
 @pytest.mark.parametrize('valid_scope', [True, False])
 async def test_access_token_in_form(client: AsyncClient, valid_scope):
     client.headers['Authorization'] = 'User user1'
-    auth_client = AsyncOAuth2Client(
+    auth_client = _OAuth2TestClient(
         base_url=client.base_url,
         transport=client._transport,  # noqa: SLF001
         client_id='testapp',
@@ -359,7 +452,7 @@ async def test_access_token_in_form(client: AsyncClient, valid_scope):
     assert state == state_response, 'State must match in authorization response'
 
     # Exchange token
-    data: dict = await auth_client.fetch_token(
+    data = await auth_client.fetch_token(
         '/oauth2/token', grant_type='authorization_code', code=authorization_code
     )
     access_token = data['access_token']

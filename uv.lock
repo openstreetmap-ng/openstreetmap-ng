@@ -233,18 +233,6 @@ wheels = [
 ]
 
 [[package]]
-name = "authlib"
-version = "1.6.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "cryptography" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/9b/b1661026ff24bc641b76b78c5222d614776b0c085bcfdac9bd15a1cb4b35/authlib-1.6.6.tar.gz", hash = "sha256:45770e8e056d0f283451d9996fbb59b70d45722b45d854d58f32878d0a40c38e", size = 164894, upload-time = "2025-12-12T08:01:41.464Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/51/321e821856452f7386c4e9df866f196720b1ad0c5ea1623ea7399969ae3b/authlib-1.6.6-py2.py3-none-any.whl", hash = "sha256:7d9e9bc535c13974313a87f53e8430eb6ea3d1cf6ae4f6efcd793f2e949143fd", size = 244005, upload-time = "2025-12-12T08:01:40.209Z" },
-]
-
-[[package]]
 name = "babel"
 version = "2.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1322,7 +1310,6 @@ dependencies = [
     { name = "aiohttp", extra = ["speedups"] },
     { name = "aiosmtplib" },
     { name = "argon2-cffi" },
-    { name = "authlib" },
     { name = "babel" },
     { name = "blake3" },
     { name = "blurhash-rs" },
@@ -1376,7 +1363,6 @@ dependencies = [
     { name = "python-magic" },
     { name = "python-multipart" },
     { name = "pyyaml" },
-    { name = "rfc3986" },
     { name = "sentry-sdk", extra = ["aiohttp", "fastapi", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
@@ -1401,7 +1387,6 @@ requires-dist = [
     { name = "aiohttp", extras = ["speedups"] },
     { name = "aiosmtplib" },
     { name = "argon2-cffi" },
-    { name = "authlib" },
     { name = "babel" },
     { name = "blake3" },
     { name = "blurhash-rs" },
@@ -1455,7 +1440,6 @@ requires-dist = [
     { name = "python-magic" },
     { name = "python-multipart" },
     { name = "pyyaml" },
-    { name = "rfc3986" },
     { name = "sentry-sdk", extras = ["aiohttp", "fastapi", "pure-eval"] },
     { name = "shapely" },
     { name = "sizestr" },
@@ -2126,15 +2110,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c9/74/b3ff8e6c8446842c3f5c837e9c3dfcfe2018ea6ecef224c710c85ef728f4/requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf", size = 134517, upload-time = "2025-08-18T20:46:02.573Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6", size = 64738, upload-time = "2025-08-18T20:46:00.542Z" },
-]
-
-[[package]]
-name = "rfc3986"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/85/40/1520d68bfa07ab5a6f065a186815fb6610c86fe957bc065754e47f7b0840/rfc3986-2.0.0.tar.gz", hash = "sha256:97aacf9dbd4bfd829baad6e6309fa6573aaf1be3f6fa735c8ab05e46cecb261c", size = 49026, upload-time = "2022-01-10T00:52:30.832Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/9a/9afaade874b2fa6c752c36f1548f718b5b83af81ed9b76628329dab81c1b/rfc3986-2.0.0-py2.py3-none-any.whl", hash = "sha256:50b1502b60e289cb37883f3dfd34532b8873c7de9f49bb546641ce9cbd256ebd", size = 31326, upload-time = "2022-01-10T00:52:29.594Z" },
 ]
 
 [[package]]

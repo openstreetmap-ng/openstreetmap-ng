@@ -4,15 +4,15 @@ from app.lib.auth_context import auth_context
 from app.models.proto.follow_pb2 import (
     ListRequest,
     ListResponse,
-    Tab,
     UpdateRequest,
 )
+from app.models.proto.follow_types import Tab
 from app.models.types import DisplayName
 from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_query import UserQuery
 
 
-async def _list(client: AsyncClient, *, tab: int) -> ListResponse:
+async def _list(client: AsyncClient, *, tab: Tab) -> ListResponse:
     r = await client.post(
         '/rpc/follow.Service/List',
         content=ListRequest(tab=tab).SerializeToString(),
@@ -51,12 +51,12 @@ async def test_follow_unfollow_flow(client: AsyncClient):
         assert follow_status.is_following
 
     # Verify user1's following page contains user2
-    resp = await _list(client, tab=Tab.following)
+    resp = await _list(client, tab='following')
     assert any(e.user.display_name == user2['display_name'] for e in resp.entries)
 
     # Verify user2's followers list contains user1
     client.headers['Authorization'] = 'User user2'
-    resp = await _list(client, tab=Tab.followers)
+    resp = await _list(client, tab='followers')
     assert any(e.user.display_name == user1['display_name'] for e in resp.entries)
 
     # Unfollow user2
@@ -69,10 +69,10 @@ async def test_follow_unfollow_flow(client: AsyncClient):
         assert not follow_status.is_following
 
     # Verify user2 is no longer in user1's following page
-    resp = await _list(client, tab=Tab.following)
+    resp = await _list(client, tab='following')
     assert all(e.user.display_name != user2['display_name'] for e in resp.entries)
 
     # Verify user1 is no longer in user2's followers list
     client.headers['Authorization'] = 'User user2'
-    resp = await _list(client, tab=Tab.followers)
+    resp = await _list(client, tab='followers')
     assert all(e.user.display_name != user1['display_name'] for e in resp.entries)

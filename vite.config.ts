@@ -147,7 +147,7 @@ export default defineConfig({
       },
     },
     postcss: {
-      plugins: [autoprefixer()],
+      plugins: [autoprefixer() as never],
     },
   },
   plugins: [

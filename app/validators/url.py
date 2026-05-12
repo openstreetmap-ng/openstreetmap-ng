@@ -1,5 +1,6 @@
+from urllib.parse import urlsplit
+
 from pydantic import AfterValidator
-from rfc3986.validators import Validator
 
 from app.config import URLSAFE_BLACKLIST
 from app.lib.translation import t
@@ -13,15 +14,19 @@ def _validate_url_safe(v: str):
     return v
 
 
-UrlValidator = (
-    Validator()
-    .forbid_use_of_password()
-    .require_presence_of('scheme', 'host')
-    .allow_schemes('http', 'https')
-)
-UriValidator = (
-    Validator()  #
-    .forbid_use_of_password()
-    .require_presence_of('scheme', 'host')
-)
+def parse_uri(uri: str):
+    """
+    Parse a URI and enforce: scheme + host present, no password in userinfo.
+    Raises ValueError on violation.
+    """
+    parsed = urlsplit(uri)
+    if not parsed.scheme:
+        raise ValueError('Missing URI scheme')
+    if not parsed.hostname:
+        raise ValueError('Missing URI host')
+    if parsed.password is not None:
+        raise ValueError('URI must not contain a password')
+    return parsed
+
+
 UrlSafeValidator = AfterValidator(_validate_url_safe)

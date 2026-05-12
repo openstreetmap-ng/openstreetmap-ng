@@ -4,7 +4,6 @@ from collections.abc import Iterable
 from typing import Any
 
 from pydantic import SecretStr
-from rfc3986 import URIReference
 from zid import zid
 
 from app.config import (
@@ -29,7 +28,7 @@ from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey
 from app.services.audit_service import audit
 from app.services.image_service import ImageService
-from app.validators.url import UriValidator
+from app.validators.url import parse_uri
 from speedup import buffered_rand_urlsafe
 
 
@@ -95,19 +94,17 @@ class OAuth2ApplicationService:
                 continue
 
             try:
-                parsed_uri = URIReference.from_string(uri)
-                UriValidator.validate(parsed_uri)
+                parsed_uri = parse_uri(uri)
             except Exception as exc:
                 logging.debug('Invalid redirect URI %r', uri)
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.invalid_redirect_uri'), exc=exc
                 )
 
-            normalized = parsed_uri.normalize()
-            if normalized.scheme == 'http' and normalized.host not in {
+            if parsed_uri.scheme == 'http' and parsed_uri.hostname not in {
                 '127.0.0.1',
                 'localhost',
-                '[::1]',
+                '::1',
             }:
                 StandardFeedback.raise_error(
                     'redirect_uris', t('validation.insecure_redirect_uri')
