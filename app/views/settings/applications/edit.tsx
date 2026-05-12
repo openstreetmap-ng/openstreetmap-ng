@@ -1,5 +1,6 @@
 import { OAUTH_APP_NAME_MAX_LENGTH } from "@lib/config"
 import { CopyButton } from "@lib/copy-group"
+import { assertImageUploadSize } from "@lib/image-upload"
 import { mountProtoPage } from "@lib/proto-page"
 import { EditPageSchema, Service } from "@lib/proto/settings_applications_pb"
 import { Scope } from "@lib/proto/shared_pb"
@@ -247,10 +248,13 @@ mountProtoPage(
                         class="avatar-form"
                         formRef={avatarFormRef}
                         method={Service.method.updateAvatar}
-                        buildRequest={async ({ formData }) => ({
-                          id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
-                        })}
+                        buildRequest={async ({ formData }) => {
+                          assertImageUploadSize(formData, "avatar_file")
+                          return {
+                            id,
+                            avatarFile: await formDataBytes(formData, "avatar_file"),
+                          }
+                        }}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
                         <input
