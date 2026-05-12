@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founder wordmark</title>
+  <desc id="desc">Horizontal OpenStreetMap-NG Founder wordmark pairing the founder badge with project text.</desc>
+  <defs>
+    <linearGradient id="gold" x1="24" y1="20" x2="236" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff1a8" />
+      <stop offset="0.5" stop-color="#d8a53b" />
+      <stop offset="1" stop-color="#8b5f16" />
+    </linearGradient>
+    <linearGradient id="green" x1="70" y1="56" x2="196" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#93d871" />
+      <stop offset="1" stop-color="#2f7147" />
+    </linearGradient>
+    <linearGradient id="ribbon" x1="58" y1="176" x2="202" y2="222" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1b5f3a" />
+      <stop offset="1" stop-color="#16452e" />
+    </linearGradient>
+  </defs>
+
+  <g>
+    <circle cx="130" cy="130" r="116" fill="url(#gold)" />
+    <circle cx="130" cy="130" r="104" fill="#f8f6e9" />
+    <circle cx="130" cy="130" r="94" fill="url(#green)" />
+    <path d="M67 66h126c8 0 14 6 14 14v86c0 8-6 14-14 14H67c-8 0-14-6-14-14V80c0-8 6-14 14-14Z" fill="#f7fbf1" />
+    <path d="M67 66h44v114H67c-8 0-14-6-14-14V80c0-8 6-14 14-14Z" fill="#bde99a" />
+    <path d="M111 66h40v114h-40z" fill="#73b65e" />
+    <path d="M151 66h42c8 0 14 6 14 14v86c0 8-6 14-14 14h-42z" fill="#4e9654" />
+    <path d="M72 142c18-11 31-8 45 4 18 15 38 17 64-2M75 103c21 8 37 6 53-7 18-15 39-13 60 4" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.7" />
+    <text x="130" y="147" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="62" font-weight="850" fill="#103822" stroke="#f7fbf1" stroke-width="5" paint-order="stroke">NG</text>
+    <path d="M50 175h160c7 0 13 6 13 13v24c0 7-6 13-13 13H50c-7 0-13-6-13-13v-24c0-7 6-13 13-13Z" fill="url(#ribbon)" />
+    <text x="130" y="209" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2.2" fill="#fff7cf">FOUNDER</text>
+  </g>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="288" y="112" font-size="62" font-weight="820" fill="#123b25">OpenStreetMap-NG</text>
+    <text x="290" y="170" font-size="38" font-weight="760" fill="#9a6a19" letter-spacing="1.5">Founder</text>
+    <path d="M292 190h312" stroke="#d8a53b" stroke-width="8" stroke-linecap="round" />
+  </g>
+</svg>
