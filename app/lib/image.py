@@ -5,13 +5,13 @@ from contextlib import asynccontextmanager
 from functools import partial
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, NamedTuple, overload
+from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -49,7 +49,7 @@ class _Animation(NamedTuple):
     loop: int
 
 
-type UserAvatarType = Literal['gravatar', 'custom'] | None
+UserAvatarType: TypeAlias = Literal['gravatar', 'custom'] | None  # noqa: UP040
 
 DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
@@ -242,8 +242,13 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        img = open_image(BytesIO(data))
+        ImageOps.exif_transpose(img, in_place=True)
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except (UnidentifiedImageError, OSError, SyntaxError):
+        raise_for.image_not_readable()
 
     # normalize shape ratio
     img_width: cython.size_t

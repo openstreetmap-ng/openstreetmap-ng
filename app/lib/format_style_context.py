@@ -1,12 +1,12 @@
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Literal
+from typing import Literal, TypeAlias
 
 import cython
 
 from app.middlewares.request_context_middleware import get_request
 
-type FormatStyle = Literal['json', 'xml', 'rss', 'gpx']
+FormatStyle: TypeAlias = Literal['json', 'xml', 'rss', 'gpx']  # noqa: UP040
 
 _LEGACY_EXTENSION_FORMATS: dict[str, FormatStyle] = {
     'json': 'json',

@@ -1,5 +1,6 @@
-from typing import Literal, cast, get_args
+from typing import Literal, TypeAlias, cast, get_args
 
+from app.models.proto.shared_pb2 import RoutingResult
 from fastapi import HTTPException
 from shapely import Point, get_coordinates
 from starlette import status
@@ -8,12 +9,9 @@ from app.config import GRAPHHOPPER_API_KEY, GRAPHHOPPER_URL
 from app.lib.http_client import HTTP
 from app.lib.translation import primary_translation_locale
 from app.models.graphhopper import GraphHopperResponse
-from app.models.proto.shared_pb2 import RoutingResult
 
-type GraphHopperProfile = Literal['car', 'bike', 'foot']
-GraphHopperProfiles = frozenset[GraphHopperProfile](
-    get_args(GraphHopperProfile.__value__)
-)
+GraphHopperProfile: TypeAlias = Literal['car', 'bike', 'foot']  # noqa: UP040
+GraphHopperProfiles = frozenset[GraphHopperProfile](get_args(GraphHopperProfile))
 
 
 class GraphHopperQuery:

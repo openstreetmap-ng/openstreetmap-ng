@@ -1,10 +1,11 @@
 import { OAUTH_APP_NAME_MAX_LENGTH } from "@lib/config"
 import { CopyButton } from "@lib/copy-group"
+import { imageFormDataBytes } from "@lib/image-upload"
 import { mountProtoPage } from "@lib/proto-page"
 import { EditPageSchema, Service } from "@lib/proto/settings_applications_pb"
 import { Scope } from "@lib/proto/shared_pb"
 import { formDataScopes, SCOPE_LABEL, SCOPES_NO_WEB_USER } from "@lib/scope"
-import { formDataBytes, StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@lib/standard-form"
 import { throwAbortError } from "@lib/utils"
 import { useSignal } from "@preact/signals"
 import { t } from "i18next"
@@ -249,7 +250,10 @@ mountProtoPage(
                         method={Service.method.updateAvatar}
                         buildRequest={async ({ formData }) => ({
                           id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
+                          avatarFile: await imageFormDataBytes(
+                            formData,
+                            "avatar_file",
+                          ),
                         })}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
