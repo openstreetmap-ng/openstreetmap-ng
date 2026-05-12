@@ -1,5 +1,6 @@
 import type { QuerySchema } from "@lib/codecs"
 import { type ReadonlySignal, signal } from "@preact/signals"
+import { z } from "@zod/zod/mini"
 
 export type UrlUpdateMode = "replace" | "push"
 
@@ -42,11 +43,11 @@ export const readUrlQueryParam = <T>(
   key: string,
   schema: QuerySchema<T>,
   url: URL = currentUrl.peek(),
-) => schema.parse(readUrlSearchParam(key, url))
+) => z.parse(schema, readUrlSearchParam(key, url))
 
 export const updateUrlQueryParam = <T>(
   key: string,
   schema: QuerySchema<T>,
   value: T,
   mode: UrlUpdateMode,
-) => updateUrlSearchParam(key, schema.encode(value), mode)
+) => updateUrlSearchParam(key, z.encode(schema, value), mode)

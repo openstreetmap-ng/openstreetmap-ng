@@ -2,31 +2,39 @@ import type { GenEnum } from "@bufbuild/protobuf/codegenv2"
 import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
 import { polylineDecode, polylineEncode } from "@lib/polyline"
 import { distinct } from "@std/collections/distinct"
-import { z } from "@zod/zod"
+import { z } from "@zod/zod/mini"
 
 const PATH_POSITIVE_INT_RE = /^(?:0*[1-9][0-9]*)$/
 
-export const getPathParamSpecificity = (schema: z.ZodType) => {
-  const meta = schema.meta() as { routeParamSpecificity?: number } | undefined
-  return meta?.routeParamSpecificity ?? 1
-}
+const pathParamSpecificity = new WeakMap<z.ZodMiniType, number>()
+
+export const getPathParamSpecificity = (schema: z.ZodMiniType): number =>
+  pathParamSpecificity.get(schema) ?? 1
 
 export const pathParam = {
-  segment: () => z.string().min(1).meta({ routeParamSpecificity: 0 }),
+  segment: () => {
+    const schema = z.string().check(z.minLength(1))
+    pathParamSpecificity.set(schema, 0)
+    return schema
+  },
 
   enum: <const T extends readonly [string, ...string[]]>(values: T) => z.enum(values),
 
   positive: () =>
-    z.codec(z.string().regex(PATH_POSITIVE_INT_RE), z.bigint().positive(), {
-      decode: (s) => BigInt(s),
-      encode: (n) => n.toString(),
-    }),
+    z.codec(
+      z.string().check(z.regex(PATH_POSITIVE_INT_RE)),
+      z.bigint().check(z.positive()),
+      {
+        decode: (s) => BigInt(s),
+        encode: (n) => n.toString(),
+      },
+    ),
 
-  optional: <T>(inner: z.ZodType<T, string>) =>
-    inner as z.ZodType<T | undefined, string>,
+  optional: <T>(inner: z.ZodMiniType<T, string>) =>
+    inner as z.ZodMiniType<T | undefined, string>,
 } as const
 
-export type QuerySchema<T = unknown> = z.ZodType<T, string[] | undefined>
+export type QuerySchema<T = unknown> = z.ZodMiniType<T, string[] | undefined>
 
 type ProtoEnumObject<TValue extends number> = Readonly<
   Record<string, TValue | string>
@@ -74,15 +82,15 @@ const isStringTuple = (value: unknown): value is readonly [string, ...string[]] 
 
 const mapQueryParam = <TIn, TOut>(
   schema: QuerySchema<TIn>,
-  output: z.ZodType<TOut, TOut>,
+  output: z.ZodMiniType<TOut, TOut>,
   options: {
     decode: (value: TIn) => TOut
     encode: (value: TOut) => TIn
   },
 ): QuerySchema<TOut> =>
-  z.codec(z.array(z.string()).optional(), output, {
-    decode: (raw) => options.decode(schema.parse(raw)),
-    encode: (value) => schema.encode(options.encode(value)),
+  z.codec(z.optional(z.array(z.string())), output, {
+    decode: (raw) => options.decode(z.parse(schema, raw)),
+    encode: (value) => z.encode(schema, options.encode(value)),
   })
 
 const queryEnumString = <const T extends readonly [string, ...string[]]>(
@@ -92,11 +100,11 @@ const queryEnumString = <const T extends readonly [string, ...string[]]>(
   const schema = pathParam.enum(values)
   if (options) {
     const { default: defaultValue, omitDefault = true } = options
-    return z.codec(z.array(z.string()).optional(), schema, {
+    return z.codec(z.optional(z.array(z.string())), schema, {
       decode: (raw) => {
         const last = raw?.at(-1)
         if (last === undefined) return defaultValue
-        const parsed = schema.safeDecode(last)
+        const parsed = z.safeDecode(schema, last)
         return parsed.success ? parsed.data : defaultValue
       },
       encode: (value) => {
@@ -106,11 +114,11 @@ const queryEnumString = <const T extends readonly [string, ...string[]]>(
     })
   }
 
-  return z.codec(z.array(z.string()).optional(), schema.optional(), {
+  return z.codec(z.optional(z.array(z.string())), z.optional(schema), {
     decode: (raw) => {
       const last = raw?.at(-1)
       if (last === undefined) return
-      const parsed = schema.safeDecode(last)
+      const parsed = z.safeDecode(schema, last)
       return parsed.success ? parsed.data : undefined
     },
     encode: (value) => (value !== undefined ? [value] : undefined),
@@ -129,8 +137,8 @@ const queryEnumProto = <TValue extends number>(
       throw new Error(`Missing enum name for default value '${defaultValue}'`)
 
     return z.codec(
-      z.array(z.string()).optional(),
-      z.number() as unknown as z.ZodType<TValue, number>,
+      z.optional(z.array(z.string())),
+      z.number() as unknown as z.ZodMiniType<TValue, number>,
       {
         decode: (raw) => {
           const last = raw?.at(-1)
@@ -147,8 +155,8 @@ const queryEnumProto = <TValue extends number>(
   }
 
   return z.codec(
-    z.array(z.string()).optional(),
-    z.number().optional() as unknown as z.ZodType<
+    z.optional(z.array(z.string())),
+    z.optional(z.number()) as unknown as z.ZodMiniType<
       TValue | undefined,
       number | undefined
     >,
@@ -193,7 +201,7 @@ const queryEnumListString = <const T extends readonly [string, ...string[]]>(
   const dedup = options?.dedup ?? true
   const nameSet = new Set<string>(values)
 
-  return z.codec(z.array(z.string()).optional(), z.array(pathParam.enum(values)), {
+  return z.codec(z.optional(z.array(z.string())), z.array(pathParam.enum(values)), {
     decode: (raw) => {
       if (!raw) return []
       const names = raw.filter((name): name is T[number] => nameSet.has(name))
@@ -214,8 +222,8 @@ const queryEnumListProto = <TValue extends number>(
   const enumAccessors = protoEnumAccessors(enumLike)
 
   return z.codec(
-    z.array(z.string()).optional(),
-    z.array(z.number()) as unknown as z.ZodType<TValue[], number[]>,
+    z.optional(z.array(z.string())),
+    z.array(z.number()) as unknown as z.ZodMiniType<TValue[], number[]>,
     {
       decode: (raw) => {
         if (!raw) return []
@@ -252,19 +260,23 @@ function queryEnumList(source: any, options?: any) {
 
 const queryPositive = () => {
   const schema = pathParam.positive()
-  return z.codec(z.array(z.string()).optional(), z.bigint().positive().optional(), {
-    decode: (raw) => {
-      const last = raw?.at(-1)
-      if (last === undefined) return
-      const parsed = schema.safeDecode(last)
-      return parsed.success ? parsed.data : undefined
+  return z.codec(
+    z.optional(z.array(z.string())),
+    z.optional(z.bigint().check(z.positive())),
+    {
+      decode: (raw) => {
+        const last = raw?.at(-1)
+        if (last === undefined) return
+        const parsed = z.safeDecode(schema, last)
+        return parsed.success ? parsed.data : undefined
+      },
+      encode: (value) => (value !== undefined ? [z.encode(schema, value)] : undefined),
     },
-    encode: (value) => (value !== undefined ? [schema.encode(value)] : undefined),
-  })
+  )
 }
 
 const queryPositiveInt = () =>
-  mapQueryParam(queryPositive(), z.number().int().positive().optional(), {
+  mapQueryParam(queryPositive(), z.optional(z.number().check(z.int(), z.positive())), {
     decode: (value) => {
       if (value === undefined) return
       const number = Number(value)
@@ -275,7 +287,7 @@ const queryPositiveInt = () =>
 
 export const queryParam = {
   text: () =>
-    z.codec(z.array(z.string()).optional(), z.string().optional(), {
+    z.codec(z.optional(z.array(z.string())), z.optional(z.string()), {
       decode: (raw) => {
         const last = raw?.at(-1)
         if (last === undefined) return
@@ -297,7 +309,7 @@ export const queryParam = {
   enumList: queryEnumList,
 
   timestamp: () =>
-    z.codec(z.array(z.string()).optional(), z.bigint().optional(), {
+    z.codec(z.optional(z.array(z.string())), z.optional(z.bigint()), {
       decode: (raw) => {
         const last = raw?.at(-1)
         if (last === undefined) return
@@ -311,11 +323,11 @@ export const queryParam = {
     }),
 
   flag: () =>
-    z.codec(z.array(z.string()).optional(), z.boolean(), {
+    z.codec(z.optional(z.array(z.string())), z.boolean(), {
       decode: (raw) => {
         const last = raw?.at(-1)
         if (!last) return false
-        const parsed = STRINGBOOL.safeDecode(last)
+        const parsed = z.safeDecode(STRINGBOOL, last)
         return parsed.success ? parsed.data : false
       },
       encode: (value) => (value ? ["1"] : undefined),
@@ -323,14 +335,14 @@ export const queryParam = {
 
   lonLatZoom: () =>
     z.codec(
-      z.array(z.string()).optional(),
-      z
-        .object({
+      z.optional(z.array(z.string())),
+      z.optional(
+        z.object({
           lon: z.number(),
           lat: z.number(),
           zoom: z.number(),
-        })
-        .optional(),
+        }),
+      ),
       {
         decode: (raw) => parseLonLatZoom(raw?.at(-1)) ?? undefined,
         encode: (value) => (value ? [encodeMapState(value, "")] : undefined),
@@ -339,11 +351,8 @@ export const queryParam = {
 
   polyline: (precision: number) =>
     z.codec(
-      z.array(z.string()).optional(),
-      z
-        .array(z.tuple([z.number(), z.number()]).readonly())
-        .readonly()
-        .optional(),
+      z.optional(z.array(z.string())),
+      z.optional(z.readonly(z.array(z.readonly(z.tuple([z.number(), z.number()]))))),
       {
         decode: (raw) => {
           const last = raw?.at(-1)

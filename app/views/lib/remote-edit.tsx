@@ -5,6 +5,7 @@ import type { LonLatZoom } from "@lib/map/state"
 import { qsEncode } from "@lib/qs"
 import type { ReadonlySignal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
+import { z } from "@zod/zod/mini"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 
@@ -22,7 +23,7 @@ export const parseRemoteEditTargetFromQueryParams = (
   for (const type of ["node", "way", "relation", "note"] as const) {
     const raw = queryParams[type]?.at(-1)
     if (!raw) continue
-    const parsed = idSchema.safeDecode(raw)
+    const parsed = z.safeDecode(idSchema, raw)
     if (!parsed.success) continue
     return { type, id: parsed.data }
   }

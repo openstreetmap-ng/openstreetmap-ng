@@ -9,7 +9,7 @@ import { assert } from "@std/assert"
 import { mapNotNullish } from "@std/collections/map-not-nullish"
 import { sumOf } from "@std/collections/sum-of"
 import { trimEndBy } from "@std/text/unstable-trim-by"
-import { z } from "@zod/zod"
+import { z } from "@zod/zod/mini"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import type { ComponentChildren, RefObject } from "preact"
 
@@ -47,7 +47,7 @@ type RouteComponent<
     QuerySignals<Q>,
 ) => ComponentChildren
 
-type PathParamSchema<T = unknown> = z.ZodType<T, string>
+type PathParamSchema<T = unknown> = z.ZodMiniType<T, string>
 type PathParamSpec = Record<string, PathParamSchema<any>>
 
 type QuerySpec = Readonly<Record<string, QuerySchema<any>>>
@@ -223,7 +223,7 @@ const matchTokens = (tokens: readonly PathToken[], segments: readonly string[]) 
       } catch {
         return null
       }
-      const result = token.schema.safeDecode(segment)
+      const result = z.safeDecode(token.schema, segment)
       if (!result.success) return null
       out[token.name] = result.data
     }
@@ -241,12 +241,12 @@ const buildPathname = (
   const segments = tokens.map((t) => {
     if (t.kind === "lit") return t.value
     const value = obj[t.name]
-    return encodeURIComponent(t.schema.encode(value))
+    return encodeURIComponent(z.encode(t.schema, value))
   })
   return `/${segments.join("/")}`
 }
 
-type DecodeSpec<S extends Record<string, z.ZodType>> = {
+type DecodeSpec<S extends Record<string, z.ZodMiniType>> = {
   [K in keyof S]: z.output<S[K]>
 }
 

@@ -2,7 +2,7 @@ import type { DescMessage, MessageShape } from "@bufbuild/protobuf"
 import type { QuerySchema } from "@lib/codecs"
 import { qsEncode, qsParseAll } from "@lib/qs"
 import { assert } from "@std/assert"
-import type { z } from "@zod/zod"
+import { z } from "@zod/zod/mini"
 
 type QueryContractSpec = Readonly<Record<string, QuerySchema<any>>>
 
@@ -139,7 +139,7 @@ export const defineQueryContract = <const Spec extends QueryContractSpec>(
   const defaults = new Map<string, unknown>()
   const emptyQueryValues: string[] | undefined = undefined
   for (const [property, schema] of entries) {
-    const result = schema.safeDecode(emptyQueryValues)
+    const result = z.safeDecode(schema, emptyQueryValues)
     if (!result.success || result.data === undefined) continue
     defaults.set(property, result.data)
   }
@@ -170,7 +170,7 @@ export const defineQueryContract = <const Spec extends QueryContractSpec>(
     }
 
     for (const [property, schema] of entries) {
-      const result = schema.safeDecode(source[externalKeyByProperty.get(property)!])
+      const result = z.safeDecode(schema, source[externalKeyByProperty.get(property)!])
       if (!result.success || result.data === undefined) continue
       parsed[property] = cloneValue(result.data)
     }
@@ -184,7 +184,7 @@ export const defineQueryContract = <const Spec extends QueryContractSpec>(
     for (const [property, schema] of entries) {
       const fieldValue = value[property]
       if (fieldValue === undefined) continue
-      out[externalKeyByProperty.get(property)!] = schema.encode(fieldValue)
+      out[externalKeyByProperty.get(property)!] = z.encode(schema, fieldValue)
     }
 
     return out
