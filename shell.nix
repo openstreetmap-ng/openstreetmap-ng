@@ -81,13 +81,9 @@ let
   );
 
   pythonLibs = with pkgs; [
-    cairo.out
-    file.out
-    libyaml.out
-    libxml2.out
-    openssl.out
-    zlib.out
-    stdenv.cc.cc.lib
+    cairo.out # cairocffi/cairosvg dlopens libcairo via ctypes.util.find_library
+    file.out # python-magic dlopens libmagic; provides magic.mgc data
+    stdenv.cc.cc.lib # libstdc++/libgcc_s for duckdb, pyarrow, torch, tokenizers, re2, Rust wheels
   ];
   python' =
     with pkgs;
