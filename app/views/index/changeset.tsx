@@ -12,6 +12,7 @@ import { Time } from "@lib/datetime-inputs"
 import { useDisposeSignalEffect } from "@lib/dispose-scope"
 import { makeBoundsMinimumSize } from "@lib/map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
+import { convertRenderElementsData } from "@lib/map/render-objects"
 import {
   type AddCommentResponseValid,
   type DataValid,
@@ -21,6 +22,7 @@ import {
   type GetCommentsResponseValid,
 } from "@lib/proto/changeset_pb"
 import { ElementType } from "@lib/proto/shared_pb"
+import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
 import {
   Service as SubscriptionService,
   Target as SubscriptionTarget,
@@ -32,7 +34,7 @@ import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
 import { showLoginModal } from "../user/login"
-import type { OSMChangeset } from "@lib/types"
+import type { OSMChangeset, OSMObject } from "@lib/types"
 import {
   type ReadonlySignal,
   type Signal,
@@ -48,6 +50,17 @@ const focusPaint: FocusLayerPaint = {
   "line-color": "#f90",
   "line-opacity": 1,
   "line-width": 3,
+}
+
+const diffPaint: FocusLayerPaint = {
+  "fill-color": "#f97316",
+  "fill-opacity": 0.18,
+  "line-color": "#f97316",
+  "line-opacity": 0.95,
+  "line-width": 4,
+  "circle-color": "#f97316",
+  "circle-opacity": 0.95,
+  "circle-radius": 7,
 }
 
 export const ChangesetStats = ({
@@ -315,6 +328,9 @@ const ChangesetSidebar = ({
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
+  const diffMode = useSignal(false)
+  const diffLoading = useSignal(false)
+  const diffObjects = useSignal<OSMObject[] | null>(null)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
@@ -334,7 +350,20 @@ const ChangesetSidebar = ({
     }
   })
 
+  // Effect: Reset cached diff data when navigating between changesets.
+  useSignalEffect(() => {
+    id.value
+    diffMode.value = false
+    diffLoading.value = false
+    diffObjects.value = null
+  })
+
   const refocus = (initial = false) => {
+    if (diffMode.value) {
+      focusObjects(map, diffObjects.value ?? [], diffPaint, null, initial ? {} : false)
+      return
+    }
+
     const d = data.value
     if (!d?.bounds.length) return
     const object: OSMChangeset = {
@@ -349,12 +378,36 @@ const ChangesetSidebar = ({
 
   // Effect: Map focus
   useDisposeSignalEffect((scope) => {
-    if (!data.value?.bounds.length) return
+    if (!diffMode.value && !data.value?.bounds.length) return
 
     scope.defer(() => focusObjects(map))
     scope.map(map, "zoomend", () => refocus())
     refocus(true)
   })
+
+  const toggleDiffMode = async () => {
+    if (diffMode.value) {
+      diffMode.value = false
+      return
+    }
+
+    if (diffObjects.peek() === null) {
+      diffLoading.value = true
+      const requestId = id.value
+      try {
+        const result = await rpcUnary(Service.method.getDiff)({ id: requestId })
+        if (id.peek() !== requestId) return
+        diffObjects.value = convertRenderElementsData(result.render)
+      } catch (error) {
+        alert(connectErrorToMessage(error))
+        return
+      } finally {
+        diffLoading.value = false
+      }
+    }
+
+    diffMode.value = true
+  }
 
   return (
     <SidebarContent
@@ -376,6 +429,19 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
+            <button
+              class={`btn btn-sm w-100 mb-2 ${diffMode.value ? "btn-primary" : "btn-soft"}`}
+              type="button"
+              disabled={diffLoading.value}
+              onClick={toggleDiffMode}
+            >
+              <i class={`bi ${diffMode.value ? "bi-eye-slash" : "bi-map"} me-2`} />
+              {diffMode.value
+                ? t("changeset.hide_diff")
+                : diffLoading.value
+                  ? t("changeset.loading_diff")
+                  : t("changeset.show_diff")}
+            </button>
             <Tags tags={d.tags} />
 
             {/* Report button */}
