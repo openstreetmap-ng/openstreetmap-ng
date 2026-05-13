@@ -237,10 +237,13 @@ class OptimisticDiffPrepare:
         )
         self._check_null_island_limit()
 
+        # Keep this validation outside the TaskGroup so APIError is raised
+        # directly instead of being wrapped in an ExceptionGroup.
+        await self._check_null_island_refs()
+
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
-            tg.create_task(self._check_null_island_refs())
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
