@@ -37,7 +37,7 @@ async def _upload_trace(client: AsyncClient, visibility: int):
 
 def _has_visible_pixel(content: bytes):
     image = Image.open(BytesIO(content)).convert('RGBA')
-    return any(alpha for *_, alpha in image.getdata())
+    return image.getchannel('A').getbbox() is not None
 
 
 async def test_public_trace_tile(client: AsyncClient):

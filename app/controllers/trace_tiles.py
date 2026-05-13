@@ -5,7 +5,6 @@ from io import BytesIO
 from math import atan, degrees, log, pi, radians, sinh, tan
 from typing import Annotated
 
-import cython
 from fastapi import APIRouter, HTTPException, Path
 from PIL import Image, ImageDraw
 from shapely import LineString, MultiLineString, Polygon, box, get_coordinates
@@ -66,7 +65,6 @@ async def _tile_response(
     return Response(tile, media_type='image/png', headers=headers)
 
 
-@cython.cfunc
 def _validate_tile(z: int, x: int, y: int):
     limit = 1 << z
     if x >= limit or y >= limit:
@@ -97,12 +95,10 @@ def _tile_bounds(z: int, x: int, y: int):
     )
 
 
-@cython.cfunc
 def _tile_lat(y: int, n: int) -> float:
     return degrees(atan(sinh(pi * (1 - 2 * y / n))))
 
 
-@cython.cfunc
 def _mercator_y(lat: float) -> float:
     return log(tan(pi / 4 + radians(lat) / 2))
 
@@ -138,7 +134,6 @@ def _iter_lines(geometry) -> Iterable[LineString]:
         yield from _iter_lines(geom)
 
 
-@cython.cfunc
 def _project_point(lon: float, lat: float, bounds: _TileBounds):
     x = (lon - bounds.west) / (bounds.east - bounds.west) * _TILE_SIZE
     y = (
