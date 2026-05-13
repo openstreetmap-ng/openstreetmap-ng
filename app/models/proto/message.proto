@@ -26,6 +26,7 @@ service Service {
 message GetPageRequest {
   StandardPaginationRequest state = 1;
   bool inbox = 2;
+  string search = 3 [(buf.validate.field).string.max_len = 100];
 }
 
 message GetPageResponse {

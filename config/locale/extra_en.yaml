@@ -161,6 +161,13 @@ messages:
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
   action_delivered: delivered
+  search:
+    label: Search messages
+    inbox_placeholder: Search by sender or subject
+    outbox_placeholder: Search by recipient or subject
+    submit: Search
+    clear: Clear search
+    no_results: No messages found
   user_sent_you_a_message_on_platform_subject: "{user} sent you a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_one: "{user} sent you and {count} other a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_other: "{user} sent you and {count} others a message on {platform}: {subject}"

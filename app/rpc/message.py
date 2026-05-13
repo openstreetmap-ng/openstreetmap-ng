@@ -1,4 +1,5 @@
 from asyncio import TaskGroup
+from string.templatelib import Template
 from typing import override
 
 import cython
@@ -39,19 +40,34 @@ class _Service(MessageServiceConnect):
         user_id = require_web_user()['id']
 
         inbox = request.inbox
+        filters: list[Template] = []
         if inbox:
+            filters.append(t"""
+                EXISTS (
+                    SELECT 1 FROM message_recipient
+                    WHERE message_id = id
+                      AND user_id = {user_id}
+                      AND NOT hidden
+                )
+            """)
+            if request.search:
+                pattern = f'%{request.search}%'
+                filters.append(t"""
+                    (
+                        subject ILIKE {pattern}
+                        OR EXISTS (
+                            SELECT 1 FROM "user"
+                            WHERE "user".id = "message".from_user_id
+                              AND display_name ILIKE {pattern}
+                        )
+                    )
+                """)
+
             messages, state = await sp_paginate_table(
                 Message,
                 request.state,
                 table='message',
-                where=t"""
-                    EXISTS (
-                        SELECT 1 FROM message_recipient
-                        WHERE message_id = id
-                          AND user_id = {user_id}
-                          AND NOT hidden
-                    )
-                """,
+                where=SQL(' AND ').join(filters),
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',
@@ -67,11 +83,27 @@ class _Service(MessageServiceConnect):
                 )
 
         else:
+            filters.append(t'from_user_id = {user_id} AND NOT from_user_hidden')
+            if request.search:
+                pattern = f'%{request.search}%'
+                filters.append(t"""
+                    (
+                        subject ILIKE {pattern}
+                        OR EXISTS (
+                            SELECT 1
+                            FROM message_recipient
+                            JOIN "user" ON "user".id = message_recipient.user_id
+                            WHERE message_recipient.message_id = "message".id
+                              AND display_name ILIKE {pattern}
+                        )
+                    )
+                """)
+
             messages, state = await sp_paginate_table(
                 Message,
                 request.state,
                 table='message',
-                where=t'from_user_id = {user_id} AND NOT from_user_hidden',
+                where=SQL(' AND ').join(filters),
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',

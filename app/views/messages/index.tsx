@@ -29,12 +29,16 @@ type PreviewState =
 const MESSAGE_QUERY = defineQueryContract({
   show: queryParam.positive(),
   page: queryParam.positiveInt(),
+  search: queryParam.text(),
 })
 type MessageQuery = QueryContractSignal<typeof MESSAGE_QUERY>
 
 const getQueryWithoutShow = (query: MessageQuery) => {
-  const page = query.peek().page
-  return page === undefined ? {} : { page }
+  const { page, search } = query.peek()
+  return {
+    ...(page === undefined ? {} : { page }),
+    ...(search === undefined ? {} : { search }),
+  }
 }
 
 const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid }) => {
@@ -61,11 +65,76 @@ const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid 
   )
 }
 
-const MessagesEmpty = () => (
+const MessagesEmpty = ({ search }: { search: string | undefined }) => (
   <li class="text-center text-muted py-5">
-    <h3>{t("traces.index.empty_title")}</h3>
+    <h3>{search ? t("messages.search.no_results") : t("traces.index.empty_title")}</h3>
   </li>
 )
+
+const MessagesSearchForm = ({
+  inbox,
+  query,
+}: {
+  inbox: boolean
+  query: MessageQuery
+}) => {
+  const searchValue = useSignal(query.value.search ?? "")
+
+  useEffect(() => {
+    searchValue.value = query.value.search ?? ""
+  }, [query.value.search])
+
+  const submitSearch = (event: SubmitEvent & { currentTarget: HTMLFormElement }) => {
+    event.preventDefault()
+    const next = MESSAGE_QUERY.parseFormData(new FormData(event.currentTarget))
+    query.value = next.search ? { search: next.search } : {}
+  }
+
+  const clearSearch = () => {
+    searchValue.value = ""
+    query.value = {}
+  }
+
+  return (
+    <form
+      class="message-search input-group mb-3"
+      onSubmit={submitSearch}
+    >
+      <span class="input-group-text">
+        <i class="bi bi-search" />
+      </span>
+      <input
+        class="form-control"
+        type="search"
+        name="search"
+        value={searchValue.value}
+        placeholder={
+          inbox
+            ? t("messages.search.inbox_placeholder")
+            : t("messages.search.outbox_placeholder")
+        }
+        aria-label={t("messages.search.label")}
+        onInput={(event) => (searchValue.value = event.currentTarget.value)}
+      />
+      {query.value.search && (
+        <button
+          class="btn btn-outline-secondary"
+          type="button"
+          aria-label={t("messages.search.clear")}
+          onClick={clearSearch}
+        >
+          <i class="bi bi-x-lg" />
+        </button>
+      )}
+      <button
+        class="btn btn-primary"
+        type="submit"
+      >
+        {t("messages.search.submit")}
+      </button>
+    </form>
+  )
+}
 
 const MessagesListItem = ({
   message,
@@ -473,9 +542,13 @@ mountProtoPage(IndexPageSchema, () => {
         <div class="container">
           <div class="row flex-wrap-reverse">
             <div class="col-lg">
+              <MessagesSearchForm
+                inbox={inbox}
+                query={query}
+              />
               <StandardPagination
                 method={Service.method.getPage}
-                request={{ inbox }}
+                request={{ inbox, search: query.value.search }}
                 urlKey="page"
                 onLoad={(data) => (messages.value = data.messages)}
               >
@@ -491,7 +564,7 @@ mountProtoPage(IndexPageSchema, () => {
                         />
                       ))
                     ) : (
-                      <MessagesEmpty />
+                      <MessagesEmpty search={query.value.search} />
                     )}
                   </ul>
                 )}

@@ -9,6 +9,8 @@ from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.models.proto.message_pb2 import (
     DeleteRequest,
+    GetPageRequest,
+    GetPageResponse,
     GetRequest,
     GetResponse,
     SendRequest,
@@ -150,3 +152,83 @@ async def test_message_crud(client: AsyncClient):
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)
+
+
+async def test_message_page_search(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/rpc/message.Service/Send',
+        headers={'Content-Type': 'application/proto'},
+        content=SendRequest(
+            subject='Bridge survey follow-up',
+            body='Please review the bridge notes.',
+            recipient=['user2'],
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+
+    r = await client.post(
+        '/rpc/message.Service/Send',
+        headers={'Content-Type': 'application/proto'},
+        content=SendRequest(
+            subject='Park cleanup',
+            body='Thanks for helping with the park.',
+            recipient=['user3'],
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='bridge',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    assert [m.subject for m in outbox.messages] == ['Bridge survey follow-up']
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='user3',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    outbox_subjects = {m.subject for m in outbox.messages}
+    assert 'Park cleanup' in outbox_subjects
+    assert 'Bridge survey follow-up' not in outbox_subjects
+
+    client.headers['Authorization'] = 'User user2'
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='bridge',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    inbox_subjects = {m.subject for m in inbox.messages}
+    assert 'Bridge survey follow-up' in inbox_subjects
+    assert 'Park cleanup' not in inbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='user1',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    assert [m.subject for m in inbox.messages] == ['Bridge survey follow-up']
