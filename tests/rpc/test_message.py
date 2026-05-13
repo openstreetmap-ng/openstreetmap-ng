@@ -3,12 +3,17 @@ from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
+from app.db import db
 from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.models.proto.message_pb2 import (
+    DeleteOlderThanRequest,
+    DeleteOlderThanResponse,
     DeleteRequest,
+    GetPageRequest,
+    GetPageResponse,
     GetRequest,
     GetResponse,
     SendRequest,
@@ -150,3 +155,96 @@ async def test_message_crud(client: AsyncClient):
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)
+
+
+async def test_message_delete_older_than(client: AsyncClient):
+    old_subject = 'Old bridge notice'
+    recent_subject = 'Recent park notice'
+
+    client.headers['Authorization'] = 'User user1'
+    old_id = await _send_message(client, old_subject, 'user2')
+    await _send_message(client, recent_subject, 'user2')
+
+    async with db(True) as conn:
+        await conn.execute(
+            """
+            UPDATE message
+            SET created_at = statement_timestamp() - interval '4 weeks'
+            WHERE id = %s
+            """,
+            (old_id,),
+        )
+
+    r = await client.post(
+        '/rpc/message.Service/DeleteOlderThan',
+        headers={'Content-Type': 'application/proto'},
+        content=DeleteOlderThanRequest(
+            inbox=False,
+            count=3,
+            unit=DeleteOlderThanRequest.weeks,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert DeleteOlderThanResponse.FromString(r.content).deleted_count == 1
+
+    outbox_subjects = await _message_page_subjects(client, inbox=False)
+    assert old_subject not in outbox_subjects
+    assert recent_subject in outbox_subjects
+
+    client.headers['Authorization'] = 'User user2'
+
+    inbox_subjects = await _message_page_subjects(client, inbox=True)
+    assert old_subject in inbox_subjects
+    assert recent_subject in inbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/DeleteOlderThan',
+        headers={'Content-Type': 'application/proto'},
+        content=DeleteOlderThanRequest(
+            inbox=True,
+            count=3,
+            unit=DeleteOlderThanRequest.weeks,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert DeleteOlderThanResponse.FromString(r.content).deleted_count == 1
+
+    inbox_subjects = await _message_page_subjects(client, inbox=True)
+    assert old_subject not in inbox_subjects
+    assert recent_subject in inbox_subjects
+
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
+    with (
+        exceptions_context(Exceptions()),
+        auth_context(user2),
+        pytest.raises(APIError, match='Message not found'),
+    ):
+        await MessageQuery.get_by_id(old_id)
+
+
+async def _send_message(
+    client: AsyncClient,
+    subject: str,
+    recipient: str,
+) -> MessageId:
+    r = await client.post(
+        '/rpc/message.Service/Send',
+        headers={'Content-Type': 'application/proto'},
+        content=SendRequest(
+            subject=subject,
+            body='Test Body',
+            recipient=[recipient],
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    return MessageId(int(SendResponse.FromString(r.content).id))
+
+
+async def _message_page_subjects(client: AsyncClient, *, inbox: bool) -> list[str]:
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(inbox=inbox).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    return [m.subject for m in GetPageResponse.FromString(r.content).messages]

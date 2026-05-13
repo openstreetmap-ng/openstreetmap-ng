@@ -1,9 +1,8 @@
 from asyncio import TaskGroup
-from typing import override
+from typing import Literal, override
 
 import cython
 from connectrpc.request import RequestContext
-from psycopg.sql import SQL
 
 from app.config import MESSAGES_INBOX_PAGE_SIZE
 from app.lib.auth_context import require_web_user
@@ -15,6 +14,8 @@ from app.models.proto.message_connect import (
 )
 from app.models.proto.message_connect import ServiceASGIApplication
 from app.models.proto.message_pb2 import (
+    DeleteOlderThanRequest,
+    DeleteOlderThanResponse,
     DeleteRequest,
     DeleteResponse,
     GetPageRequest,
@@ -147,6 +148,18 @@ class _Service(MessageServiceConnect):
         return DeleteResponse()
 
     @override
+    async def delete_older_than(
+        self, request: DeleteOlderThanRequest, ctx: RequestContext
+    ):
+        require_web_user()
+        deleted_count = await MessageService.delete_older_than(
+            inbox=request.inbox,
+            count=request.count,
+            unit=_delete_older_than_unit(request.unit),
+        )
+        return DeleteOlderThanResponse(deleted_count=deleted_count)
+
+    @override
     async def send(self, request: SendRequest, ctx: RequestContext):
         require_web_user()
         recipients = list(
@@ -191,6 +204,22 @@ def _message_body_preview(value: str, *, _PREVIEW_SIZE: cython.size_t = 250):
         return value
     trimmed = value[: _PREVIEW_SIZE - 3].rstrip()
     return f'{trimmed}...'
+
+
+def _delete_older_than_unit(
+    value: int,
+) -> Literal['days', 'weeks', 'months', 'years']:
+    match value:
+        case DeleteOlderThanRequest.days:
+            return 'days'
+        case DeleteOlderThanRequest.weeks:
+            return 'weeks'
+        case DeleteOlderThanRequest.months:
+            return 'months'
+        case DeleteOlderThanRequest.years:
+            return 'years'
+        case _:
+            raise ValueError(f'Unsupported message deletion time unit: {value}')
 
 
 service = _Service()

@@ -1,6 +1,7 @@
 import logging
 from asyncio import TaskGroup
 from datetime import datetime
+from typing import Literal
 
 from psycopg.sql import SQL
 from psycopg.sql import Literal as PgLiteral
@@ -204,6 +205,76 @@ class MessageService:
                     (message_id,),
                 )
                 # message_recipient is deleted by cascade
+
+    @staticmethod
+    async def delete_older_than(
+        *,
+        inbox: bool,
+        count: int,
+        unit: Literal['days', 'weeks', 'months', 'years'],
+    ) -> int:
+        """Delete current user's messages older than a relative age."""
+        user_id = auth_user(required=True)['id']
+        interval_kw = SQL(unit)
+        cutoff = SQL('statement_timestamp() - make_interval({} => %(count)s)').format(
+            interval_kw
+        )
+
+        async with db(True) as conn:
+            if inbox:
+                query = SQL("""
+                    WITH hidden AS (
+                        UPDATE message_recipient AS mr
+                        SET hidden = TRUE
+                        FROM message AS m
+                        WHERE mr.message_id = m.id
+                          AND mr.user_id = %(user_id)s
+                          AND NOT mr.hidden
+                          AND m.created_at < {cutoff}
+                        RETURNING mr.message_id
+                    ),
+                    cleanup AS (
+                        DELETE FROM message AS m
+                        WHERE m.id IN (SELECT message_id FROM hidden)
+                          AND m.from_user_hidden
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM message_recipient AS mr
+                              WHERE mr.message_id = m.id
+                                AND NOT mr.hidden
+                          )
+                    )
+                    SELECT COUNT(*) FROM hidden
+                """).format(cutoff=cutoff)
+            else:
+                query = SQL("""
+                    WITH hidden AS (
+                        UPDATE message
+                        SET from_user_hidden = TRUE
+                        WHERE from_user_id = %(user_id)s
+                          AND NOT from_user_hidden
+                          AND created_at < {cutoff}
+                        RETURNING id AS message_id
+                    ),
+                    cleanup AS (
+                        DELETE FROM message AS m
+                        WHERE m.id IN (SELECT message_id FROM hidden)
+                          AND m.from_user_hidden
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM message_recipient AS mr
+                              WHERE mr.message_id = m.id
+                                AND NOT mr.hidden
+                          )
+                    )
+                    SELECT COUNT(*) FROM hidden
+                """).format(cutoff=cutoff)
+
+            async with await conn.execute(
+                query,
+                {'user_id': user_id, 'count': count},
+            ) as r:
+                return (await r.fetchone())[0]  # type: ignore
 
 
 async def _send_activity_email(message: Message):
