@@ -82,7 +82,7 @@ const createMainMap = (
     globeWasEnabled = enabled;
 
     map.setProjection({ type: enabled ? "globe" : "mercator" });
-    if (enabled) syncAerialOverlayLabelOrder(map);
+    syncAerialOverlayLabelOrder(map);
 
     // Workaround a bug where after switching back to mercator,
     // the map is not fit to the screen (there is grey padding).

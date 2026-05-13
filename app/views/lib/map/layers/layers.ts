@@ -401,7 +401,6 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
 
 export const syncAerialOverlayLabelOrder = (map: MaplibreMap) => {
   if (!hasMapLayer(map, AERIAL_LAYER_ID)) return;
-  if (map.getProjection().type !== "globe") return;
 
   const baseLayerId = activeBaseLayerId.peek();
   if (!baseLayerId) return;
@@ -417,12 +416,17 @@ export const syncAerialOverlayLabelOrder = (map: MaplibreMap) => {
   });
   if (!labelLayerIds.length) return;
 
-  const aerialPriority = layersConfig.get(AERIAL_LAYER_ID)?.priority ?? 0;
-  const beforeId = layerOrder.find((extendedLayerId) => {
-    const layerPriority =
-      layersConfig.get(resolveExtendedLayerId(extendedLayerId))?.priority ?? 0;
-    return layerPriority > aerialPriority;
-  });
+  const beforeId =
+    map.getProjection().type === "globe"
+      ? layerOrder.find((extendedLayerId) => {
+          const layerPriority =
+            layersConfig.get(resolveExtendedLayerId(extendedLayerId))
+              ?.priority ?? 0;
+          const aerialPriority =
+            layersConfig.get(AERIAL_LAYER_ID)?.priority ?? 0;
+          return layerPriority > aerialPriority;
+        })
+      : AERIAL_LAYER_ID;
 
   for (const labelLayerId of labelLayerIds) {
     map.moveLayer(labelLayerId, beforeId);
