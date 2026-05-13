@@ -275,6 +275,32 @@ class TraceQuery:
         return [simplified]
 
     @staticmethod
+    async def find_tile_segments(
+        geometry: Polygon,
+        *,
+        limit: int,
+    ) -> list[MultiLineString]:
+        """Find trace segments intersecting a map tile geometry."""
+        where = [
+            SQL('h3_points_to_cells_range(segments, 11) && %(h3_cells)s::h3index[]')
+        ]
+        params: dict[str, Any] = {
+            'h3_cells': polygon_to_h3(geometry, max_resolution=11),
+            'limit': limit,
+        }
+
+        query = SQL("""
+            /*+ BitmapScan(trace trace_segments_idx) */
+            SELECT segments FROM trace
+            WHERE {where}
+            ORDER BY id DESC
+            LIMIT %(limit)s
+        """).format(where=SQL(' AND ').join(where))
+
+        async with db() as conn, await conn.execute(query, params) as r:
+            return [segments for (segments,) in await r.fetchall()]
+
+    @staticmethod
     async def resolve_coords(
         traces: list[Trace],
         *,

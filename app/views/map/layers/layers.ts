@@ -239,8 +239,7 @@ layersConfig.set(AERIAL_LAYER_ID, {
 layersConfig.set(GPS_LAYER_ID, {
   specification: {
     type: "raster",
-    // This layer has no zoom limits
-    tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
+    tiles: ["/api/web/traces/tiles/lines/{z}/{x}/{y}.png"],
     tileSize: 256,
   },
   layerCode: GPS_LAYER_CODE,
