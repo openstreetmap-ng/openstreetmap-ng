@@ -146,6 +146,32 @@ class MessageService:
             return bool(result.rowcount)
 
     @staticmethod
+    async def batch_set_state(message_ids: list[MessageId], *, read: bool):
+        """Mark visible received messages as read or unread."""
+        if not message_ids:
+            return 0
+
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE message_recipient
+                SET read = %(read)s
+                WHERE message_id = ANY(%(message_ids)s)
+                  AND user_id = %(user_id)s
+                  AND read != %(read)s
+                  AND NOT hidden
+                """,
+                {
+                    'read': read,
+                    'message_ids': message_ids,
+                    'user_id': user_id,
+                },
+            )
+            return result.rowcount or 0
+
+    @staticmethod
     async def delete_message(message_id: MessageId):
         """Delete a message."""
         # TODO: account delete, prune messages
@@ -204,6 +230,65 @@ class MessageService:
                     (message_id,),
                 )
                 # message_recipient is deleted by cascade
+
+    @staticmethod
+    async def batch_delete_messages(message_ids: list[MessageId]):
+        """Hide messages from the current user and prune fully hidden messages."""
+        if not message_ids:
+            return 0
+
+        user_id = auth_user(required=True)['id']
+
+        async with db(True) as conn:
+            async with await conn.execute(
+                """
+                UPDATE message
+                SET from_user_hidden = TRUE
+                WHERE id = ANY(%(message_ids)s)
+                  AND from_user_id = %(user_id)s
+                  AND NOT from_user_hidden
+                RETURNING id
+                """,
+                {
+                    'message_ids': message_ids,
+                    'user_id': user_id,
+                },
+            ) as r:
+                sender_ids: list[MessageId] = [row[0] for row in await r.fetchall()]
+
+            async with await conn.execute(
+                """
+                UPDATE message_recipient
+                SET hidden = TRUE
+                WHERE message_id = ANY(%(message_ids)s)
+                  AND user_id = %(user_id)s
+                  AND NOT hidden
+                RETURNING message_id
+                """,
+                {
+                    'message_ids': message_ids,
+                    'user_id': user_id,
+                },
+            ) as r:
+                recipient_ids: list[MessageId] = [row[0] for row in await r.fetchall()]
+
+            affected_ids = sender_ids + recipient_ids
+            if affected_ids:
+                await conn.execute(
+                    """
+                    DELETE FROM message m
+                    WHERE id = ANY(%s)
+                      AND from_user_hidden
+                      AND NOT EXISTS (
+                          SELECT 1 FROM message_recipient
+                          WHERE message_id = m.id
+                            AND NOT hidden
+                      )
+                    """,
+                    (affected_ids,),
+                )
+
+            return len(affected_ids)
 
 
 async def _send_activity_email(message: Message):

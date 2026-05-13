@@ -8,6 +8,10 @@ from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_context
 from app.lib.exceptions_context import exceptions_context
 from app.models.proto.message_pb2 import (
+    BatchDeleteRequest,
+    BatchDeleteResponse,
+    BatchUpdateReadStateRequest,
+    BatchUpdateReadStateResponse,
     DeleteRequest,
     GetRequest,
     GetResponse,
@@ -150,3 +154,99 @@ async def test_message_crud(client: AsyncClient):
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)
+
+
+async def test_message_batch_actions(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    message_ids: list[MessageId] = []
+    for subject in ('Batch Subject 1', 'Batch Subject 2'):
+        r = await client.post(
+            '/rpc/message.Service/Send',
+            headers={'Content-Type': 'application/proto'},
+            content=SendRequest(
+                subject=subject,
+                body='Batch Body',
+                recipient=['user2'],
+            ).SerializeToString(),
+        )
+        assert r.is_success, r.text
+        message_ids.append(MessageId(int(SendResponse.FromString(r.content).id)))
+
+    # Senders cannot update recipient read state.
+    r = await client.post(
+        '/rpc/message.Service/BatchUpdateReadState',
+        headers={'Content-Type': 'application/proto'},
+        content=BatchUpdateReadStateRequest(
+            id=message_ids,
+            read=True,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert BatchUpdateReadStateResponse.FromString(r.content).updated_count == 0
+
+    client.headers['Authorization'] = 'User user2'
+
+    r = await client.post(
+        '/rpc/message.Service/BatchUpdateReadState',
+        headers={'Content-Type': 'application/proto'},
+        content=BatchUpdateReadStateRequest(
+            id=message_ids,
+            read=True,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert BatchUpdateReadStateResponse.FromString(r.content).updated_count == 2
+
+    user2 = await UserQuery.find_by_display_name(DisplayName('user2'))
+    with auth_context(user2):
+        for message_id in message_ids:
+            message = await MessageQuery.get_by_id(message_id)
+            assert message['user_recipient']['read']  # type: ignore
+
+    r = await client.post(
+        '/rpc/message.Service/BatchUpdateReadState',
+        headers={'Content-Type': 'application/proto'},
+        content=BatchUpdateReadStateRequest(
+            id=message_ids,
+            read=False,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert BatchUpdateReadStateResponse.FromString(r.content).updated_count == 2
+
+    with auth_context(user2):
+        for message_id in message_ids:
+            message = await MessageQuery.get_by_id(message_id)
+            assert not message['user_recipient']['read']  # type: ignore
+
+    r = await client.post(
+        '/rpc/message.Service/BatchDelete',
+        headers={'Content-Type': 'application/proto'},
+        content=BatchDeleteRequest(id=message_ids).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert BatchDeleteResponse.FromString(r.content).deleted_count == 2
+
+    with exceptions_context(Exceptions()), auth_context(user2):
+        for message_id in message_ids:
+            with pytest.raises(APIError, match='Message not found'):
+                await MessageQuery.get_by_id(message_id)
+
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/rpc/message.Service/BatchDelete',
+        headers={'Content-Type': 'application/proto'},
+        content=BatchDeleteRequest(id=[message_ids[0]]).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert BatchDeleteResponse.FromString(r.content).deleted_count == 1
+
+    user1 = await UserQuery.find_by_display_name(DisplayName('user1'))
+    with exceptions_context(Exceptions()), auth_context(user1):
+        with pytest.raises(APIError, match='Message not found'):
+            await MessageQuery.get_by_id(message_ids[0])
+
+        message = await MessageQuery.get_by_id(message_ids[1])
+        assert not message['from_user_hidden']
