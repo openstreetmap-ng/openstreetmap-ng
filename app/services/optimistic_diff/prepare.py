@@ -6,6 +6,7 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
@@ -14,6 +15,7 @@ from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -21,7 +23,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -101,6 +102,21 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
+    _null_island_node_refs: set[TypedElementId]
+    """
+    Local set of current visible node refs at Null Island.
+    """
+
+    _null_island_check_refs: set[TypedElementId]
+    """
+    Remote node refs that must be loaded before final Null Island validation.
+    """
+
+    _skip_null_island_check: bool
+    """
+    Whether Null Island validation should be skipped for the current user.
+    """
+
     def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /):
         self.conn = conn
         self.apply_elements = []
@@ -112,6 +128,9 @@ class OptimisticDiffPrepare:
         self._reference_override = defaultdict(set)
         self._bbox_points = []
         self._bbox_refs = set()
+        self._null_island_node_refs = set()
+        self._null_island_check_refs = set()
+        self._skip_null_island_check = False
 
     async def prepare(self):
         await self._preload_changeset()
@@ -209,15 +228,19 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
+            self._push_null_island_info(element, type)
+
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
             num_delete=num_delete,
         )
+        self._check_null_island_limit()
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
+            tg.create_task(self._check_null_island_refs())
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
@@ -437,6 +460,33 @@ class OptimisticDiffPrepare:
             assert point is not None, f'Node {typed_id} point must be set'
             bbox_points.append(point)
 
+    def _push_null_island_info(self, element: ElementInit, element_type: ElementType):
+        """Collect current Null Island nodes affected by this diff."""
+        if self._skip_null_island_check or not element['visible']:
+            return
+
+        if element_type == 'node':
+            if _is_null_island_point(element['point']):
+                self._null_island_node_refs.add(element['typed_id'])
+            return
+
+        if element_type != 'way':
+            return
+
+        members = element['members']
+        if members is None:
+            return
+
+        element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
+        for node_ref in members:
+            entry = element_state.get(node_ref)
+            if entry is None:
+                self._null_island_check_refs.add(node_ref)
+                continue
+
+            if _is_null_island_point(entry.current['point']):
+                self._null_island_node_refs.add(node_ref)
+
     def _push_bbox_relation_info(
         self,
         prev: ElementInit | None,
@@ -528,9 +578,11 @@ class OptimisticDiffPrepare:
             raise_for.changeset_not_found(changeset_id)
 
         # Check permissions
-        current_user_id = auth_user(required=True)['id']
+        current_user = auth_user(required=True)
+        current_user_id = current_user['id']
         if changeset['user_id'] != current_user_id:
             raise_for.changeset_access_denied()
+        self._skip_null_island_check = user_is_moderator(current_user)
 
         # Check if changeset is closed
         if changeset['closed_at'] is not None:
@@ -612,6 +664,30 @@ class OptimisticDiffPrepare:
                 bounds_arr[:, 3].max(),
             )
 
+    def _check_null_island_limit(self):
+        if not self._skip_null_island_check and len(self._null_island_node_refs) >= 2:
+            raise_for.diff_null_island()
+
+    async def _check_null_island_refs(self):
+        """Load remote way members and enforce the Null Island node limit."""
+        if self._skip_null_island_check or not self._null_island_check_refs:
+            return
+
+        node_refs = list(self._null_island_check_refs - self._null_island_node_refs)
+        if not node_refs:
+            return
+
+        elements = await ElementQuery.find_by_refs(
+            node_refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=None,
+        )
+        for element in elements:
+            if _is_null_island_point(element['point']):
+                self._null_island_node_refs.add(element['typed_id'])
+
+        self._check_null_island_limit()
+
     async def _check_members_remote(self):
         """Check if the members exist and are visible using the database."""
         elements_check_members_remote = self._elements_check_members_remote
@@ -629,3 +705,7 @@ class OptimisticDiffPrepare:
         hidden_ref = next(iter(hidden_refs))
         parent_typed_id = elements_check_members_remote[hidden_ref]
         raise_for.element_member_not_found(parent_typed_id, hidden_ref)
+
+
+def _is_null_island_point(point: Point | None):
+    return point is not None and point.x == 0 and point.y == 0
