@@ -49,7 +49,7 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
     @override
     def diff_null_island(self):
         raise APIError(
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail='Changeset uploads may contain at most one node at Null Island (0,0).',
         )
 

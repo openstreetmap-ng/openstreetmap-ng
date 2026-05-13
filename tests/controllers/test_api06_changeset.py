@@ -199,7 +199,7 @@ async def test_changeset_upload_rejects_multiple_null_island_nodes(
             }
         }),
     )
-    assert r.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, r.text
+    assert r.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, r.text
 
 
 @pytest.mark.parametrize('include', [True, False])

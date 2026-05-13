@@ -129,7 +129,7 @@ async def test_create_fails_with_multiple_null_island_nodes(
     with pytest.raises(APIError) as exc_info:
         await OptimisticDiff.run(nodes)
 
-    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 async def test_create_way_fails_with_multiple_null_island_members(
@@ -170,7 +170,7 @@ async def test_create_way_fails_with_multiple_null_island_members(
     with pytest.raises(APIError) as exc_info:
         await OptimisticDiff.run([way])
 
-    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 @pytest.mark.parametrize(
