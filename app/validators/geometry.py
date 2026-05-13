@@ -32,6 +32,10 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
         if coords.shape != (1, 2):
             raise_for.bad_geometry()
 
+        # Reject null island (0,0) — original openstreetmap-website#5279
+        if coords[0, 0] == 0 and coords[0, 1] == 0:
+            raise_for.bad_geometry()
+
     # Validate the geometry but accept zero-sized polygons
     elif not geom.is_valid:
         if isinstance(geom, Polygon | MultiPolygon) and not geom.length:
