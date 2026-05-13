@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from string.templatelib import Template
 from typing import Any
 
@@ -10,7 +9,6 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from psycopg.sql import Literal as PgLiteral
 from shapely import (
-    LineString,
     MultiLineString,
     MultiPoint,
     MultiPolygon,
@@ -277,68 +275,6 @@ class TraceQuery:
         return [simplified]
 
     @staticmethod
-    async def find_tile_segments(
-        geometry: Polygon,
-        *,
-        identifiable_trackable: cython.bint,
-        limit: int,
-    ) -> list[MultiLineString]:
-        """Find trace segments intersecting a map tile geometry."""
-        params: dict[str, Any] = {
-            'h3_cells': polygon_to_h3(geometry, max_resolution=11),
-            'visibility': (
-                ['identifiable', 'trackable']
-                if identifiable_trackable
-                else ['public', 'private']
-            ),
-            'limit': limit,
-        }
-
-        async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
-            query = SQL("""
-                /*+ BitmapScan(trace trace_segments_idx) */
-                {query}
-                LIMIT %(limit)s
-            """).format(
-                query=SQL(' UNION ALL ').join([
-                    SQL("""(
-                        SELECT segments FROM trace
-                        WHERE h3_points_to_cells_range(segments, 11) && %(h3_cells)s::h3index[]
-                        AND visibility = ANY(%(visibility)s)
-                        AND id BETWEEN {chunk_start} AND {chunk_end}
-                        ORDER BY id DESC
-                    )""").format(
-                        chunk_start=PgLiteral(chunk_start),
-                        chunk_end=PgLiteral(chunk_end),
-                    )
-                    for chunk_start, chunk_end in await TimescaleDBQuery.get_chunks_ranges(
-                        'trace', conn
-                    )
-                ])
-            )
-
-            async with await conn.execute(query, params) as r:
-                segments_list: list[MultiLineString] = [
-                    segments for (segments,) in await r.fetchall()
-                ]
-
-        if not segments_list:
-            return []
-
-        lines = [
-            line
-            for segments in segments_list
-            for line in _iter_line_segments(segments.intersection(geometry))
-        ]
-        if not lines:
-            return []
-
-        if identifiable_trackable:
-            return [MultiLineString([line]) for line in lines]
-
-        return [MultiLineString(lines)]
-
-    @staticmethod
     async def resolve_coords(
         traces: list[Trace],
         *,
@@ -393,17 +329,3 @@ class TraceQuery:
                     )
 
                 trace_map[trace_id]['coords'] = coords
-
-
-def _iter_line_segments(geometry) -> Iterable[LineString]:
-    if isinstance(geometry, LineString):
-        yield geometry
-        return
-
-    if isinstance(geometry, MultiLineString):
-        yield from geometry.geoms
-        return
-
-    geoms = getattr(geometry, 'geoms', ())
-    for geom in geoms:
-        yield from _iter_line_segments(geom)

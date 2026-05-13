@@ -3,15 +3,20 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from io import BytesIO
 from math import atan, degrees, log, pi, radians, sinh, tan
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Path
 from PIL import Image, ImageDraw
+from psycopg import IsolationLevel
+from psycopg.sql import SQL
+from psycopg.sql import Literal as PgLiteral
 from shapely import LineString, MultiLineString, Polygon, box, get_coordinates
 from starlette import status
 from starlette.responses import Response
 
-from app.queries.trace_query import TraceQuery
+from app.db import db
+from app.lib.geo_utils import polygon_to_h3
+from app.queries.timescaledb_query import TimescaleDBQuery
 
 router = APIRouter()
 
@@ -47,14 +52,14 @@ async def _tile_response(
     bounds = _tile_bounds(z, x, y)
     async with TaskGroup() as tg:
         identifiable_t = tg.create_task(
-            TraceQuery.find_tile_segments(
+            _find_tile_segments(
                 bounds.geometry,
                 identifiable_trackable=True,
                 limit=_MAX_TRACES_PER_TILE,
             )
         )
         anonymous_t = tg.create_task(
-            TraceQuery.find_tile_segments(
+            _find_tile_segments(
                 bounds.geometry,
                 identifiable_trackable=False,
                 limit=_MAX_TRACES_PER_TILE,
@@ -93,6 +98,66 @@ def _tile_bounds(z: int, x: int, y: int):
         north_mercator=_mercator_y(north),
         south_mercator=_mercator_y(south),
     )
+
+
+async def _find_tile_segments(
+    geometry: Polygon,
+    *,
+    identifiable_trackable: bool,
+    limit: int,
+) -> list[MultiLineString]:
+    """Find only trace geometry needed for a public GPS tile."""
+    params: dict[str, Any] = {
+        'h3_cells': polygon_to_h3(geometry, max_resolution=11),
+        'visibility': (
+            ['identifiable', 'trackable']
+            if identifiable_trackable
+            else ['public', 'private']
+        ),
+        'limit': limit,
+    }
+
+    async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
+        query = SQL("""
+            /*+ BitmapScan(trace trace_segments_idx) */
+            {query}
+            LIMIT %(limit)s
+        """).format(
+            query=SQL(' UNION ALL ').join([
+                SQL("""(
+                    SELECT segments FROM trace
+                    WHERE h3_points_to_cells_range(segments, 11) && %(h3_cells)s::h3index[]
+                    AND visibility = ANY(%(visibility)s)
+                    AND id BETWEEN {chunk_start} AND {chunk_end}
+                    ORDER BY id DESC
+                )""").format(
+                    chunk_start=PgLiteral(chunk_start),
+                    chunk_end=PgLiteral(chunk_end),
+                )
+                for chunk_start, chunk_end in await TimescaleDBQuery.get_chunks_ranges(
+                    'trace', conn
+                )
+            ])
+        )
+
+        async with await conn.execute(query, params) as r:
+            segments_list = [segments for (segments,) in await r.fetchall()]
+
+    if not segments_list:
+        return []
+
+    lines = [
+        line
+        for segments in segments_list
+        for line in _iter_lines(segments.intersection(geometry))
+    ]
+    if not lines:
+        return []
+
+    if identifiable_trackable:
+        return [MultiLineString([line]) for line in lines]
+
+    return [MultiLineString(lines)]
 
 
 def _tile_lat(y: int, n: int) -> float:
