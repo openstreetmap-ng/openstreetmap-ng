@@ -10,6 +10,8 @@ import {
 } from "@index/element"
 import { defineRoute } from "@index/router"
 import { BTooltip } from "@lib/bootstrap"
+import { queryParam } from "@lib/codecs"
+import { ELEMENT_HISTORY_PAGE_SIZE } from "@lib/config"
 import { tagsDiffStorage } from "@lib/local-storage"
 import { focusObjects } from "@lib/map/layers/focus-layer"
 import { convertRenderElementsData } from "@lib/map/render-objects"
@@ -18,10 +20,18 @@ import { ElementType } from "@lib/proto/shared_pb"
 import { PageOrder, StandardPagination } from "@lib/standard-pagination"
 import { Tags } from "@lib/tags"
 import { setPageTitle } from "@lib/title"
-import type { ReadonlySignal } from "@preact/signals"
+import type { ReadonlySignal, Signal } from "@preact/signals"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { useEffect, useRef } from "preact/hooks"
+
+const HISTORY_LIMIT_MIN = 1
+const HISTORY_LIMIT_MAX = 100
+
+const getHistoryLimit = (limit: number | undefined) =>
+  limit === undefined || !Number.isSafeInteger(limit)
+    ? ELEMENT_HISTORY_PAGE_SIZE
+    : Math.min(Math.max(limit, HISTORY_LIMIT_MIN), HISTORY_LIMIT_MAX)
 
 const getPageTitle = (type: ElementTypeSlug, id: string) => {
   switch (type) {
@@ -78,12 +88,15 @@ const ElementHistorySidebar = ({
   map,
   type,
   id,
+  limit,
 }: {
   map: MaplibreMap
   type: ReadonlySignal<ElementTypeSlug>
   id: ReadonlySignal<bigint>
+  limit: Signal<number | undefined>
 }) => {
   const title = getPageTitle(type.value, id.toString())
+  const pageSize = getHistoryLimit(limit.value)
 
   setPageTitle(title)
 
@@ -94,24 +107,48 @@ const ElementHistorySidebar = ({
     <div class="sidebar-content">
       <div class="section pb-1">
         <SidebarHeader class="mb-1">
-          <h2 class="sidebar-title">{title}</h2>
-          <div class="form-check ms-1">
-            <label class="form-check-label">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                autoComplete="off"
-                checked={tagsDiffStorage.value}
-                onChange={(e) => {
-                  const checked = e.currentTarget.checked
-                  tagsDiffStorage.value = checked
-                }}
-              />
-              {t("element.tags_diff_mode")}
-              <BTooltip title={t("element.highlight_changed_tags_between_versions")}>
-                <i class="bi bi-question-circle ms-1-5" />
-              </BTooltip>
-            </label>
+          <div class="d-flex flex-column gap-2">
+            <h2 class="sidebar-title mb-0">{title}</h2>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+              <div class="form-check ms-1">
+                <label class="form-check-label">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    autoComplete="off"
+                    checked={tagsDiffStorage.value}
+                    onChange={(e) => {
+                      const checked = e.currentTarget.checked
+                      tagsDiffStorage.value = checked
+                    }}
+                  />
+                  {t("element.tags_diff_mode")}
+                  <BTooltip
+                    title={t("element.highlight_changed_tags_between_versions")}
+                  >
+                    <i class="bi bi-question-circle ms-1-5" />
+                  </BTooltip>
+                </label>
+              </div>
+              <label class="d-inline-flex align-items-center gap-2 mb-0 small text-body-secondary">
+                {t("element.history_limit")}
+                <input
+                  class="form-control form-control-sm w-auto"
+                  type="number"
+                  min={HISTORY_LIMIT_MIN}
+                  max={HISTORY_LIMIT_MAX}
+                  step={1}
+                  value={pageSize}
+                  aria-label={t("element.history_limit")}
+                  onChange={(e) => {
+                    const value = e.currentTarget.valueAsNumber
+                    if (!Number.isFinite(value)) return
+                    const next = getHistoryLimit(value)
+                    limit.value = next === ELEMENT_HISTORY_PAGE_SIZE ? undefined : next
+                  }}
+                />
+              </label>
+            </div>
           </div>
         </SidebarHeader>
       </div>
@@ -121,6 +158,7 @@ const ElementHistorySidebar = ({
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
+          pageSize,
         }}
         urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}
@@ -152,5 +190,6 @@ export const ElementHistoryRoute = defineRoute({
   id: "element-history",
   path: "/:type/:id/history",
   params: { type: ElementTypeParam, id: ElementIdParam },
+  query: { limit: queryParam.positiveInt() },
   Component: ElementHistorySidebar,
 })
