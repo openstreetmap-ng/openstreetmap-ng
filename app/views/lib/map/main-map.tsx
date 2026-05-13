@@ -1,41 +1,50 @@
-import { ChangesetRoute } from "@index/changeset"
-import { ChangesetsHistoryRoute } from "@index/changesets-history"
-import { configureContextMenu } from "@index/context-menu"
-import { DistanceRoute } from "@index/distance"
-import { ElementRoute } from "@index/element"
-import { ElementHistoryRoute } from "@index/element-history"
-import { ExportRoute } from "@index/export"
-import { IndexRoute } from "@index/index"
-import { NewNoteRoute } from "@index/new-note"
-import { NoteRoute } from "@index/note"
-import { QueryFeaturesRoute } from "@index/query-features"
-import { configureRouter } from "@index/router"
-import { RoutingRoute } from "@index/routing"
-import { SearchRoute } from "@index/search"
-import type { RightSidebarKind } from "@index/sidebar/_toggle-button"
-import { LayersSidebarControl } from "@index/sidebar/layers"
-import { LegendSidebarControl } from "@index/sidebar/legend"
-import { ShareSidebarControl } from "@index/sidebar/share"
-import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage"
-import { wrapIdleCallbackStatic } from "@lib/utils"
-import { effect, signal } from "@preact/signals"
-import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
-import { configureMap, type MapInitErrorContext } from "./configure-map"
-import { CustomGeolocateControl } from "./controls/geolocate"
-import { addControlGroup } from "./controls/group"
-import { NewNoteControl } from "./controls/new-note"
-import { QueryFeaturesControl } from "./controls/query-features"
-import { CustomZoomControl } from "./controls/zoom"
-import { configureDefaultMapBehavior } from "./defaults"
-import { configureDataLayer } from "./layers/data-layer"
-import { addLayerEventHandler, addMapLayerSources } from "./layers/layers"
-import { configureNotesLayer } from "./layers/notes-layer"
-import type { MapState } from "./state"
-import { applyMapState, getInitialMapState, getMapState, parseMapState } from "./state"
+import { ChangesetRoute } from "@index/changeset";
+import { ChangesetsHistoryRoute } from "@index/changesets-history";
+import { configureContextMenu } from "@index/context-menu";
+import { DistanceRoute } from "@index/distance";
+import { ElementRoute } from "@index/element";
+import { ElementHistoryRoute } from "@index/element-history";
+import { ExportRoute } from "@index/export";
+import { IndexRoute } from "@index/index";
+import { NewNoteRoute } from "@index/new-note";
+import { NoteRoute } from "@index/note";
+import { QueryFeaturesRoute } from "@index/query-features";
+import { configureRouter } from "@index/router";
+import { RoutingRoute } from "@index/routing";
+import { SearchRoute } from "@index/search";
+import type { RightSidebarKind } from "@index/sidebar/_toggle-button";
+import { LayersSidebarControl } from "@index/sidebar/layers";
+import { LegendSidebarControl } from "@index/sidebar/legend";
+import { ShareSidebarControl } from "@index/sidebar/share";
+import { globeProjectionStorage, mapStateStorage } from "@lib/local-storage";
+import { wrapIdleCallbackStatic } from "@lib/utils";
+import { effect, signal } from "@preact/signals";
+import { Map as MaplibreMap, ScaleControl } from "maplibre-gl";
+import { configureMap, type MapInitErrorContext } from "./configure-map";
+import { CustomGeolocateControl } from "./controls/geolocate";
+import { addControlGroup } from "./controls/group";
+import { NewNoteControl } from "./controls/new-note";
+import { QueryFeaturesControl } from "./controls/query-features";
+import { CustomZoomControl } from "./controls/zoom";
+import { configureDefaultMapBehavior } from "./defaults";
+import { configureDataLayer } from "./layers/data-layer";
+import {
+  addLayerEventHandler,
+  addMapLayerSources,
+  syncAerialOverlayLabelOrder,
+} from "./layers/layers";
+import { configureNotesLayer } from "./layers/notes-layer";
+import type { MapState } from "./state";
+import {
+  applyMapState,
+  getInitialMapState,
+  getMapState,
+  parseMapState,
+} from "./state";
 
-export const mainMap = signal<MaplibreMap | null>(null)
+export const mainMap = signal<MaplibreMap | null>(null);
 
-export const rightSidebar = signal<RightSidebarKind | null>(null)
+export const rightSidebar = signal<RightSidebarKind | null>(null);
 
 /** Get the main map instance */
 const createMainMap = (
@@ -43,7 +52,7 @@ const createMainMap = (
   onMapStateChange: (state: MapState) => void,
   onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
-  console.debug("MainMap: Initializing")
+  console.debug("MainMap: Initializing");
   const map = configureMap(
     {
       container,
@@ -55,78 +64,79 @@ const createMainMap = (
       fadeDuration: 0,
     },
     { onInitError },
-  )
-  if (!map) return null
+  );
+  if (!map) return null;
 
   void map.once("style.load", () => {
     // Disable transitions after loading the style
-    map.style.stylesheet.transition = { duration: 0 }
-  })
-  configureDefaultMapBehavior(map)
+    map.style.stylesheet.transition = { duration: 0 };
+  });
+  configureDefaultMapBehavior(map);
 
-  let globeWasEnabled: boolean | null = null
+  let globeWasEnabled: boolean | null = null;
   effect(() => {
-    const enabled = globeProjectionStorage.value
-    if (globeWasEnabled === enabled) return
+    const enabled = globeProjectionStorage.value;
+    if (globeWasEnabled === enabled) return;
 
-    const prevEnabled = globeWasEnabled
-    globeWasEnabled = enabled
+    const prevEnabled = globeWasEnabled;
+    globeWasEnabled = enabled;
 
-    map.setProjection({ type: enabled ? "globe" : "mercator" })
+    map.setProjection({ type: enabled ? "globe" : "mercator" });
+    if (enabled) syncAerialOverlayLabelOrder(map);
 
     // Workaround a bug where after switching back to mercator,
     // the map is not fit to the screen (there is grey padding).
-    if (prevEnabled === true && !enabled) map.resize()
-  })
+    if (prevEnabled === true && !enabled) map.resize();
+  });
 
-  addMapLayerSources(map, "all")
-  configureNotesLayer(map)
-  configureDataLayer(map)
-  configureContextMenu(map)
+  addMapLayerSources(map, "all");
+  configureNotesLayer(map);
+  configureDataLayer(map);
+  configureContextMenu(map);
 
   const saveMapStateLazy = wrapIdleCallbackStatic(() => {
-    const state = getMapState(map)
-    onMapStateChange(state)
-    mapStateStorage.set(state)
-  })
-  map.on("moveend", saveMapStateLazy)
-  addLayerEventHandler(saveMapStateLazy)
+    const state = getMapState(map);
+    onMapStateChange(state);
+    mapStateStorage.set(state);
+  });
+  map.on("moveend", saveMapStateLazy);
+  addLayerEventHandler(saveMapStateLazy);
 
   // On hash change, update the map view
   window.addEventListener("hashchange", () => {
-    console.debug("MainMap: Hash changed", location.hash)
-    const newState = parseMapState(location.hash)
-    if (newState) applyMapState(map, newState)
-    saveMapStateLazy()
-  })
+    console.debug("MainMap: Hash changed", location.hash);
+    const newState = parseMapState(location.hash);
+    if (newState) applyMapState(map, newState);
+    saveMapStateLazy();
+  });
 
   // Finally set the initial state that will trigger map events
-  applyMapState(map, getInitialMapState(map), { animate: false })
-  saveMapStateLazy()
+  applyMapState(map, getInitialMapState(map), { animate: false });
+  saveMapStateLazy();
 
-  map.addControl(new ScaleControl({ unit: "imperial" }))
-  map.addControl(new ScaleControl({ unit: "metric" }))
-  addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()])
+  map.addControl(new ScaleControl({ unit: "imperial" }));
+  map.addControl(new ScaleControl({ unit: "metric" }));
+  addControlGroup(map, [new CustomZoomControl(), new CustomGeolocateControl()]);
   addControlGroup(map, [
     new LayersSidebarControl(),
     new LegendSidebarControl(),
     new ShareSidebarControl(),
-  ])
-  addControlGroup(map, [new NewNoteControl()])
-  addControlGroup(map, [new QueryFeaturesControl()])
+  ]);
+  addControlGroup(map, [new NewNoteControl()]);
+  addControlGroup(map, [new QueryFeaturesControl()]);
 
-  return map
-}
+  return map;
+};
 
 export const initMainMap = (
   container: HTMLElement,
   onMapStateChange: (state: MapState) => void,
   onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
-  const map = createMainMap(container, onMapStateChange, onInitError)
-  if (!map) return
+  const map = createMainMap(container, onMapStateChange, onInitError);
+  if (!map) return;
 
-  mainMap.value = map
+  mainMap.value = map;
 
   configureRouter([
     IndexRoute,
@@ -142,5 +152,5 @@ export const initMainMap = (
     QueryFeaturesRoute,
     RoutingRoute,
     SearchRoute,
-  ])
-}
+  ]);
+};
