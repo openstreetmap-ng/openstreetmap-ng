@@ -15,6 +15,7 @@ import { StandardForm } from "@lib/standard-form"
 import { useSignal } from "@preact/signals"
 import { Time } from "@lib/datetime-inputs"
 import { t } from "i18next"
+import { AuthCardHeader } from "../user/_auth-card-header"
 
 const ConsentUI = ({ page, onOob }: { page: Page; onOob: (code: string) => void }) => {
   const app = page.app!
@@ -26,52 +27,55 @@ const ConsentUI = ({ page, onOob }: { page: Page; onOob: (code: string) => void 
     <>
       <div class="content-header px-md-5">
         <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
-          <p class="text-body-secondary text-uppercase small fw-semibold mb-1">
-            {t("oauth.authorization_request_app", { name: app.name })}
-          </p>
-          <h1 class="h3 text-body-emphasis mb-3">
-            {tRich("oauth.authorize_app_to_access_your_account", {
+          <AuthCardHeader
+            class="authorization-header text-md-start mb-0"
+            title={tRich("oauth.authorize_app_to_access_your_account", {
               name: appNameNode,
             })}
-          </h1>
-          <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
-            <img
-              class="avatar authorization-avatar"
-              src={app.avatarUrl}
-              alt={t("alt.application_image")}
-            />
-            <span
-              class="authorization-arrow"
-              aria-hidden="true"
-            >
-              <i class="bi bi-arrow-right-short" />
-            </span>
-            <a
-              href={`/user/${owner.displayName}`}
-              target="_blank"
-              rel="noopener"
-            >
+            headingLevel={1}
+            titleClass="h3 text-body-emphasis mb-3"
+            eyebrow={t("oauth.authorization_request_app", { name: app.name })}
+            showLogo={false}
+          >
+            <div class="d-flex align-items-center flex-wrap gap-2 gap-md-3">
               <img
                 class="avatar authorization-avatar"
-                src={owner.avatarUrl}
-                alt={t("alt.profile_picture")}
+                src={app.avatarUrl}
+                alt={t("alt.application_image")}
               />
-            </a>
-            <span class="text-body-secondary small">
-              {tRich("oauth.you_are_currently_signed_in_as", {
-                name: (
-                  <a
-                    class="link-body-emphasis"
-                    href={`/user/${owner.displayName}`}
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    {owner.displayName}
-                  </a>
-                ),
-              })}
-            </span>
-          </div>
+              <span
+                class="authorization-arrow"
+                aria-hidden="true"
+              >
+                <i class="bi bi-arrow-right-short" />
+              </span>
+              <a
+                href={`/user/${owner.displayName}`}
+                target="_blank"
+                rel="noopener"
+              >
+                <img
+                  class="avatar authorization-avatar"
+                  src={owner.avatarUrl}
+                  alt={t("alt.profile_picture")}
+                />
+              </a>
+              <span class="text-body-secondary small">
+                {tRich("oauth.you_are_currently_signed_in_as", {
+                  name: (
+                    <a
+                      class="link-body-emphasis"
+                      href={`/user/${owner.displayName}`}
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      {owner.displayName}
+                    </a>
+                  ),
+                })}
+              </span>
+            </div>
+          </AuthCardHeader>
         </div>
       </div>
 
