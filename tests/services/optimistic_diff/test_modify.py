@@ -42,6 +42,44 @@ async def test_modify_node_tags_and_location(changeset_id: ChangesetId):
     assert_model(elements[0], node_modify | {'typed_id': node_typed_id})
 
 
+async def test_modify_node_moved_from_null_island_allows_single_final_null_node(
+    changeset_id: ChangesetId,
+):
+    # Arrange
+    node_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    node_modify: ElementInit = node_create | {
+        'version': 2,
+        'point': Point(1, 1),
+    }
+    other_null_node: ElementInit = node_create | {
+        'typed_id': typed_element_id('node', ElementId(-2)),
+    }
+
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([
+        node_create,
+        node_modify,
+        other_null_node,
+    ])
+
+    # Assert
+    moved_ref = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+    null_ref = assigned_ref_map[typed_element_id('node', ElementId(-2))][0]
+    elements = await ElementQuery.find_by_refs([moved_ref, null_ref])
+    elements_by_ref = {element['typed_id']: element for element in elements}
+    assert_model(elements_by_ref[moved_ref], node_modify | {'typed_id': moved_ref})
+    assert_model(elements_by_ref[null_ref], other_null_node | {'typed_id': null_ref})
+
+
 async def test_modify_way_members(changeset_id: ChangesetId):
     # Create nodes
     node1: ElementInit = {
@@ -99,6 +137,53 @@ async def test_modify_way_members(changeset_id: ChangesetId):
         way_modify
         | {'typed_id': way_typed_id, 'members': [node1_typed_id, node2_typed_id]},
     )
+
+
+async def test_modify_way_removed_null_island_member_uses_final_members(
+    changeset_id: ChangesetId,
+):
+    # Arrange
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    node1_ref = (await OptimisticDiff.run([node]))[
+        typed_element_id('node', ElementId(-1))
+    ][0]
+    node2_ref = (
+        await OptimisticDiff.run([
+            node | {'typed_id': typed_element_id('node', ElementId(-2))}
+        ])
+    )[typed_element_id('node', ElementId(-2))][0]
+
+    way_create: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [node1_ref, node2_ref],
+        'members_roles': None,
+    }
+    way_modify: ElementInit = way_create | {
+        'version': 2,
+        'members': [node1_ref],
+    }
+
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([way_create, way_modify])
+
+    # Assert
+    way_ref = assigned_ref_map[typed_element_id('way', ElementId(-1))][0]
+    elements = await ElementQuery.find_by_refs([way_ref], limit=1)
+    assert_model(elements[0], way_modify | {'typed_id': way_ref})
 
 
 async def test_modify_relation_members_and_roles(changeset_id: ChangesetId):

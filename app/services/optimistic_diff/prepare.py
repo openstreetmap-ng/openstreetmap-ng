@@ -228,13 +228,12 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
-            self._push_null_island_info(element, type)
-
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
             num_delete=num_delete,
         )
+        self._collect_null_island_info()
         self._check_null_island_limit()
 
         # Keep this validation outside the TaskGroup so APIError is raised
@@ -463,32 +462,42 @@ class OptimisticDiffPrepare:
             assert point is not None, f'Node {typed_id} point must be set'
             bbox_points.append(point)
 
-    def _push_null_island_info(self, element: ElementInit, element_type: ElementType):
-        """Collect current Null Island nodes affected by this diff."""
-        if self._skip_null_island_check or not element['visible']:
+    def _collect_null_island_info(self):
+        """Collect final visible Null Island nodes affected by this diff."""
+        if self._skip_null_island_check:
             return
 
-        if element_type == 'node':
-            if _is_null_island_point(element['point']):
-                self._null_island_node_refs.add(element['typed_id'])
-            return
-
-        if element_type != 'way':
-            return
-
-        members = element['members']
-        if members is None:
-            return
+        self._null_island_node_refs.clear()
+        self._null_island_check_refs.clear()
 
         element_state: dict[TypedElementId, ElementStateEntry] = self.element_state
-        for node_ref in members:
-            entry = element_state.get(node_ref)
-            if entry is None:
-                self._null_island_check_refs.add(node_ref)
+        for entry in element_state.values():
+            element = entry.current
+            if not element['visible']:
                 continue
 
-            if _is_null_island_point(entry.current['point']):
-                self._null_island_node_refs.add(node_ref)
+            type = element_type(element['typed_id'])
+            if type == 'node':
+                if _is_null_island_point(element['point']):
+                    self._null_island_node_refs.add(element['typed_id'])
+                continue
+
+            if type != 'way':
+                continue
+
+            members = element['members']
+            if members is None:
+                continue
+
+            for node_ref in members:
+                member_entry = element_state.get(node_ref)
+                if member_entry is None:
+                    self._null_island_check_refs.add(node_ref)
+                    continue
+
+                member = member_entry.current
+                if member['visible'] and _is_null_island_point(member['point']):
+                    self._null_island_node_refs.add(node_ref)
 
     def _push_bbox_relation_info(
         self,
