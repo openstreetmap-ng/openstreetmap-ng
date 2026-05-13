@@ -26,6 +26,7 @@ export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
 export const DEFAULT_LAYER_CODE = "" as LayerCode
 
 export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
 export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
@@ -33,6 +34,7 @@ export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
+const HYBRID_LAYER_CODE = "I" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
 const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
@@ -93,6 +95,43 @@ const hotosmCredit = t("javascripts.map.hotosm_credit", {
 const aerialEsriCredit =
   "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
 
+const aerialEsriSource = {
+  type: "raster",
+  maxzoom: 23,
+  tiles: [
+    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  ],
+  tileSize: 256,
+  attribution: aerialEsriCredit,
+} satisfies SourceSpecification
+
+const libertyVectorStyle = libertyStyle as unknown as StyleSpecification
+const cloneStylePart = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
+const HYBRID_AERIAL_SOURCE_ID = "aerial"
+const HYBRID_AERIAL_LAYER_ID = "aerial-underlay"
+const HYBRID_VECTOR_LAYER_TYPES = new Set(["line", "symbol", "circle"])
+const isHybridOverlayLayer = (layer: LayerSpecification) =>
+  HYBRID_VECTOR_LAYER_TYPES.has(layer.type)
+
+const hybridStyle: StyleSpecification = {
+  ...cloneStylePart(libertyVectorStyle),
+  sources: {
+    ...cloneStylePart(libertyVectorStyle.sources),
+    [HYBRID_AERIAL_SOURCE_ID]: cloneStylePart(aerialEsriSource),
+  },
+  layers: [
+    {
+      id: HYBRID_AERIAL_LAYER_ID,
+      type: "raster",
+      source: HYBRID_AERIAL_SOURCE_ID,
+    },
+    ...libertyVectorStyle.layers
+      .filter(isHybridOverlayLayer)
+      .map((layer) => cloneStylePart(layer)),
+  ],
+}
+
 export const emptyFeatureCollection: FeatureCollection = {
   type: "FeatureCollection",
   features: [],
@@ -133,10 +172,16 @@ layersConfig.set(STANDARD_LAYER_ID, {
 
 layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
-  // @ts-expect-error
-  vectorStyle: libertyStyle,
+  vectorStyle: libertyVectorStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: { type: "vector" },
+  vectorStyle: hybridStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_LAYER_CODE,
 })
 
 layersConfig.set(CYCLOSM_LAYER_ID, {
@@ -217,15 +262,7 @@ layersConfig.set(HOT_LAYER_ID, {
 
 // Overlay layers
 layersConfig.set(AERIAL_LAYER_ID, {
-  specification: {
-    type: "raster",
-    maxzoom: 23,
-    tiles: [
-      "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ],
-    tileSize: 256,
-    attribution: aerialEsriCredit,
-  },
+  specification: aerialEsriSource,
   layerOptions: {
     paint: {
       // @ts-expect-error loaded from storage
