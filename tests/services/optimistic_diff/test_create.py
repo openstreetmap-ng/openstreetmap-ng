@@ -15,6 +15,17 @@ from speedup import typed_element_id
 from tests.utils.assert_model import assert_model
 
 
+async def _api_error_status(elements: list[ElementInit]) -> int:
+    try:
+        await OptimisticDiff.run(elements)
+    except APIError as exc:
+        status_code = exc.status_code
+        exc.__traceback__ = None
+        return status_code
+    else:
+        pytest.fail('Expected APIError')
+
+
 async def test_create_node(changeset_id: ChangesetId):
     # Arrange
     element: ElementInit = {
@@ -126,10 +137,7 @@ async def test_create_fails_with_multiple_null_island_nodes(
     ]
 
     # Act & Assert
-    with pytest.raises(APIError) as exc_info:
-        await OptimisticDiff.run(nodes)
-
-    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert await _api_error_status(nodes) == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 async def test_create_way_fails_with_multiple_null_island_members(
@@ -167,10 +175,7 @@ async def test_create_way_fails_with_multiple_null_island_members(
     }
 
     # Act & Assert
-    with pytest.raises(APIError) as exc_info:
-        await OptimisticDiff.run([way])
-
-    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert await _api_error_status([way]) == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 @pytest.mark.parametrize(
