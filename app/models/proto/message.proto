@@ -27,6 +27,8 @@ message GetPageRequest {
   StandardPaginationRequest state = 1;
   bool inbox = 2;
   string search = 3 [(buf.validate.field).string.max_len = 100];
+  optional uint64 created_after = 4 [(buf.validate.field).uint64.gt = 0];
+  optional uint64 created_before = 5 [(buf.validate.field).uint64.gt = 0];
 }
 
 message GetPageResponse {

@@ -8,6 +8,7 @@ from psycopg.sql import SQL
 
 from app.config import MESSAGES_INBOX_PAGE_SIZE
 from app.lib.auth_context import require_web_user
+from app.lib.date_utils import unix_datetime
 from app.lib.standard_pagination import sp_paginate_table
 from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import user_proto
@@ -41,6 +42,11 @@ class _Service(MessageServiceConnect):
 
         inbox = request.inbox
         filters: list[Template] = []
+        if request.HasField('created_after'):
+            filters.append(t'created_at >= {unix_datetime(request.created_after)}')
+        if request.HasField('created_before'):
+            filters.append(t'created_at <= {unix_datetime(request.created_before)}')
+
         if inbox:
             filters.append(t"""
                 EXISTS (
