@@ -239,7 +239,7 @@ layersConfig.set(AERIAL_LAYER_ID, {
 layersConfig.set(GPS_LAYER_ID, {
   specification: {
     type: "raster",
-    tiles: ["/api/web/traces/tiles/lines/{z}/{x}/{y}.png"],
+    tiles: ["/gps/lines/{z}/{x}/{y}.png"],
     tileSize: 256,
   },
   layerCode: GPS_LAYER_CODE,

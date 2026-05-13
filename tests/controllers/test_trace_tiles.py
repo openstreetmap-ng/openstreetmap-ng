@@ -12,8 +12,8 @@ from app.models.proto.trace_pb2 import (
 )
 
 _GPX_BYTES = Path('tests/data/8473730.gpx').read_bytes()
-_TRACE_TILE = '/api/web/traces/tiles/lines/14/9141/5422.png'
-_TRACE_TILE_DEFAULT_FORMAT = '/api/web/traces/tiles/lines/14/9141/5422'
+_TRACE_TILE = '/gps/lines/14/9141/5422.png'
+_TRACE_TILE_DEFAULT_FORMAT = '/gps/lines/14/9141/5422'
 _PNG_SIGNATURE = b'\x89PNG\r\n\x1a\n'
 
 

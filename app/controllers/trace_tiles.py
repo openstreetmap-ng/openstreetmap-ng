@@ -1,3 +1,4 @@
+from asyncio import TaskGroup
 from collections.abc import Iterable
 from dataclasses import dataclass
 from io import BytesIO
@@ -13,7 +14,7 @@ from starlette.responses import Response
 
 from app.queries.trace_query import TraceQuery
 
-router = APIRouter(prefix='/api/web/traces/tiles')
+router = APIRouter()
 
 _TILE_SIZE = 256
 _MAX_ZOOM = 23
@@ -21,8 +22,12 @@ _MAX_TRACES_PER_TILE = 500
 _TRACE_COLOR = (37, 99, 235, 190)
 
 
+@router.get('/gps/lines/{z:int}/{x:int}/{y:int}')
+@router.get('/gps/lines/{z:int}/{x:int}/{y:int}.png')
 @router.get('/lines/{z:int}/{x:int}/{y:int}')
 @router.get('/lines/{z:int}/{x:int}/{y:int}.png')
+@router.get('/api/web/traces/tiles/lines/{z:int}/{x:int}/{y:int}')
+@router.get('/api/web/traces/tiles/lines/{z:int}/{x:int}/{y:int}.png')
 async def public_tile(
     z: Annotated[int, Path(ge=0, le=_MAX_ZOOM)],
     x: Annotated[int, Path(ge=0)],
@@ -41,11 +46,23 @@ async def _tile_response(
     headers = {'Cache-Control': 'public, max-age=300'}
 
     bounds = _tile_bounds(z, x, y)
-    traces = await TraceQuery.find_tile_segments(
-        bounds.geometry,
-        limit=_MAX_TRACES_PER_TILE,
-    )
-    tile = _render_png_tile(traces, bounds)
+    async with TaskGroup() as tg:
+        identifiable_t = tg.create_task(
+            TraceQuery.find_tile_segments(
+                bounds.geometry,
+                identifiable_trackable=True,
+                limit=_MAX_TRACES_PER_TILE,
+            )
+        )
+        anonymous_t = tg.create_task(
+            TraceQuery.find_tile_segments(
+                bounds.geometry,
+                identifiable_trackable=False,
+                limit=_MAX_TRACES_PER_TILE,
+            )
+        )
+
+    tile = _render_png_tile([*identifiable_t.result(), *anonymous_t.result()], bounds)
     return Response(tile, media_type='image/png', headers=headers)
 
 
@@ -95,8 +112,7 @@ def _render_png_tile(traces: list[MultiLineString], bounds: _TileBounds) -> byte
     draw = ImageDraw.Draw(image)
 
     for segments in traces:
-        clipped = segments.intersection(bounds.geometry)
-        for line in _iter_lines(clipped):
+        for line in _iter_lines(segments):
             coords = get_coordinates(line)
             if len(coords) < 2:
                 continue
