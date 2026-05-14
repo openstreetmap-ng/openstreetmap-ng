@@ -37,7 +37,10 @@ class _CompressResult(NamedTuple):
 
 
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
+
+
+def _zstd_metadata(level: int) -> dict[str, str]:
+    return {'zstd_level': str(level)}
 
 
 class TraceFile:
@@ -76,17 +79,17 @@ class TraceFile:
         raise_for.trace_file_archive_too_deep()
 
     @staticmethod
-    async def compress(buffer: bytes):
+    async def compress(buffer: bytes, *, level: int = TRACE_FILE_COMPRESS_ZSTD_LEVEL):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         result = await to_thread(
             ZstdCompressor(
-                level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+                level=level,
                 threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
             ).compress,
             buffer,
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return _CompressResult(result, _ZSTD_SUFFIX, _zstd_metadata(level))
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):
@@ -117,7 +120,7 @@ class _Bzip2Processor(_TraceProcessor):
         decompressor = BZ2Decompressor()
         try:
             result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
         if not decompressor.needs_input:
             raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
