@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -242,8 +242,13 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        img = open_image(BytesIO(data))
+        ImageOps.exif_transpose(img, in_place=True)
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except (OSError, UnidentifiedImageError):
+        raise_for.image_invalid()
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -290,7 +295,12 @@ async def _normalize_image(
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
 
-    animation = _extract_animation(img)
+    try:
+        animation = _extract_animation(img)
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except (OSError, UnidentifiedImageError):
+        raise_for.image_invalid()
 
     if resize_to is None and crop_box is None:
         pass
@@ -327,13 +337,18 @@ async def _normalize_image(
                 raise_for.image_inappropriate()
 
     # optimize file size
-    quality, buffer = await _optimize_quality(
-        img,
-        animation,
-        input_size=len(data),
-        quality=quality,
-        max_file_size=max_file_size,
-    )
+    try:
+        quality, buffer = await _optimize_quality(
+            img,
+            animation,
+            input_size=len(data),
+            quality=quality,
+            max_file_size=max_file_size,
+        )
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except (OSError, UnidentifiedImageError):
+        raise_for.image_invalid()
     logging.debug('Optimized image quality: Q%d', quality)
     return (buffer, img) if return_img else buffer
 

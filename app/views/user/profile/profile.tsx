@@ -8,7 +8,7 @@ import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
-import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import { config, REQUEST_BODY_MAX_SIZE, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -249,7 +249,9 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await formDataBytes(formData, "avatar_file", {
+          maxSize: REQUEST_BODY_MAX_SIZE,
+        })
         if (avatarFile.length) {
           return {
             avatar: {
