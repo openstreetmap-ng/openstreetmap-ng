@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -40,7 +40,7 @@ if cython.compiled:
 else:
     from math import sqrt
 
-# TODO: test 200MP file
+_IMAGE_READ_ERRORS = (UnidentifiedImageError, OSError, SyntaxError)
 
 
 class _Animation(NamedTuple):
@@ -55,7 +55,7 @@ DEFAULT_USER_AVATAR_URL = '/static/img/avatar.webp'
 DEFAULT_USER_AVATAR = Path('app' + DEFAULT_USER_AVATAR_URL).read_bytes()
 DEFAULT_APP_AVATAR_URL = '/static/img/app.webp'
 
-_PIPE: 'ImageClassificationPipeline | None' = None
+_PIPE: ImageClassificationPipeline | None = None
 _PIPE_LOCK = Lock()
 
 
@@ -242,8 +242,12 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        img = _open_image(data)
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except _IMAGE_READ_ERRORS:
+        raise_for.image_not_readable()
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -290,7 +294,12 @@ async def _normalize_image(
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
 
-    animation = _extract_animation(img)
+    try:
+        animation = _extract_animation(img)
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except _IMAGE_READ_ERRORS:
+        raise_for.image_not_readable()
 
     if resize_to is None and crop_box is None:
         pass
@@ -327,15 +336,26 @@ async def _normalize_image(
                 raise_for.image_inappropriate()
 
     # optimize file size
-    quality, buffer = await _optimize_quality(
-        img,
-        animation,
-        input_size=len(data),
-        quality=quality,
-        max_file_size=max_file_size,
-    )
+    try:
+        quality, buffer = await _optimize_quality(
+            img,
+            animation,
+            input_size=len(data),
+            quality=quality,
+            max_file_size=max_file_size,
+        )
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except _IMAGE_READ_ERRORS:
+        raise_for.image_not_readable()
     logging.debug('Optimized image quality: Q%d', quality)
     return (buffer, img) if return_img else buffer
+
+
+def _open_image(data: bytes):
+    img = open_image(BytesIO(data))
+    ImageOps.exif_transpose(img, in_place=True)
+    return img
 
 
 async def _optimize_quality(

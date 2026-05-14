@@ -9,6 +9,9 @@ BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
 # https://github.com/cython/cython/issues/6880
 BLACKLIST["app/lib/pydantic_settings_integration.py"]=1
 
+# Reason: Pillow image errors abort Python finalization under Cython profiling
+BLACKLIST["app/lib/image.py"]=1
+
 DIRS=(
   "app/exceptions" "app/exceptions06" "app/format" "app/lib"
   "app/middlewares" "app/responses" "app/services"
