@@ -1,0 +1,113 @@
+.software-page {
+  .software-page__intro {
+    max-width: 48rem;
+  }
+
+  .software-page__filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1rem;
+    align-items: end;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: $border-radius;
+    background: var(--bs-tertiary-bg);
+
+    .form-label {
+      margin: 0;
+
+      > span {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color);
+      }
+    }
+  }
+
+  .software-page__filter-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .software-page__result-count {
+    margin-bottom: 1rem;
+    color: var(--bs-secondary-color);
+  }
+
+  .software-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: 1rem;
+  }
+
+  .software-page__card {
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: $border-radius;
+    background: var(--bs-body-bg);
+
+    p {
+      margin-bottom: 0.75rem;
+    }
+
+    ul {
+      padding-left: 1.25rem;
+      margin-bottom: 0;
+    }
+  }
+
+  .software-page__card-header {
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
+    margin-bottom: 0.875rem;
+
+    img {
+      width: 3.25rem;
+      height: 3.25rem;
+      object-fit: contain;
+      padding: 0.375rem;
+      border: 1px solid var(--bs-border-color);
+      border-radius: $border-radius-sm;
+      background: var(--bs-light-bg-subtle);
+    }
+
+    h2 {
+      margin-bottom: 0.25rem;
+      font-size: 1.25rem;
+      line-height: 1.2;
+    }
+  }
+
+  .software-page__meta,
+  .software-page__platforms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.5rem;
+      padding: 0.125rem 0.5rem;
+      border: 1px solid var(--bs-border-color);
+      border-radius: $border-radius-sm;
+      font-size: 0.8125rem;
+      color: var(--bs-secondary-color);
+      background: var(--bs-tertiary-bg);
+    }
+  }
+
+  .software-page__platforms {
+    margin-bottom: 0.75rem;
+  }
+
+  .software-page__empty {
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: $border-radius;
+  }
+}

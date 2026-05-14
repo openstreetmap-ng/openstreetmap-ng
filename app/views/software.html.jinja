@@ -1,0 +1,114 @@
+{% extends '_base' %}
+
+{% block title_prefix %}{{ title_prefix }}{% endblock %}
+{% block body_class %}software-page{% endblock %}
+
+{% block body %}
+  <div class="content-header">
+    <div class="container">
+      <h1>OSM Software</h1>
+    </div>
+  </div>
+  <div class="content-body">
+    <div class="container">
+      <div class="software-page__intro">
+        <p class="lead">
+          Find editors, mobile apps, data tools, and quality-assurance workflows
+          used across the OpenStreetMap ecosystem.
+        </p>
+      </div>
+
+      <form
+        class="software-page__filters"
+        action="/software"
+        method="get"
+      >
+        {% for name, options in filter_options.items() %}
+          <label class="form-label">
+            <span>{{ name | replace('_', ' ') | title }}</span>
+            <select
+              class="form-select"
+              name="{{ name }}"
+            >
+              <option
+                value=""
+                {% if not selected[name] %}selected{% endif %}
+              >
+                All
+              </option>
+              {% for option in options %}
+                <option
+                  value="{{ option.value }}"
+                  {% if selected[name] == option.value %}selected{% endif %}
+                >
+                  {{ option.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        {% endfor %}
+
+        <div class="software-page__filter-actions">
+          <button
+            class="btn btn-primary"
+            type="submit"
+          >
+            Filter
+          </button>
+          <a
+            class="btn btn-light"
+            href="/software"
+          >
+            Reset
+          </a>
+        </div>
+      </form>
+
+      <div class="software-page__result-count">
+        {{ entries | length }} result{% if entries | length != 1 %}s{% endif %}
+      </div>
+
+      <div class="software-page__grid">
+        {% for entry in entries %}
+          <article class="software-page__card">
+            <div class="software-page__card-header">
+              <img
+                src="{{ entry.image }}"
+                alt="{{ t('alt.logo', name=entry.name) }}"
+                loading="lazy"
+              />
+              <div>
+                <h2>
+                  <a href="{{ entry.url }}">{{ entry.name }}</a>
+                </h2>
+                <div class="software-page__meta">
+                  <span>{{ labels.category[entry.category] }}</span>
+                  <span>{{ labels.license[entry.license] }}</span>
+                  <span>{{ labels.status[entry.status] }}</span>
+                </div>
+              </div>
+            </div>
+
+            <p>{{ entry.description }}</p>
+
+            <div class="software-page__platforms">
+              {% for platform in entry.platforms %}
+                <span>{{ labels.platform[platform] }}</span>
+              {% endfor %}
+            </div>
+
+            <ul>
+              {% for highlight in entry.highlights %}
+                <li>{{ highlight }}</li>
+              {% endfor %}
+            </ul>
+          </article>
+        {% else %}
+          <p class="software-page__empty">
+            No software matched the selected filters.
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
