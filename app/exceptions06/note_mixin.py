@@ -30,3 +30,10 @@ class NoteExceptions06Mixin(NoteExceptionsMixin):
             status.HTTP_400_BAD_REQUEST,
             detail=f'The maximum bbox size is {NOTE_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
         )
+
+    @override
+    def note_null_island(self):
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Creating notes at 0,0 is not allowed.',
+        )

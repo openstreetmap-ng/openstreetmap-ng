@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
@@ -20,7 +21,6 @@ from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
-from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_comment_query import NoteCommentQuery
@@ -38,6 +38,9 @@ class NoteService:
         point = validate_geometry(Point(lon, lat))
 
         user = auth_user()
+        if point.x == 0 and point.y == 0 and not user_is_moderator(user):
+            raise_for.note_null_island()
+
         if user is not None:
             # Prevent OAuth to create user-authorized note
             scopes = auth_scopes()

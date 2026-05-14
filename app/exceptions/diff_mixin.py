@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from typing import TYPE_CHECKING, NoReturn
 
@@ -15,9 +17,13 @@ class DiffExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_create_bad_id(self, element: 'ElementInit') -> NoReturn:
+    def diff_create_bad_id(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_update_bad_version(self, element: 'ElementInit') -> NoReturn:
+    def diff_update_bad_version(self, element: ElementInit) -> NoReturn:
+        raise NotImplementedError
+
+    @abstractmethod
+    def diff_null_island_elements(self) -> NoReturn:
         raise NotImplementedError

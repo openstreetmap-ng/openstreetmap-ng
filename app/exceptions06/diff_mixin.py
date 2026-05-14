@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, override
 
 from starlette import status
@@ -26,7 +28,7 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
         )
 
     @override
-    def diff_create_bad_id(self, element: 'ElementInit'):
+    def diff_create_bad_id(self, element: ElementInit):
         type = element_type(element['typed_id'])
         if type == 'node':
             raise APIError(
@@ -47,8 +49,15 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
             raise NotImplementedError(f'Unsupported element type {type!r}')
 
     @override
-    def diff_update_bad_version(self, element: 'ElementInit'):
+    def diff_update_bad_version(self, element: ElementInit):
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',
+        )
+
+    @override
+    def diff_null_island_elements(self):
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Changeset uploads with multiple elements at 0,0 are not allowed.',
         )

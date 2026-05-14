@@ -6,6 +6,7 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
@@ -14,6 +15,7 @@ from app.lib.changeset_bounds import extend_changeset_bounds
 from app.lib.exceptions_context import raise_for
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -21,7 +23,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_bounds_query import ChangesetBoundsQuery
 from app.queries.changeset_query import ChangesetQuery
@@ -209,6 +210,7 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
+        self._check_null_island_elements()
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
@@ -218,6 +220,21 @@ class OptimisticDiffPrepare:
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
+
+    def _check_null_island_elements(self):
+        """Reject suspicious non-moderator changesets with several nodes at 0,0."""
+        if user_is_moderator(auth_user()):
+            return
+
+        null_island_count: cython.size_t = 0
+        for element in self.apply_elements:
+            if not element['visible']:
+                continue
+            point = element['point']
+            if point is not None and point.x == 0 and point.y == 0:
+                null_island_count += 1
+                if null_island_count >= 2:
+                    raise_for.diff_null_island_elements()
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
