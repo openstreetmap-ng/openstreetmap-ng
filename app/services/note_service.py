@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
@@ -21,7 +22,6 @@ from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
-from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_query import NoteCommentQuery
@@ -102,7 +102,11 @@ class NoteService:
 
     @staticmethod
     async def comment(
-        note_id: NoteId, text: str, event: GetCommentsResponse_Comment_Event
+        note_id: NoteId,
+        text: str,
+        event: GetCommentsResponse_Comment_Event,
+        *,
+        ignore_closed_or_missing: bool = False,
     ):
         """Comment on a note."""
         user = auth_user(required=True)
@@ -128,6 +132,8 @@ class NoteService:
             ) as r:
                 note: Note | None = await r.fetchone()  # type: ignore
                 if note is None:
+                    if ignore_closed_or_missing:
+                        return False
                     raise_for.note_not_found(note_id)
 
             del conditions
@@ -136,6 +142,8 @@ class NoteService:
 
             if event == 'closed':
                 if note['closed_at'] is not None:
+                    if ignore_closed_or_missing:
+                        return False
                     raise_for.note_closed(note_id, note['closed_at'])
                 update.append(SQL('closed_at = statement_timestamp()'))
                 send_activity_email = True
@@ -228,6 +236,8 @@ class NoteService:
             if send_activity_email:
                 tg.create_task(_send_activity_email(note, comment))
             tg.create_task(UserSubscriptionService.subscribe('note', note_id))
+
+        return True
 
 
 async def _send_activity_email(note: Note, comment: NoteComment):

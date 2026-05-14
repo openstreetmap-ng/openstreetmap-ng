@@ -11,9 +11,44 @@ from app.config import (
     TAGS_LIMIT,
     TAGS_MAX_SIZE,
 )
+from app.exceptions.api_error import APIError
+from app.exceptions.context import exceptions_context
+from app.exceptions06 import Exceptions06
 from app.format import Format06
+from app.lib.auth.context import auth_context
 from app.lib.io.xml_codec import XMLToDict
+from app.models.types import ChangesetId, DisplayName
+from app.queries.user_query import UserQuery
+from app.services.changeset_service import ChangesetService
 from tests.utils.assert_model import assert_model
+
+
+async def _create_note(client: AsyncClient, text: str) -> int:
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': text},
+    )
+    assert r.is_success, r.text
+    return r.json()['properties']['id']
+
+
+async def _create_changeset(client: AsyncClient, tags: list[tuple[str, str]]) -> int:
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {'tag': [{'@k': key, '@v': value} for key, value in tags]}
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    return int(r.text)
+
+
+async def _get_note_props(client: AsyncClient, note_id: int) -> dict:
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text
+    return r.json()['properties']
 
 
 async def test_changeset_crud(client: AsyncClient):
@@ -107,6 +142,134 @@ async def test_changeset_crud(client: AsyncClient):
     assert '@max_lat' not in changeset
     assert '@min_lon' not in changeset
     assert '@max_lon' not in changeset
+
+
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    default_note_id = await _create_note(client, 'default close note')
+    specific_note_id = await _create_note(client, 'specific close note')
+    already_closed_note_id = await _create_note(client, 'already closed note')
+
+    r = await client.post(
+        f'/api/0.6/notes/{already_closed_note_id}/close.json',
+        params={'text': 'already closed'},
+    )
+    assert r.is_success, r.text
+
+    changeset_id = await _create_changeset(
+        client,
+        [
+            ('comment', 'changeset close message'),
+            (
+                'closes:note',
+                f'{default_note_id}; {specific_note_id}; {already_closed_note_id}; '
+                f'{default_note_id}; invalid',
+            ),
+            (f'closes:note:{specific_note_id}:comment', 'specific close message'),
+        ],
+    )
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    props = await _get_note_props(client, default_note_id)
+    assert_model(props, {'status': 'closed'})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'changeset close message',
+        },
+    )
+
+    props = await _get_note_props(client, specific_note_id)
+    assert_model(props, {'status': 'closed'})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'specific close message',
+        },
+    )
+
+    props = await _get_note_props(client, already_closed_note_id)
+    assert_model(props, {'status': 'closed'})
+    assert len(props['comments']) == 2
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'already closed',
+        },
+    )
+
+
+async def test_changeset_close_uses_global_note_close_comment(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    note_id = await _create_note(client, 'global close note')
+    changeset_id = await _create_changeset(
+        client,
+        [
+            ('comment', 'ignored close message'),
+            ('closes:note', str(note_id)),
+            ('closes:note:comment', 'global close message'),
+        ],
+    )
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    props = await _get_note_props(client, note_id)
+    assert_model(props, {'status': 'closed'})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'global close message',
+        },
+    )
+
+
+async def test_changeset_close_requires_note_scope_for_tagged_notes(
+    client: AsyncClient,
+):
+    client.headers['Authorization'] = 'User user1'
+
+    note_id = await _create_note(client, 'scope protected note')
+    changeset_id = await _create_changeset(
+        client,
+        [
+            ('comment', 'changeset close message'),
+            ('closes:note', str(note_id)),
+        ],
+    )
+
+    user = await UserQuery.find_by_display_name(DisplayName('user1'))
+    assert user is not None
+
+    with (
+        exceptions_context(Exceptions06()),
+        auth_context(user, frozenset(('write_api',))),
+        pytest.raises(APIError) as raised,
+    ):
+        await ChangesetService.close(ChangesetId(changeset_id))
+
+    assert raised.value.status_code == status.HTTP_403_FORBIDDEN
+
+    props = await _get_note_props(client, note_id)
+    assert_model(props, {'status': 'open'})
+    assert len(props['comments']) == 1
+
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}')
+    assert r.is_success, r.text
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
+    assert_model(changeset, {'@open': True})
 
 
 async def test_changeset_upload(client: AsyncClient):
