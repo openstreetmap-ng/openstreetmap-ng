@@ -38,6 +38,8 @@ class _CompressResult(NamedTuple):
 
 _ZSTD_SUFFIX = '.zst'
 _ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
+_ZSTD_HEAVY_LEVEL = 22
+_ZSTD_HEAVY_METADATA: dict[str, str] = {'zstd_level': str(_ZSTD_HEAVY_LEVEL)}
 
 
 class TraceFile:
@@ -87,6 +89,19 @@ class TraceFile:
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+
+    @staticmethod
+    async def compress_heavy(buffer: bytes):
+        """Compress the trace file buffer with the heaviest zstd level."""
+        result = await to_thread(
+            ZstdCompressor(level=_ZSTD_HEAVY_LEVEL).compress,
+            buffer,
+        )
+        logging.debug(
+            'Trace file heavy zstd-compressed size is %s',
+            sizestr(len(result)),
+        )
+        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_HEAVY_METADATA)
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):
