@@ -75,7 +75,12 @@ class TraceFile:
         raise_for.trace_file_archive_too_deep()
 
     @staticmethod
-    async def compress(buffer: bytes):
+    async def compress(
+        buffer: bytes,
+        *,
+        level: int = TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+        threads: int = TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    ):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         result = await to_thread(
             zstd.compress,
@@ -83,7 +88,7 @@ class TraceFile:
             options=_ZSTD_OPTIONS,
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return _CompressResult(result, _ZSTD_SUFFIX, {'zstd_level': str(level)})
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):

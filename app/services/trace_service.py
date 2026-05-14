@@ -1,6 +1,8 @@
 import logging
+from asyncio import Task, create_task
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
@@ -20,9 +22,11 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+
+_HEAVY_ZSTD_LEVEL = 22
+_RECOMPRESSION_TASKS: set[Task[None]] = set()
 
 
 class TraceService:
@@ -111,6 +115,7 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
+                _schedule_recompression(trace_id, file, trace_init['file_id'])
                 return trace_id
 
         except Exception:
@@ -191,3 +196,53 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+def _schedule_recompression(
+    trace_id: TraceId,
+    file: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    task = create_task(_recompress_trace_file(trace_id, file, old_file_id))
+    _RECOMPRESSION_TASKS.add(task)
+
+    def cleanup(task: Task[None]) -> None:
+        _RECOMPRESSION_TASKS.discard(task)
+        if not task.cancelled() and (exc := task.exception()) is not None:
+            logging.warning(
+                'Trace file background recompression failed for %r',
+                trace_id,
+                exc_info=exc,
+            )
+
+    task.add_done_callback(cleanup)
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    file: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    result = await TraceFile.compress(file, level=_HEAVY_ZSTD_LEVEL)
+    new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+
+    try:
+        async with db(True) as conn:
+            update_result = await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %s
+                WHERE id = %s AND file_id = %s
+                """,
+                (new_file_id, trace_id, old_file_id),
+            )
+    except Exception:
+        await TRACE_STORAGE.delete(new_file_id)
+        raise
+
+    if update_result.rowcount:
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.debug('Recompressed trace file %r -> %r', old_file_id, new_file_id)
+    else:
+        await TRACE_STORAGE.delete(new_file_id)
+        logging.debug('Skipped trace file recompression swap for trace %r', trace_id)
