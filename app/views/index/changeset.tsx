@@ -210,8 +210,19 @@ const ChangesetComment = ({
 
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
+  const achaviUrl = `https://overpass-api.de/achavi/?changeset=${changesetIdStr}`
   return (
     <div class="section text-center">
+      <a
+        class="btn btn-sm btn-soft mb-2"
+        href={achaviUrl}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <i class="bi bi-code-square me-1" />
+        {t("changeset.open_diff")}
+      </a>
+      <br />
       {data.user && (
         <div class="mb-2">
           {data.prevChangesetId && (
