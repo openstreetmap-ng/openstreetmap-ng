@@ -37,7 +37,7 @@ jobs:
       - name: Run tests
         run: |
           if [[ "${{ matrix.implementation }}" == "cython" ]]; then
-            nix-shell --pure --run 'python -m pytest --verbose --no-header --randomly-seed="$EPOCHSECONDS" --extended'
+            nix-shell --pure --run "python -c 'import os, pytest; os._exit(pytest.main([\"--verbose\", \"--no-header\", \"--randomly-seed=$EPOCHSECONDS\", \"--extended\"]))'"
           else
             nix-shell --pure --run "run-tests --extended --term"
           fi
