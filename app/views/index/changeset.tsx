@@ -217,7 +217,7 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
         class="btn btn-sm btn-soft mb-2"
         href={achaviUrl}
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer"
       >
         <i class="bi bi-code-square me-1" />
         {t("changeset.open_diff")}
