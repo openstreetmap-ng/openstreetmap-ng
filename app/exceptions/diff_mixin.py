@@ -15,9 +15,13 @@ class DiffExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_create_bad_id(self, element: 'ElementInit') -> NoReturn:
+    def diff_create_bad_id(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 
     @abstractmethod
-    def diff_update_bad_version(self, element: 'ElementInit') -> NoReturn:
+    def diff_null_island(self) -> NoReturn:
+        raise NotImplementedError
+
+    @abstractmethod
+    def diff_update_bad_version(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
