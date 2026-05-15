@@ -1,7 +1,9 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db
@@ -10,7 +12,7 @@ from app.lib.auth_context import auth_user
 from app.lib.date_utils import utcnow
 from app.lib.exceptions_context import raise_for
 from app.lib.storage import TRACE_STORAGE
-from app.lib.trace_file import TraceFile
+from app.lib.trace_file import TRACE_FILE_RECOMPRESS_ZSTD_LEVEL, TraceFile
 from app.lib.xmltodict import XMLToDict
 from app.models.db.trace import (
     TraceInit,
@@ -114,7 +116,17 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
+
+            loop = get_running_loop()
+            loop.create_task(  # noqa: RUF006
+                _recompress_trace_file(
+                    trace_id,
+                    trace_init['file_id'],
+                    file,
+                    old_file_size=len(result.data),
+                )
+            )
+            return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -210,3 +222,53 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(row[0])
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file_bytes: bytes,
+    *,
+    old_file_size: int,
+):
+    try:
+        result = await TraceFile.compress(
+            file_bytes,
+            level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+        )
+        if len(result.data) >= old_file_size:
+            logging.debug(
+                'Skipping trace file recompression for trace %d: %d >= %d bytes',
+                trace_id,
+                len(result.data),
+                old_file_size,
+            )
+            return
+
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+
+        async with db(True) as conn:
+            update = await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %s, updated_at = DEFAULT
+                WHERE id = %s AND file_id = %s
+                """,
+                (new_file_id, trace_id, old_file_id),
+            )
+
+        if update.rowcount:
+            await TRACE_STORAGE.delete(old_file_id)
+            logging.debug(
+                'Recompressed trace file %r -> %r for trace %d',
+                old_file_id,
+                new_file_id,
+                trace_id,
+            )
+        else:
+            await TRACE_STORAGE.delete(new_file_id)
+
+    except Exception:
+        capture_exception()
