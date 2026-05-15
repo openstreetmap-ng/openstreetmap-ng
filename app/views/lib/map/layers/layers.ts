@@ -31,6 +31,7 @@ export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
 export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
+export const HYBRID_AERIAL_LAYER_ID = "hybrid-aerial" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
@@ -38,6 +39,7 @@ const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
 const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
 const HOT_LAYER_CODE = "H" as LayerCode
+const HYBRID_AERIAL_LAYER_CODE = "I" as LayerCode
 
 export const AERIAL_LAYER_ID = "aerial" as LayerId
 export const NOTES_LAYER_ID = "notes" as LayerId
@@ -92,6 +94,40 @@ const hotosmCredit = t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit =
   "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+const hybridAerialCredit = `${aerialEsriCredit}. ${copyright}. ${terms}`
+const cloneStyleSources = (sources: typeof libertyStyle.sources) => {
+  const result = {} as typeof libertyStyle.sources
+  for (const sourceId in sources) {
+    if (!Object.hasOwn(sources, sourceId)) continue
+    const id = sourceId as keyof typeof libertyStyle.sources
+    result[id] = { ...sources[id] }
+  }
+  return result
+}
+const hybridAerialStyle = {
+  ...libertyStyle,
+  sources: {
+    aerial: {
+      type: "raster",
+      maxzoom: 23,
+      tiles: [
+        "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+    },
+    ...cloneStyleSources(libertyStyle.sources),
+  },
+  layers: [
+    {
+      id: "aerial",
+      type: "raster",
+      source: "aerial",
+    },
+    ...libertyStyle.layers.filter(
+      (layer) => layer.type === "line" || layer.type === "symbol",
+    ),
+  ],
+} as StyleSpecification
 
 export const emptyFeatureCollection: FeatureCollection = {
   type: "FeatureCollection",
@@ -213,6 +249,16 @@ layersConfig.set(HOT_LAYER_ID, {
   },
   isBaseLayer: true,
   layerCode: HOT_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_AERIAL_LAYER_ID, {
+  specification: {
+    type: "vector",
+    attribution: hybridAerialCredit,
+  },
+  vectorStyle: hybridAerialStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_AERIAL_LAYER_CODE,
 })
 
 // Overlay layers
