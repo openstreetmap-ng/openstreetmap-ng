@@ -25,6 +25,13 @@ class NoteExceptions06Mixin(NoteExceptionsMixin):
         )
 
     @override
+    def note_null_island(self):
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Creating notes at Null Island (0,0) is not allowed.',
+        )
+
+    @override
     def notes_query_area_too_big(self):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,

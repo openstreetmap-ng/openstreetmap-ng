@@ -1,10 +1,10 @@
 import pytest
+from app.models.proto.shared_types import ElementType
 from shapely import Point
 
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.element import ElementInit, validate_elements
 from app.models.element import ElementId
-from app.models.proto.shared_types import ElementType
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
@@ -94,6 +94,73 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     name_map = {e['tags']['name']: e for e in elements}  # type: ignore
     assert_model(name_map['Node 1'], nodes[0] | {'typed_id': typed_ids[0]})
     assert_model(name_map['Node 2'], nodes[1] | {'typed_id': typed_ids[1]})
+
+
+async def test_create_fails_with_multiple_null_island_nodes(
+    changeset_id: ChangesetId,
+):
+    elements: list[ElementInit] = [
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-1)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-2)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+    ]
+
+    with pytest.raises(Exception):
+        await OptimisticDiff.run(elements)
+
+
+async def test_create_way_fails_with_multiple_null_island_members(
+    changeset_id: ChangesetId,
+):
+    node: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    node1_ref = (await OptimisticDiff.run([node]))[
+        typed_element_id('node', ElementId(-1))
+    ][0]
+    node2_ref = (
+        await OptimisticDiff.run([
+            node | {'typed_id': typed_element_id('node', ElementId(-2))}
+        ])
+    )[typed_element_id('node', ElementId(-2))][0]
+
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [node1_ref, node2_ref],
+        'members_roles': None,
+    }
+
+    with pytest.raises(Exception):
+        await OptimisticDiff.run([way])
 
 
 @pytest.mark.parametrize(
