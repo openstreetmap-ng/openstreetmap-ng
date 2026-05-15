@@ -62,6 +62,7 @@ async def fetch_and_parse_sitemap(url: str):
             continue
 
         page = match['page']
+        assert page is not None, 'required regex group'
         page = unquote_plus(page)
 
         if page.startswith('Key:'):

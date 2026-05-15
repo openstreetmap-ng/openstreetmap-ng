@@ -34,6 +34,7 @@ async def get_download_locales():
     locales: list[LocaleCode] = []
     for match in _OPTION_RE.finditer(r.text):
         value, label = match['value'], match['label']
+        assert value is not None and label is not None, 'required regex groups'
         if value == label:
             locales.append(LocaleCode(value))
     return locales
@@ -62,7 +63,9 @@ async def download_locale(locale: LocaleCode):
         if match_locale is None:
             raise ValueError(f'Failed to match filename for {locale!r}')
 
-        locale = LocaleCode(match_locale.group('locale'))
+        locale_str = match_locale.group('locale')
+        assert locale_str is not None, 'required regex group'
+        locale = LocaleCode(locale_str)
         if locale == 'x-invalidLanguageCode':
             print(f'[❔] {locale}: invalid language code')
             return None
@@ -71,8 +74,10 @@ async def download_locale(locale: LocaleCode):
     if match is None:
         raise ValueError(f'Failed to match language names for {locale!r}')
 
-    english = match.group('english').strip()
-    native = match.group('native').strip()
+    english_str, native_str = match.group('english'), match.group('native')
+    assert english_str is not None and native_str is not None, 'required regex groups'
+    english = english_str.strip()
+    native = native_str.strip()
     if english == 'Message documentation':
         print(f'[❔] {locale}: not a language')
         return None
