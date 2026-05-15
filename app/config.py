@@ -125,6 +125,8 @@ OSM_REPLICATION_URL = (
 OSM_OLD_REPLICATION_URL = 'https://planet.openstreetmap.org'
 OSRM_URL = 'https://router.project-osrm.org'
 OVERPASS_INTERPRETER_URL = 'https://overpass-api.de/api/interpreter'
+RENDER_EXPORT_TOTP_KEY = SecretStr('')
+RENDER_EXPORT_URL = 'https://render.openstreetmap.org/cgi-bin/export'
 VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
 # API and HTTP settings

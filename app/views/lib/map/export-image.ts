@@ -5,7 +5,7 @@ import type {
   LngLatBounds,
   Map as MaplibreMap,
 } from "maplibre-gl"
-import { boundsIntersect, boundsIntersection } from "./bounds"
+import { boundsIntersect, boundsIntersection, boundsToString } from "./bounds"
 import { loadMapImage } from "./image"
 import {
   addMapLayer,
@@ -35,9 +35,105 @@ layersConfig.set(LAYER_ID, {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const IMAGE_QUALITY = 0.98
+const SVG_MIME_TYPE = "image/svg+xml"
+const PDF_MIME_TYPE = "application/pdf"
+const RENDER_EXPORT_FORMATS = new Map([
+  [SVG_MIME_TYPE, "svg"],
+  [PDF_MIME_TYPE, "pdf"],
+])
+const EARTH_RADIUS = 6378137
+const PRINT_METERS_PER_PIXEL = 1 / (92 * 39.3701)
+const STANDARD_PIXEL_SIZE = 0.00028
+const MAX_RENDER_AREA = 4_000_000 * STANDARD_PIXEL_SIZE ** 2
+const MAX_MERCATOR_LATITUDE = 85.05112878
 
 export const exportMapImage = async (
   mimeType: string,
+  map: MaplibreMap,
+  filterBounds: LngLatBounds | null,
+  markerLngLat: LngLat | null,
+  attribution: boolean,
+) => {
+  const renderFormat = RENDER_EXPORT_FORMATS.get(mimeType)
+  if (renderFormat) return await exportRenderedMap(renderFormat, map, filterBounds)
+
+  const exportCanvas = await renderMapCanvas(
+    map,
+    filterBounds,
+    markerLngLat,
+    attribution,
+  )
+
+  return await exportCanvasToBlob(exportCanvas, mimeType)
+}
+
+const exportRenderedMap = async (
+  format: string,
+  map: MaplibreMap,
+  filterBounds: LngLatBounds | null,
+) => {
+  const mapBounds = map.getBounds()
+  const exportBounds =
+    filterBounds && boundsIntersect(mapBounds, filterBounds)
+      ? boundsIntersection(mapBounds, filterBounds)
+      : mapBounds
+  const params = new URLSearchParams({
+    bbox: boundsToString(exportBounds, 7),
+    scale: getRenderScale(map, exportBounds).toString(),
+    format,
+  })
+  const response = await fetch(`/api/web/map/export?${params}`)
+  if (!response.ok) {
+    throw new Error((await response.text()) || "Failed to export the map image")
+  }
+  return await response.blob()
+}
+
+const getRenderScale = (map: MaplibreMap, exportBounds: LngLatBounds) => {
+  const scale = getCurrentMapScale(map)
+  const minScale = getMinRenderScale(exportBounds)
+  return scale < minScale ? roundScale(minScale) : scale
+}
+
+const getCurrentMapScale = (map: MaplibreMap) => {
+  const bounds = map.getBounds().adjustAntiMeridian()
+  const centerLat = bounds.getCenter().lat
+  const halfWorldMeters =
+    EARTH_RADIUS * Math.PI * Math.cos((centerLat * Math.PI) / 180)
+  const meters = (halfWorldMeters * (bounds.getEast() - bounds.getWest())) / 180
+  const pixelsPerMeter = map.getCanvas().clientWidth / meters
+  const scale = Math.round(1 / (pixelsPerMeter * PRINT_METERS_PER_PIXEL))
+  return Number.isFinite(scale) ? Math.max(1, scale) : 1
+}
+
+const getMinRenderScale = (bounds: LngLatBounds) => {
+  const adjusted = bounds.adjustAntiMeridian()
+  const southWest = projectMercator(adjusted.getSouthWest())
+  const northEast = projectMercator(adjusted.getNorthEast())
+  const area = Math.abs(northEast.x - southWest.x) * Math.abs(northEast.y - southWest.y)
+  const scale = Math.floor(Math.sqrt(area / MAX_RENDER_AREA))
+  return Number.isFinite(scale) ? Math.max(1, scale) : 1
+}
+
+const projectMercator = (lngLat: LngLat) => {
+  const lat = Math.max(
+    -MAX_MERCATOR_LATITUDE,
+    Math.min(MAX_MERCATOR_LATITUDE, lngLat.lat),
+  )
+  const lonRad = (lngLat.lng * Math.PI) / 180
+  const latRad = (lat * Math.PI) / 180
+  return {
+    x: EARTH_RADIUS * lonRad,
+    y: EARTH_RADIUS * Math.log(Math.tan(Math.PI / 4 + latRad / 2)),
+  }
+}
+
+const roundScale = (scale: number) => {
+  const precision = 5 * 10 ** (Math.floor(Math.LOG10E * Math.log(scale)) - 2)
+  return precision * Math.ceil(scale / precision)
+}
+
+const renderMapCanvas = async (
   map: MaplibreMap,
   filterBounds: LngLatBounds | null,
   markerLngLat: LngLat | null,
@@ -83,7 +179,6 @@ export const exportMapImage = async (
   console.debug(
     "ExportImage: Exporting",
     [sourceCanvas.width, sourceCanvas.height],
-    mimeType,
   )
   let exportCanvas = document.createElement("canvas")
   exportCanvas.width = sourceCanvas.width
@@ -140,7 +235,13 @@ export const exportMapImage = async (
     ctx.fillText(attributionText, xPos + padding, yPos + padding, textWidth)
   }
 
-  // Export the canvas to an image
+  return exportCanvas
+}
+
+const exportCanvasToBlob = (
+  exportCanvas: HTMLCanvasElement,
+  mimeType: string,
+) => {
   return new Promise<Blob>((resolve, reject) => {
     exportCanvas.toBlob(
       (blob) => {
