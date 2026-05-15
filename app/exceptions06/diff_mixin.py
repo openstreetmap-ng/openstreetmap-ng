@@ -26,7 +26,7 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
         )
 
     @override
-    def diff_create_bad_id(self, element: 'ElementInit'):
+    def diff_create_bad_id(self, element: ElementInit):
         type = element_type(element['typed_id'])
         if type == 'node':
             raise APIError(
@@ -47,7 +47,14 @@ class DiffExceptions06Mixin(DiffExceptionsMixin):
             raise NotImplementedError(f'Unsupported element type {type!r}')
 
     @override
-    def diff_update_bad_version(self, element: 'ElementInit'):
+    def diff_null_island(self):
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail='Changeset uploads may contain at most one node at Null Island (0,0).',
+        )
+
+    @override
+    def diff_update_bad_version(self, element: ElementInit):
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',

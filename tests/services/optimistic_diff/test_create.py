@@ -1,16 +1,29 @@
 import pytest
+from app.models.proto.shared_types import ElementType
 from shapely import Point
+from starlette import status
 
+from app.exceptions.api_error import APIError
 from app.lib.user_role_limits import UserRoleLimits
 from app.models.db.element import ElementInit, validate_elements
 from app.models.element import ElementId
-from app.models.proto.shared_types import ElementType
 from app.models.types import ChangesetId
 from app.queries.element_query import ElementQuery
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 from speedup import typed_element_id
 from tests.utils.assert_model import assert_model
+
+
+async def _api_error_status(elements: list[ElementInit]) -> int:
+    try:
+        await OptimisticDiff.run(elements)
+    except APIError as exc:
+        status_code = exc.status_code
+        exc.__traceback__ = None
+        return status_code
+    else:
+        pytest.fail('Expected APIError')
 
 
 async def test_create_node(changeset_id: ChangesetId):
@@ -94,6 +107,75 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     name_map = {e['tags']['name']: e for e in elements}  # type: ignore
     assert_model(name_map['Node 1'], nodes[0] | {'typed_id': typed_ids[0]})
     assert_model(name_map['Node 2'], nodes[1] | {'typed_id': typed_ids[1]})
+
+
+async def test_create_fails_with_multiple_null_island_nodes(
+    changeset_id: ChangesetId,
+):
+    # Arrange
+    nodes: list[ElementInit] = [
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-1)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-2)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+    ]
+
+    # Act & Assert
+    assert await _api_error_status(nodes) == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+async def test_create_way_fails_with_multiple_null_island_members(
+    changeset_id: ChangesetId,
+):
+    # Arrange
+    node1: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('node', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': Point(0, 0),
+        'members': None,
+        'members_roles': None,
+    }
+    node2: ElementInit = node1 | {'typed_id': typed_element_id('node', ElementId(-2))}
+
+    node1_ref = (await OptimisticDiff.run([node1]))[
+        typed_element_id('node', ElementId(-1))
+    ][0]
+    node2_ref = (await OptimisticDiff.run([node2]))[
+        typed_element_id('node', ElementId(-2))
+    ][0]
+
+    way: ElementInit = {
+        'changeset_id': changeset_id,
+        'typed_id': typed_element_id('way', ElementId(-1)),
+        'version': 1,
+        'visible': True,
+        'tags': {},
+        'point': None,
+        'members': [node1_ref, node2_ref],
+        'members_roles': None,
+    }
+
+    # Act & Assert
+    assert await _api_error_status([way]) == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 @pytest.mark.parametrize(
