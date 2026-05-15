@@ -3,6 +3,7 @@ import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@lib/config"
 import { Time } from "@lib/datetime-inputs"
 import { FollowToggleForm } from "@lib/follow-toggle-form"
 import { tRich } from "@lib/i18n"
+import { assertImageUploadSize } from "@lib/image-upload"
 import { mountProtoPage } from "@lib/proto-page"
 import { PageSchema, type PageValid } from "@lib/proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@lib/proto/settings_pb"
@@ -166,9 +167,12 @@ const BackgroundForm = ({
     <StandardForm
       class="background-form"
       method={Service.method.updateBackground}
-      buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
-      })}
+      buildRequest={async ({ formData }) => {
+        assertImageUploadSize(formData, "background_file")
+        return {
+          backgroundFile: await formDataBytes(formData, "background_file"),
+        }
+      }}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
       <input
@@ -247,6 +251,7 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
+        assertImageUploadSize(formData, "avatar_file")
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
           return {
