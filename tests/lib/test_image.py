@@ -5,6 +5,9 @@ import pytest
 from PIL import Image as PILImage
 
 from app.config import IMAGE_MAX_FRAMES
+from app.exceptions import Exceptions
+from app.exceptions.api_error import APIError
+from app.lib.exceptions_context import exceptions_context
 from app.lib.image import Image
 
 
@@ -42,3 +45,24 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
     assert len(normalized[0]) < len(animation)
     assert result.is_animated  # type: ignore
     assert 1 < result.n_frames <= IMAGE_MAX_FRAMES  # type: ignore
+
+
+async def test_normalize_avatar_rejects_decompression_bomb(monkeypatch):
+    image = PILImage.new('RGB', (2, 2))
+    buffer = BytesIO()
+    image.save(buffer, format='PNG')
+    monkeypatch.setattr('PIL.Image.MAX_IMAGE_PIXELS', 1)
+
+    with exceptions_context(Exceptions()), pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(buffer.getvalue())
+
+    assert exc_info.value.status_code == 413
+    assert exc_info.value.detail == 'Image is too large'
+
+
+async def test_normalize_avatar_rejects_invalid_image():
+    with exceptions_context(Exceptions()), pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b'not an image')
+
+    assert exc_info.value.status_code == 422
+    assert exc_info.value.detail == 'Image is invalid'
