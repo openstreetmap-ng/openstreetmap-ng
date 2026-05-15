@@ -1,5 +1,6 @@
 import { clampLatitude, MAX_MERCATOR_LATITUDE, wrapLongitude } from "@lib/coords"
 import { createDisposeScope, type DisposeScope } from "@lib/dispose-scope"
+import { unwrapLongitude } from "@lib/map/geometry"
 import type { Bounds } from "@lib/types"
 import type { Feature, Polygon } from "geojson"
 import {
@@ -199,9 +200,14 @@ const createCornerElement = () => {
 }
 
 const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon> => {
-  // Normalize bounds
-  if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
+  // Normalize latitude only; longitude order matters at the antimeridian. If the
+  // horizontal handles are merely inverted inside one world copy, keep the old
+  // rectangular behaviour by swapping. Wider jumps are intentional dateline
+  // crossings and must be rendered as two holes instead of the long way around.
+  if (Math.abs(maxLon - minLon) < 180 && minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
   if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
+
+  maxLon = unwrapLongitude(maxLon, minLon)
   minLon = wrapLongitude(minLon)
   maxLon = wrapLongitude(maxLon)
 

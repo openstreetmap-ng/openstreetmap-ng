@@ -4,7 +4,7 @@ import { queryParam } from "@lib/codecs"
 import { type Scheduled, useDisposeEffect } from "@lib/dispose-scope"
 import { formatDistance, isMetricUnit } from "@lib/format"
 import { fitBoundsIfNeeded } from "@lib/map/bounds"
-import { closestPointOnSegment } from "@lib/map/geometry"
+import { closestPointOnSegment, unwrapLongitude } from "@lib/map/geometry"
 import {
   emptyFeatureCollection,
   type LayerId,
@@ -153,15 +153,24 @@ const DistanceSidebar = ({
     markers.current[endIndex]!.label = null
   }
 
-  const updateLabel = (endIndex: number) => {
+  const getVisualSegmentLngLats = (endIndex: number) => {
     assertGreater(endIndex, 0)
-    const startEntry = markers.current[endIndex - 1]!
-    const endEntry = markers.current[endIndex]!
-    const startLngLat = startEntry.marker.getLngLat()
-    const endLngLat = endEntry.marker.getLngLat()
+    const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
+    const endLngLat = markers.current[endIndex]!.marker.getLngLat()
+    const visualEndLng = unwrapLongitude(endLngLat.lng, startLngLat.lng)
+    return {
+      start: startLngLat,
+      end: endLngLat,
+      visualEndLngLat: { lng: visualEndLng, lat: endLngLat.lat },
+    }
+  }
+
+  const updateLabel = (endIndex: number) => {
+    const { start: startLngLat, end: endLngLat, visualEndLngLat } =
+      getVisualSegmentLngLats(endIndex)
 
     const startScreenPoint = map.project(startLngLat)
-    const endScreenPoint = map.project(endLngLat)
+    const endScreenPoint = map.project(visualEndLngLat)
 
     // Calculate middle point
     // TODO: make sure this works correctly with 3d globe (#155)
@@ -181,7 +190,7 @@ const DistanceSidebar = ({
 
     const newDistance = startLngLat.distanceTo(endLngLat)
 
-    const label = endEntry.label!
+    const label = markers.current[endIndex]!.label!
     totalDistance.value = totalDistance.peek() + (newDistance - label.distance)
     label.distance = newDistance
     label.setLngLat(middlePoint)
@@ -190,12 +199,10 @@ const DistanceSidebar = ({
   }
 
   const segmentCoords = (endIndex: number) => {
-    assertGreater(endIndex, 0)
-    const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
-    const endLngLat = markers.current[endIndex]!.marker.getLngLat()
+    const { start, visualEndLngLat } = getVisualSegmentLngLats(endIndex)
     return [
-      [startLngLat.lng, startLngLat.lat],
-      [endLngLat.lng, endLngLat.lat],
+      [start.lng, start.lat],
+      [visualEndLngLat.lng, visualEndLngLat.lat],
     ]
   }
 
@@ -471,13 +478,12 @@ const DistanceSidebar = ({
 
     const firstSegmentId = Number(features[0]!.id)
     const firstEndIndex = markerIdToIndex.get(firstSegmentId)!
-    const firstStartLngLat = markers.current[firstEndIndex - 1]!.marker.getLngLat()
-    const firstEndLngLat = markers.current[firstEndIndex]!.marker.getLngLat()
+    const firstVisualSegment = getVisualSegmentLngLats(firstEndIndex)
     let bestEndId = firstSegmentId
     let bestClosestPoint = closestPointOnSegment(
       hitPoint,
-      map.project(firstStartLngLat),
-      map.project(firstEndLngLat),
+      map.project(firstVisualSegment.start),
+      map.project(firstVisualSegment.visualEndLngLat),
     )
     let bestDistanceSq =
       (bestClosestPoint.x - hitPoint.x) ** 2 + (bestClosestPoint.y - hitPoint.y) ** 2
@@ -485,12 +491,11 @@ const DistanceSidebar = ({
     for (let i = 1; i < features.length; i++) {
       const segmentId = Number(features[i]!.id)
       const endIndex = markerIdToIndex.get(segmentId)!
-      const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
-      const endLngLat = markers.current[endIndex]!.marker.getLngLat()
+      const visualSegment = getVisualSegmentLngLats(endIndex)
       const closestPoint = closestPointOnSegment(
         hitPoint,
-        map.project(startLngLat),
-        map.project(endLngLat),
+        map.project(visualSegment.start),
+        map.project(visualSegment.visualEndLngLat),
       )
       const distanceSq =
         (closestPoint.x - hitPoint.x) ** 2 + (closestPoint.y - hitPoint.y) ** 2
