@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytest
-from annotated_types import Gt
+from annotated_types import Gt, Len
 from httpx import AsyncClient
 from starlette import status
 
@@ -107,6 +107,65 @@ async def test_changeset_crud(client: AsyncClient):
     assert '@max_lat' not in changeset
     assert '@min_lon' not in changeset
     assert '@max_lon' not in changeset
+
+
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    first = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 0, 'lat': 0, 'text': 'first note'},
+    )
+    assert first.is_success, first.text
+    first_id = first.json()['properties']['id']
+
+    second = await client.post(
+        '/api/0.6/notes.json',
+        json={'lon': 1, 'lat': 1, 'text': 'second note'},
+    )
+    assert second.is_success, second.text
+    second_id = second.json()['properties']['id']
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'default closing comment'},
+                        {'@k': 'closes:note', '@v': f'{first_id};{second_id}'},
+                        {
+                            '@k': f'closes:note:{second_id}:comment',
+                            '@v': 'custom second closing comment',
+                        },
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    r = await client.get(f'/api/0.6/notes/{first_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert_model(props, {'status': 'closed', 'comments': Len(2, 2), 'closed_at': str})
+    assert_model(
+        props['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'default closing comment'},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{second_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert_model(props, {'status': 'closed', 'comments': Len(2, 2), 'closed_at': str})
+    assert_model(
+        props['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'custom second closing comment'},
+    )
 
 
 async def test_changeset_upload(client: AsyncClient):

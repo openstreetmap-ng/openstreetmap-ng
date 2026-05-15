@@ -6,6 +6,7 @@ from datetime import datetime
 from random import uniform
 from time import monotonic
 
+from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import (
@@ -23,7 +24,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -108,7 +109,7 @@ class ChangesetService:
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +122,8 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                tags: dict[str, str]
+                changeset_user_id, closed_at, tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -136,6 +138,7 @@ class ChangesetService:
                 """,
                 (changeset_id,),
             )
+            await _close_notes_from_changeset_tags(conn, user_id, tags)
             await audit('close_changeset', conn, extra={'id': changeset_id})
 
     @staticmethod
@@ -195,6 +198,75 @@ async def _process_task():
                 await sleep(uniform(0.5 * 3600, 1.5 * 3600))
 
 
+async def _close_notes_from_changeset_tags(
+    conn: AsyncConnection, user_id: UserId | None, tags: dict[str, str]
+):
+    note_ids = _parse_note_ids(tags.get('closes:note'))
+    if not note_ids:
+        return
+
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+
+    async with await conn.execute(
+        """
+        UPDATE note
+        SET closed_at = statement_timestamp(), updated_at = statement_timestamp()
+        WHERE id = ANY(%s) AND closed_at IS NULL AND hidden_at IS NULL
+        RETURNING id
+        """,
+        (note_ids,),
+    ) as r:
+        closed_note_ids: list[NoteId] = [note_id for (note_id,) in await r.fetchall()]
+
+    for note_id in closed_note_ids:
+        body = tags.get(f'closes:note:{note_id}:comment', default_comment)
+        async with await conn.execute(
+            """
+            INSERT INTO note_comment (
+                user_id, user_ip, note_id, event, body
+            )
+            VALUES (
+                %(user_id)s, NULL, %(note_id)s, 'closed', %(body)s
+            )
+            RETURNING id
+            """,
+            {'user_id': user_id, 'note_id': note_id, 'body': body},
+        ) as r:
+            comment_id = (await r.fetchone())[0]
+
+        if body:
+            await audit(
+                'create_note_comment',
+                conn,
+                user_id=user_id,
+                extra={'id': comment_id, 'note': note_id},
+            )
+        await audit(
+            'update_note_status',
+            conn,
+            user_id=user_id,
+            extra={'id': note_id, 'event': 'closed'},
+        )
+
+
+def _parse_note_ids(value: str | None) -> list[NoteId]:
+    if not value:
+        return []
+
+    note_ids: list[NoteId] = []
+    seen: set[int] = set()
+    for part in value.split(';'):
+        part = part.strip()
+        if not part or not part.isdecimal():
+            continue
+        note_id = int(part)
+        if note_id <= 0 or note_id in seen:
+            continue
+        seen.add(note_id)
+        note_ids.append(NoteId(note_id))
+    return note_ids
+
+
 async def _close_inactive():
     """Close all inactive changesets."""
     async with db(True) as conn:
@@ -207,12 +279,17 @@ async def _close_inactive():
                 (updated_at >= statement_timestamp() - %s AND
                 created_at < statement_timestamp() - %s)
             )
+            RETURNING user_id, tags
             """,
             (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
         )
+        rows: list[tuple[UserId | None, dict[str, str]]] = await result.fetchall()  # type: ignore
 
-        if result.rowcount:
-            logging.debug('Closed %d inactive changesets', result.rowcount)
+        for user_id, tags in rows:
+            await _close_notes_from_changeset_tags(conn, user_id, tags)
+
+        if rows:
+            logging.debug('Closed %d inactive changesets', len(rows))
 
 
 async def _delete_empty():
