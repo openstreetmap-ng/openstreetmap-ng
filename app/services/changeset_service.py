@@ -6,6 +6,7 @@ from datetime import datetime
 from random import uniform
 from time import monotonic
 
+from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import (
@@ -23,7 +24,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -108,7 +109,7 @@ class ChangesetService:
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +122,8 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                changeset_tags: dict[str, str]
+                changeset_user_id, closed_at, changeset_tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -137,6 +139,7 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+            await _close_tagged_notes(conn, changeset_user_id, changeset_tags)
 
     @staticmethod
     @asynccontextmanager
@@ -198,7 +201,7 @@ async def _process_task():
 async def _close_inactive():
     """Close all inactive changesets."""
     async with db(True) as conn:
-        result = await conn.execute(
+        async with await conn.execute(
             """
             UPDATE changeset
             SET closed_at = statement_timestamp(), updated_at = DEFAULT
@@ -207,12 +210,17 @@ async def _close_inactive():
                 (updated_at >= statement_timestamp() - %s AND
                 created_at < statement_timestamp() - %s)
             )
+            RETURNING user_id, tags
             """,
             (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
-        )
+        ) as r:
+            rows: list[tuple[UserId | None, dict[str, str]]] = await r.fetchall()
 
-        if result.rowcount:
-            logging.debug('Closed %d inactive changesets', result.rowcount)
+        for user_id, tags in rows:
+            await _close_tagged_notes(conn, user_id, tags)
+
+        if rows:
+            logging.debug('Closed %d inactive changesets', len(rows))
 
 
 async def _delete_empty():
@@ -254,3 +262,77 @@ async def _delete_empty():
         )
 
         logging.debug('Deleted %d empty changesets', len(changeset_ids))
+
+
+def _parse_note_closure_tags(tags: dict[str, str]) -> dict[NoteId, str]:
+    note_ids_tag = tags.get('closes:note')
+    if not note_ids_tag:
+        return {}
+
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+    comments: dict[NoteId, str] = {}
+    for raw_note_id in note_ids_tag.split(';'):
+        raw_note_id = raw_note_id.strip()
+        if not raw_note_id.isdecimal():
+            continue
+
+        note_id = NoteId(int(raw_note_id))
+        comments[note_id] = tags.get(f'closes:note:{note_id}:comment', default_comment)
+
+    return comments
+
+
+async def _close_tagged_notes(
+    conn: AsyncConnection,
+    user_id: UserId | None,
+    tags: dict[str, str],
+):
+    if user_id is None:
+        return
+
+    for note_id, comment in _parse_note_closure_tags(tags).items():
+        async with await conn.execute(
+            """
+            WITH open_note AS (
+                SELECT id
+                FROM note
+                WHERE id = %(note_id)s AND closed_at IS NULL
+                FOR UPDATE
+            ),
+            inserted_comment AS (
+                INSERT INTO note_comment (
+                    user_id, user_ip, note_id, event, body
+                )
+                SELECT
+                    %(user_id)s, NULL, id, 'closed', %(comment)s
+                FROM open_note
+                RETURNING id, created_at
+            )
+            UPDATE note
+            SET closed_at = inserted_comment.created_at,
+                updated_at = inserted_comment.created_at
+            FROM inserted_comment
+            WHERE note.id = %(note_id)s
+            RETURNING inserted_comment.id
+            """,
+            {'note_id': note_id, 'user_id': user_id, 'comment': comment},
+        ) as r:
+            row = await r.fetchone()
+
+        if row is None:
+            continue
+
+        comment_id = row[0]
+        if comment:
+            await audit(
+                'create_note_comment',
+                conn,
+                user_id=user_id,
+                extra={'id': comment_id, 'note': note_id},
+            )
+        await audit(
+            'update_note_status',
+            conn,
+            user_id=user_id,
+            extra={'id': note_id, 'event': 'closed'},
+        )
