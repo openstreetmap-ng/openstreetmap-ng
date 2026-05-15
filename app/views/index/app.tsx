@@ -2,6 +2,7 @@ import { routerRoute } from "@index/router"
 import { IndexRouterOutlet } from "@index/router-outlet"
 import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar/sidebar-outlet"
+import { isLoggedIn } from "@lib/config"
 import { useDisposeLayoutEffect } from "@lib/dispose-scope"
 import { MapAlertPanel, MapAlerts, pushMapAlert } from "@lib/map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@lib/map/main-map"
@@ -18,6 +19,11 @@ const IndexPage = () => {
 
   useEffect(() => {
     const searchParams = qsParseAll(location.search)
+    if (isLoggedIn && searchParams.edit_help?.at(-1) === "1") {
+      window.location.replace("/edit#walkthrough=true")
+      return
+    }
+
     const remoteEdit =
       location.pathname === "/edit" && searchParams.editor?.at(-1) === "remote"
     const remoteEditTarget = remoteEdit
