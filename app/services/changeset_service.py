@@ -14,6 +14,7 @@ from app.config import (
     CHANGESET_OPEN_TIMEOUT,
 )
 from app.db import db, db_lock
+from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
@@ -23,7 +24,7 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -108,7 +109,7 @@ class ChangesetService:
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +122,8 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                tags: dict[str, str]
+                changeset_user_id, closed_at, tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -137,6 +139,8 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _process_closes_note_tags(tags)
 
     @staticmethod
     @asynccontextmanager
@@ -158,6 +162,39 @@ class ChangesetService:
         _PROCESS_REQUEST_EVENT.set()
         _PROCESS_DONE_EVENT.clear()
         await _PROCESS_DONE_EVENT.wait()
+
+
+async def _process_closes_note_tags(tags: dict[str, str]) -> None:
+    """Close notes referenced by the changeset's closes:note tags."""
+    closes_note_str = tags.get('closes:note')
+    if not closes_note_str:
+        return
+
+    # Lazy import to avoid circular dependency
+    from app.services.note_service import NoteService  # noqa: PLC0415
+
+    # Parse semicolon-separated note IDs
+    note_ids: list[NoteId] = []
+    for part in closes_note_str.split(';'):
+        part = part.strip()
+        if part.isdigit():
+            note_ids.append(NoteId(int(part)))
+
+    if not note_ids:
+        return
+
+    # Determine the default comment: use closes:note:comment or changeset comment
+    default_comment = tags.get('closes:note:comment', '') or tags.get('comment', '')
+
+    for note_id in note_ids:
+        # Check for individual note comment override
+        comment = tags.get(f'closes:note:{note_id}:comment', '') or default_comment
+
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except APIError:
+            # Note not found or already closed: skip gracefully
+            logging.debug('Skipping closes:note %d: already closed or not found', note_id)
 
 
 @retry(None)
