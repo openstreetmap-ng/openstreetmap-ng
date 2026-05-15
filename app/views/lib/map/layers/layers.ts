@@ -26,6 +26,7 @@ export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
 export const DEFAULT_LAYER_CODE = "" as LayerCode
 
 export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
 export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
@@ -33,6 +34,7 @@ export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
+const HYBRID_LAYER_CODE = "I" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
 const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
@@ -92,6 +94,74 @@ const hotosmCredit = t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit =
   "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+const aerialEsriSource = {
+  type: "raster",
+  maxzoom: 23,
+  tiles: [
+    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  ],
+  tileSize: 256,
+  attribution: aerialEsriCredit,
+} satisfies SourceSpecification
+
+const libertyVectorStyle = libertyStyle as unknown as StyleSpecification
+const hybridAerialSourceId = "aerial"
+const hybridFeatureSourceLayers = new Set([
+  "aerodrome_label",
+  "aeroway",
+  "boundary",
+  "building",
+  "place",
+  "poi",
+  "transportation",
+  "transportation_name",
+  "water_name",
+  "waterway",
+])
+const hybridFillLayerIds = new Set(["building"])
+
+const shouldIncludeHybridLayer = (layer: LayerSpecification) => {
+  const sourceLayer =
+    "source-layer" in layer && typeof layer["source-layer"] === "string"
+      ? layer["source-layer"]
+      : undefined
+  if (!sourceLayer || !hybridFeatureSourceLayers.has(sourceLayer)) return false
+
+  return layer.type !== "fill" || hybridFillLayerIds.has(layer.id)
+}
+
+const cloneStylePart = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+const libertyOpenMapTilesSource = libertyVectorStyle.sources.openmaptiles as Extract<
+  SourceSpecification,
+  { attribution?: string }
+>
+
+const hybridStyle: StyleSpecification = {
+  ...cloneStylePart(libertyVectorStyle),
+  sources: {
+    [hybridAerialSourceId]: cloneStylePart(aerialEsriSource),
+    openmaptiles: {
+      ...cloneStylePart(libertyOpenMapTilesSource),
+      attribution: `${copyright}. ${terms}`,
+    },
+  },
+  layers: [
+    {
+      id: hybridAerialSourceId,
+      type: "raster",
+      source: hybridAerialSourceId,
+    },
+    ...libertyVectorStyle.layers.filter(shouldIncludeHybridLayer).map((layer) => {
+      const next = cloneStylePart(layer)
+      if (next.id === "building") {
+        next.paint = { ...next.paint, "fill-opacity": 0.55 }
+      } else if (next.id === "building-3d") {
+        next.paint = { ...next.paint, "fill-extrusion-opacity": 0.55 }
+      }
+      return next
+    }),
+  ],
+}
 
 export const emptyFeatureCollection: FeatureCollection = {
   type: "FeatureCollection",
@@ -133,10 +203,16 @@ layersConfig.set(STANDARD_LAYER_ID, {
 
 layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
-  // @ts-expect-error
-  vectorStyle: libertyStyle,
+  vectorStyle: libertyVectorStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: { type: "vector" },
+  vectorStyle: hybridStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_LAYER_CODE,
 })
 
 layersConfig.set(CYCLOSM_LAYER_ID, {
@@ -217,15 +293,7 @@ layersConfig.set(HOT_LAYER_ID, {
 
 // Overlay layers
 layersConfig.set(AERIAL_LAYER_ID, {
-  specification: {
-    type: "raster",
-    maxzoom: 23,
-    tiles: [
-      "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ],
-    tileSize: 256,
-    attribution: aerialEsriCredit,
-  },
+  specification: aerialEsriSource,
   layerOptions: {
     paint: {
       // @ts-expect-error loaded from storage
