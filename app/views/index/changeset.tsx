@@ -50,6 +50,8 @@ const focusPaint: FocusLayerPaint = {
   "line-width": 3,
 }
 
+const ACHAVI_URL = "https://overpass-api.de/achavi/?changeset="
+
 export const ChangesetStats = ({
   numCreate,
   numModify,
@@ -121,6 +123,18 @@ const ChangesetHeader = ({ data }: { data: DataValid }) => {
     </div>
   )
 }
+
+const ChangesetDiffLink = ({ id }: { id: bigint }) => (
+  <a
+    class="btn btn-sm btn-soft w-100 mb-3"
+    href={`${ACHAVI_URL}${id}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <i class="bi bi-signpost-split me-1-5" />
+    {t("changeset.open_changeset_diff")}
+  </a>
+)
 
 const SubscriptionForm = ({
   changesetId,
@@ -377,6 +391,7 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+            <ChangesetDiffLink id={d.id} />
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
