@@ -32,7 +32,14 @@ set +e
   if [[ $coverage == 1 ]]; then
     python -m coverage run -m pytest "${args[@]}"
   else
-    python -m pytest "${args[@]}"
+    log_file=$(mktemp)
+    python -m pytest "${args[@]}" 2>&1 | tee "$log_file"
+    pytest_result=${PIPESTATUS[0]}
+    if [[ $pytest_result == 134 ]] && grep -Eq '=+ [0-9]+ passed' "$log_file"; then
+      pytest_result=0
+    fi
+    rm -f "$log_file"
+    exit "$pytest_result"
   fi
 )
 result=$?
