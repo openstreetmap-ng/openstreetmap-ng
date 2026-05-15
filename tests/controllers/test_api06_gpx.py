@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
-from math import isclose
+from io import BytesIO
+from math import asinh, floor, isclose, pi, radians, tan
 
 import pytest
 from httpx import AsyncClient
+from PIL import Image
 from starlette import status
 
 from app.lib.xmltodict import XMLToDict
@@ -307,3 +309,39 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
         },
     )
     assert isclose(trkpt['ele'], 190.8, abs_tol=0.01)
+
+
+async def test_gps_trace_tile_renders_uploaded_trace(client: AsyncClient, gpx: dict):
+    client.headers['Authorization'] = 'User user1'
+
+    file = XMLToDict.unparse(gpx, binary=True)
+    r = await client.post(
+        '/api/0.6/gpx/create',
+        data={
+            'visibility': 'identifiable',
+            'description': test_gps_trace_tile_renders_uploaded_trace.__qualname__,
+        },
+        files={
+            'file': (
+                test_gps_trace_tile_renders_uploaded_trace.__qualname__ + '.gpx',
+                file,
+            ),
+        },
+    )
+    assert r.is_success, r.text
+
+    z, x, y = _tile_for_lonlat(20.8726996, 51.8583922, 14)
+    r = await client.get(f'/gps/lines/{z}/{x}/{y}.png')
+    assert r.is_success, r.text
+    assert r.headers['Content-Type'] == 'image/png'
+
+    image = Image.open(BytesIO(r.content)).convert('RGBA')
+    assert image.size == (256, 256)
+    assert image.getchannel('A').getbbox() is not None
+
+
+def _tile_for_lonlat(lon: float, lat: float, z: int):
+    tiles = 1 << z
+    x = floor((lon + 180) / 360 * tiles)
+    y = floor((1 - asinh(tan(radians(lat))) / pi) / 2 * tiles)
+    return z, x, y
