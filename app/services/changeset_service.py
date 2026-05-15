@@ -6,8 +6,7 @@ from datetime import datetime
 from random import uniform
 from time import monotonic
 
-from typing import Any
-
+from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import (
@@ -200,7 +199,7 @@ async def _process_task():
 
 
 async def _close_notes_from_changeset_tags(
-    conn: Any, user_id: UserId | None, tags: dict[str, str]
+    conn: AsyncConnection, user_id: UserId | None, tags: dict[str, str]
 ):
     note_ids = _parse_note_ids(tags.get('closes:note'))
     if not note_ids:
