@@ -19,6 +19,7 @@ from app.lib.auth.context import auth_context
 from app.lib.io.xml_codec import XMLToDict
 from app.models.types import ChangesetId, DisplayName
 from app.queries.user_query import UserQuery
+from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_service import ChangesetService
 from tests.utils.assert_model import assert_model
 
@@ -234,6 +235,29 @@ async def test_changeset_close_uses_global_note_close_comment(client: AsyncClien
             'text': 'global close message',
         },
     )
+
+
+async def test_changeset_note_close_subscribes_closer(client: AsyncClient):
+    client.headers['Authorization'] = 'User user2'
+    note_id = await _create_note(client, 'owned by another user')
+
+    client.headers['Authorization'] = 'User user1'
+    changeset_id = await _create_changeset(
+        client,
+        [
+            ('comment', 'subscribe closer'),
+            ('closes:note', str(note_id)),
+        ],
+    )
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    user = await UserQuery.find_by_display_name(DisplayName('user1'))
+    assert user is not None
+
+    with auth_context(user, frozenset(('web_user',))):
+        assert await UserSubscriptionQuery.is_subscribed('note', note_id)
 
 
 async def test_changeset_close_requires_note_scope_for_tagged_notes(
