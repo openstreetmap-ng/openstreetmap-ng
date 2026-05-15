@@ -12,7 +12,38 @@ from app.db import db
 from app.lib.date_utils import utcnow
 from app.models.types import ChangesetId
 from app.queries.changeset_query import ChangesetQuery
-from app.services.changeset_service import ChangesetService
+from app.services.changeset_service import ChangesetService, _iter_closes_note_tags
+
+
+def test_iter_closes_note_tags():
+    result = list(
+        _iter_closes_note_tags(
+            {
+                'comment': 'changeset comment',
+                'closes:note': '123; 456 ;invalid;123',
+                'closes:note:456:comment': 'specific comment',
+            }
+        )
+    )
+
+    assert result == [
+        (123, 'changeset comment'),
+        (456, 'specific comment'),
+    ]
+
+
+def test_iter_closes_note_tags_global_comment_override():
+    result = list(
+        _iter_closes_note_tags(
+            {
+                'comment': 'changeset comment',
+                'closes:note': '123',
+                'closes:note:comment': '',
+            }
+        )
+    )
+
+    assert result == [(123, '')]
 
 
 async def test_changeset_inactive_close():

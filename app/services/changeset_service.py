@@ -7,6 +7,7 @@ from random import uniform
 from time import monotonic
 
 from sentry_sdk.api import start_transaction
+from starlette import status
 
 from app.config import (
     CHANGESET_EMPTY_DELETE_TIMEOUT,
@@ -14,6 +15,7 @@ from app.config import (
     CHANGESET_OPEN_TIMEOUT,
 )
 from app.db import db, db_lock
+from app.exceptions.api_error import APIError
 from app.lib.auth_context import auth_user
 from app.lib.exceptions_context import raise_for
 from app.lib.retry import retry
@@ -23,8 +25,9 @@ from app.lib.sentry import (
 )
 from app.lib.testmethod import testmethod
 from app.models.db.changeset import ChangesetInit
-from app.models.types import ChangesetId, UserId
+from app.models.types import ChangesetId, NoteId, UserId
 from app.services.audit_service import audit
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -108,7 +111,7 @@ class ChangesetService:
         async with db(True) as conn:
             async with await conn.execute(
                 """
-                SELECT user_id, closed_at
+                SELECT user_id, closed_at, tags
                 FROM changeset
                 WHERE id = %s
                 FOR UPDATE
@@ -121,7 +124,8 @@ class ChangesetService:
 
                 changeset_user_id: UserId
                 closed_at: datetime | None
-                changeset_user_id, closed_at = row
+                tags: dict[str, str]
+                changeset_user_id, closed_at, tags = row
 
                 if changeset_user_id != user_id:
                     raise_for.changeset_access_denied()
@@ -137,6 +141,8 @@ class ChangesetService:
                 (changeset_id,),
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_tagged_notes(tags)
 
     @staticmethod
     @asynccontextmanager
@@ -254,3 +260,42 @@ async def _delete_empty():
         )
 
         logging.debug('Deleted %d empty changesets', len(changeset_ids))
+
+
+async def _close_tagged_notes(tags: dict[str, str]):
+    """Close notes referenced by the changeset's closes:note tags."""
+    for note_id, comment in _iter_closes_note_tags(tags):
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except APIError as e:
+            if e.status_code in {status.HTTP_404_NOT_FOUND, status.HTTP_409_CONFLICT}:
+                logging.debug(
+                    'Skipping automatic close for note %d: %s', note_id, e.detail
+                )
+                continue
+            raise
+
+
+def _iter_closes_note_tags(tags: dict[str, str]):
+    note_ids = tags.get('closes:note')
+    if not note_ids:
+        return
+
+    if 'closes:note:comment' in tags:
+        default_comment = tags['closes:note:comment']
+    else:
+        default_comment = tags.get('comment', '')
+
+    seen: set[NoteId] = set()
+    for raw_note_id in note_ids.split(';'):
+        raw_note_id = raw_note_id.strip()
+        if not raw_note_id.isdigit():
+            continue
+
+        note_id = NoteId(int(raw_note_id))
+        if note_id in seen:
+            continue
+        seen.add(note_id)
+
+        comment = tags.get(f'closes:note:{note_id}:comment', default_comment)
+        yield note_id, comment
