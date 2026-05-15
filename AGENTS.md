@@ -456,7 +456,9 @@ Client bootstrap:
 Important constraint:
 
 - translation key extraction is static-regex based; use literal keys in `t(...)`/`i18next.t(...)`/`tRich(...)`
-- if dynamic families are unavoidable, register prefixes in `_INCLUDE_PREFIXES` (`scripts/locale_make_i18next.py`)
+- dynamic families using template literals (`` t(`prefix.${...}.suffix`) ``) are auto-detected: the static portion before the first `${`, when it ends in `.`, is treated as a prefix include
+- prefer making dynamic families visible at the call site; if a key is computed elsewhere and only used via a variable (`t(option.someKey)`), refactor to a small local helper that calls `t()` with the template literal directly (see `app/views/user/profile/_edit-modals.tsx`)
+- as a last resort, list a prefix in `_EXTRA_INCLUDE_PREFIXES` (`scripts/locale_make_i18next.py`); the build validates every prefix (auto-detected and explicit) against `en.json` and fails loudly on typos or stale entries
 - internal/admin pages can use English copy, but prefer reusing existing keys for common low-effort labels/alt text (for example page navigation and image alt strings) before adding new literals
 
 ## 11. Build, Assets, and Delivery

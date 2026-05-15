@@ -28,7 +28,9 @@ def is_browser_supported(user_agent: str):
     if match is None:
         return True
 
-    name, major_version = match[1], int(match[2])
+    name, major_str = match[1], match[2]
+    assert name is not None and major_str is not None, 'required regex groups'
+    major_version = int(major_str)
 
     if name == 'Chrome':
         return major_version >= _CHROME_MAJOR_VERSION

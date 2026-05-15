@@ -21,7 +21,9 @@ def user_name_blacklist_routes(app: Starlette):
 
         match = _USER_PATH_RE.match(route.path)
         if match is not None:
-            result.append(_normalize(match[1]))
+            name = match[1]
+            assert name is not None, 'required regex group'
+            result.append(_normalize(name))
 
     _BLACKLIST.update(result)
     logging.info('Blacklisted %d user names from routes: %s', len(result), result)

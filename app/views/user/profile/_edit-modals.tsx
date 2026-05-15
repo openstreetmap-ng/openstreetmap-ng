@@ -19,27 +19,23 @@ type SocialRowState = SocialValue & {
   id: number
 }
 
-type SocialServiceOption = ProfileSocialOptionConfig & {
-  titleKey: string
-  labelKey: string
-}
-
 const PROFILE_DESCRIPTION_MODAL_ID = "ProfileDescriptionModal"
 const PROFILE_SOCIALS_MODAL_ID = "ProfileSocialsModal"
 
-const SOCIAL_OPTIONS = getProfileSocialOptions() as SocialServiceOption[]
-for (const option of SOCIAL_OPTIONS) {
-  option.titleKey = `service.${option.key.replaceAll("-", "_")}.title`
-  option.labelKey = `socials.label.${option.label}`
-}
+const SOCIAL_OPTIONS = getProfileSocialOptions()
 const SOCIAL_OPTIONS_BY_KEY = new Map(
   SOCIAL_OPTIONS.map((option) => [option.key, option]),
 )
 
+const socialServiceTitle = (option: ProfileSocialOptionConfig) =>
+  t(`service.${option.key.replaceAll("-", "_")}.title`)
+const socialLabelText = (option: ProfileSocialOptionConfig) =>
+  t(`socials.label.${option.label}`)
+
 const knownSocials = (socials: readonly UserSocialValid[]) =>
   socials.filter((social) => SOCIAL_OPTIONS_BY_KEY.has(social.service))
 
-const getSocialLink = (social: SocialValue, option: SocialServiceOption) => {
+const getSocialLink = (social: SocialValue, option: ProfileSocialOptionConfig) => {
   const { template } = option
   if (template === undefined) return social.value
   return template ? template.replace("{}", social.value) : null
@@ -58,7 +54,7 @@ const SocialLinks = ({
     <div class={`ms-1 d-flex flex-wrap gap-2 ${className}`}>
       {socials.map((social) => {
         const option = SOCIAL_OPTIONS_BY_KEY.get(social.service)!
-        const serviceTitle = t(option.titleKey)
+        const serviceTitle = socialServiceTitle(option)
         const href = getSocialLink(social, option)
         const icon = option.icon ?? social.service
 
@@ -292,7 +288,7 @@ const SocialRow = ({
           onChange={(e) => onServiceChange(row.id, e.currentTarget.value)}
         >
           {SOCIAL_OPTIONS.map((option) => (
-            <option value={option.key}>{t(option.titleKey)}</option>
+            <option value={option.key}>{socialServiceTitle(option)}</option>
           ))}
         </select>
 
@@ -307,7 +303,7 @@ const SocialRow = ({
       </div>
 
       <div class="custom-input-group">
-        <label for={inputId}>{t(selectedOption.labelKey)}</label>
+        <label for={inputId}>{socialLabelText(selectedOption)}</label>
         <input
           id={inputId}
           type={selectedOption.template !== undefined ? "text" : "url"}
