@@ -2,7 +2,7 @@ import "iD"
 import "iD/dist/iD.css"
 import "./id.scss"
 
-import { parentLoadSystemApp } from "@runtime/system-app"
+import { parentLoadSystemApp } from "@runtime/iframe-system-app"
 import { assertExists } from "@std/assert"
 import { throttle } from "@std/async/unstable-throttle"
 import { API_URL, ID_PATH, primaryLanguage } from "@utils/config"

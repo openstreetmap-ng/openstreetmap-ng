@@ -160,6 +160,15 @@ export const formatTime = (seconds: number) => {
   return `${hours}:${minutes.toString().padStart(2, "0")}`
 }
 
+const LATIN1_DECODER = new TextDecoder("latin1")
+
+export const encodeAscii = (bytes: Uint8Array) => LATIN1_DECODER.decode(bytes)
+
+export const headersDate = (headers: Headers | null) => {
+  const ms = Date.parse(headers?.get("date") ?? "")
+  return BigInt(Math.trunc((Number.isNaN(ms) ? Date.now() : ms) / SECOND))
+}
+
 const padDegreesComponent = (value: number) => value.toString().padStart(2, "0")
 
 const formatDegrees = (decimalDegree: number) => {

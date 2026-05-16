@@ -11,11 +11,11 @@ import {
   Type,
   TypeSchema,
 } from "@proto/audit_pb"
-import { queryParam } from "@utils/codecs"
+import { queryParam } from "@utils/path-codecs"
 import { formatPackedIp, unixToLocalDatetime } from "@utils/format"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineProtoQueryContract } from "@utils/query-contract"
-import { useUrlQueryState } from "@utils/url-signals"
+import { useUrlQueryState } from "@utils/query-signals"
 import { t } from "i18next"
 import type { SubmitEventHandler } from "preact"
 import { useId } from "preact/hooks"

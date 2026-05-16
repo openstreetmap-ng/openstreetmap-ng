@@ -13,7 +13,7 @@ from app.config import (
 from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
-from app.lib.geo.utils import parse_bbox
+from app.lib.geo.parse import parse_bbox
 from app.lib.render.rich_text import process_rich_text_plain
 from app.lib.standard.pagination import sp_num_pages, sp_paginate_query
 from app.lib.text.feature_icon import features_icons

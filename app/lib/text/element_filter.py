@@ -10,7 +10,7 @@ from app.models.element import TypedElementId
 _T = TypeVar('_T', bound=ElementInit)
 
 
-class ElementsFilter:
+class ElementFilter:
     @staticmethod
     def filter_nodes_interesting(
         nodes: Iterable[_T],

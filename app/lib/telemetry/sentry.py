@@ -8,7 +8,7 @@ from sentry_sdk.integrations.gnu_backtrace import GnuBacktraceIntegration
 from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
 from app.config import APP_URL, VERSION
-from app.lib.settings_integration import pydantic_settings_integration
+from app.lib.pydantic_settings import register
 
 SENTRY_DSN = ''
 
@@ -21,9 +21,7 @@ SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG = 'osm-ng-element-spatial'
 SENTRY_USERS_DELETED_TXT_MONITOR_SLUG = 'osm-ng-users-deleted-txt'
 SENTRY_AUDIT_MANAGEMENT_MONITOR_SLUG = 'osm-ng-audit-management'
 
-pydantic_settings_integration(
-    __name__, globals(), name_filter=lambda name: name.startswith('SENTRY_')
-)
+register(__name__, globals(), name_filter=lambda name: name.startswith('SENTRY_'))
 
 if SENTRY_DSN and 'pytest' not in modules:
     sentry_sdk.init(

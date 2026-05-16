@@ -10,7 +10,7 @@ from app.config import (
     SEARCH_LOCAL_MAX_ITERATIONS,
     SEARCH_LOCAL_RATIO,
 )
-from app.lib.geo.utils import parse_bbox
+from app.lib.geo.parse import parse_bbox
 from app.lib.text.feature_icon import FeatureIcon
 from app.models.db.element import Element
 from app.models.element import TypedElementId

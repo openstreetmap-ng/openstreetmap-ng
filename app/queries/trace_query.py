@@ -21,8 +21,8 @@ from shapely import (
 from app.db import db
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_scopes, auth_user
+from app.lib.geo.h3 import polygon_to_h3
 from app.lib.geo.mercator import mercator
-from app.lib.geo.utils import polygon_to_h3
 from app.lib.io.trace_file import TraceFile
 from app.lib.storage import TRACE_STORAGE
 from app.lib.time.date_utils import utcnow

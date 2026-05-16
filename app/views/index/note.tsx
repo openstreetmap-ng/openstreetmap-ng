@@ -33,7 +33,7 @@ import {
 } from "@proto/user_subscription_pb"
 import { setPageTitle } from "@runtime/title"
 import { assertNever } from "@std/assert/unstable-never"
-import { pathParam } from "@utils/codecs"
+import { pathParam } from "@utils/path-codecs"
 import {
   config,
   isLoggedIn,

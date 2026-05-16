@@ -7,7 +7,7 @@ import { useDisposeEffect } from "@utils/dispose-scope"
 import { stripSpecial } from "@utils/format"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
-import { qsEncode, qsParse } from "@utils/qs"
+import { qsEncode, qsParse } from "@utils/query-string"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
 

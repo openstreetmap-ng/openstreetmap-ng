@@ -10,7 +10,7 @@ from app.format.gpx import FormatGPX
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.io.trace_file import TraceFile
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.lib.storage import TRACE_STORAGE
 from app.lib.time.date_utils import utcnow
 from app.models.db.trace import (

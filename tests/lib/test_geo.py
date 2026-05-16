@@ -3,15 +3,14 @@ import math
 import pytest
 from shapely import MultiPolygon, Point, Polygon, box
 
-from app.lib.geo.utils import (
+from app.lib.geo.distance import (
     degrees_to_meters,
     haversine_distance,
     meters_to_degrees,
     meters_to_radians,
-    parse_bbox,
     radians_to_meters,
-    try_parse_point,
 )
+from app.lib.geo.parse import parse_bbox, try_parse_point
 
 _EARTH_RADIUS_METERS = 6371000
 

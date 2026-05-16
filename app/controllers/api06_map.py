@@ -5,8 +5,8 @@ from fastapi import APIRouter, Query
 from app.config import MAP_QUERY_AREA_MAX_SIZE, MAP_QUERY_LEGACY_NODES_LIMIT
 from app.exceptions.context import raise_for
 from app.format import Format06
-from app.lib.geo.utils import parse_bbox
-from app.lib.io.xmltodict import get_xattr
+from app.lib.geo.parse import parse_bbox
+from app.lib.io.xml_codec import get_xattr
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 

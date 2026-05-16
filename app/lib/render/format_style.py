@@ -19,7 +19,7 @@ _CTX = ContextVar[FormatStyle]('FormatStyle')
 
 
 @contextmanager
-def format_style_context():
+def style_context():
     """
     Context manager for setting the format style in ContextVar.
     Format style is auto-detected from the request.
@@ -45,26 +45,26 @@ def format_style_context():
         yield
 
 
-def format_style():
+def current():
     """Get the configured format style."""
     return _CTX.get()
 
 
-def format_is_json():
+def is_json():
     """Check if the format style is JSON."""
     return _CTX.get() == 'json'
 
 
-def format_is_xml():
+def is_xml():
     """Check if the format style is XML."""
     return _CTX.get() == 'xml'
 
 
-def format_is_rss():
+def is_rss():
     """Check if the format style is RSS."""
     return _CTX.get() == 'rss'
 
 
-def format_is_gpx():
+def is_gpx():
     """Check if the format style is GPX."""
     return _CTX.get() == 'gpx'

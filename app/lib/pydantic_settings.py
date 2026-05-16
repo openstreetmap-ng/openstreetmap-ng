@@ -8,7 +8,7 @@ from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-def pydantic_settings_integration(
+def register(
     caller_name: str,
     caller_globals: dict[str, Any],
     /,

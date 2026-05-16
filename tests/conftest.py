@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 from app.exceptions.api06 import Exceptions06
 from app.exceptions.context import exceptions_context
 from app.lib.auth.context import auth_context
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.main import app
 from app.models.types import ChangesetId, DisplayName
 from app.queries.user_query import UserQuery

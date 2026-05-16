@@ -61,7 +61,7 @@ import "./welcome"
 
 import "./index/app"
 
-import "@components/bootstrap"
+import "@components/bootstrap-wrappers"
 import "@components/copy-group"
 import "@components/report"
 import "@utils/password-strength"

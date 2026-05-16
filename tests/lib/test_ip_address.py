@@ -2,7 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 
 import pytest
 
-from app.lib.http.ip import anonymize_ip, mask_ip
+from app.lib.http.ip_address import anonymize_ip, mask_ip
 
 
 def test_anonymize_ip_ipv4_returns_different_ipv4():

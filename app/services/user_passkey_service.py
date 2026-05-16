@@ -8,7 +8,7 @@ from app.config import PASSKEY_LIMIT
 from app.db import db
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
-from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.password import PasswordLike
 from app.lib.auth.webauthn import (
     AAGUID_DB,
     parse_auth_data,

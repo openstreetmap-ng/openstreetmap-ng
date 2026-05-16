@@ -36,7 +36,7 @@ from app.config import (
 from app.db import psycopg_pool_open
 from app.lib.audit import AuditService
 from app.lib.http.client import HTTP, HTTP_INTERNAL
-from app.lib.http.starlette_convertor import ElementTypeConvertor
+from app.lib.http.element_type_convertor import ElementTypeConvertor
 from app.lib.telemetry import cython_detect, sentry  # noqa: F401  DO NOT REMOVE
 from app.lib.text.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware

@@ -23,7 +23,7 @@ from app.db import duckdb_connect
 from app.lib.geo.compressible_geometry import point_to_compressible_wkb
 from app.lib.http.client import HTTP, http_context
 from app.lib.http.retry import retry
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.lib.telemetry.sentry import (
     SENTRY_REPLICATION_MONITOR,
     SENTRY_REPLICATION_MONITOR_SLUG,

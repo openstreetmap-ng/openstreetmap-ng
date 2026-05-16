@@ -7,7 +7,7 @@ import {
   TRACE_TAG_MAX_LENGTH,
   TRACE_TAGS_LIMIT,
 } from "@utils/config"
-import { throwAbortError } from "@utils/helpers"
+import { throwAbortError } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { MapPreview } from "./_map-preview"

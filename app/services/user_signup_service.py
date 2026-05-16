@@ -1,7 +1,7 @@
 from app.db import db
 from app.lib.audit import audit
 from app.lib.auth.context import auth_context
-from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.password import PasswordLike
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.text.translation import primary_translation_locale, t
 from app.models.db.user import UserInit

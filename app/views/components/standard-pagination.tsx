@@ -13,13 +13,14 @@ import type {
   StandardPaginationRequest,
   StandardPaginationState,
 } from "@proto/shared_pb"
-import { queryParam } from "@utils/codecs"
+import { queryParam } from "@utils/path-codecs"
 import {
   STANDARD_PAGINATION_DISTANCE,
   STANDARD_PAGINATION_MAX_FULL_PAGES,
 } from "@utils/config"
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
-import { encodeAscii, range, throwAbortError } from "@utils/helpers"
+import { throwAbortError } from "@utils/dom-helpers"
+import { encodeAscii } from "@utils/format"
 import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@utils/rpc"
 import {
   currentUrlSignal,
@@ -552,7 +553,7 @@ const computePagesToRender = (
   const resolvedMaxPage = numPages ?? maxPage
 
   if (resolvedMaxPage <= STANDARD_PAGINATION_MAX_FULL_PAGES) {
-    return range(1, resolvedMaxPage + 1)
+    return Array.from({ length: resolvedMaxPage }, (_, i) => i + 1)
   }
 
   const pages = [1]

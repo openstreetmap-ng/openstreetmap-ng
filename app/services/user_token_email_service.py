@@ -4,9 +4,9 @@ from app.config import APP_DOMAIN
 from app.db import db
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_user
 from app.lib.auth.crypto import hash_bytes
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.text.translation import t
 from app.models.db.user_token import UserTokenEmailInit
 from app.models.proto.server_pb2 import UserTokenStruct
@@ -30,7 +30,7 @@ class UserTokenEmailService:
             subject = t('user_mailer.signup_confirm.subject')
             template_name = 'email/account-confirm'
             template_data = {
-                'token': UserTokenStructUtils.to_str(token),
+                'token': user_token.encode(token),
                 'app_domain': APP_DOMAIN,
             }
         else:
@@ -39,7 +39,7 @@ class UserTokenEmailService:
             template_name = 'email/email-change-confirm'
             template_data = {
                 'new_email': new_email,
-                'token': UserTokenStructUtils.to_str(token),
+                'token': user_token.encode(token),
                 'app_domain': APP_DOMAIN,
             }
 

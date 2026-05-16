@@ -14,7 +14,7 @@ from pydantic import PositiveInt
 from starlette import status
 
 from app.config import APP_URL
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.lib.text.locale import DEFAULT_LOCALE
 from app.lib.time.date_utils import utcnow
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID

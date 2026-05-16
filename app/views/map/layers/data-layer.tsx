@@ -7,7 +7,7 @@ import { Service } from "@proto/element_pb"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@utils/config"
 import { createKeyedAbort } from "@utils/keyed-abort"
 import { rpcClient } from "@utils/rpc"
-import type { OSMNode, OSMWay } from "@utils/types"
+import type { OSMNode, OSMWay } from "@utils/osm-objects"
 import { t } from "i18next"
 import type {
   GeoJSONSource,

@@ -13,7 +13,7 @@ import { PageSchema as LoginPageSchema } from "@proto/login_pb"
 import { memoize } from "@std/cache/memoize"
 import { ENV } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
-import { NON_DIGIT_RE, throwAbortError } from "@utils/helpers"
+import { throwAbortError } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
 import { getPasskeyAssertion, startConditionalMediation } from "@utils/webauthn"
 import { Modal } from "bootstrap"
@@ -25,6 +25,8 @@ import { useEffect, useId, useRef } from "preact/hooks"
 import { getAuthProviderReferer } from "./_auth-provider-referer"
 import { AuthSwitcher } from "./_auth-switcher"
 import { TestSiteReminder } from "./_test-site-reminder"
+
+const NON_DIGIT_RE = /\D/g
 
 enum LoginState {
   credentials,

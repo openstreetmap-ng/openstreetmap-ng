@@ -14,7 +14,8 @@ from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
 from app.lib.auth.context import require_web_user
-from app.lib.geo.utils import meters_to_degrees, parse_bbox
+from app.lib.geo.distance import meters_to_degrees
+from app.lib.geo.parse import parse_bbox
 from app.lib.render.rich_text import process_rich_text_plain
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.standard.pagination import (

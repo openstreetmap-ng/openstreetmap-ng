@@ -4,7 +4,7 @@ import { config } from "@utils/config"
 import { stripSpecial } from "@utils/format"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
-import { qsParse } from "@utils/qs"
+import { qsParse } from "@utils/query-string"
 import { t } from "i18next"
 
 const buildNoteHref = () => {

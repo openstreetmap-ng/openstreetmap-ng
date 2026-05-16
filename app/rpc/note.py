@@ -16,7 +16,7 @@ from app.config import (
 from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.lib.auth.context import require_web_user
-from app.lib.geo.utils import parse_bbox
+from app.lib.geo.parse import parse_bbox
 from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_table,

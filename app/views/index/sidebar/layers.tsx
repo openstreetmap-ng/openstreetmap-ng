@@ -1,4 +1,4 @@
-import { BTooltip } from "@components/bootstrap"
+import { BTooltip } from "@components/bootstrap-wrappers"
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { boundsSize } from "@map/bounds"

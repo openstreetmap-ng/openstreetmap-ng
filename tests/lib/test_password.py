@@ -1,4 +1,4 @@
-from app.lib.auth.password_hash import PasswordHash
+from app.lib.auth.password import PasswordHash
 from app.models.proto.auth_pb2 import TransmitUserPassword
 from app.models.proto.server_pb2 import UserPassword
 from app.models.types import Password

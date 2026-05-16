@@ -1,7 +1,7 @@
 from fastapi import Depends
 
 from app.exceptions.context import raise_for
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.middlewares.request_context_middleware import get_request
 
 

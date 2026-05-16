@@ -1,4 +1,4 @@
-import { BTooltip } from "@components/bootstrap"
+import { BTooltip } from "@components/bootstrap-wrappers"
 import { Time } from "@components/datetime-inputs"
 import { FollowToggleForm } from "@components/follow-toggle-form"
 import { ReportButton } from "@components/report"

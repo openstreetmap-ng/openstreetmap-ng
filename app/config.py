@@ -21,7 +21,7 @@ from pydantic import (
     SecretStr,
 )
 
-from app.lib.settings_integration import pydantic_settings_integration
+from app.lib.pydantic_settings import register
 from app.lib.text.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.models.proto import (
     audit_types,
@@ -457,7 +457,7 @@ STATIC_CACHE_MAX_AGE = timedelta(days=30)
 STATIC_CACHE_STALE = timedelta(days=30)
 STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES = 1024
 
-pydantic_settings_integration(__name__, globals())
+register(__name__, globals())
 
 # -------------------- Constant or derived configuration --------------------
 

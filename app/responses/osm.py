@@ -9,8 +9,8 @@ from fastapi.dependencies.utils import get_dependant
 from fastapi.routing import APIRoute, request_response
 
 from app.config import ATTRIBUTION_URL, COPYRIGHT, GENERATOR, LICENSE_URL
-from app.lib.io.xmltodict import XMLToDict
-from app.lib.render.format_style_context import format_style
+from app.lib.io.xml_codec import XMLToDict
+from app.lib.render import format_style
 from app.middlewares.request_context_middleware import get_request
 
 _JSON_ATTRS = {
@@ -51,7 +51,7 @@ class OSMResponse(Response):
 
     @classmethod
     def serialize(cls, content: Any):
-        style = format_style()
+        style = format_style.current()
 
         if style == 'json':
             return _serialize_json(content)

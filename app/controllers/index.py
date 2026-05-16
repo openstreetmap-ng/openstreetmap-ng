@@ -5,8 +5,8 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse, Response
 
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_user, web_user
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.http.referrer import secure_referrer
 from app.lib.render.proto import render_proto_page, render_response
 from app.lib.text.locale import is_installed_locale
@@ -116,7 +116,7 @@ async def _post_unsubscribe(
     /,
     token: SecretStr,
 ):
-    token_struct = await UserTokenStructUtils.from_str_stateless(token)
+    token_struct = await user_token.parse_stateless(token)
     await UserTokenUnsubscribeService.unsubscribe(
         unsubscribe_target, unsubscribe_id, token_struct
     )

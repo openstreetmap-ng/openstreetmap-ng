@@ -1,7 +1,7 @@
 import type { DescMessage, MessageShape } from "@bufbuild/protobuf"
 import { assert } from "@std/assert"
-import type { QuerySchema } from "@utils/codecs"
-import { qsEncode, qsParseAll } from "@utils/qs"
+import type { QuerySchema } from "@utils/path-codecs"
+import { qsEncode, qsParseAll } from "@utils/query-string"
 import { z } from "@zod/zod/mini"
 
 type QueryContractSpec = Readonly<Record<string, QuerySchema<any>>>

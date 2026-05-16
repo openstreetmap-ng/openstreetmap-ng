@@ -20,7 +20,7 @@ import {
 } from "@proto/element_pb"
 import { type ElementIconValid, ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
-import { pathParam } from "@utils/codecs"
+import { pathParam } from "@utils/path-codecs"
 import { API_URL } from "@utils/config"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"

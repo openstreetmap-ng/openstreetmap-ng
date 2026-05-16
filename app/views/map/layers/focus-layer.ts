@@ -1,6 +1,6 @@
 import { assertExists } from "@std/assert"
 import { filterKeys } from "@std/collections/filter-keys"
-import type { OSMObject } from "@utils/types"
+import type { OSMObject } from "@utils/osm-objects"
 import type { Geometry } from "geojson"
 import {
   type GeoJSONSource,

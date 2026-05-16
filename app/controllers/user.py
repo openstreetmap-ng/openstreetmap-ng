@@ -11,8 +11,8 @@ from starlette.responses import RedirectResponse
 
 from app.config import USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
 from app.exceptions.context import raise_for
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_user, web_user
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.io.image import Image
 from app.lib.render.proto import render_proto_page, render_response
 from app.lib.text.translation import t
@@ -87,13 +87,13 @@ async def reset_password(
 
     if token is not None:
         # TODO: check errors
-        token_struct = UserTokenStructUtils.from_str(token)
-        user_token = await UserTokenQuery.find_by_token_struct(
+        token_struct = user_token.parse(token)
+        token_record = await UserTokenQuery.find_by_token_struct(
             'reset_password', token_struct, check_email_hash=False
         )
-        if user_token is not None:
-            await UserQuery.resolve_users([user_token])
-            profile = user_token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        if token_record is not None:
+            await UserQuery.resolve_users([token_record])
+            profile = token_record['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
             page.confirm.token = token.get_secret_value()
             page.confirm.profile.CopyFrom(user_proto(profile))
 

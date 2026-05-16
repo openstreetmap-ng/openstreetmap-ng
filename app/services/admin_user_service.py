@@ -7,7 +7,7 @@ from psycopg.sql import SQL, Composable
 from app.config import ENV
 from app.db import db
 from app.lib.audit import audit
-from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.password import PasswordLike
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.text.translation import t
 from app.models.db.user import user_is_test

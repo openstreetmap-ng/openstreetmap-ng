@@ -1,6 +1,6 @@
 import { clampLatitude, MAX_MERCATOR_LATITUDE, wrapLongitude } from "@utils/coords"
 import { createDisposeScope, type DisposeScope } from "@utils/dispose-scope"
-import type { Bounds } from "@utils/types"
+import type { Bounds } from "@utils/osm-objects"
 import type { Feature, Polygon } from "geojson"
 import {
   type GeoJSONSource,

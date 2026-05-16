@@ -1,4 +1,4 @@
-import { BTooltip } from "@components/bootstrap"
+import { BTooltip } from "@components/bootstrap-wrappers"
 import { PageOrder, StandardPagination } from "@components/standard-pagination"
 import { Tags } from "@components/tags"
 import { SidebarHeader } from "@index/_action-sidebar"

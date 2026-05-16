@@ -15,7 +15,7 @@ import {
 import {
   createPasswordTransformState,
   type TransmitUserPasswordInit,
-} from "@utils/password-hash"
+} from "@utils/password-transmission"
 import {
   connectErrorToMessage,
   connectErrorToStandardFeedback,

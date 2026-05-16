@@ -28,9 +28,9 @@ from app.config import (
     SMTP_USER,
 )
 from app.db import db
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_context
 from app.lib.auth.crypto import hash_bytes
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.render.jinja import render_jinja
 from app.lib.text.translation import translation_context
 from app.lib.time.date_utils import utcnow
@@ -305,7 +305,7 @@ def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
         return
 
     # Append stateless token param
-    token = UserTokenStructUtils.to_str(
+    token = user_token.encode(
         StatelessUserTokenStruct(
             issued_at=int(time()),
             user_id=to_user['id'],

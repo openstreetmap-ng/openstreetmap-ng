@@ -1,4 +1,4 @@
-import { BPopover } from "@components/bootstrap"
+import { BPopover } from "@components/bootstrap-wrappers"
 import { ENV } from "@utils/config"
 import type { VNode } from "preact"
 

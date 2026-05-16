@@ -1,18 +1,5 @@
 import { SECOND } from "@std/datetime/constants"
 
-export const isHrefCurrentPage = (
-  href: string,
-  { includeSubpaths = false }: { includeSubpaths?: boolean } = {},
-) => {
-  const hrefPathname = new URL(href, window.location.href).pathname
-  const locationPathname = window.location.pathname
-  return (
-    hrefPathname === locationPathname ||
-    `${hrefPathname}/` === locationPathname ||
-    (includeSubpaths && locationPathname.startsWith(`${hrefPathname}/`))
-  )
-}
-
 export const isUnmodifiedLeftClick = (event: MouseEvent) =>
   !event.defaultPrevented &&
   event.button === 0 &&
@@ -20,23 +7,6 @@ export const isUnmodifiedLeftClick = (event: MouseEvent) =>
   !event.ctrlKey &&
   !event.shiftKey &&
   !event.altKey
-
-/** Decodes a URL-encoded string, converting both %xx sequences and + characters to their original form */
-export const unquotePlus = (str: string) => decodeURIComponent(str.replaceAll("+", " "))
-
-/** Create a Python-like range [start, stop) */
-export const range = (start: number, stop?: number, step = 1) => {
-  if (stop === undefined) {
-    stop = start
-    start = 0
-  }
-  const result: number[] = []
-  for (let i = start; i < stop; i += step) result.push(i)
-  return result
-}
-
-/** Matches any non-digit character */
-export const NON_DIGIT_RE = /\D/g
 
 const EVENT_ORIGIN_REGEX = /^https?:\/\/(?:www\.)?/
 const CURRENT_HOST = `.${window.location.host.replace(/^www\./, "")}`
@@ -66,15 +36,6 @@ export const wrapIdleCallbackStatic = <T extends (...args: never[]) => void>(
     idleCallbackId = requestIdleCallback(() => fn(...args), { timeout })
   }) as T
 }
-
-export const headersDate = (headers: Headers | null) => {
-  const ms = Date.parse(headers?.get("date") ?? "")
-  return BigInt(Math.trunc((Number.isNaN(ms) ? Date.now() : ms) / SECOND))
-}
-
-const LATIN1_DECODER = new TextDecoder("latin1")
-
-export const encodeAscii = (bytes: Uint8Array) => LATIN1_DECODER.decode(bytes)
 
 export const throwAbortError = (message = "Operation cancelled by user"): never => {
   throw new DOMException(message, "AbortError")

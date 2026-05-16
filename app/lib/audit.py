@@ -22,7 +22,7 @@ from app.config import (
 )
 from app.db import db
 from app.lib.auth.context import auth_oauth2, auth_user
-from app.lib.http.ip import anonymize_ip
+from app.lib.http.ip_address import anonymize_ip
 from app.middlewares.request_context_middleware import (
     get_request,
     get_request_audit_tasks,

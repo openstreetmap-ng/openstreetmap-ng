@@ -1,5 +1,5 @@
 import { isAdministrator } from "@utils/config"
-import { isHrefCurrentPage } from "@utils/helpers"
+import { isHrefCurrentPage } from "@utils/url-helpers"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 

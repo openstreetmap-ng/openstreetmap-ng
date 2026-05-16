@@ -1,5 +1,5 @@
 import { clampLatitude } from "@utils/coords"
-import type { Bounds } from "@utils/types"
+import type { Bounds } from "@utils/osm-objects"
 import {
   LngLatBounds,
   type FitBoundsOptions as MaplibreFitBoundsOptions,

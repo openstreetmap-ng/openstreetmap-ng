@@ -1,6 +1,6 @@
 import { assert } from "@std/assert"
 import { API_URL } from "@utils/config"
-import { wrapMessageEventValidator } from "@utils/helpers"
+import { wrapMessageEventValidator } from "@utils/dom-helpers"
 import { systemAppAccessTokenStorage } from "@utils/local-storage"
 
 /** Load system app access token and call successCallback with it */

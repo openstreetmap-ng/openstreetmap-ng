@@ -9,9 +9,9 @@ from app.config import ENV
 from app.db import db
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_user
-from app.lib.auth.password_hash import PasswordHash, PasswordLike
-from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.auth.password import PasswordHash, PasswordLike
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.text.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
@@ -139,13 +139,13 @@ class UserPasswordService:
         revoke_other_sessions: bool,
     ):
         """Reset password via token."""
-        token_struct = UserTokenStructUtils.from_str(token)
-        user_token = await UserTokenQuery.find_by_token_struct(
+        token_struct = user_token.parse(token)
+        token_record = await UserTokenQuery.find_by_token_struct(
             'reset_password', token_struct
         )
-        if user_token is None:
+        if token_record is None:
             raise_for.bad_user_token_struct()
-        user_id = user_token['user_id']
+        user_id = token_record['user_id']
 
         if revoke_other_sessions:
             await OAuth2TokenService.revoke_by_client_id(

@@ -17,7 +17,7 @@ from app.lib.geo.compressible_geometry import (
     bbox_to_compressible_wkb,
     point_to_compressible_wkb,
 )
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.lib.telemetry.progress import progress
 from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,

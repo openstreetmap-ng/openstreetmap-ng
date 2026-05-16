@@ -13,7 +13,7 @@ from app.config import (
     CHANGESET_QUERY_MAX_LIMIT,
 )
 from app.format import FormatRSS06
-from app.lib.geo.utils import parse_bbox
+from app.lib.geo.parse import parse_bbox
 from app.lib.text.translation import primary_translation_locale, t
 from app.lib.time.date_utils import utcnow
 from app.middlewares.request_context_middleware import get_request

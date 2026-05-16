@@ -1,7 +1,13 @@
 import type { RenderDataValid } from "@proto/element_pb"
 import type { GetMapResponseValid } from "@proto/note_pb"
 import { polylineDecode } from "@utils/polyline"
-import type { OSMChangeset, OSMNode, OSMNote, OSMObject, OSMWay } from "@utils/types"
+import type {
+  OSMChangeset,
+  OSMNode,
+  OSMNote,
+  OSMObject,
+  OSMWay,
+} from "@utils/osm-objects"
 import type { Feature, FeatureCollection } from "geojson"
 import { NOTE_STATUS_MARKERS } from "./image"
 

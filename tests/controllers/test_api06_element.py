@@ -6,7 +6,7 @@ from starlette import status
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
 from app.format import Format06
-from app.lib.io.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from tests.utils.assert_model import assert_model
 
 

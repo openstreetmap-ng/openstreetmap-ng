@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from app.lib.io.xmltodict import XMLToDict, get_xattr
+from app.lib.io.xml_codec import XMLToDict, get_xattr
 from speedup import CDATA
 
 

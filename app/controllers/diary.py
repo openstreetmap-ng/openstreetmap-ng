@@ -10,8 +10,8 @@ from starlette.responses import RedirectResponse
 
 from app.config import DIARY_LIST_PAGE_SIZE
 from app.format import FormatRSS06
+from app.lib.auth import user_token
 from app.lib.auth.context import auth_user, web_user
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.render.proto import render_proto_page, render_response
 from app.lib.text.locale import LOCALES_NAMES_MAP, normalize_locale
 from app.lib.text.translation import primary_translation_locale, t
@@ -90,7 +90,7 @@ async def post_unsubscribe(
     diary_id: DiaryId,
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
-    token_struct = await UserTokenStructUtils.from_str_stateless(token)
+    token_struct = await user_token.parse_stateless(token)
     await UserTokenUnsubscribeService.unsubscribe('diary', diary_id, token_struct)
     return Response(None, status.HTTP_204_NO_CONTENT)
 

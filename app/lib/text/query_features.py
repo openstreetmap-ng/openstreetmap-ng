@@ -3,7 +3,7 @@ from typing import NamedTuple
 from shapely.geometry.base import BaseGeometry
 
 from app.config import QUERY_FEATURES_RESULTS_LIMIT
-from app.lib.text.elements_filter import ElementsFilter
+from app.lib.text.element_filter import ElementFilter
 from app.lib.text.feature_icon import FeatureIcon, features_icons
 from app.lib.text.feature_name import features_names
 from app.lib.text.feature_prefix import features_prefixes
@@ -44,7 +44,7 @@ class QueryFeatures:
         ]
 
         # Filter interesting tags and apply limit
-        elements = ElementsFilter.filter_tags_interesting(elements)
+        elements = ElementFilter.filter_tags_interesting(elements)
         if not elements:
             return []
 

@@ -12,9 +12,9 @@ import {
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
 import { encodeMapState } from "@map/state"
 import { isLatitude, isLongitude } from "@utils/coords"
-import { throwAbortError } from "@utils/helpers"
+import { throwAbortError } from "@utils/dom-helpers"
 import "@utils/i18n"
-import { qsParse } from "@utils/qs"
+import { qsParse } from "@utils/query-string"
 import { t } from "i18next"
 import { AttributionControl, Marker, NavigationControl } from "maplibre-gl"
 

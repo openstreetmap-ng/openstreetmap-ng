@@ -8,9 +8,9 @@ import {
   Service,
   Tab,
 } from "@proto/follow_pb"
-import { isUnmodifiedLeftClick } from "@utils/helpers"
+import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
-import { usePathSuffixSwitch } from "@utils/url-signals"
+import { usePathSuffixSwitch } from "@utils/query-signals"
 import { t } from "i18next"
 
 const UserRow = ({ entry, tab }: { entry: ListResponse_EntryValid; tab: Tab }) => {

@@ -9,11 +9,11 @@ import {
   Status,
   UserPageSchema,
 } from "@proto/note_pb"
-import { queryParam } from "@utils/codecs"
-import { isUnmodifiedLeftClick } from "@utils/helpers"
+import { queryParam } from "@utils/path-codecs"
+import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineQueryContract } from "@utils/query-contract"
-import { usePathSuffixQueryState } from "@utils/url-signals"
+import { usePathSuffixQueryState } from "@utils/query-signals"
 import { t } from "i18next"
 import { useId } from "preact/hooks"
 

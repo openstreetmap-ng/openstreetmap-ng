@@ -6,7 +6,7 @@ from sizestr import sizestr
 
 from app.config import XML_PARSE_MAX_SIZE
 from app.exceptions.context import raise_for
-from app.lib.render.format_style_context import format_is_json
+from app.lib.render import format_style
 from speedup import xattr_json, xattr_xml, xml_parse, xml_unparse
 
 
@@ -50,6 +50,6 @@ def get_xattr(*, is_json: bool | None = None):
     """
     return (
         xattr_json
-        if (is_json if is_json is not None else format_is_json())
+        if (is_json if is_json is not None else format_style.is_json())
         else xattr_xml
     )

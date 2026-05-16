@@ -7,7 +7,7 @@ import { getMarkerIconElement, MARKER_ICON_ANCHOR, type MarkerColor } from "@map
 import { batch, type Signal, useSignal, useSignalEffect } from "@preact/signals"
 import { setPageTitle } from "@runtime/title"
 import { assertEquals, assertGreater } from "@std/assert"
-import { queryParam } from "@utils/codecs"
+import { queryParam } from "@utils/path-codecs"
 import { type Scheduled, useDisposeEffect } from "@utils/dispose-scope"
 import { formatDistance, isMetricUnit } from "@utils/format"
 import { type Polyline, polylineEquals } from "@utils/polyline"

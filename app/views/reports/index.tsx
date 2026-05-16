@@ -9,10 +9,10 @@ import {
   Status,
   StatusSchema,
 } from "@proto/report_pb"
-import { queryParam } from "@utils/codecs"
+import { queryParam } from "@utils/path-codecs"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineQueryContract } from "@utils/query-contract"
-import { useUrlQueryState } from "@utils/url-signals"
+import { useUrlQueryState } from "@utils/query-signals"
 import { t } from "i18next"
 import { ReportCommentBody } from "./_comment"
 

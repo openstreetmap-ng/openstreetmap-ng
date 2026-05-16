@@ -11,9 +11,9 @@ import {
 } from "@utils/coords"
 import { getTimezoneName } from "@utils/format"
 import { mapStateStorage } from "@utils/local-storage"
-import { qsEncode, qsParse } from "@utils/qs"
+import { qsEncode, qsParse } from "@utils/query-string"
 import { shortLinkEncode } from "@utils/shortlink"
-import type { Bounds } from "@utils/types"
+import type { Bounds } from "@utils/osm-objects"
 import { t } from "i18next"
 import {
   type EaseToOptions,

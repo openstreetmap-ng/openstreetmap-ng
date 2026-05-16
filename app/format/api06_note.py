@@ -2,7 +2,7 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.config import API_URL, APP_URL
-from app.lib.render.format_style_context import format_style
+from app.lib.render import format_style
 from app.lib.render.jinja import render_jinja
 from app.lib.time.date_utils import format_sql_date, legacy_date
 from app.models.db.note import Note, note_status
@@ -17,7 +17,7 @@ class Note06Mixin:
         >>> encode_note(Note(...))
         {'note': {'@lon': 0.1, '@lat': 51, 'id': 16659, ...}}
         """
-        style = format_style()
+        style = format_style.current()
         if style == 'json':
             return _encode_note(note, is_json=True, is_gpx=False)
         elif style == 'gpx':
@@ -34,7 +34,7 @@ class Note06Mixin:
         ... ])
         {'note': [{'@lon': 1, '@lat': 2, 'id': 1, ...}]}
         """
-        style = format_style()
+        style = format_style.current()
         if style == 'json':
             return {
                 'type': 'FeatureCollection',

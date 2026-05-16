@@ -2,7 +2,7 @@ import "@rapideditor/rapid"
 import "@rapideditor/rapid/dist/rapid.css"
 import "./rapid.scss"
 
-import { parentLoadSystemApp } from "@runtime/system-app"
+import { parentLoadSystemApp } from "@runtime/iframe-system-app"
 import { assertExists } from "@std/assert"
 import { API_URL, primaryLanguage, RAPID_PATH } from "@utils/config"
 

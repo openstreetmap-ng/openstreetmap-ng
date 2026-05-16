@@ -23,7 +23,7 @@ from app.config import (
     VERSION,
 )
 from app.lib.auth.context import auth_user
-from app.lib.auth.user_role_limits import UserRoleLimits
+from app.lib.auth.user_limits import UserRoleLimits
 from app.lib.io.file_cache import FileCache
 from app.lib.telemetry.sentry import SENTRY_DSN
 from app.middlewares.request_context_middleware import get_request

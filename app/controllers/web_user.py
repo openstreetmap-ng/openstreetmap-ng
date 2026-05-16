@@ -5,9 +5,9 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
+from app.lib.auth import user_token
 from app.lib.auth.context import web_user
 from app.lib.auth.cookie import delete_auth_cookie
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.http.referrer import redirect_referrer
 from app.models.db.user import User
 from app.services.oauth2_token_service import OAuth2TokenService
@@ -32,7 +32,7 @@ async def account_confirm(
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
     # TODO: check errors
-    token_struct = UserTokenStructUtils.from_str(token)
+    token_struct = user_token.parse(token)
     await UserTokenEmailService.confirm(token_struct, is_account_confirm=True)
     return RedirectResponse('/welcome', status.HTTP_303_SEE_OTHER)
 
@@ -42,6 +42,6 @@ async def email_change_confirm(
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
     # TODO: check errors
-    token_struct = UserTokenStructUtils.from_str(token)
+    token_struct = user_token.parse(token)
     await UserTokenEmailService.confirm(token_struct, is_account_confirm=False)
     return RedirectResponse('/settings', status.HTTP_303_SEE_OTHER)

@@ -1,4 +1,4 @@
-import { BPopover } from "@components/bootstrap"
+import { BPopover } from "@components/bootstrap-wrappers"
 import type { IpCountValid } from "@proto/shared_pb"
 import { formatPackedIp } from "@utils/format"
 

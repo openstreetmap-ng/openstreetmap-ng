@@ -30,7 +30,7 @@ import {
   Target as SubscriptionTarget,
 } from "@proto/user_subscription_pb"
 import { setPageTitle } from "@runtime/title"
-import { pathParam } from "@utils/codecs"
+import { pathParam } from "@utils/path-codecs"
 import {
   API_URL,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
@@ -38,7 +38,7 @@ import {
   isLoggedIn,
 } from "@utils/config"
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
-import type { OSMChangeset } from "@utils/types"
+import type { OSMChangeset } from "@utils/osm-objects"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { showLoginModal } from "../user/login"

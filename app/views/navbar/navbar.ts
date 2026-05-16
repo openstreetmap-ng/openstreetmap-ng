@@ -1,5 +1,5 @@
 import type { LonLatZoom } from "@map/state"
-import { wrapMessageEventValidator } from "@utils/helpers"
+import { wrapMessageEventValidator } from "@utils/dom-helpers"
 import { Collapse } from "bootstrap"
 import { updateNavbarAndHash } from "./navbar-left-state"
 import { messagesCountUnread } from "./navbar-right-state"

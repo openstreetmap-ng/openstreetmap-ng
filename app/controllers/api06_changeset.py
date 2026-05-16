@@ -10,7 +10,7 @@ from app.config import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
 from app.exceptions.context import raise_for
 from app.format import Format06
 from app.lib.auth.context import api_user
-from app.lib.geo.utils import parse_bbox
+from app.lib.geo.parse import parse_bbox
 from app.lib.io.xml_body import xml_body
 from app.lib.time.date_utils import parse_date
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text

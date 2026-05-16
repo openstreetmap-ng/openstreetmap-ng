@@ -1,5 +1,5 @@
 import { type ReadonlySignal, signal } from "@preact/signals"
-import type { QuerySchema } from "@utils/codecs"
+import type { QuerySchema } from "@utils/path-codecs"
 import { z } from "@zod/zod/mini"
 
 export type UrlUpdateMode = "replace" | "push"

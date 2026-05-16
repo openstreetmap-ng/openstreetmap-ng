@@ -4,7 +4,7 @@ from app.config import RECOVERY_CODE_MAX_ATTEMPTS, RECOVERY_CODE_RATE_LIMIT_WIND
 from app.db import db
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
-from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.password import PasswordLike
 from app.lib.auth.recovery_code import generate_recovery_codes, verify_recovery_code
 from app.lib.text.translation import t
 from app.models.db.user_recovery_code import UserRecoveryCode

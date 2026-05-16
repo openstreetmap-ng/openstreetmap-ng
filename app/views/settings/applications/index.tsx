@@ -1,5 +1,5 @@
 import { create } from "@bufbuild/protobuf"
-import { BAccordion } from "@components/bootstrap"
+import { BAccordion } from "@components/bootstrap-wrappers"
 import { CopyButton } from "@components/copy-group"
 import { Time } from "@components/datetime-inputs"
 import { ReportButton } from "@components/report"
@@ -30,7 +30,8 @@ import {
   OAUTH_APP_NAME_MAX_LENGTH,
   OAUTH_PAT_NAME_MAX_LENGTH,
 } from "@utils/config"
-import { headersDate, throwAbortError } from "@utils/helpers"
+import { throwAbortError } from "@utils/dom-helpers"
+import { headersDate } from "@utils/format"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"

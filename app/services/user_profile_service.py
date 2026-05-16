@@ -5,7 +5,7 @@ from app.config import ENV
 from app.db import db
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
-from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.password import PasswordLike
 from app.lib.io.image import Image, UserAvatarType
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE

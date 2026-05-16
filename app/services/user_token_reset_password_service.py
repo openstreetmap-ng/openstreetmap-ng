@@ -7,8 +7,8 @@ from zid import zid
 
 from app.db import db
 from app.lib.audit import audit
+from app.lib.auth import user_token
 from app.lib.auth.crypto import hash_bytes
-from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.lib.text.translation import t, translation_context
 from app.models.db.user import User
 from app.models.db.user_token import UserTokenInit
@@ -44,7 +44,7 @@ class UserTokenResetPasswordService:
             to_user=to_user,
             subject=subject,
             template_name='email/reset-password',
-            template_data={'token': UserTokenStructUtils.to_str(token)},
+            template_data={'token': user_token.encode(token)},
         )
 
         _SEND_EMAIL_LATENCY.append(perf_counter() - ts)

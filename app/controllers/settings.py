@@ -7,7 +7,7 @@ from starlette.responses import RedirectResponse
 
 from app.config import ACTIVE_SESSIONS_DISPLAY_LIMIT
 from app.lib.auth.context import web_user
-from app.lib.http.ip import anonymize_ip
+from app.lib.http.ip_address import anonymize_ip
 from app.lib.render.proto import render_proto_page
 from app.lib.text.translation import t
 from app.lib.time.date_utils import datetime_unix
