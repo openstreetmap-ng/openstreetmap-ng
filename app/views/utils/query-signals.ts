@@ -1,4 +1,5 @@
 import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import { sortBy } from "@std/collections/sort-by"
 import type {
   QueryContract,
   QueryContractEncodeInput,
@@ -73,10 +74,13 @@ export const usePathSuffixSwitch = <
 
   const mode = options?.mode ?? "push"
 
-  const entries = Object.entries(variants) as [TKey, PathSuffix][]
-  const fallbackKey = options?.defaultKey ?? entries.find(([, suffix]) => !suffix)![0]
+  const unsortedEntries = Object.entries(variants) as [TKey, PathSuffix][]
+  const fallbackKey =
+    options?.defaultKey ?? unsortedEntries.find(([, suffix]) => !suffix)![0]
 
-  entries.sort((a, b) => b[1].length - a[1].length)
+  const entries = sortBy(unsortedEntries, ([, suffix]) => suffix.length, {
+    order: "desc",
+  })
 
   const parsePathname = (pathname: string) => {
     for (const [key, suffix] of entries) {

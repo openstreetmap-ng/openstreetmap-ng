@@ -17,6 +17,7 @@
         "@sentry/browser": "latest",
         "@std/assert": "npm:@jsr/std__assert",
         "@std/async": "npm:@jsr/std__async",
+        "@std/bytes": "npm:@jsr/std__bytes",
         "@std/cache": "npm:@jsr/std__cache",
         "@std/collections": "npm:@jsr/std__collections",
         "@std/datetime": "npm:@jsr/std__datetime",
@@ -592,6 +593,8 @@
     "@std/assert": ["@jsr/std__assert@1.0.19", "https://npm.jsr.io/~/11/@jsr/std__assert/1.0.19.tgz", { "dependencies": { "@jsr/std__internal": "^1.0.12" } }, "sha512-pEj6RPkGbqlgRmyKwATp4cUs6+ijxtdrv3bq8v1d2I2CEcMEyPaO8cVKro61wGRDH4cNg8Zx6haztvK/9m7gkA=="],
 
     "@std/async": ["@jsr/std__async@1.2.0", "https://npm.jsr.io/~/11/@jsr/std__async/1.2.0.tgz", {}, "sha512-/vlTKrVwDp9iBCi1BUlz4ghyvHNkzGHdvhdHTdPKGJoklBcwnRjm4yC0n+oB97LtRRFpruWmBobABZHD/t/SkQ=="],
+
+    "@std/bytes": ["@jsr/std__bytes@1.0.6", "https://npm.jsr.io/~/11/@jsr/std__bytes/1.0.6.tgz", {}, "sha512-St6yKggjFGhxS52IFLJWvkchRFbAKg2Xh8UxA4S1EGz7GJ2Ui+ssDDldj/w2c8vCxvl6qgR0HaYbKeFJNqujmA=="],
 
     "@std/cache": ["@jsr/std__cache@0.2.2", "https://npm.jsr.io/~/11/@jsr/std__cache/0.2.2.tgz", {}, "sha512-f4G1hRFhN6IGO7HKIW9UsXmY3rTDbSUoDuDUVxLsIW39EpTkGCyp28cz3JYNEhldwsBd165nvhAHD61nnZgqKA=="],
 

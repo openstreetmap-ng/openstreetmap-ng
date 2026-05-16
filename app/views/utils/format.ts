@@ -1,3 +1,4 @@
+import { startsWith as bytesStartsWith } from "@std/bytes/starts-with"
 import { memoize } from "@std/cache/memoize"
 import { SECOND } from "@std/datetime/constants"
 import { format as formatDatetime } from "@std/datetime/format"
@@ -188,13 +189,6 @@ export const formatCoordinate = ({ lon, lat }: LonLat) => {
 
 const IPV4_MAPPED_IPV6_PREFIX = Uint8Array.of(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff)
 
-const startsWithBytes = (bytes: Uint8Array, prefix: Uint8Array) => {
-  for (let i = 0; i < prefix.length; i++) {
-    if (bytes[i] !== prefix[i]) return false
-  }
-  return true
-}
-
 const formatIpv4 = (bytes: Uint8Array, offset = 0) =>
   `${bytes[offset]}.${bytes[offset + 1]}.${bytes[offset + 2]}.${bytes[offset + 3]}`
 
@@ -220,7 +214,7 @@ export const formatPackedIp = (packedIp: Uint8Array) => {
   if (packedIp.length !== 16)
     throw new Error(`Unexpected packed IP length: ${packedIp.length}`)
 
-  if (startsWithBytes(packedIp, IPV4_MAPPED_IPV6_PREFIX))
+  if (bytesStartsWith(packedIp, IPV4_MAPPED_IPV6_PREFIX))
     return `::ffff:${formatIpv4(packedIp, 12)}`
 
   const groups = Array.from(
