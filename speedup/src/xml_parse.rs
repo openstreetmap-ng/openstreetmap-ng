@@ -390,7 +390,9 @@ fn postprocess_value(
 fn xml_parse(py: Python<'_>, xml: &Bound<'_, PyBytes>) -> PyResult<Py<PyAny>> {
     let datetime = py.import("datetime")?.getattr("datetime")?;
     let datetime_fromisoformat = datetime.getattr("fromisoformat")?;
-    let parse_date = py.import("app.lib.date_utils")?.getattr("parse_date")?;
+    let parse_date = py
+        .import("app.lib.time.date_utils")?
+        .getattr("parse_date")?;
 
     let mut reader = Reader::from_reader(xml.as_bytes());
     let mut state = ParseState::new(py);

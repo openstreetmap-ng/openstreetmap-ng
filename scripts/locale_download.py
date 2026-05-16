@@ -6,9 +6,9 @@ from pathlib import Path
 import orjson
 import re2
 
-from app.lib.http_client import HTTP, http_context
-from app.lib.locale import LocaleName
-from app.lib.retry import retry
+from app.lib.http.client import HTTP, http_context
+from app.lib.http.retry import retry
+from app.lib.text.locale import LocaleName
 from app.models.types import LocaleCode
 
 _download_dir = Path('config/locale/download')

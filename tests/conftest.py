@@ -6,10 +6,10 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from app.exceptions06 import Exceptions06
-from app.lib.auth_context import auth_context
-from app.lib.exceptions_context import exceptions_context
-from app.lib.xmltodict import XMLToDict
+from app.exceptions.api06 import Exceptions06
+from app.exceptions.context import exceptions_context
+from app.lib.auth.context import auth_context
+from app.lib.io.xmltodict import XMLToDict
 from app.main import app
 from app.models.types import ChangesetId, DisplayName
 from app.queries.user_query import UserQuery

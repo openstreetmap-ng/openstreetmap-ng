@@ -5,12 +5,12 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse, Response
 
-from app.lib.auth_context import auth_user, web_user
-from app.lib.locale import is_installed_locale
-from app.lib.referrer import secure_referrer
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import t, translation_context
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth.context import auth_user, web_user
+from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.http.referrer import secure_referrer
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.locale import is_installed_locale
+from app.lib.text.translation import t, translation_context
 from app.middlewares.headers_middleware import CSP_HEADER
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget

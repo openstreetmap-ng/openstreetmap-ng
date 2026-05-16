@@ -6,8 +6,8 @@ from pathlib import Path
 
 import orjson
 
-from app.lib.http_client import HTTP, http_context
-from app.lib.retry import retry
+from app.lib.http.client import HTTP, http_context
+from app.lib.http.retry import retry
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 

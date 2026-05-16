@@ -20,11 +20,14 @@ from starlette import status
 
 from app.config import OSM_OLD_REPLICATION_URL, OSM_REPLICATION_URL, REPLICATION_DIR
 from app.db import duckdb_connect
-from app.lib.compressible_geometry import point_to_compressible_wkb
-from app.lib.http_client import HTTP, http_context
-from app.lib.retry import retry
-from app.lib.sentry import SENTRY_REPLICATION_MONITOR, SENTRY_REPLICATION_MONITOR_SLUG
-from app.lib.xmltodict import XMLToDict
+from app.lib.geo.compressible_geometry import point_to_compressible_wkb
+from app.lib.http.client import HTTP, http_context
+from app.lib.http.retry import retry
+from app.lib.io.xmltodict import XMLToDict
+from app.lib.telemetry.sentry import (
+    SENTRY_REPLICATION_MONITOR,
+    SENTRY_REPLICATION_MONITOR_SLUG,
+)
 from app.models.element import TypedElementId
 from app.models.proto.shared_types import ElementType
 from speedup import typed_element_id

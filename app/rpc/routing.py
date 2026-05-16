@@ -4,10 +4,10 @@ from typing import Any, Protocol, override
 from connectrpc.request import RequestContext
 from shapely import Point, get_coordinates
 
-from app.lib.geo_utils import try_parse_point
-from app.lib.search import Search, SearchResult
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.geo.utils import try_parse_point
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.search import Search, SearchResult
+from app.lib.text.translation import t
 from app.models.proto.routing_connect import (
     Service as RoutingServiceConnect,
 )

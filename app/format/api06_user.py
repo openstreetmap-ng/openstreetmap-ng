@@ -4,10 +4,10 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.config import APP_URL
-from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import get_xattr
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_user
+from app.lib.io.xmltodict import get_xattr
+from app.lib.render.format_style_context import format_is_json
 from app.models.db.user import User, user_avatar_url
 from app.models.db.user_pref import UserPref, UserPrefListValidator
 from app.models.types import UserPrefKey

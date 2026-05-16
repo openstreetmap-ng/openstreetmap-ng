@@ -1,14 +1,14 @@
+import { MultiInput } from "@components/multi-input"
+import { StandardForm } from "@components/standard-form"
+import { EditPageSchema, Service, Visibility } from "@proto/trace_pb"
 import {
   TRACE_DESCRIPTION_MAX_LENGTH,
   TRACE_NAME_MAX_LENGTH,
   TRACE_TAG_MAX_LENGTH,
   TRACE_TAGS_LIMIT,
-} from "@lib/config"
-import { MultiInput } from "@lib/multi-input"
-import { mountProtoPage } from "@lib/proto-page"
-import { EditPageSchema, Service, Visibility } from "@lib/proto/trace_pb"
-import { StandardForm } from "@lib/standard-form"
-import { throwAbortError } from "@lib/utils"
+} from "@utils/config"
+import { throwAbortError } from "@utils/helpers"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { MapPreview } from "./_map-preview"
 

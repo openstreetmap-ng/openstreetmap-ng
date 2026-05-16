@@ -7,9 +7,10 @@ from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from app.config import AUDIT_LIST_PAGE_SIZE
-from app.lib.auth_context import require_web_user
-from app.lib.date_utils import datetime_unix, unix_datetime
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.audit import audit
+from app.lib.auth.context import require_web_user
+from app.lib.standard.pagination import sp_paginate_table
+from app.lib.time.date_utils import datetime_unix, unix_datetime
 from app.models.db.audit import AuditEvent as DBAuditEvent
 from app.models.db.oauth2_application import (
     oauth2_app_avatar_url,
@@ -30,7 +31,6 @@ from app.models.types import ApplicationId
 from app.queries.audit_query import AuditQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
 
 
 class _Service(Service):

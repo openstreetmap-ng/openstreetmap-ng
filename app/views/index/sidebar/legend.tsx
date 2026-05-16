@@ -1,9 +1,9 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { useDisposeEffect } from "@lib/dispose-scope"
-import { activeBaseLayerId, type LayerId } from "@lib/map/layers/layers"
-import { mainMap } from "@lib/map/main-map"
+import { activeBaseLayerId, type LayerId } from "@map/layers/layers"
+import { mainMap } from "@map/main-map"
 import { effect, useSignal } from "@preact/signals"
+import { useDisposeEffect } from "@utils/dispose-scope"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 

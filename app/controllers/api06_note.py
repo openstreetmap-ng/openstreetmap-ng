@@ -13,20 +13,19 @@ from app.config import (
     NOTE_QUERY_DEFAULT_LIMIT,
     NOTE_QUERY_LEGACY_MAX_LIMIT,
 )
+from app.exceptions.context import raise_for
 from app.format import Format06, FormatRSS06
-from app.lib.auth_context import api_user
-from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_is_rss
-from app.lib.geo_utils import parse_bbox
-from app.lib.translation import t
+from app.lib.auth.context import api_user
+from app.lib.geo.utils import parse_bbox
+from app.lib.render.format_style_context import format_is_rss
+from app.lib.text.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import Latitude, Longitude, NoteId, UserId
-from app.queries.note_comment_query import NoteCommentQuery
-from app.queries.note_query import NoteQuery
+from app.queries.note_query import NoteCommentQuery, NoteQuery
 from app.queries.user_query import UserQuery
-from app.responses.osm_response import GPXResponse
+from app.responses.osm import GPXResponse
 from app.services.note_service import NoteService
 from app.validators.date import DateValidator
 from app.validators.display_name import DisplayNameNormalizing

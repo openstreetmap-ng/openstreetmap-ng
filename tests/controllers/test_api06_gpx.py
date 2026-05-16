@@ -5,7 +5,7 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
 
 

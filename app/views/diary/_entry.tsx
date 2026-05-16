@@ -1,28 +1,28 @@
-import { config, DIARY_COMMENT_BODY_MAX_LENGTH, isLoggedIn } from "@lib/config"
-import { formatPoint } from "@lib/coords"
-import { Time } from "@lib/datetime-inputs"
-import { useDisposeEffect, useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { getLocaleDisplayNameByCode } from "@lib/locale"
+import { Time } from "@components/datetime-inputs"
+import { ReportButton } from "@components/report"
+import { StandardForm } from "@components/standard-form"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
+import type { Signal } from "@preact/signals"
+import { useSignal } from "@preact/signals"
 import type {
   CommentValid,
   EntryValid,
   GetCommentsResponseValid,
-} from "@lib/proto/diary_pb"
-import { Service } from "@lib/proto/diary_pb"
+} from "@proto/diary_pb"
+import { Service } from "@proto/diary_pb"
 import {
   Service as SubscriptionService,
   Target as SubscriptionTarget,
-} from "@lib/proto/user_subscription_pb"
-import { ReportButton } from "@lib/report"
-import { StandardForm } from "@lib/standard-form"
-import { UserLink } from "@lib/user-link"
-import { StandardPagination } from "@lib/standard-pagination"
-import type { Signal } from "@preact/signals"
-import { useSignal } from "@preact/signals"
+} from "@proto/user_subscription_pb"
+import { config, DIARY_COMMENT_BODY_MAX_LENGTH, isLoggedIn } from "@utils/config"
+import { formatPoint } from "@utils/coords"
+import { useDisposeEffect, useDisposeLayoutEffect } from "@utils/dispose-scope"
+import { getLocaleDisplayNameByCode } from "@utils/locale"
 import { Collapse } from "bootstrap"
 import { t } from "i18next"
 import { useEffect, useRef } from "preact/hooks"
-import { RichTextControl } from "../rich-text/_control"
+import { RichTextControl } from "../rich-text/control"
 import { showLoginModal } from "../user/login"
 
 const ShareMenu = ({ entry }: { entry: EntryValid }) => {

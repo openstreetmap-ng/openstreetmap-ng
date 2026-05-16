@@ -2,25 +2,14 @@ import { SidebarHeader, SidebarResourceBody } from "@index/_action-sidebar"
 import { ElementRoute, getElementTypeLabel, getElementTypeSlug } from "@index/element"
 import { defineRoute, routerNavigate } from "@index/router"
 import { useSidebarSearchRpc } from "@index/search-rpc"
-import { queryParam } from "@lib/codecs"
-import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
-import { pushMapAlert } from "@lib/map/alerts"
-import { boundsIntersection, boundsPadding, boundsSize } from "@lib/map/bounds"
-import { clearMapHover, setMapHover } from "@lib/map/hover"
-import { loadMapImage } from "@lib/map/image"
-import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
-import {
-  emptyFeatureCollection,
-  type LayerId,
-  layersConfig,
-} from "@lib/map/layers/layers"
-import { convertRenderElementsData } from "@lib/map/render-objects"
-import { type LonLatZoom, lonLatZoomEquals } from "@lib/map/state"
-import type { Data_ResultValid } from "@lib/proto/search_pb"
-import type { ElementIconValid, ElementType } from "@lib/proto/shared_pb"
-import { scrollElementIntoView } from "@lib/scroll"
-import { setPageTitle } from "@lib/title"
-import type { OSMObject } from "@lib/types"
+import { pushMapAlert } from "@map/alerts"
+import { boundsIntersection, boundsPadding, boundsSize } from "@map/bounds"
+import { clearMapHover, setMapHover } from "@map/hover"
+import { loadMapImage } from "@map/image"
+import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
+import { emptyFeatureCollection, type LayerId, layersConfig } from "@map/layers/layers"
+import { convertRenderElementsData } from "@map/render-objects"
+import { type LonLatZoom, lonLatZoomEquals } from "@map/state"
 import {
   type ReadonlySignal,
   type Signal,
@@ -28,7 +17,14 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import type { Data_ResultValid } from "@proto/search_pb"
+import type { ElementIconValid, ElementType } from "@proto/shared_pb"
+import { setPageTitle } from "@runtime/title"
 import { memoize } from "@std/cache/memoize"
+import { queryParam } from "@utils/codecs"
+import { useDisposeEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
+import { scrollElementIntoView } from "@utils/scroll"
+import type { OSMObject } from "@utils/types"
 import type { Feature } from "geojson"
 import { t } from "i18next"
 import type { MapLayerMouseEvent } from "maplibre-gl"

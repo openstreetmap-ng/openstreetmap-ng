@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from shapely import MultiPolygon, Polygon
 
-from app.lib.auth_context import auth_user
-from app.lib.user_role_limits import UserRoleLimits
+from app.lib.auth.context import auth_user
+from app.lib.auth.user_role_limits import UserRoleLimits
 from app.models.db.user import UserDisplay
 from app.models.types import ChangesetId, UserId
 
@@ -34,7 +34,7 @@ class Changeset(ChangesetInit):
     user: NotRequired[UserDisplay]
     bounds: NotRequired[MultiPolygon]
     num_comments: NotRequired[int]
-    comments: NotRequired[list['ChangesetComment']]
+    comments: NotRequired[list[ChangesetComment]]
     size_limit_reached: NotRequired[Literal[True]]
 
 

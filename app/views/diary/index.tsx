@@ -1,20 +1,20 @@
-import { config, primaryLanguage } from "@lib/config"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { getLocaleDisplayNameByCode } from "@lib/locale"
-import { mountProtoPage } from "@lib/proto-page"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
+import { useSignal } from "@preact/signals"
 import {
   type EntryValid,
   type GetPageResponseValid,
   type IndexPageValid,
   IndexPageSchema,
   Service,
-} from "@lib/proto/diary_pb"
-import type { UserValid } from "@lib/proto/shared_pb"
-import { configureScrollspy } from "@lib/scrollspy"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { useSignal } from "@preact/signals"
+} from "@proto/diary_pb"
+import type { UserValid } from "@proto/shared_pb"
 import { assertNever } from "@std/assert/unstable-never"
+import { config, primaryLanguage } from "@utils/config"
+import { useDisposeSignalEffect } from "@utils/dispose-scope"
+import { getLocaleDisplayNameByCode } from "@utils/locale"
+import { mountProtoPage } from "@utils/proto-page"
+import { configureScrollspy } from "@utils/scrollspy"
 import { Offcanvas } from "bootstrap"
 import { t } from "i18next"
 import { useId, useRef } from "preact/hooks"

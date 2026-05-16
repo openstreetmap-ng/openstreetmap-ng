@@ -1,34 +1,15 @@
+import { RemoteEditButton } from "@index/remote-edit"
 import { routerRemoteEditTarget } from "@index/router"
-import { useDisposeEffect } from "@lib/dispose-scope"
-import { type Editor, preferredEditorStorage } from "@lib/local-storage"
-import { mainMap } from "@lib/map/main-map"
-import { encodeMapState, getInitialMapState, type MapState } from "@lib/map/state"
-import { qsEncode } from "@lib/qs"
-import { RemoteEditButton } from "@lib/remote-edit"
-import { computed, signal, useSignalEffect } from "@preact/signals"
+import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import { type Editor, preferredEditorStorage } from "@utils/local-storage"
+import { qsEncode } from "@utils/qs"
 import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
-
-const MIN_EDIT_ZOOM = 13
-
-const currentMapState = signal(getInitialMapState())
-
-const currentHash = computed(() =>
-  mainMap.value ? encodeMapState(currentMapState.value) : "",
-)
-
-const editDisabled = computed(() =>
-  mainMap.value ? currentMapState.value.zoom < MIN_EDIT_ZOOM : false,
-)
-
-export const updateNavbarAndHash = (state: MapState) => {
-  const hash = encodeMapState(state)
-  window.history.replaceState(null, "", hash)
-  currentMapState.value = state
-}
+import { currentHash, currentMapState, editDisabled } from "./navbar-left-state"
 
 const buildEditHref = (editor: Editor) => {
   const params: Record<string, string> = { editor }

@@ -1,8 +1,8 @@
-import { primaryLanguage } from "@lib/config"
-import { i18nLocale } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/about_pb"
+import { PageSchema } from "@proto/about_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
+import { primaryLanguage } from "@utils/config"
+import { i18nLocale } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 
 const AboutPage = () => {
   const urlLocale = window.location.pathname.split("/").filter(Boolean)[1]

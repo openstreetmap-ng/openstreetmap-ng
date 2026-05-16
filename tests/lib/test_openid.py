@@ -1,4 +1,4 @@
-from app.lib.openid import parse_openid_token_no_verify
+from app.lib.auth.openid import parse_openid_token_no_verify
 
 
 def test_parse_openid_token():

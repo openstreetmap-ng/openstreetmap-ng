@@ -6,16 +6,17 @@ from starlette.exceptions import HTTPException
 
 from app.config import PASSKEY_LIMIT
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.password_hash import PasswordLike
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
-from app.lib.webauthn import (
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.webauthn import (
     AAGUID_DB,
     parse_auth_data,
     parse_client_data,
     verify_assertion,
 )
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t
 from app.models.proto.auth_pb2 import (
     PasskeyAssertion,
     PasskeyCredential,
@@ -23,7 +24,6 @@ from app.models.proto.auth_pb2 import (
 )
 from app.models.types import UserId
 from app.queries.user_passkey_query import UserPasskeyQuery
-from app.services.audit_service import audit
 from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
 from app.services.user_password_service import UserPasswordService
 

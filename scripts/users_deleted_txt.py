@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from app.config import PLANET_DIR
-from app.lib.sentry import SENTRY_USERS_DELETED_TXT_MONITOR
+from app.lib.telemetry.sentry import SENTRY_USERS_DELETED_TXT_MONITOR
 from app.models.types import UserId
 from app.queries.user_query import UserQuery
 

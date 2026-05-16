@@ -12,9 +12,9 @@ from app.config import (
     TRACE_POINT_QUERY_AREA_MAX_SIZE,
     TRACE_POINT_QUERY_DEFAULT_LIMIT,
 )
-from app.lib.auth_context import auth_user
-from app.lib.user_role_limits import UserRoleLimits
-from app.lib.xmltodict import get_xattr
+from app.lib.auth.context import auth_user
+from app.lib.auth.user_role_limits import UserRoleLimits
+from app.lib.io.xmltodict import get_xattr
 
 router = APIRouter(prefix='/api')
 

@@ -1,4 +1,5 @@
 from string.templatelib import Template
+from typing import Any
 
 import cython
 import numpy as np
@@ -18,13 +19,13 @@ from shapely import (
 )
 
 from app.db import db
-from app.lib.auth_context import auth_scopes, auth_user
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import polygon_to_h3
-from app.lib.mercator import mercator
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_scopes, auth_user
+from app.lib.geo.mercator import mercator
+from app.lib.geo.utils import polygon_to_h3
+from app.lib.io.trace_file import TraceFile
 from app.lib.storage import TRACE_STORAGE
-from app.lib.trace_file import TraceFile
+from app.lib.time.date_utils import utcnow
 from app.models.db.trace import Trace, trace_is_visible
 from app.models.types import StorageKey, TraceId, UserId
 from app.queries.timescaledb_query import TimescaleDBQuery

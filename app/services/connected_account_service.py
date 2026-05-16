@@ -1,9 +1,9 @@
 from app.config import AUTH_PROVIDER_UID_MAX_LENGTH
 from app.db import db
-from app.lib.auth_context import auth_user
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
 from app.models.db.connected_account import ConnectedAccountInit
 from app.models.proto.settings_connections_types import Provider
-from app.services.audit_service import audit
 
 
 class ConnectedAccountService:

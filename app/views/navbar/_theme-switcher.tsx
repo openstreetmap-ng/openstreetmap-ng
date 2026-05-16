@@ -1,6 +1,6 @@
-import { themeStorage } from "@lib/local-storage"
-import type { Theme } from "@lib/theme"
 import { useComputed } from "@preact/signals"
+import type { Theme } from "@runtime/theme"
+import { themeStorage } from "@utils/local-storage"
 import { t } from "i18next"
 
 const THEME_OPTIONS: {

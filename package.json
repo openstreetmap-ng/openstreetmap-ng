@@ -46,6 +46,7 @@
     "iD": "github:openstreetmap/iD#release",
     "libphonenumber-js": "latest",
     "maplibre-gl": "latest",
+    "organize-imports-cli": "latest",
     "osm-community-index": "latest",
     "preact": "latest",
     "prettier": "latest",

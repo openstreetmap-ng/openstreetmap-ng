@@ -2,16 +2,16 @@ from zid import zid
 
 from app.config import APP_DOMAIN
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.crypto import hash_bytes
-from app.lib.exceptions_context import raise_for
-from app.lib.translation import t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.crypto import hash_bytes
+from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.text.translation import t
 from app.models.db.user_token import UserTokenEmailInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
-from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_token_service import UserTokenService
 from speedup import buffered_randbytes

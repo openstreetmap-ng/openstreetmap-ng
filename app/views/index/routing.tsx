@@ -1,46 +1,42 @@
 import { create } from "@bufbuild/protobuf"
+import { StandardForm } from "@components/standard-form"
 import { SidebarHeader } from "@index/_action-sidebar"
 import { defineRoute, routerCtx } from "@index/router"
-import { queryParam } from "@lib/codecs"
-import { formatPoint, tryParsePoint, zoomPrecision } from "@lib/coords"
-import { useDisposeEffect } from "@lib/dispose-scope"
-import {
-  formatDistance,
-  formatDistanceRounded,
-  formatHeight,
-  formatTime,
-} from "@lib/format"
-import { tRich } from "@lib/i18n"
-import {
-  ROUTING_ENGINES,
-  type RoutingEngine,
-  routingEngineStorage,
-} from "@lib/local-storage"
-import { boundsToBounds, fitBoundsIfNeeded } from "@lib/map/bounds"
-import { clearMapHover, setMapHover } from "@lib/map/hover"
-import {
-  emptyFeatureCollection,
-  type LayerId,
-  layersConfig,
-} from "@lib/map/layers/layers"
-import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import { polylineDecode } from "@lib/polyline"
+import { boundsToBounds, fitBoundsIfNeeded } from "@map/bounds"
+import { clearMapHover, setMapHover } from "@map/hover"
+import { emptyFeatureCollection, type LayerId, layersConfig } from "@map/layers/layers"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
+import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
 import {
   GetRequest_EndpointInputSchema,
   type GetRequest_EndpointInputValid,
   GetRequest_Engine,
   Service,
-} from "@lib/proto/routing_pb"
+} from "@proto/routing_pb"
 import type {
   RoutingResult_AttributionValid,
   RoutingResult_EndpointValid,
   RoutingResultValid,
-} from "@lib/proto/shared_pb"
-import { scrollElementIntoView } from "@lib/scroll"
-import { StandardForm } from "@lib/standard-form"
-import { setPageTitle } from "@lib/title"
-import type { Bounds } from "@lib/types"
-import { type Signal, useSignal, useSignalEffect } from "@preact/signals"
+} from "@proto/shared_pb"
+import { setPageTitle } from "@runtime/title"
+import { queryParam } from "@utils/codecs"
+import { formatPoint, tryParsePoint, zoomPrecision } from "@utils/coords"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import {
+  formatDistance,
+  formatDistanceRounded,
+  formatHeight,
+  formatTime,
+} from "@utils/format"
+import { tRich } from "@utils/i18n"
+import {
+  ROUTING_ENGINES,
+  type RoutingEngine,
+  routingEngineStorage,
+} from "@utils/local-storage"
+import { polylineDecode } from "@utils/polyline"
+import { scrollElementIntoView } from "@utils/scroll"
+import type { Bounds } from "@utils/types"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
 import {

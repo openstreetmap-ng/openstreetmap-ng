@@ -6,7 +6,7 @@ from shapely import Point, get_coordinates
 
 from app.config import SEARCH_RESULTS_LIMIT
 from app.format import FormatRender
-from app.lib.search import Search, SearchResult
+from app.lib.text.search import Search, SearchResult
 from app.models.element import (
     TYPED_ELEMENT_ID_WAY_MAX,
     TYPED_ELEMENT_ID_WAY_MIN,

@@ -1,16 +1,16 @@
-import { Time } from "@lib/datetime-inputs"
-import { FollowToggleForm } from "@lib/follow-toggle-form"
-import { mountProtoPage } from "@lib/proto-page"
+import { Time } from "@components/datetime-inputs"
+import { FollowToggleForm } from "@components/follow-toggle-form"
+import { StandardPagination } from "@components/standard-pagination"
+import { useSignal } from "@preact/signals"
 import {
   IndexPageSchema,
   type ListResponse_EntryValid,
   Service,
   Tab,
-} from "@lib/proto/follow_pb"
-import { StandardPagination } from "@lib/standard-pagination"
-import { usePathSuffixSwitch } from "@lib/url-signals"
-import { isUnmodifiedLeftClick } from "@lib/utils"
-import { useSignal } from "@preact/signals"
+} from "@proto/follow_pb"
+import { isUnmodifiedLeftClick } from "@utils/helpers"
+import { mountProtoPage } from "@utils/proto-page"
+import { usePathSuffixSwitch } from "@utils/url-signals"
 import { t } from "i18next"
 
 const UserRow = ({ entry, tab }: { entry: ListResponse_EntryValid; tab: Tab }) => {

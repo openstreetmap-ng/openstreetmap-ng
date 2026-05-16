@@ -12,7 +12,7 @@ from app.config import (
     TAGS_MAX_SIZE,
 )
 from app.format import Format06
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xmltodict import XMLToDict
 from tests.utils.assert_model import assert_model
 
 

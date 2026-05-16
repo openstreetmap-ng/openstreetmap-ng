@@ -3,15 +3,15 @@ import {
   CONFIGURED_PROVIDERS,
   getAuthProviderName,
   getAuthProviderTitle,
-} from "@lib/auth-provider"
-import { Action, Service } from "@lib/proto/auth_provider_pb"
-import { Provider } from "@lib/proto/settings_connections_pb"
-import { StandardForm } from "@lib/standard-form"
+} from "@components/auth-provider"
+import { StandardForm } from "@components/standard-form"
 import type { Signal } from "@preact/signals"
+import { Action, Service } from "@proto/auth_provider_pb"
+import { Provider } from "@proto/settings_connections_pb"
+import { useDisposeEffect, useDisposeLayoutEffect } from "@utils/dispose-scope"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { useRef } from "preact/hooks"
-import { useDisposeEffect, useDisposeLayoutEffect } from "../lib/dispose-scope"
 
 type AuthAction = Action.login | Action.signup
 

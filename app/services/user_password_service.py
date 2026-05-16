@@ -7,17 +7,17 @@ from pydantic import SecretStr
 
 from app.config import ENV
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
-from app.lib.password_hash import PasswordHash, PasswordLike
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.password_hash import PasswordHash, PasswordLike
+from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User, user_is_test
 from app.models.types import UserId
 from app.queries.user_token_query import UserTokenQuery
-from app.services.audit_service import audit
 from app.services.oauth2_token_service import OAuth2TokenService
 
 

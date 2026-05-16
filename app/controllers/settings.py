@@ -6,11 +6,11 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import ACTIVE_SESSIONS_DISPLAY_LIMIT
-from app.lib.auth_context import web_user
-from app.lib.date_utils import datetime_unix
-from app.lib.ip import anonymize_ip
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.lib.auth.context import web_user
+from app.lib.http.ip import anonymize_ip
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
+from app.lib.time.date_utils import datetime_unix
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import User
 from app.models.proto.settings_connections_pb2 import Page as ConnectionsPage

@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Path
 from starlette import status
 
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import t
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.translation import t
 from app.models.db.user import user_proto
 from app.models.proto.note_pb2 import UserPage
 from app.queries.user_query import UserQuery

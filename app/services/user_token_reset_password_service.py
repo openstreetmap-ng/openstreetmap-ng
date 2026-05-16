@@ -6,15 +6,15 @@ from time import perf_counter
 from zid import zid
 
 from app.db import db
-from app.lib.crypto import hash_bytes
-from app.lib.translation import t, translation_context
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.audit import audit
+from app.lib.auth.crypto import hash_bytes
+from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.text.translation import t, translation_context
 from app.models.db.user import User
 from app.models.db.user_token import UserTokenInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserTokenId
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from speedup import buffered_randbytes
 

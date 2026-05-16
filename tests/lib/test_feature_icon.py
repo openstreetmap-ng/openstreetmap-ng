@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.feature_icon import FeatureIcon, features_icons
+from app.lib.text.feature_icon import FeatureIcon, features_icons
 from app.models.db.element import ElementInit
 from app.models.element import ElementId
 from app.models.types import ChangesetId

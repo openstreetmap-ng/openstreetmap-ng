@@ -3,7 +3,7 @@ from email.utils import parseaddr
 
 from pydantic import SecretStr
 
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth.user_token_struct import UserTokenStructUtils
 from app.models.types import Email
 from app.queries.user_token_query import UserTokenQuery
 

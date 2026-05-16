@@ -12,8 +12,8 @@ from app.config import (
     NEARBY_USERS_RADIUS_METERS,
 )
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.user_name_blacklist import is_user_name_blacklisted
+from app.lib.auth.context import auth_user
+from app.lib.text.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
 from app.models.db.user import User, UserDisplay
 from app.models.proto.admin_users_types import Role
@@ -236,7 +236,7 @@ class UserQuery:
         *,
         user_id_key: str = 'user_id',
         user_key: str = 'user',
-        kind: type[UserDisplay] | type[User] = UserDisplay,
+        kind: type[UserDisplay | User] = UserDisplay,
     ):
         """Resolve user fields for the given items."""
         if not items:

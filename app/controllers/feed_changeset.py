@@ -13,9 +13,9 @@ from app.config import (
     CHANGESET_QUERY_MAX_LIMIT,
 )
 from app.format import FormatRSS06
-from app.lib.date_utils import utcnow
-from app.lib.geo_utils import parse_bbox
-from app.lib.translation import primary_translation_locale, t
+from app.lib.geo.utils import parse_bbox
+from app.lib.text.translation import primary_translation_locale, t
+from app.lib.time.date_utils import utcnow
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.types import UserId

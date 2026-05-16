@@ -2,13 +2,13 @@ from psycopg.rows import dict_row
 
 from app.config import RECOVERY_CODE_MAX_ATTEMPTS, RECOVERY_CODE_RATE_LIMIT_WINDOW
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.password_hash import PasswordLike
-from app.lib.recovery_code import generate_recovery_codes, verify_recovery_code
-from app.lib.translation import t
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.password_hash import PasswordLike
+from app.lib.auth.recovery_code import generate_recovery_codes, verify_recovery_code
+from app.lib.text.translation import t
 from app.models.db.user_recovery_code import UserRecoveryCode
 from app.models.types import UserId
-from app.services.audit_service import audit
 from app.services.rate_limit_service import RateLimitService
 from app.services.user_password_service import UserPasswordService
 

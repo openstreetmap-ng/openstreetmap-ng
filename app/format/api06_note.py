@@ -2,9 +2,9 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.config import API_URL, APP_URL
-from app.lib.date_utils import format_sql_date, legacy_date
-from app.lib.format_style_context import format_style
-from app.lib.render_jinja import render_jinja
+from app.lib.render.format_style_context import format_style
+from app.lib.render.jinja import render_jinja
+from app.lib.time.date_utils import format_sql_date, legacy_date
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment
 from speedup import CDATA

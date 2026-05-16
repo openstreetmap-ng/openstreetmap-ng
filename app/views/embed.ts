@@ -1,20 +1,20 @@
 import "./embed.scss"
 
-import { isLatitude, isLongitude } from "@lib/coords"
-import "@lib/i18n"
-import { configureMap } from "@lib/map/configure-map"
-import { configureDefaultMapBehavior } from "@lib/map/defaults"
+import { configureMap } from "@map/configure-map"
+import { configureDefaultMapBehavior } from "@map/defaults"
 import {
   addMapLayer,
   addMapLayerSources,
   DEFAULT_LAYER_ID,
   type LayerId,
   resolveLayerCodeOrId,
-} from "@lib/map/layers/layers"
-import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import { encodeMapState } from "@lib/map/state"
-import { qsParse } from "@lib/qs"
-import { throwAbortError } from "@lib/utils"
+} from "@map/layers/layers"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
+import { encodeMapState } from "@map/state"
+import { isLatitude, isLongitude } from "@utils/coords"
+import { throwAbortError } from "@utils/helpers"
+import "@utils/i18n"
+import { qsParse } from "@utils/qs"
 import { t } from "i18next"
 import { AttributionControl, Marker, NavigationControl } from "maplibre-gl"
 

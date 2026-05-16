@@ -1,10 +1,9 @@
-import { useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { boundsPadding } from "@lib/map/bounds"
-import { configureMap } from "@lib/map/configure-map"
-import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
-import { addControlGroup } from "@lib/map/controls/group"
-import { CustomZoomControl } from "@lib/map/controls/zoom"
-import { configureDefaultMapBehavior } from "@lib/map/defaults"
+import { boundsPadding } from "@map/bounds"
+import { configureMap } from "@map/configure-map"
+import { CustomGeolocateControl } from "@map/controls/geolocate"
+import { addControlGroup } from "@map/controls/group"
+import { CustomZoomControl } from "@map/controls/zoom"
+import { configureDefaultMapBehavior } from "@map/defaults"
 import {
   addMapLayer,
   addMapLayerSources,
@@ -12,8 +11,9 @@ import {
   emptyFeatureCollection,
   type LayerId,
   layersConfig,
-} from "@lib/map/layers/layers"
-import { polylineDecode } from "@lib/polyline"
+} from "@map/layers/layers"
+import { useDisposeLayoutEffect } from "@utils/dispose-scope"
+import { polylineDecode } from "@utils/polyline"
 import type { LineString } from "geojson"
 import { type GeoJSONSource, LngLatBounds, ScaleControl } from "maplibre-gl"
 import { useRef } from "preact/hooks"

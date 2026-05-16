@@ -9,7 +9,7 @@ from time import perf_counter
 import cairosvg
 from PIL.Image import open as open_image
 
-from app.lib.image import _save
+from app.lib.io.image import _save
 
 DEFAULT_SIZE = 128
 DEFAULT_QUALITY = 80

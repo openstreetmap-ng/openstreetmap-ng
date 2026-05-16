@@ -3,7 +3,7 @@ import math
 import pytest
 from shapely import MultiPolygon, Point, Polygon, box
 
-from app.lib.geo_utils import (
+from app.lib.geo.utils import (
     degrees_to_meters,
     haversine_distance,
     meters_to_degrees,

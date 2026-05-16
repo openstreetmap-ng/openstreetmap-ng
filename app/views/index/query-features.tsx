@@ -1,22 +1,22 @@
 import { SidebarHeader, SidebarResourceBody, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { queryParam } from "@lib/codecs"
-import { prefersReducedMotion } from "@lib/config"
-import { useDisposeEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
-import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
+import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
 import {
   emptyFeatureCollection,
   getExtendedLayerId,
   type LayerId,
   layersConfig,
-} from "@lib/map/layers/layers"
-import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLat, LonLatZoom } from "@lib/map/state"
-import type { NearbyMatchValid } from "@lib/proto/element_pb"
-import { Service } from "@lib/proto/query_features_pb"
-import { setPageTitle } from "@lib/title"
+} from "@map/layers/layers"
+import { convertRenderElementsData } from "@map/render-objects"
+import type { LonLat, LonLatZoom } from "@map/state"
 import { type ReadonlySignal, useComputed, useSignalEffect } from "@preact/signals"
+import type { NearbyMatchValid } from "@proto/element_pb"
+import { Service } from "@proto/query_features_pb"
+import { setPageTitle } from "@runtime/title"
 import { toTitleCase } from "@std/text/unstable-to-title-case"
+import { queryParam } from "@utils/codecs"
+import { prefersReducedMotion } from "@utils/config"
+import { useDisposeEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
 import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl"

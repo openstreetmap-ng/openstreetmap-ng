@@ -1,9 +1,9 @@
-import { config, EMAIL_MAX_LENGTH, EMAIL_MIN_LENGTH } from "@lib/config"
-import { mountProtoPage } from "@lib/proto-page"
-import { EmailPageSchema, Service } from "@lib/proto/settings_pb"
-import { StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@components/standard-form"
+import { EmailPageSchema, Service } from "@proto/settings_pb"
+import { config, EMAIL_MAX_LENGTH, EMAIL_MIN_LENGTH } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
-import { Nav } from "./_nav"
+import { Nav } from "./nav"
 
 mountProtoPage(EmailPageSchema, ({ email }) => (
   <>

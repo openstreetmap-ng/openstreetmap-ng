@@ -1,5 +1,7 @@
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
+import { Time } from "@components/datetime-inputs"
+import { ScopeList } from "@components/scope"
+import { StandardForm } from "@components/standard-form"
+import { useSignal } from "@preact/signals"
 import {
   AuthorizeRequestSchema,
   CodeChallengeMethod,
@@ -8,12 +10,10 @@ import {
   ResponseMode,
   ResponseType,
   Service,
-} from "@lib/proto/oauth2_authorize_pb"
-import type { LooseMessageInitShape } from "@lib/rpc"
-import { ScopeList } from "@lib/scope"
-import { StandardForm } from "@lib/standard-form"
-import { useSignal } from "@preact/signals"
-import { Time } from "@lib/datetime-inputs"
+} from "@proto/oauth2_authorize_pb"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
+import type { LooseMessageInitShape } from "@utils/rpc"
 import { t } from "i18next"
 
 const ConsentUI = ({ page, onOob }: { page: Page; onOob: (code: string) => void }) => {

@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from httpx import AsyncClient
 from pytest import MonkeyPatch
 
-from app.lib import auth_provider
+from app.lib.auth import provider
 from app.services.auth_provider_service import AuthProviderService
 
 
@@ -34,12 +34,12 @@ async def test_github_callback_token_exchange_error(
         })
 
     monkeypatch.setattr(AuthProviderService, 'validate_state', fake_validate_state)
-    monkeypatch.setattr(auth_provider.HTTP, 'request', fake_request)
+    monkeypatch.setattr(provider.HTTP, 'request', fake_request)
 
+    client.cookies.set('auth_provider_state', 'cookie-state')
     r = await client.get(
         '/oauth2/github/callback',
         params={'code': 'expired-code', 'state': 'state-hmac'},
-        cookies={'auth_provider_state': 'cookie-state'},
     )
     assert r.status_code == 400, r.text
     assert 'incorrect or expired' in r.text

@@ -5,9 +5,9 @@ from fastapi import APIRouter, Path
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.lib.auth_context import auth_user, web_user
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import t
+from app.lib.auth.context import auth_user, web_user
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.translation import t
 from app.models.db.user import User, user_proto
 from app.models.proto.trace_pb2 import IndexPage
 from app.models.types import TraceId

@@ -3,10 +3,10 @@ from typing import Annotated, assert_never
 
 from fastapi import APIRouter, Path, Query, Response, status
 
+from app.exceptions.context import raise_for
 from app.format import Format06
-from app.lib.auth_context import api_user
-from app.lib.exceptions_context import raise_for
-from app.lib.xml_body import xml_body
+from app.lib.auth.context import api_user
+from app.lib.io.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementId, TypedElementId

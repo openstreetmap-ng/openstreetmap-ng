@@ -6,7 +6,7 @@ from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import ENV
-from app.lib.ip import anonymize_ip
+from app.lib.http.ip import anonymize_ip
 
 _CTX = ContextVar[Request]('Request')
 _AUDIT_CTX = ContextVar[set[Task[None]]]('RequestAuditTasks')

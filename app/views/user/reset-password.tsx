@@ -1,8 +1,8 @@
-import { PASSWORD_MIN_LENGTH } from "@lib/config"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema, Service } from "@lib/proto/reset_password_pb"
-import { StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@components/standard-form"
+import { PageSchema, Service } from "@proto/reset_password_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
+import { PASSWORD_MIN_LENGTH } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 
 const RequestForm = ({ prefilledEmail }: { prefilledEmail?: string | undefined }) => (

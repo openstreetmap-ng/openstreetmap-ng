@@ -6,7 +6,7 @@ from app.config import (
     CHANGESET_NEW_BBOX_MIN_DISTANCE,
     CHANGESET_NEW_BBOX_MIN_RATIO,
 )
-from app.lib.changeset_bounds import extend_changeset_bounds
+from app.lib.geo.changeset_bounds import extend_changeset_bounds
 
 
 def test_creates_single_bbox_for_first_point():

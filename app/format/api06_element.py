@@ -4,9 +4,9 @@ import cython
 import numpy as np
 from shapely import Point, get_coordinates, points
 
-from app.lib.date_utils import legacy_date
-from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_is_json
+from app.exceptions.context import raise_for
+from app.lib.render.format_style_context import format_is_json
+from app.lib.time.date_utils import legacy_date
 from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import TypedElementId
 from app.models.proto.shared_types import ElementType

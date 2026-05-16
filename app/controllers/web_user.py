@@ -5,10 +5,10 @@ from pydantic import SecretStr
 from starlette import status
 from starlette.responses import RedirectResponse
 
-from app.lib.auth_context import web_user
-from app.lib.cookie import delete_auth_cookie
-from app.lib.referrer import redirect_referrer
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth.context import web_user
+from app.lib.auth.cookie import delete_auth_cookie
+from app.lib.auth.user_token_struct import UserTokenStructUtils
+from app.lib.http.referrer import redirect_referrer
 from app.models.db.user import User
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.user_token_email_service import UserTokenEmailService

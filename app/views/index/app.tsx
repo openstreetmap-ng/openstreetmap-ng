@@ -1,16 +1,19 @@
+import {
+  openRemoteEdit,
+  parseRemoteEditTargetFromQueryParams,
+} from "@index/remote-edit"
 import { routerRoute } from "@index/router"
 import { IndexRouterOutlet } from "@index/router-outlet"
 import { SearchForm } from "@index/search-form"
-import { RightSidebarOutlet } from "@index/sidebar/sidebar-outlet"
-import { useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { MapAlertPanel, MapAlerts, pushMapAlert } from "@lib/map/alerts"
-import { initMainMap, mainMap, rightSidebar } from "@lib/map/main-map"
-import { qsParseAll } from "@lib/qs"
-import { openRemoteEdit, parseRemoteEditTargetFromQueryParams } from "@lib/remote-edit"
+import { RightSidebarOutlet } from "@index/sidebar"
+import { MapAlertPanel, MapAlerts, pushMapAlert } from "@map/alerts"
+import { initMainMap, mainMap, rightSidebar } from "@map/main-map"
+import { useDisposeLayoutEffect } from "@utils/dispose-scope"
+import { qsParseAll } from "@utils/qs"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 import { collapseNavbar } from "../navbar/navbar"
-import { updateNavbarAndHash } from "../navbar/navbar-left"
+import { updateNavbarAndHash } from "../navbar/navbar-left-state"
 
 const IndexPage = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)

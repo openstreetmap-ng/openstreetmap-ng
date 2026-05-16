@@ -5,8 +5,8 @@ from polyline_rs import encode_lonlat
 from shapely import Point, get_coordinates
 from shapely.geometry.base import BaseGeometry
 
-from app.lib.elements_filter import ElementsFilter
-from app.lib.query_features import QueryFeatureResult
+from app.lib.text.elements_filter import ElementsFilter
+from app.lib.text.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from app.models.proto.element_pb2 import RenderData

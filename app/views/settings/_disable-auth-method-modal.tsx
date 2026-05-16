@@ -1,13 +1,13 @@
-import { config } from "@lib/config"
-import { useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { type PasskeyValid, Service } from "@lib/proto/settings_security_pb"
-import { StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@components/standard-form"
 import type { Signal } from "@preact/signals"
+import { type PasskeyValid, Service } from "@proto/settings_security_pb"
+import { config } from "@utils/config"
+import { useDisposeLayoutEffect } from "@utils/dispose-scope"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import { useId, useRef } from "preact/hooks"
 
-export const DISABLE_AUTH_METHOD_MODAL_ID = "SettingsSecurityDisableAuthMethodModal"
+export const DISABLE_AUTH_METHOD_MODAL_ID = "DisableAuthMethodModal"
 
 /**
  * Discriminator for which auth method the modal is targeting:

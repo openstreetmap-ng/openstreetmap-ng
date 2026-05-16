@@ -1,4 +1,4 @@
-import type { MapLibreEvent } from "maplibre-gl"
+import "maplibre-gl"
 
 declare module "maplibre-gl" {
   interface MapEventType {

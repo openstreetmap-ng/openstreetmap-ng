@@ -1,8 +1,8 @@
 import cython
 
-from app.lib.date_utils import legacy_date
-from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import get_xattr
+from app.lib.io.xmltodict import get_xattr
+from app.lib.render.format_style_context import format_is_json
+from app.lib.time.date_utils import legacy_date
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 
