@@ -24,5 +24,5 @@ class Report(ReportInit):
 
     # runtime
     num_comments: NotRequired[int]
-    comments: NotRequired[list['ReportComment']]
+    comments: NotRequired[list[ReportComment]]
     reported_user: NotRequired[UserDisplay]

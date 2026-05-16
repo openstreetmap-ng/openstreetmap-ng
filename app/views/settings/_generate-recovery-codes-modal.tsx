@@ -1,14 +1,13 @@
-import { config } from "@lib/config"
-import { CopyButton } from "@lib/copy-group"
-import { useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { type RecoveryStatusValid, Service } from "@lib/proto/settings_security_pb"
-import { StandardForm } from "@lib/standard-form"
+import { CopyButton } from "@components/copy-group"
+import { StandardForm } from "@components/standard-form"
 import { batch, type Signal, useSignal } from "@preact/signals"
+import { type RecoveryStatusValid, Service } from "@proto/settings_security_pb"
+import { config } from "@utils/config"
+import { useDisposeLayoutEffect } from "@utils/dispose-scope"
 import { t } from "i18next"
 import { useId, useRef } from "preact/hooks"
 
-export const GENERATE_RECOVERY_CODES_MODAL_ID =
-  "SettingsSecurityGenerateRecoveryCodesModal"
+export const GENERATE_RECOVERY_CODES_MODAL_ID = "GenerateRecoveryCodesModal"
 
 export const GenerateRecoveryCodesModal = ({
   recoveryCodesStatus,

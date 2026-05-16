@@ -4,7 +4,7 @@ from typing import Literal, overload
 from psycopg.rows import dict_row
 
 from app.db import db
-from app.lib.crypto import hash_compare
+from app.lib.auth.crypto import hash_compare
 from app.models.db.user_token import (
     USER_TOKEN_EXPIRE,
     UserToken,

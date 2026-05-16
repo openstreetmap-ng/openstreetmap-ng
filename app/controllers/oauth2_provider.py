@@ -4,8 +4,8 @@ from fastapi import APIRouter, Cookie, Form, HTTPException, Query
 from pydantic import SecretStr
 from starlette import status
 
-from app.lib.auth_provider import resolve_code_identity, resolve_id_token_identity
-from app.lib.render_response import render_response
+from app.lib.auth.provider import resolve_code_identity, resolve_id_token_identity
+from app.lib.render.response import render_response
 from app.models.proto.settings_connections_types import Provider
 from app.services.auth_provider_service import AuthProviderService
 

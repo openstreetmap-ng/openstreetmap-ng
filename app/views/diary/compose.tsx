@@ -1,35 +1,31 @@
+import { StandardForm } from "@components/standard-form"
+import { configureMap } from "@map/configure-map"
+import { CustomGeolocateControl } from "@map/controls/geolocate"
+import { addControlGroup } from "@map/controls/group"
+import { CustomZoomControl } from "@map/controls/zoom"
+import { configureDefaultMapBehavior } from "@map/defaults"
+import { addMapLayer, addMapLayerSources, DEFAULT_LAYER_ID } from "@map/layers/layers"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
+import { getInitialMapState, type LonLatZoom } from "@map/state"
+import { useSignal } from "@preact/signals"
+import { ComposePageSchema, Service } from "@proto/diary_pb"
+import { assertExists } from "@std/assert"
+import { throttle } from "@std/async/unstable-throttle"
 import {
   config,
   DIARY_BODY_MAX_LENGTH,
   DIARY_TITLE_MAX_LENGTH,
   primaryLanguage,
-} from "@lib/config"
-import { tryParseLonLat, zoomPrecision } from "@lib/coords"
-import { useDisposeEffect, useDisposeLayoutEffect } from "@lib/dispose-scope"
-import { getLocaleDisplayName, LOCALE_OPTIONS } from "@lib/locale"
-import { configureMap } from "@lib/map/configure-map"
-import { CustomGeolocateControl } from "@lib/map/controls/geolocate"
-import { addControlGroup } from "@lib/map/controls/group"
-import { CustomZoomControl } from "@lib/map/controls/zoom"
-import { configureDefaultMapBehavior } from "@lib/map/defaults"
-import {
-  addMapLayer,
-  addMapLayerSources,
-  DEFAULT_LAYER_ID,
-} from "@lib/map/layers/layers"
-import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
-import { getInitialMapState, type LonLatZoom } from "@lib/map/state"
-import { mountProtoPage } from "@lib/proto-page"
-import { ComposePageSchema, Service } from "@lib/proto/diary_pb"
-import { StandardForm } from "@lib/standard-form"
-import { useSignal } from "@preact/signals"
-import { assertExists } from "@std/assert"
-import { throttle } from "@std/async/unstable-throttle"
+} from "@utils/config"
+import { tryParseLonLat, zoomPrecision } from "@utils/coords"
+import { useDisposeEffect, useDisposeLayoutEffect } from "@utils/dispose-scope"
+import { getLocaleDisplayName, LOCALE_OPTIONS } from "@utils/locale"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import type { LngLat, LngLatLike } from "maplibre-gl"
 import { Map as MaplibreMap, Marker } from "maplibre-gl"
 import { useRef } from "preact/hooks"
-import { RichTextControl } from "../rich-text/_control"
+import { RichTextControl } from "../rich-text/control"
 
 mountProtoPage(ComposePageSchema, ({ diaryId, title, body, language, location }) => {
   const isNew = diaryId === undefined

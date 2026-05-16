@@ -4,7 +4,7 @@ from inspect import unwrap
 
 import pytest
 
-from app.lib.retry import retry
+from app.lib.http.retry import retry
 
 
 @pytest.mark.extended

@@ -4,8 +4,8 @@ from typing import override
 from connectrpc.request import RequestContext
 
 from app.config import COOKIE_AUTH_MAX_AGE
-from app.lib.auth_context import auth_user
-from app.lib.cookie import set_auth_cookie
+from app.lib.auth.context import auth_user
+from app.lib.auth.cookie import set_auth_cookie
 from app.models.proto.auth_connect import (
     Service,
     ServiceASGIApplication,
@@ -18,10 +18,10 @@ from app.models.proto.auth_pb2 import (
     PasskeyChallenge,
 )
 from app.queries.user_query import UserQuery
+from app.services.auth_service import AuthService
 from app.services.user_passkey_challenge_service import UserPasskeyChallengeService
 from app.services.user_passkey_service import UserPasskeyService
 from app.services.user_password_service import UserPasswordService
-from app.services.user_service import UserService
 from app.validators.unicode import normalize_display_name
 
 
@@ -29,7 +29,7 @@ class _Service(Service):
     @override
     async def login(self, request: LoginRequest, ctx: RequestContext):
         credentials = request.credentials if request.HasField('credentials') else None
-        result = await UserService.login(
+        result = await AuthService.login(
             display_name_or_email=(
                 normalize_display_name(credentials.display_name_or_email)
                 if credentials is not None

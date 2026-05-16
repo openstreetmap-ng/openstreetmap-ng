@@ -21,8 +21,8 @@ from pydantic import (
     SecretStr,
 )
 
-from app.lib.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
-from app.lib.pydantic_settings_integration import pydantic_settings_integration
+from app.lib.pydantic_settings import register
+from app.lib.text.local_chapters import LOCAL_CHAPTERS as _LOCAL_CHAPTERS
 from app.models.proto import (
     audit_types,
     changeset_pb2,
@@ -124,7 +124,6 @@ OSM_REPLICATION_URL = (
 )
 OSM_OLD_REPLICATION_URL = 'https://planet.openstreetmap.org'
 OSRM_URL = 'https://router.project-osrm.org'
-OVERPASS_INTERPRETER_URL = 'https://overpass-api.de/api/interpreter'
 VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
 # API and HTTP settings
@@ -445,7 +444,6 @@ NOMINATIM_REVERSE_CACHE_EXPIRE = timedelta(days=7)
 NOMINATIM_REVERSE_HTTP_TIMEOUT = timedelta(seconds=10)
 NOMINATIM_SEARCH_CACHE_EXPIRE = timedelta(hours=1)
 NOMINATIM_SEARCH_HTTP_TIMEOUT = timedelta(seconds=30)
-OVERPASS_CACHE_EXPIRE = timedelta(minutes=10)
 S3_CACHE_EXPIRE = timedelta(days=1)
 
 # Content caches
@@ -459,7 +457,7 @@ STATIC_CACHE_MAX_AGE = timedelta(days=30)
 STATIC_CACHE_STALE = timedelta(days=30)
 STATIC_PRECOMPRESSED_CACHE_MAX_ENTRIES = 1024
 
-pydantic_settings_integration(__name__, globals())
+register(__name__, globals())
 
 # -------------------- Constant or derived configuration --------------------
 
@@ -612,7 +610,7 @@ dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            '()': 'app.lib.logging_formatter.ConsoleFormatter',
+            '()': 'app.lib.telemetry.logging_formatter.ConsoleFormatter',
             'format': '%(levelname)s | %(asctime)s | %(name)s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'stream': 'ext://sys.stderr',

@@ -1,11 +1,11 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.exceptions import Exceptions
-from app.exceptions06 import Exceptions06
-from app.lib.auth_context import auth_context
-from app.lib.exceptions_context import exceptions_context
-from app.lib.format_style_context import format_style_context
-from app.lib.translation import translation_context
+from app.exceptions.api06 import Exceptions06
+from app.exceptions.context import exceptions_context
+from app.lib.auth.context import auth_context
+from app.lib.render import format_style
+from app.lib.text.translation import translation_context
 from app.services.auth_service import AuthService
 
 _EXCEPTIONS = Exceptions()
@@ -38,6 +38,6 @@ class ContextMiddleware:
             ),
             auth_context(*await AuthService.authenticate_request()),
             translation_context(None),
-            format_style_context(),
+            format_style.style_context(),
         ):
             return await self.app(scope, receive, send)

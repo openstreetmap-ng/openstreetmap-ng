@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from shapely import Point, points
 
-from app.lib.compressible_geometry import (
+from app.lib.geo.compressible_geometry import (
     compressible_geometry,
     point_to_compressible_wkb,
 )

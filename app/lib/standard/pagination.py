@@ -1,0 +1,680 @@
+from base64 import urlsafe_b64encode
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from string.templatelib import Template
+from typing import (
+    Annotated,
+    Any,
+    Literal,
+    LiteralString,
+    NamedTuple,
+    TypeAlias,
+    TypeVar,
+    assert_never,
+)
+
+import cython
+from fastapi import Body
+from protovalidate import collect_violations
+from psycopg import AsyncConnection
+from psycopg.rows import dict_row
+from psycopg.sql import SQL, Composable, Identifier
+from starlette.responses import Response
+
+from app.config import (
+    STANDARD_PAGINATION_COUNT_MAX_PAGES,
+    STANDARD_PAGINATION_DISTANCE,
+    STANDARD_PAGINATION_MAX_FULL_PAGES,
+)
+from app.db import db
+from app.lib.render.response import render_response
+from app.models.proto.shared_pb2 import (
+    StandardPaginationRequest,
+    StandardPaginationState,
+)
+
+
+class _SpCursorCodec(NamedTuple):
+    encode: Callable[[Any], int | str]
+    decode: Callable[[Any], Any]
+    empty: int | str
+    storage: Literal['u64', 'text']
+
+
+class _StandardPaginationQueryPlan(NamedTuple):
+    order_dir: _OrderDir
+    limit: int
+    offset: int = 0
+    anchor: tuple[Any, int] | None = None
+    anchor_op: Literal['<', '>'] | None = None
+
+
+StandardPaginationRequestLike: TypeAlias = bytes | StandardPaginationRequest
+StandardPaginationRequestBody: TypeAlias = Annotated[
+    bytes, Body(media_type='application/x-protobuf')
+]
+
+_OrderDir: TypeAlias = Literal['asc', 'desc']
+_CursorKind: TypeAlias = Literal['id', 'datetime', 'text']
+
+_EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
+
+T = TypeVar('T')
+
+
+async def sp_render_response(
+    template: str,
+    context: dict[str, Any],
+    state: StandardPaginationState,
+):
+    """
+    Render an HTML response and attach the updated StandardPaginationState.
+
+    Keeping this helper in `standard_pagination` makes it hard to forget the header.
+    """
+    response = await render_response(template, context)
+    response.headers['X-StandardPagination'] = (
+        urlsafe_b64encode(state.SerializeToString()).rstrip(b'=').decode()
+    )
+    return response
+
+
+def sp_render_response_bytes(
+    body: bytes,
+    state: StandardPaginationState,
+    *,
+    media_type: str = 'application/x-protobuf',
+):
+    """Render a binary response and attach the updated StandardPaginationState."""
+    response = Response(body, media_type=media_type)
+    response.headers['X-StandardPagination'] = (
+        urlsafe_b64encode(state.SerializeToString()).rstrip(b'=').decode()
+    )
+    return response
+
+
+def _dt_to_us(value: datetime):
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    delta = value.astimezone(UTC) - _EPOCH
+    return (delta.days * 86_400 + delta.seconds) * 1_000_000 + delta.microseconds
+
+
+def _us_to_dt(value: int):
+    return _EPOCH + timedelta(microseconds=value)
+
+
+def _standard_pagination_request(sp_state: StandardPaginationRequestLike):
+    if isinstance(sp_state, bytes):
+        if not sp_state:
+            return None
+        req = StandardPaginationRequest.FromString(sp_state)
+        violations = collect_violations(req)
+        assert not violations, violations[0].proto.message
+        return req
+
+    return sp_state
+
+
+def sp_num_pages(*, num_items: cython.size_t, page_size: cython.size_t):
+    """
+    Compute total pages from num_items/page_size.
+    Reports at least 1 page (even for empty lists).
+    """
+    return max(1, _ceil_div(num_items, page_size))
+
+
+async def sp_paginate_table(
+    row_type: type[T],
+    sp_state: StandardPaginationRequestLike,
+    /,
+    *,
+    table: LiteralString,
+    where: Composable | Template = SQL('TRUE'),
+    page_size: int,
+    cursor_column: LiteralString = 'id',
+    id_column: LiteralString = 'id',
+    cursor_kind: _CursorKind = 'id',
+    order_dir: _OrderDir = 'desc',
+    display_dir: _OrderDir | None = None,
+    distance: int = STANDARD_PAGINATION_DISTANCE,
+):
+    """
+    StandardPagination for a single table.
+
+    This is the standard entrypoint for most endpoints that paginate a table by
+    some cursor column (e.g. `created_at`, `updated_at`, `display_name`) with a
+    stable snapshot that prevents newly inserted rows from reshuffling results.
+
+    `where` carries its own parameter values inline (use t-string composition).
+    """
+    table_id = Identifier(table)
+    return await sp_paginate_query(
+        row_type,
+        sp_state,
+        select=SQL('*'),
+        from_=t'{table_id:i}',
+        where=where,
+        cursor_key=cursor_column,
+        id_key=id_column,
+        page_size=page_size,
+        cursor_kind=cursor_kind,
+        order_dir=order_dir,
+        display_dir=display_dir,
+        distance=distance,
+    )
+
+
+async def sp_paginate_query(
+    _row_type: type[T],
+    sp_state: StandardPaginationRequestLike,
+    /,
+    *,
+    select: Composable,
+    from_: Composable | Template,
+    where: Composable | Template = SQL('TRUE'),
+    cursor_key: LiteralString,
+    id_key: LiteralString,
+    page_size: int,
+    cursor_sql: Identifier | None = None,
+    id_sql: Identifier | None = None,
+    cursor_kind: _CursorKind = 'id',
+    order_dir: _OrderDir = 'desc',
+    display_dir: _OrderDir | None = None,
+    distance: int = STANDARD_PAGINATION_DISTANCE,
+) -> tuple[list[T], StandardPaginationState]:
+    """StandardPagination over an arbitrary FROM clause, ordered by (cursor_sql, id_sql)."""
+    if cursor_sql is None:
+        cursor_sql = Identifier(cursor_key)
+    if id_sql is None:
+        id_sql = Identifier(id_key)
+
+    if req := _standard_pagination_request(sp_state):
+        state = req.state if req.HasField('state') else None
+        requested_page = req.requested_page if req.HasField('requested_page') else None
+    else:
+        state = None
+        requested_page = None
+
+    cursor_codec = _cursor_codec(cursor_kind)
+    expected_variant = cursor_codec.storage
+    assert state is None or state.WhichOneof('cursors') == expected_variant, (
+        'Invalid state cursor type'
+    )
+
+    async with db() as conn:
+        if state is None:
+            snapshot_cursor_raw, snapshot_max_id = await _snapshot(
+                conn,
+                from_=from_,
+                where=where,
+                cursor_sql=cursor_sql,
+                id_sql=id_sql,
+            )
+
+            if snapshot_max_id:
+                encoded_snapshot_cursor = cursor_codec.encode(snapshot_cursor_raw)
+            else:
+                encoded_snapshot_cursor = cursor_codec.empty
+                snapshot_cursor_raw = cursor_codec.decode(encoded_snapshot_cursor)
+
+            state = StandardPaginationState(
+                current_page=1,
+                page_size=page_size,
+                snapshot_max_id=snapshot_max_id,
+                max_discovered_page=1,
+            )
+            if cursor_codec.storage == 'u64':
+                state.u64.snapshot = encoded_snapshot_cursor  # type: ignore
+            else:
+                state.text.snapshot = encoded_snapshot_cursor  # type: ignore
+
+            count_limit = _sp_count_limit(page_size=page_size)
+            num_items_limited = await _count_limited(
+                conn,
+                from_=from_,
+                where=where,
+                cursor_sql=cursor_sql,
+                id_sql=id_sql,
+                snapshot=(snapshot_cursor_raw, snapshot_max_id),
+                limit=count_limit,
+            )
+
+            if num_items_limited < count_limit:
+                # Dataset is small enough to know total pages/items
+                state.known_total.num_items = num_items_limited
+                state.known_total.num_pages = sp_num_pages(
+                    num_items=num_items_limited, page_size=page_size
+                )
+
+        else:
+            assert state.page_size == page_size, 'Invalid state page size'
+
+        if requested_page is None:
+            requested_page = state.current_page
+
+        snapshot_max_id = state.snapshot_max_id
+        snapshot_cursor_value = cursor_codec.decode(
+            state.u64.snapshot if cursor_codec.storage == 'u64' else state.text.snapshot
+        )
+
+        plan = _plan(
+            state,
+            requested_page=requested_page,
+            cursor_codec=cursor_codec,
+            order_dir=order_dir,
+            distance=distance,
+        )
+
+        items = await _select_page(
+            conn,
+            select=select,
+            from_=from_,
+            where=where,
+            cursor_sql=cursor_sql,
+            id_sql=id_sql,
+            snapshot=(snapshot_cursor_value, snapshot_max_id),
+            plan=plan,
+        )
+
+        # Normalize rows to the primary order
+        if plan.order_dir != order_dir:
+            items.reverse()
+
+        state.current_page = requested_page
+
+        if items:
+            first = items[0]
+            last = items[-1]
+            state.page_first_id = first[id_key]
+            state.page_last_id = last[id_key]
+            encoded_first = cursor_codec.encode(first[cursor_key])
+            encoded_last = cursor_codec.encode(last[cursor_key])
+            if cursor_codec.storage == 'u64':
+                state.u64.page_first = encoded_first  # type: ignore
+                state.u64.page_last = encoded_last  # type: ignore
+            else:
+                state.text.page_first = encoded_first  # type: ignore
+                state.text.page_last = encoded_last  # type: ignore
+        else:
+            state.ClearField('page_first_id')
+            state.ClearField('page_last_id')
+            if cursor_codec.storage == 'u64':
+                state.u64.ClearField('page_first')
+                state.u64.ClearField('page_last')
+            else:
+                state.text.ClearField('page_first')
+                state.text.ClearField('page_last')
+
+        if not state.HasField('known_total') and items:
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_last')
+                boundary_cursor_encoded = state.u64.page_last
+            else:
+                assert state.text.HasField('page_last')
+                boundary_cursor_encoded = state.text.page_last
+
+            assert state.HasField('page_last_id')
+            remaining_items_limited = await _count_beyond_limited(
+                conn,
+                from_=from_,
+                where=where,
+                cursor_sql=cursor_sql,
+                id_sql=id_sql,
+                snapshot=(snapshot_cursor_value, snapshot_max_id),
+                boundary=(
+                    cursor_codec.decode(boundary_cursor_encoded),
+                    state.page_last_id,
+                ),
+                boundary_op='<' if order_dir == 'desc' else '>',
+                limit=_sp_lookahead_limit(page_size=page_size, distance=distance),
+            )
+            _update_discovery(
+                state,
+                current_page_items=len(items),
+                remaining=remaining_items_limited,
+                distance=distance,
+            )
+
+    if display_dir is not None and display_dir != order_dir:
+        items.reverse()
+
+    state.DiscardUnknownFields()  # type: ignore
+    return items, state  # type: ignore
+
+
+def _cursor_codec(kind: _CursorKind):
+    if kind == 'id':
+        return _SpCursorCodec(
+            encode=lambda value: value,
+            decode=lambda value: value,
+            empty=0,
+            storage='u64',
+        )
+    if kind == 'datetime':
+        return _SpCursorCodec(
+            encode=_dt_to_us,
+            decode=_us_to_dt,
+            empty=0,
+            storage='u64',
+        )
+    if kind == 'text':
+        return _SpCursorCodec(
+            encode=str,
+            decode=str,
+            empty='',
+            storage='text',
+        )
+    assert_never(kind)
+
+
+async def _snapshot(
+    conn: AsyncConnection,
+    *,
+    from_: Composable | Template,
+    where: Composable | Template,
+    cursor_sql: Composable,
+    id_sql: Composable,
+) -> tuple[Any | None, int]:
+    """
+    Return snapshot bounds:
+    - snapshot_cursor: MAX(cursor_sql) (may be NULL for empty sets)
+    - snapshot_max_id: MAX(id_sql) (0 for empty sets)
+    """
+    async with await conn.execute(t"""
+        SELECT MAX({cursor_sql:i}), COALESCE(MAX({id_sql:i}), 0)
+        FROM {from_:q}
+        WHERE {where:q}
+    """) as r:
+        return await r.fetchone()  # type: ignore
+
+
+def _plan(
+    state: StandardPaginationState,
+    /,
+    *,
+    requested_page: int,
+    cursor_codec: _SpCursorCodec,
+    order_dir: _OrderDir,
+    distance: int,
+):
+    """
+    Plan a query for a (cursor, id)-ordered collection inside a stable snapshot.
+
+    Page numbering is 1-based in `order_dir` (page 1 is OFFSET 0).
+
+    This prefers:
+    - page 1 via OFFSET 0
+    - last page (when known) via reverse order + OFFSET 0
+    - small jumps around current page using keyset anchors + small OFFSET
+    - otherwise fall back to OFFSET from the closest end (when last page known)
+    """
+    page = requested_page
+    page_size = state.page_size
+    reverse_dir = _reverse_dir(order_dir)
+
+    if page == 1:
+        # Jump to first page directly
+        return _StandardPaginationQueryPlan(order_dir=order_dir, limit=page_size)
+
+    known_total = state.known_total if state.HasField('known_total') else None
+    num_pages = known_total.num_pages if known_total else None
+
+    if page == num_pages:
+        # Jump to last page directly
+        assert known_total is not None
+        limit = (known_total.num_items % page_size) or page_size
+        return _StandardPaginationQueryPlan(order_dir=reverse_dir, limit=limit)
+
+    current_page = state.current_page
+    page_first_id = state.page_first_id if state.HasField('page_first_id') else None
+    page_last_id = state.page_last_id if state.HasField('page_last_id') else None
+
+    if page_first_id is not None and page_last_id is not None:
+        # Cheap nearby navigation (<= distance) using cursor anchors + small OFFSET
+        delta = page - current_page
+
+        if delta > 0 and delta <= distance:
+            anchor_id = page_last_id
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_last')
+                anchor_cursor = cursor_codec.decode(state.u64.page_last)
+            else:
+                assert state.text.HasField('page_last')
+                anchor_cursor = cursor_codec.decode(state.text.page_last)
+            return _StandardPaginationQueryPlan(
+                order_dir=order_dir,
+                limit=page_size,
+                offset=(delta - 1) * page_size,
+                anchor=(anchor_cursor, anchor_id),
+                anchor_op='<' if order_dir == 'desc' else '>',
+            )
+
+        if delta < 0 and -delta <= distance:
+            anchor_id = page_first_id
+            if cursor_codec.storage == 'u64':
+                assert state.u64.HasField('page_first')
+                anchor_cursor = cursor_codec.decode(state.u64.page_first)
+            else:
+                assert state.text.HasField('page_first')
+                anchor_cursor = cursor_codec.decode(state.text.page_first)
+            return _StandardPaginationQueryPlan(
+                order_dir=reverse_dir,
+                limit=page_size,
+                offset=(-delta - 1) * page_size,
+                anchor=(anchor_cursor, anchor_id),
+                anchor_op='>' if order_dir == 'desc' else '<',
+            )
+
+    if known_total is None:
+        # Total is still unknown, so we can only offset from the start.
+        return _StandardPaginationQueryPlan(
+            order_dir=order_dir,
+            limit=page_size,
+            offset=(page - 1) * page_size,
+        )
+
+    # Use OFFSET from one of the ends
+    assert num_pages is not None
+    assert 1 <= num_pages <= STANDARD_PAGINATION_MAX_FULL_PAGES
+    offset_from_start = (page - 1) * page_size
+    offset_from_end = max(0, known_total.num_items - page * page_size)
+
+    return (
+        _StandardPaginationQueryPlan(
+            order_dir=order_dir,
+            limit=page_size,
+            offset=offset_from_start,
+        )
+        if offset_from_start <= offset_from_end
+        else _StandardPaginationQueryPlan(
+            order_dir=reverse_dir,
+            limit=page_size,
+            offset=offset_from_end,
+        )
+    )
+
+
+async def _select_page(
+    conn: AsyncConnection,
+    *,
+    select: Composable,
+    from_: Composable | Template,
+    where: Composable | Template,
+    cursor_sql: Composable,
+    id_sql: Composable,
+    snapshot: tuple[Any, int],
+    plan: _StandardPaginationQueryPlan,
+) -> list[dict]:
+    snapshot_cursor, snapshot_max_id = snapshot
+    if snapshot_max_id <= 0:
+        return []
+
+    if plan.anchor is not None:
+        assert plan.anchor_op is not None
+        anchor_op = SQL(plan.anchor_op)
+        anchor_cursor, anchor_id = plan.anchor
+        anchor_clause: Template | Composable = t"""
+            AND ({cursor_sql:i}, {id_sql:i}) {anchor_op:q} ({anchor_cursor}, {anchor_id})
+        """
+    else:
+        anchor_clause = SQL('')
+
+    order = _order_dir_sql(plan.order_dir)
+    offset = plan.offset
+    limit = plan.limit
+
+    async with (
+        await conn.cursor(row_factory=dict_row).execute(t"""
+            SELECT {select:q} FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+              {anchor_clause:q}
+            ORDER BY {cursor_sql:i} {order:q}, {id_sql:i} {order:q}
+            OFFSET {offset} LIMIT {limit}
+        """) as r,
+    ):
+        return await r.fetchall()
+
+
+async def _count_limited(
+    conn: AsyncConnection,
+    *,
+    from_: Composable | Template,
+    where: Composable | Template,
+    cursor_sql: Composable,
+    id_sql: Composable,
+    snapshot: tuple[Any, int],
+    limit: int,
+) -> int:
+    """Count rows inside the snapshot, capped by `limit`."""
+    snapshot_cursor, snapshot_max_id = snapshot
+    if snapshot_max_id <= 0:
+        return 0
+
+    async with await conn.execute(t"""
+        SELECT COUNT(*) FROM (
+            SELECT 1 FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+            LIMIT {limit}
+        ) AS subquery
+    """) as r:
+        return (await r.fetchone())[0]  # type: ignore
+
+
+async def _count_beyond_limited(
+    conn: AsyncConnection,
+    *,
+    from_: Composable | Template,
+    where: Composable | Template,
+    cursor_sql: Composable,
+    id_sql: Composable,
+    snapshot: tuple[Any, int],
+    boundary: tuple[Any, int],
+    boundary_op: Literal['<', '>'],
+    limit: int,
+) -> int:
+    """
+    Count rows beyond the page boundary inside the snapshot, capped by `limit`.
+    `boundary_op` defines the direction: use '<' or '>' against `boundary`.
+    """
+    snapshot_cursor, snapshot_max_id = snapshot
+    if snapshot_max_id <= 0:
+        return 0
+
+    boundary_cursor, boundary_id = boundary
+    op = SQL(boundary_op)
+    async with await conn.execute(t"""
+        SELECT COUNT(*) FROM (
+            SELECT 1 FROM {from_:q}
+            WHERE {where:q}
+              AND {id_sql:i} <= {snapshot_max_id}
+              AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
+              AND ({cursor_sql:i}, {id_sql:i}) {op:q} ({boundary_cursor}, {boundary_id})
+            LIMIT {limit}
+        ) AS subquery
+    """) as r:
+        return (await r.fetchone())[0]  # type: ignore
+
+
+def _update_discovery(
+    state: StandardPaginationState,
+    /,
+    *,
+    current_page_items: int,
+    remaining: int,
+    distance: cython.size_t = STANDARD_PAGINATION_DISTANCE,
+):
+    """
+    Update discovery fields (`max_discovered_page`, and optionally exact totals)
+    based on a limited count of remaining items beyond the current page.
+    """
+    if state.HasField('known_total'):
+        return
+
+    page_size = state.page_size
+    current_page = state.current_page
+    # End is at current page
+    if remaining == 0:
+        state.known_total.num_pages = current_page
+        state.known_total.num_items = (
+            current_page - 1
+        ) * page_size + current_page_items
+        return
+
+    # End is within lookahead distance (exact)
+    if remaining < _sp_lookahead_limit(page_size=page_size, distance=distance):
+        additional_pages = _ceil_div(remaining, page_size)
+        last_page = current_page + additional_pages
+        last_page_size = (remaining % page_size) or page_size
+
+        state.known_total.num_pages = last_page
+        state.known_total.num_items = (last_page - 1) * page_size + last_page_size
+        return
+
+    # End is beyond lookahead distance
+    state.max_discovered_page = max(state.max_discovered_page, current_page + distance)
+
+
+@cython.cfunc
+def _sp_count_limit(
+    *,
+    page_size: cython.size_t,
+    STANDARD_PAGINATION_COUNT_MAX_PAGES: cython.size_t = STANDARD_PAGINATION_COUNT_MAX_PAGES,
+) -> cython.size_t:
+    """Cap COUNT(*) to (N pages * page_size) + 1 rows."""
+    return STANDARD_PAGINATION_COUNT_MAX_PAGES * page_size + 1
+
+
+@cython.cfunc
+def _sp_lookahead_limit(
+    *, page_size: cython.size_t, distance: cython.size_t
+) -> cython.size_t:
+    """Probe at most (distance pages * page_size) + 1 rows beyond the current page."""
+    return distance * page_size + 1
+
+
+@cython.cfunc
+def _ceil_div(a: cython.size_t, b: cython.size_t) -> cython.size_t:
+    return (a + b - 1) // b
+
+
+@cython.cfunc
+def _reverse_dir(value: _OrderDir):
+    if value == 'asc':
+        return 'desc'
+    if value == 'desc':
+        return 'asc'
+    assert_never(value)
+
+
+@cython.cfunc
+def _order_dir_sql(value: _OrderDir, *, _ASC=SQL('ASC'), _DESC=SQL('DESC')):
+    if value == 'asc':
+        return _ASC
+    if value == 'desc':
+        return _DESC
+    assert_never(value)

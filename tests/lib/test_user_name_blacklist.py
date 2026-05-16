@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.user_name_blacklist import is_user_name_blacklisted
+from app.lib.text.user_name_blacklist import is_user_name_blacklisted
 
 
 @pytest.mark.parametrize(

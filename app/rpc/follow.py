@@ -2,8 +2,8 @@ from typing import override
 
 from connectrpc.request import RequestContext
 
-from app.lib.auth_context import require_web_user
-from app.lib.date_utils import datetime_unix
+from app.lib.auth.context import require_web_user
+from app.lib.time.date_utils import datetime_unix
 from app.models.db.user import user_proto
 from app.models.proto.follow_connect import (
     Service,

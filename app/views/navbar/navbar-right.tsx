@@ -1,17 +1,18 @@
-import { config, isAdministrator, isModerator } from "@lib/config"
-import { createDisposeScope } from "@lib/dispose-scope"
-import { mainMap } from "@lib/map/main-map"
-import { encodeMapState, getInitialMapState } from "@lib/map/state"
-import { isHrefCurrentPage } from "@lib/utils"
+import { mainMap } from "@map/main-map"
+import { encodeMapState, getInitialMapState } from "@map/state"
 import { signal } from "@preact/signals"
 import { assertEquals, assertExists } from "@std/assert"
 import { runningReduce } from "@std/collections/running-reduce"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
+import { config, isAdministrator, isModerator } from "@utils/config"
+import { createDisposeScope } from "@utils/dispose-scope"
+import { isHrefCurrentPage } from "@utils/url-helpers"
 import { t } from "i18next"
 import { createRef, render } from "preact"
 import { showLoginModal } from "../user/login"
 import { LanguageSwitcher } from "./_language-switcher"
 import { ThemeSwitcher } from "./_theme-switcher"
+import { messagesCountUnread } from "./navbar-right-state"
 
 const navLinks = [
   {
@@ -125,7 +126,6 @@ const NavbarNav = () => {
 
 const userConfig = config.userConfig
 const user = userConfig?.user
-export const messagesCountUnread = signal(userConfig?.messagesCountUnread ?? 0)
 const reportsCountModerator = userConfig?.reportsCountModerator ?? 0
 const reportsCountAdministrator = userConfig?.reportsCountAdministrator ?? 0
 

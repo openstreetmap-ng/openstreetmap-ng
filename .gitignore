@@ -401,7 +401,7 @@ tmp
 /app/static/**/*.zst
 /app/static/img/browser
 /app/static/vite
-/app/views/lib/proto
+/app/views/proto
 /buf/validate
 /config/locale/en.yaml
 /config/locale/gnu

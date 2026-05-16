@@ -2,7 +2,7 @@ from random import Random
 
 import pytest
 
-from app.lib.avatar import (
+from app.lib.render.avatar import (
     _apca_contrast,
     _apca_luminance,
     _extract_initials,

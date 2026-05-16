@@ -10,9 +10,9 @@ from shapely import Point
 from starlette import status
 
 from app.config import DIARY_COMMENTS_PAGE_SIZE, DIARY_LIST_PAGE_SIZE
-from app.lib.auth_context import require_web_user
-from app.lib.locale import normalize_locale
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.auth.context import require_web_user
+from app.lib.standard.pagination import sp_paginate_table
+from app.lib.text.locale import normalize_locale
 from app.models.db.diary import Diary, diaries_resolve_rich_text
 from app.models.db.diary_comment import DiaryComment, diary_comments_resolve_rich_text
 from app.models.db.user import user_proto
@@ -35,12 +35,10 @@ from app.models.proto.diary_pb2 import (
 )
 from app.models.proto.shared_pb2 import StandardPaginationRequest
 from app.models.types import DiaryId, LocaleCode, UserId
-from app.queries.diary_comment_query import DiaryCommentQuery
-from app.queries.diary_query import DiaryQuery
+from app.queries.diary_query import DiaryCommentQuery, DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
-from app.services.diary_comment_service import DiaryCommentService
-from app.services.diary_service import DiaryService
+from app.services.diary_service import DiaryCommentService, DiaryService
 
 
 class _Service(Service):

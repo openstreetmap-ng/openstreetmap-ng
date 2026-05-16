@@ -1,23 +1,23 @@
-import { BPopover } from "@lib/bootstrap"
-import { queryParam } from "@lib/codecs"
-import { Time } from "@lib/datetime-inputs"
-import { unixToLocalDatetime } from "@lib/datetime-local"
-import { mountProtoPage } from "@lib/proto-page"
-import type { ListResponse_EntryValid } from "@lib/proto/admin_applications_pb"
+import { BPopover } from "@components/bootstrap-wrappers"
+import { Time } from "@components/datetime-inputs"
+import { SCOPE_LABEL } from "@components/scope"
+import { StandardPagination } from "@components/standard-pagination"
+import { useComputed, useSignal } from "@preact/signals"
+import type { ListResponse_EntryValid } from "@proto/admin_applications_pb"
 import {
   Filters_Sort,
   Filters_SortSchema,
   FiltersSchema,
   PageSchema,
   Service,
-} from "@lib/proto/admin_applications_pb"
-import { Scope } from "@lib/proto/shared_pb"
-import { defineProtoQueryContract } from "@lib/query-contract"
-import { rpcUnary } from "@lib/rpc"
-import { SCOPE_LABEL } from "@lib/scope"
-import { StandardPagination } from "@lib/standard-pagination"
-import { useUrlQueryState } from "@lib/url-signals"
-import { useComputed, useSignal } from "@preact/signals"
+} from "@proto/admin_applications_pb"
+import { Scope } from "@proto/shared_pb"
+import { unixToLocalDatetime } from "@utils/format"
+import { queryParam } from "@utils/path-codecs"
+import { mountProtoPage } from "@utils/proto-page"
+import { defineProtoQueryContract } from "@utils/query-contract"
+import { useUrlQueryState } from "@utils/query-signals"
+import { rpcUnary } from "@utils/rpc"
 import { t } from "i18next"
 import type { SubmitEventHandler } from "preact"
 import { useId } from "preact/hooks"
@@ -26,8 +26,8 @@ import {
   exportJsonFile,
   FilterActions,
   totalItemsFromPaginationState,
-} from "../_filter-actions"
-import { IpSummary } from "../_ip-summary"
+} from "../filter-actions"
+import { IpSummary } from "../ip-summary"
 
 const FILTER_QUERY = defineProtoQueryContract(FiltersSchema, {
   search: queryParam.text(),

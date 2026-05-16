@@ -24,8 +24,14 @@
     "useUnknownInCatchVariables": false,
 
     "paths": {
-      "@index/*": ["./app/views/index/*"],
-      "@lib/*": ["./app/views/lib/*"]
+      "@components/*": ["./app/views/components/*"],
+      "@utils/*": ["./app/views/utils/*"],
+      "@runtime/*": ["./app/views/runtime/*"],
+      "@styles/*": ["./app/views/styles/*"],
+      "@proto/*": ["./app/views/proto/*"],
+      "@map/*": ["./app/views/map/*"],
+      "@data/*": ["./app/views/data/*"],
+      "@index/*": ["./app/views/index/*"]
     },
     "types": [
       "@types/bootstrap",
@@ -34,7 +40,7 @@
       "typed-query-selector/strict"
     ]
   },
-  "exclude": ["app/views/lib/_generated/**/*", "app/views/lib/proto/**/*"],
+  "exclude": ["app/views/proto/**/*", "app/views/data/**/*"],
   "include": [
     "app/views/**/*.ts",
     "app/views/**/*.tsx",

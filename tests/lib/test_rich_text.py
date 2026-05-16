@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.rich_text import process_rich_text_markdown, process_rich_text_plain
+from app.lib.render.rich_text import process_rich_text_markdown, process_rich_text_plain
 
 
 @pytest.mark.parametrize(

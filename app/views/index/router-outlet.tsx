@@ -1,5 +1,5 @@
 import { routerParams, routerQuery, routerRoute } from "@index/router"
-import { mainMap } from "@lib/map/main-map"
+import { mainMap } from "@map/main-map"
 import type { RefObject } from "preact"
 
 export const IndexRouterOutlet = ({

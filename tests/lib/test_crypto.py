@@ -1,4 +1,4 @@
-from app.lib.crypto import hash_bytes, hmac_bytes
+from app.lib.auth.crypto import hash_bytes, hmac_bytes
 
 
 def test_hash_repeatable():

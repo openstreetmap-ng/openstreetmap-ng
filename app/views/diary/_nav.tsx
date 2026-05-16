@@ -1,6 +1,6 @@
-import { config, isLoggedIn, primaryLanguage } from "@lib/config"
-import { getLocaleDisplayNameByCode } from "@lib/locale"
-import type { UserValid } from "@lib/proto/shared_pb"
+import type { UserValid } from "@proto/shared_pb"
+import { config, isLoggedIn, primaryLanguage } from "@utils/config"
+import { getLocaleDisplayNameByCode } from "@utils/locale"
 import { t } from "i18next"
 
 export enum DiaryTab {

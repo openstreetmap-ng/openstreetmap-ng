@@ -1,6 +1,6 @@
 import { useSignal } from "@preact/signals"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/software_pb"
+import { PageSchema } from "@proto/software_pb"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 
 const ALL = "all"
