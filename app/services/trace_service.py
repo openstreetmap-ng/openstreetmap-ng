@@ -1,9 +1,12 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
+from zstandard import ZstdCompressor
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import TRACE_FILE_UPLOAD_MAX_SIZE, TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
 from app.db import db
 from app.format.gpx import FormatGPX
 from app.lib.auth_context import auth_user
@@ -114,7 +117,14 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
+
+            # Start background recompression with heavier zstd level
+            loop = get_running_loop()
+            loop.create_task(  # noqa: RUF006
+                _recompress_trace(trace_id, file, trace_init['file_id'])
+            )
+
+            return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -208,5 +218,64 @@ class TraceService:
 
             await audit('delete_trace', conn, extra={'id': trace_id})
 
-        # After successful delete, also remove the file
-        await TRACE_STORAGE.delete(row[0])
+            # After successful delete, also remove the file
+            await TRACE_STORAGE.delete(row[0])
+
+
+async def _recompress_trace(
+    trace_id: TraceId,
+    file_bytes: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    """Background task: recompress trace file with heavier zstd level.
+
+    After recompression, updates the trace's file_id in the database
+    and deletes the old (lightly compressed) file from storage.
+    """
+    try:
+        loop = get_running_loop()
+        recompressed = await loop.run_in_executor(
+            None,
+            ZstdCompressor(level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL).compress,
+            file_bytes,
+        )
+
+        new_metadata = {'zstd_level': str(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)}
+        new_file_id = await TRACE_STORAGE.save(recompressed, '.zst', new_metadata)
+        logging.debug(
+            'Recompressed trace %d: %d -> %d bytes',
+            trace_id,
+            len(file_bytes),
+            len(recompressed),
+        )
+
+        # Update the trace to point to the new file
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %s
+                WHERE id = %s AND file_id = %s
+                """,
+                (new_file_id, trace_id, old_file_id),
+            )
+
+            if result.rowcount:
+                # Trace was updated successfully, delete the old file
+                await TRACE_STORAGE.delete(old_file_id)
+                logging.info(
+                    'Trace %d recompressed: file %r -> %r',
+                    trace_id,
+                    old_file_id,
+                    new_file_id,
+                )
+            else:
+                # Trace was deleted or file_id changed concurrently, clean up new file
+                await TRACE_STORAGE.delete(new_file_id)
+                logging.debug(
+                    'Trace %d skipped recompression (file_id changed or trace deleted)',
+                    trace_id,
+                )
+
+    except Exception:
+        capture_exception()
