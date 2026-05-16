@@ -31,6 +31,9 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     if isinstance(geom, Point):
         if coords.shape != (1, 2):
             raise_for.bad_geometry()
+        # Reject coordinates at the null island (0, 0)
+        if coords[0, 0] == 0 and coords[0, 1] == 0:
+            raise_for.null_island_coordinates()
 
     # Validate the geometry but accept zero-sized polygons
     elif not geom.is_valid:

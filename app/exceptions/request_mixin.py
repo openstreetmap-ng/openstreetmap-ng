@@ -28,6 +28,10 @@ class RequestExceptionsMixin:
         raise NotImplementedError
 
     @abstractmethod
+    def null_island_coordinates(self) -> NoReturn:
+        raise NotImplementedError
+
+    @abstractmethod
     def bad_bbox(self, bbox: str, condition: str | None = None) -> NoReturn:
         raise NotImplementedError
 

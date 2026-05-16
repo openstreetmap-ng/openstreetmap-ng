@@ -21,6 +21,13 @@ class RequestExceptions06Mixin(RequestExceptionsMixin):
         )
 
     @override
+    def null_island_coordinates(self):
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Node at coordinates (0, 0) is not allowed. Coordinates at the null island are almost certainly a bug in the editor.',
+        )
+
+    @override
     def bad_bbox(self, bbox: str, condition: str | None = None):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
