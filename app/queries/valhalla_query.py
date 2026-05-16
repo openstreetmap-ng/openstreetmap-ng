@@ -5,8 +5,8 @@ from fastapi import HTTPException
 from shapely import Point, get_coordinates
 
 from app.config import VALHALLA_URL
-from app.lib.http_client import HTTP
-from app.lib.translation import primary_translation_locale
+from app.lib.http.client import HTTP
+from app.lib.text.translation import primary_translation_locale
 from app.models.proto.shared_pb2 import RoutingResult
 from app.models.valhalla import ValhallaResponse
 

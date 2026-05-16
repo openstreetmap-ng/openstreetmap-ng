@@ -7,7 +7,7 @@ from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from speedup import buffered_randbytes
 from tests.utils.assert_model import assert_model
 

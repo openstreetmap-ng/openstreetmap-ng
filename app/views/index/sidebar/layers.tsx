@@ -1,30 +1,19 @@
+import { BTooltip } from "@components/bootstrap-wrappers"
 import { SidebarHeader } from "@index/_action-sidebar"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { BTooltip } from "@lib/bootstrap"
+import { boundsSize } from "@map/bounds"
+import { dataLayerPending } from "@map/layers/data-layer"
 import {
-  isBreakpointDown,
-  MAP_QUERY_AREA_MAX_SIZE,
-  NOTE_QUERY_AREA_MAX_SIZE,
-} from "@lib/config"
-import { useDisposeEffect } from "@lib/dispose-scope"
-import {
-  globeProjectionStorage,
-  layerOrderStorage,
-  overlayOpacityStorage,
-} from "@lib/local-storage"
-import { boundsSize } from "@lib/map/bounds"
-import { dataLayerPending } from "@lib/map/layers/data-layer"
-import {
-  AERIAL_LAYER_ID,
   activeBaseLayerId,
   addLayerEventHandler,
   addMapLayer,
+  AERIAL_LAYER_ID,
   CYCLEMAP_LAYER_ID,
   CYCLOSM_LAYER_ID,
   DATA_LAYER_ID,
   GPS_LAYER_ID,
-  HOT_LAYER_ID,
   hasMapLayer,
+  HOT_LAYER_ID,
   type LayerId,
   LIBERTY_LAYER_ID,
   NOTES_LAYER_ID,
@@ -32,11 +21,22 @@ import {
   STANDARD_LAYER_ID,
   TRACESTRACKTOPO_LAYER_ID,
   TRANSPORTMAP_LAYER_ID,
-} from "@lib/map/layers/layers"
-import { notesLayerPending } from "@lib/map/layers/notes-layer"
-import { mainMap } from "@lib/map/main-map"
+} from "@map/layers/layers"
+import { notesLayerPending } from "@map/layers/notes-layer"
+import { mainMap } from "@map/main-map"
 import { useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import { withoutAll } from "@std/collections/without-all"
+import {
+  isBreakpointDown,
+  MAP_QUERY_AREA_MAX_SIZE,
+  NOTE_QUERY_AREA_MAX_SIZE,
+} from "@utils/config"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import {
+  globeProjectionStorage,
+  layerOrderStorage,
+  overlayOpacityStorage,
+} from "@utils/local-storage"
 import { t } from "i18next"
 import type { LngLatBounds, MapLibreEvent } from "maplibre-gl"
 import type { ComponentChildren, RefCallback } from "preact"

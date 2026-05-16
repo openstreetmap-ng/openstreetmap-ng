@@ -1,12 +1,12 @@
 from app.db import db
-from app.lib.auth_context import auth_context
-from app.lib.password_hash import PasswordLike
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import primary_translation_locale, t
+from app.lib.audit import audit
+from app.lib.auth.context import auth_context
+from app.lib.auth.password import PasswordLike
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import primary_translation_locale, t
 from app.models.db.user import UserInit
 from app.models.types import DisplayName, Email, UserId
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
 from app.services.user_password_service import UserPasswordService
 from app.services.user_token_email_service import UserTokenEmailService
 from app.validators.email import validate_email_deliverability

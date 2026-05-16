@@ -3,9 +3,9 @@ from typing import override
 from connectrpc.request import RequestContext
 from pydantic import SecretStr
 
-from app.lib.auth_context import auth_user
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.auth.context import auth_user
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t
 from app.models.proto.reset_password_connect import (
     Service,
     ServiceASGIApplication,

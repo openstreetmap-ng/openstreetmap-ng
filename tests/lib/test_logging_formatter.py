@@ -3,7 +3,7 @@ from io import StringIO
 from time import gmtime
 from typing import override
 
-from app.lib.logging_formatter import ConsoleFormatter
+from app.lib.telemetry.logging_formatter import ConsoleFormatter
 
 
 class _Stream(StringIO):

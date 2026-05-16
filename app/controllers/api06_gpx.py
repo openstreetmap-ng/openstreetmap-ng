@@ -6,19 +6,19 @@ from pydantic import NonNegativeInt
 from starlette import status
 
 from app.config import TRACE_POINT_QUERY_AREA_MAX_SIZE, TRACE_POINT_QUERY_DEFAULT_LIMIT
+from app.exceptions.context import raise_for
 from app.format import Format06
 from app.format.gpx import FormatGPX
-from app.lib.auth_context import api_user
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import parse_bbox
-from app.lib.xml_body import xml_body
+from app.lib.auth.context import api_user
+from app.lib.geo.parse import parse_bbox
+from app.lib.io.xml_body import xml_body
 from app.models.db.trace import parse_trace_tags
 from app.models.db.user import User
 from app.models.proto.trace_types import Visibility
 from app.models.types import TraceId
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
-from app.responses.osm_response import GPXResponse
+from app.responses.osm import GPXResponse
 from app.services.trace_service import TraceService
 
 router = APIRouter(prefix='/api/0.6')

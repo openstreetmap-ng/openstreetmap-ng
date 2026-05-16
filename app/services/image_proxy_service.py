@@ -19,10 +19,10 @@ from app.config import (
     IMAGE_PROXY_FETCH_MAX_BYTES,
 )
 from app.db import db
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
-from app.lib.http_client import HTTP, HTTPError
-from app.lib.image import Image
+from app.exceptions.context import raise_for
+from app.lib.http.client import HTTP, HTTPError
+from app.lib.io.image import Image
+from app.lib.time.date_utils import utcnow
 from app.models.db.image_proxy import ImageProxy
 from app.models.proto.server_pb2 import ImageProxyCache
 from app.models.types import ImageProxyId, StorageKey
@@ -168,7 +168,7 @@ class ImageProxyService:
 
         for item, html in workload:
 
-            def repl(match: 're2._Match[str]'):
+            def repl(match: re2._Match[str]):
                 entry = entries.get(int(match[1]))  # type: ignore
                 if not entry or not entry['thumbnail']:
                     return match[0]

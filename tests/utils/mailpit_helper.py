@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 import orjson
 import websockets
 
-from app.lib.http_client import HTTP_INTERNAL
+from app.lib.http.client import HTTP_INTERNAL
 from app.models.db.user import User
 
 

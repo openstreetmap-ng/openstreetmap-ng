@@ -1,27 +1,26 @@
-import { BTooltip } from "@lib/bootstrap"
-import {
-  config,
-  PASSKEY_LIMIT,
-  PASSWORD_MIN_LENGTH,
-  primaryLanguage,
-} from "@lib/config"
-import { dateTimeFormat } from "@lib/format"
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
+import { BTooltip } from "@components/bootstrap-wrappers"
+import { StandardForm } from "@components/standard-form"
+import { UserAgentIcons } from "@components/user-agent-icons"
+import { useSignal } from "@preact/signals"
 import {
   type Page_SessionValid,
   PageSchema,
   type PasskeyValid,
   type RecoveryStatusValid,
   Service,
-} from "@lib/proto/settings_security_pb"
-import { qsEncode } from "@lib/qs"
-import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
-import { StandardForm } from "@lib/standard-form"
-import { UserAgentIcons } from "@lib/user-agent-icons"
-import { formatPackedIp } from "@lib/utils"
-import { getPasskeyRegistration } from "@lib/webauthn"
-import { useSignal } from "@preact/signals"
+} from "@proto/settings_security_pb"
+import {
+  config,
+  PASSKEY_LIMIT,
+  PASSWORD_MIN_LENGTH,
+  primaryLanguage,
+} from "@utils/config"
+import { dateTimeFormat, formatPackedIp } from "@utils/format"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
+import { qsEncode } from "@utils/query-string"
+import { connectErrorToMessage, rpcUnary } from "@utils/rpc"
+import { getPasskeyRegistration } from "@utils/webauthn"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import {
@@ -33,8 +32,8 @@ import {
   GENERATE_RECOVERY_CODES_MODAL_ID,
   GenerateRecoveryCodesModal,
 } from "./_generate-recovery-codes-modal"
-import { Nav } from "./_nav"
 import { SETUP_TOTP_MODAL_ID, SetupTotpModal } from "./_setup-totp-modal"
+import { Nav } from "./nav"
 
 const formatTimestamp = (
   unix: bigint,

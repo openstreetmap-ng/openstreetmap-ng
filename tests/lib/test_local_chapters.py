@@ -1,4 +1,4 @@
-from app.lib.local_chapters import LOCAL_CHAPTERS
+from app.lib.text.local_chapters import LOCAL_CHAPTERS
 
 
 def test_local_chapter_pl():

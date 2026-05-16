@@ -1,19 +1,23 @@
+import { Time } from "@components/datetime-inputs"
+import { ReportButton } from "@components/report"
+import { StandardForm } from "@components/standard-form"
+import { PageOrder, StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { pathParam } from "@lib/codecs"
-import {
-  config,
-  isLoggedIn,
-  isModerator,
-  NOTE_COMMENT_BODY_MAX_LENGTH,
-} from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { loadMapImage, NOTE_STATUS_MARKERS } from "@lib/map/image"
+import { loadMapImage, NOTE_STATUS_MARKERS } from "@map/image"
 import {
   type FocusLayerLayout,
   type FocusLayerPaint,
   focusObjects,
-} from "@lib/map/layers/focus-layer"
+} from "@map/layers/focus-layer"
+import {
+  type ReadonlySignal,
+  type Signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from "@preact/signals"
 import {
   type AddCommentResponseValid,
   type DataValid,
@@ -22,24 +26,20 @@ import {
   type GetCommentsResponseValid,
   Service,
   Status,
-} from "@lib/proto/note_pb"
+} from "@proto/note_pb"
 import {
   Service as SubscriptionService,
   Target as SubscriptionTarget,
-} from "@lib/proto/user_subscription_pb"
-import { ReportButton } from "@lib/report"
-import { StandardForm } from "@lib/standard-form"
-import { PageOrder, StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { setPageTitle } from "@lib/title"
-import {
-  type ReadonlySignal,
-  type Signal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from "@preact/signals"
+} from "@proto/user_subscription_pb"
+import { setPageTitle } from "@runtime/title"
 import { assertNever } from "@std/assert/unstable-never"
+import {
+  config,
+  isLoggedIn,
+  isModerator,
+  NOTE_COMMENT_BODY_MAX_LENGTH,
+} from "@utils/config"
+import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { showLoginModal } from "../user/login"

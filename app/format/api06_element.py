@@ -4,9 +4,9 @@ import cython
 import numpy as np
 from shapely import Point, get_coordinates, points
 
-from app.lib.date_utils import legacy_date
-from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_is_json
+from app.exceptions.context import raise_for
+from app.lib.render import format_style
+from app.lib.time.date_utils import legacy_date
 from app.models.db.element import Element, ElementInit, validate_elements
 from app.models.element import TypedElementId
 from app.models.proto.shared_types import ElementType
@@ -28,7 +28,7 @@ class Element06Mixin:
         >>> encode_element(Element(type='node', id=1, version=1, ...))
         {'node': {'@id': 1, '@version': 1, ...}}
         """
-        if format_is_json():
+        if format_style.is_json():
             return _encode_element(element, is_json=True)
 
         type = element_type(element['typed_id'])
@@ -43,7 +43,7 @@ class Element06Mixin:
         ... ])
         {'node': [{'@id': 1, '@version': 1, ...}], 'way': [{'@id': 2, '@version': 1, ...}]}
         """
-        if format_is_json():
+        if format_style.is_json():
             return {
                 'elements': [
                     _encode_element(element, is_json=True) for element in elements

@@ -1,12 +1,12 @@
-import { config } from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { mountProtoPage } from "@lib/proto-page"
-import { DetailsPageSchema } from "@lib/proto/trace_pb"
-import { ReportButton } from "@lib/report"
-import { UserLink } from "@lib/user-link"
+import { Time } from "@components/datetime-inputs"
+import { ReportButton } from "@components/report"
+import { UserLink } from "@components/user-link"
+import { DetailsPageSchema } from "@proto/trace_pb"
+import { config } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { MapPreview } from "./_map-preview"
-import { SummaryCard } from "./_summary"
+import { SummaryCard } from "./summary"
 
 mountProtoPage(DetailsPageSchema, ({ trace }) => {
   const currentUser = config.userConfig?.user

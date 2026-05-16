@@ -10,15 +10,15 @@ from app.config import (
     MAP_QUERY_AREA_MAX_SIZE,
     MAP_QUERY_LEGACY_NODES_LIMIT,
 )
+from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
-from app.lib.exceptions_context import raise_for
-from app.lib.feature_icon import features_icons
-from app.lib.feature_name import features_names
-from app.lib.geo_utils import parse_bbox
-from app.lib.rich_text import process_rich_text_plain
-from app.lib.standard_pagination import sp_num_pages, sp_paginate_query
-from app.lib.translation import t
+from app.lib.geo.parse import parse_bbox
+from app.lib.render.rich_text import process_rich_text_plain
+from app.lib.standard.pagination import sp_num_pages, sp_paginate_query
+from app.lib.text.feature_icon import features_icons
+from app.lib.text.feature_name import features_names
+from app.lib.text.translation import t
 from app.models.db.changeset import Changeset
 from app.models.db.element import Element
 from app.models.db.user import user_proto

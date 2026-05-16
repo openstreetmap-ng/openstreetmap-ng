@@ -1,14 +1,14 @@
-import { config } from "@lib/config"
-import { useDisposeLayoutEffect, useDisposeSignalEffect } from "@lib/dispose-scope"
-import { Service } from "@lib/proto/settings_security_pb"
-import { StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@components/standard-form"
 import { batch, type Signal, useSignal } from "@preact/signals"
+import { Service } from "@proto/settings_security_pb"
 import { encodeBase32 } from "@std/encoding/base32"
+import { config } from "@utils/config"
+import { useDisposeLayoutEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import { useId, useRef } from "preact/hooks"
 
-export const SETUP_TOTP_MODAL_ID = "SettingsSecuritySetupTotpModal"
+export const SETUP_TOTP_MODAL_ID = "SetupTotpModal"
 
 const generateTOTPSecret = () => {
   const buffer = new Uint8Array(16)

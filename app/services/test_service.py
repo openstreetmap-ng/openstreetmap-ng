@@ -7,10 +7,10 @@ from zid import zid
 
 from app.config import OAUTH_SECRET_PREVIEW_LENGTH, TEST_USER_EMAIL_SUFFIX
 from app.db import db
-from app.lib.auth_context import auth_context
-from app.lib.crypto import hash_bytes
-from app.lib.locale import DEFAULT_LOCALE
-from app.lib.testmethod import testmethod
+from app.lib.auth.context import auth_context
+from app.lib.auth.crypto import hash_bytes
+from app.lib.telemetry.testmethod import testmethod
+from app.lib.text.locale import DEFAULT_LOCALE
 from app.models.db.oauth2_application import OAuth2ApplicationInit, OAuth2Uri
 from app.models.db.user import UserInit, user_is_test
 from app.models.proto.admin_users_types import Role

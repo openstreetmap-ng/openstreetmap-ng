@@ -34,10 +34,11 @@ from app.config import (
     NAME,
 )
 from app.db import psycopg_pool_open
-from app.lib import cython_detect, sentry  # noqa: F401  DO NOT REMOVE
-from app.lib.http_client import HTTP, HTTP_INTERNAL
-from app.lib.starlette_convertor import ElementTypeConvertor
-from app.lib.user_name_blacklist import user_name_blacklist_routes
+from app.lib.audit import AuditService
+from app.lib.http.client import HTTP, HTTP_INTERNAL
+from app.lib.http.element_type_convertor import ElementTypeConvertor
+from app.lib.telemetry import cython_detect, sentry  # noqa: F401  DO NOT REMOVE
+from app.lib.text.user_name_blacklist import user_name_blacklist_routes
 from app.middlewares.api_cors_middleware import APICorsMiddleware
 from app.middlewares.context_middleware import ContextMiddleware
 from app.middlewares.headers_middleware import HeadersMiddleware
@@ -50,10 +51,9 @@ from app.middlewares.request_context_middleware import RequestContextMiddleware
 from app.middlewares.subdomain_middleware import SubdomainMiddleware
 from app.middlewares.test_site_middleware import TestSiteMiddleware
 from app.middlewares.unsupported_browser_middleware import UnsupportedBrowserMiddleware
-from app.responses.osm_response import setup_api_router_response
-from app.responses.precompressed_static_files import PrecompressedStaticFiles
+from app.responses.osm import setup_api_router_response
+from app.responses.precompressed import PrecompressedStaticFiles
 from app.services.admin_task_service import AdminTaskService
-from app.services.audit_service import AuditService
 from app.services.changeset_service import ChangesetService
 from app.services.element_spatial_service import ElementSpatialService
 from app.services.email_service import EmailService

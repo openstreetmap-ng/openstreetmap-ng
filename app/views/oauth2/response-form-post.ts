@@ -1,4 +1,4 @@
-import { mount } from "@lib/mount"
+import { mount } from "@utils/mount"
 
 mount("oauth-response-form-post-body", (body) => {
   console.info("OAuthResponseFormPost: Submitting form_post")

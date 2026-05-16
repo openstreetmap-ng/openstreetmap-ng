@@ -1,7 +1,8 @@
-import { getInitialMapState, parseMapState } from "@lib/map/state"
-import { qsEncode, qsParse } from "@lib/qs"
-import { configureIFrameSystemApp } from "@lib/system-app"
-import { NON_DIGIT_RE } from "@lib/utils"
+import { getInitialMapState, parseMapState } from "@map/state"
+import { configureIFrameSystemApp } from "@runtime/iframe-system-app"
+import { qsEncode, qsParse } from "@utils/query-string"
+
+const NON_DIGIT_RE = /\D/g
 
 import { filterValues } from "@std/collections/filter-values"
 import { pick } from "@std/collections/pick"

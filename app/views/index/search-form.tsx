@@ -1,7 +1,7 @@
 import { routerNavigate, routerRoute } from "@index/router"
 import { SearchRoute, searchFormQuery } from "@index/search"
-import { SEARCH_QUERY_MAX_LENGTH } from "@lib/config"
-import { mainMap } from "@lib/map/main-map"
+import { mainMap } from "@map/main-map"
+import { SEARCH_QUERY_MAX_LENGTH } from "@utils/config"
 import { t } from "i18next"
 import type { SubmitEventHandler } from "preact"
 
