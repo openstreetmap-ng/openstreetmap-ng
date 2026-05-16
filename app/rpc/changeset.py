@@ -3,7 +3,6 @@ from datetime import date, datetime, time, timedelta
 from typing import override
 
 from connectrpc.request import RequestContext
-from psycopg.sql import SQL
 from shapely import Point, measurement, set_srid
 
 from app.config import (
@@ -11,18 +10,19 @@ from app.config import (
     CHANGESET_QUERY_WEB_LIMIT,
     NEARBY_USERS_RADIUS_METERS,
 )
+from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
-from app.lib.auth_context import require_web_user
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import meters_to_degrees, parse_bbox
-from app.lib.rich_text import process_rich_text_plain
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import (
+from app.lib.auth.context import require_web_user
+from app.lib.geo.distance import meters_to_degrees
+from app.lib.geo.parse import parse_bbox
+from app.lib.render.rich_text import process_rich_text_plain
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_table,
 )
-from app.lib.translation import t
+from app.lib.text.translation import t
 from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
@@ -44,14 +44,16 @@ from app.models.proto.changeset_pb2 import (
     GetResponse,
 )
 from app.models.types import ChangesetId
-from app.queries.changeset_bounds_query import ChangesetBoundsQuery
-from app.queries.changeset_comment_query import ChangesetCommentQuery
-from app.queries.changeset_query import ChangesetQuery
+from app.queries.changeset_query import (
+    ChangesetBoundsQuery,
+    ChangesetCommentQuery,
+    ChangesetQuery,
+)
 from app.queries.element_query import ElementQuery
 from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
-from app.services.changeset_comment_service import ChangesetCommentService
+from app.services.changeset_service import ChangesetCommentService
 from app.validators.unicode import normalize_display_name
 
 

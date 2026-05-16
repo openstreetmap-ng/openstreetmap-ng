@@ -10,13 +10,14 @@ from app.config import (
     TRACE_FILE_UPLOAD_MAX_SIZE,
 )
 from app.db import db
+from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
-from app.lib.auth_context import auth_user
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.io.trace_file import TraceFile
+from app.lib.io.xml_codec import XMLToDict
 from app.lib.storage import TRACE_STORAGE
-from app.lib.trace_file import TraceFile
-from app.lib.xmltodict import XMLToDict
+from app.lib.time.date_utils import utcnow
 from app.models.db.trace import (
     TraceInit,
     TraceInitValidator,
@@ -26,7 +27,6 @@ from app.models.db.trace import (
 )
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
-from app.services.audit_service import audit
 
 
 class TraceService:

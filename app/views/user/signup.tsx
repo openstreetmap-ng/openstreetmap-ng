@@ -1,20 +1,20 @@
+import { StandardForm } from "@components/standard-form"
+import { useSignal } from "@preact/signals"
+import { Action } from "@proto/auth_provider_pb"
+import { PageSchema, Service } from "@proto/signup_pb"
 import {
+  activityTracking,
   DISPLAY_NAME_MAX_LENGTH,
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   PASSWORD_MIN_LENGTH,
-} from "@lib/config"
-import { activityTracking } from "@lib/config"
-import { tRich } from "@lib/i18n"
-import { Service, PageSchema } from "@lib/proto/signup_pb"
-import { mountProtoPage } from "@lib/proto-page"
-import { StandardForm } from "@lib/standard-form"
+} from "@utils/config"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
-import { Action } from "@lib/proto/auth_provider_pb"
-import { useSignal } from "@preact/signals"
 import { AuthSwitcher } from "./_auth-switcher"
-import { showLoginModal } from "./login"
 import { TestSiteReminder } from "./_test-site-reminder"
+import { showLoginModal } from "./login"
 
 const SIGNUP_ACTION_CLASS =
   "col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-12 offset-xl-0 mt-3 px-3"

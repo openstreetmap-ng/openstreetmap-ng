@@ -1,7 +1,7 @@
-import { DEFAULT_LOCALE, primaryLanguage } from "@lib/config"
-import { i18nLocale } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/copyright_pb"
+import { PageSchema } from "@proto/copyright_pb"
+import { DEFAULT_LOCALE, primaryLanguage } from "@utils/config"
+import { i18nLocale } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import type { ComponentChildren } from "preact"
 
 const CopyrightPage = () => {

@@ -1,4 +1,4 @@
-dir=app/views/lib/vector-styles
+dir=app/views/map/vector-styles
 mkdir -p "$dir"
 styles=(
   "liberty+https://tiles.openfreemap.org/styles/liberty"

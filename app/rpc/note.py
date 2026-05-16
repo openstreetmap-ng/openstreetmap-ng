@@ -3,7 +3,6 @@ from math import ceil
 from typing import assert_never, override
 
 from connectrpc.request import RequestContext
-from psycopg.sql import SQL
 from shapely import get_coordinates
 
 from app.config import (
@@ -14,15 +13,15 @@ from app.config import (
     NOTE_QUERY_WEB_LIMIT,
     NOTE_USER_PAGE_SIZE,
 )
+from app.exceptions.context import raise_for
 from app.format import FormatRender
-from app.lib.auth_context import require_web_user
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import parse_bbox
-from app.lib.standard_pagination import (
+from app.lib.auth.context import require_web_user
+from app.lib.geo.parse import parse_bbox
+from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_table,
 )
+from app.lib.time.date_utils import utcnow
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
 from app.models.db.user import user_proto
@@ -44,8 +43,7 @@ from app.models.proto.note_pb2 import (
 )
 from app.models.proto.shared_pb2 import LonLat
 from app.models.types import NoteId, UserId
-from app.queries.note_comment_query import NoteCommentQuery
-from app.queries.note_query import NoteQuery
+from app.queries.note_query import NoteCommentQuery, NoteQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.note_service import NoteService

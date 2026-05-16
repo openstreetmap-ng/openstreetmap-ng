@@ -1,7 +1,7 @@
-from app.lib.auth_context import auth_context
+from app.lib.auth.context import auth_context
 from app.models.db.note_comment import note_comments_resolve_rich_text
 from app.models.types import DisplayName
-from app.queries.note_comment_query import NoteCommentQuery
+from app.queries.note_query import NoteCommentQuery
 from app.queries.user_query import UserQuery
 from app.services.note_service import NoteService
 

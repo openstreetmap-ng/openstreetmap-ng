@@ -3,9 +3,9 @@ from typing import Annotated
 
 from fastapi import APIRouter
 
-from app.lib.auth_context import web_user
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.lib.auth.context import web_user
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
 from app.models.db.user import User
 from app.models.proto.follow_pb2 import IndexPage
 from app.queries.user_follow_query import UserFollowQuery

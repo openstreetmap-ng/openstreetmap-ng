@@ -5,8 +5,8 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable
 
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_user
 from app.models.db.message import Message, MessageRecipient
 from app.models.db.user import user_is_admin, user_is_moderator
 from app.models.types import MessageId, UserId

@@ -5,8 +5,8 @@ from polyline_rs import encode_lonlat
 from shapely import Point, get_coordinates
 from shapely.geometry.base import BaseGeometry
 
-from app.lib.elements_filter import ElementsFilter
-from app.lib.query_features import QueryFeatureResult
+from app.lib.text.element_filter import ElementFilter
+from app.lib.text.query_features import QueryFeatureResult
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from app.models.proto.element_pb2 import RenderData
@@ -148,7 +148,7 @@ def _render_nodes(
     member_nodes: set[TypedElementId],
     detailed: cython.bint,
 ):
-    nodes = ElementsFilter.filter_nodes_interesting(
+    nodes = ElementFilter.filter_nodes_interesting(
         node_id_map.values(), member_nodes, detailed=detailed
     )
     if not nodes:

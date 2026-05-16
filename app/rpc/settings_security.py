@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING, override
 from connectrpc.request import RequestContext
 from pydantic import SecretStr
 
-from app.lib.auth_context import auth_user, require_web_user
-from app.lib.date_utils import datetime_unix
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.auth.context import auth_user, require_web_user
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t
+from app.lib.time.date_utils import datetime_unix
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.settings_security_connect import (
     Service,
@@ -144,7 +144,7 @@ class _Service(Service):
 
 
 async def _add_passkeys(
-    passkeys_out: '_settings_security_Passkey_RepeatedComposite',
+    passkeys_out: _settings_security_Passkey_RepeatedComposite,
 ):
     user_id = auth_user(required=True)['id']
     passkeys = await UserPasskeyQuery.find_all_by_user_id(user_id)

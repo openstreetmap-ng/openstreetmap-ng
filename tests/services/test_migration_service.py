@@ -2,7 +2,7 @@ import pytest
 from shapely import Point
 
 from app.db import db
-from app.lib.auth_context import auth_context
+from app.lib.auth.context import auth_context
 from app.models.db.note import NoteInit
 from app.queries.note_query import NoteQuery
 from app.services.migration_service import (

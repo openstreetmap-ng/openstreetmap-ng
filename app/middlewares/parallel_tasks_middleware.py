@@ -5,7 +5,7 @@ from contextvars import ContextVar
 from starlette.types import ASGIApp, Receive, Send
 from starlette.types import Scope as StarletteScope
 
-from app.lib.auth_context import auth_scopes, auth_user
+from app.lib.auth.context import auth_scopes, auth_user
 from app.models.db.user import user_is_admin, user_is_moderator
 from app.queries.message_query import MessageQuery
 from app.queries.report_query import ReportQuery, _ReportCountResult

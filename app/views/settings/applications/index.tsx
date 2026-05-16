@@ -1,15 +1,16 @@
 import { create } from "@bufbuild/protobuf"
-import { BAccordion } from "@lib/bootstrap"
+import { BAccordion } from "@components/bootstrap-wrappers"
+import { CopyButton } from "@components/copy-group"
+import { Time } from "@components/datetime-inputs"
+import { ReportButton } from "@components/report"
 import {
-  API_URL,
-  config,
-  OAUTH_APP_NAME_MAX_LENGTH,
-  OAUTH_PAT_NAME_MAX_LENGTH,
-} from "@lib/config"
-import { CopyButton } from "@lib/copy-group"
-import { Time } from "@lib/datetime-inputs"
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
+  formDataScopes,
+  SCOPE_LABEL,
+  ScopeList,
+  SCOPES_NO_WEB_USER,
+} from "@components/scope"
+import { StandardForm } from "@components/standard-form"
+import { useSignal, useSignalEffect } from "@preact/signals"
 import {
   type AdminPage_EntryValid,
   AdminPageSchema,
@@ -19,19 +20,24 @@ import {
   TokenSchema,
   TokensPageSchema,
   type TokenValid,
-} from "@lib/proto/settings_applications_pb"
-import { Service as SecurityService } from "@lib/proto/settings_security_pb"
-import { Scope } from "@lib/proto/shared_pb"
-import { ReportButton } from "@lib/report"
-import { formDataScopes, SCOPE_LABEL, ScopeList, SCOPES_NO_WEB_USER } from "@lib/scope"
-import { StandardForm } from "@lib/standard-form"
-import { headersDate, throwAbortError } from "@lib/utils"
-import { useSignal, useSignalEffect } from "@preact/signals"
+} from "@proto/settings_applications_pb"
+import { Service as SecurityService } from "@proto/settings_security_pb"
+import { Scope } from "@proto/shared_pb"
 import { assertNever } from "@std/assert/unstable-never"
+import {
+  API_URL,
+  config,
+  OAUTH_APP_NAME_MAX_LENGTH,
+  OAUTH_PAT_NAME_MAX_LENGTH,
+} from "@utils/config"
+import { throwAbortError } from "@utils/dom-helpers"
+import { headersDate } from "@utils/format"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 import { useRef } from "preact/hooks"
-import { Nav } from "../_nav"
+import { Nav } from "../nav"
 import { ApplicationsNav } from "./_nav"
 
 const SYSTEM_APP_WEB_CLIENT_ID = "SystemApp.web"

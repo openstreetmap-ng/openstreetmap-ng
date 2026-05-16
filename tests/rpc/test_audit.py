@@ -6,13 +6,13 @@ from zid import zid
 
 from app.config import AUDIT_POLICY
 from app.db import db
+from app.lib.audit import _cleanup_old_audit_logs
 from app.models.proto.audit_pb2 import (
     Filters,
     ListRequest,
     ListResponse,
 )
 from app.models.types import ApplicationId
-from app.services.audit_service import _cleanup_old_audit_logs
 
 
 async def test_list_audit_events_requires_admin(client: AsyncClient):

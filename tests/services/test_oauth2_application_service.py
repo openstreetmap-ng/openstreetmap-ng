@@ -2,8 +2,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.config import OAUTH_APP_URI_LIMIT, OAUTH_APP_URI_MAX_LENGTH
-from app.lib.locale import DEFAULT_LOCALE
-from app.lib.translation import translation_context
+from app.lib.text.locale import DEFAULT_LOCALE
+from app.lib.text.translation import translation_context
 from app.services.oauth2_application_service import OAuth2ApplicationService
 
 

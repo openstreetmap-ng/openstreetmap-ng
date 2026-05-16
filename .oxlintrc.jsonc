@@ -1,10 +1,9 @@
 {
   "ignorePatterns": [
     "app/static/vite/**",
-    "app/views/lib/_generated/**",
-    "app/views/lib/proto/**",
-    "app/views/lib/timezone-bbox.ts",
-    "app/views/lib/vector-styles/**",
+    "app/views/proto/**",
+    "app/views/data/**",
+    "app/views/map/vector-styles/**",
     "vendor/**",
   ],
   "plugins": [

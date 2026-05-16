@@ -7,10 +7,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import API_URL
-from app.lib.auth_context import web_user
-from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.exceptions.context import raise_for
+from app.lib.auth.context import web_user
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
 from app.models.db.user import User, user_proto
 from app.models.proto.trace_pb2 import Data, DetailsPage, EditPage, Metadata, UploadPage
 from app.models.types import TraceId, UserId

@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.referrer import secure_referrer
+from app.lib.http.referrer import secure_referrer
 
 
 @pytest.mark.parametrize(

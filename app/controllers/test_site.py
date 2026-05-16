@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query
 from starlette import status
 
 from app.config import ENV
-from app.lib.render_response import render_response
+from app.lib.render.response import render_response
 
 router = APIRouter()
 

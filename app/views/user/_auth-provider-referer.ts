@@ -1,4 +1,4 @@
-import { qsParse } from "@lib/qs"
+import { qsParse } from "@utils/query-string"
 
 export const getAuthProviderReferer = () => {
   const defaultReferrer = `${window.location.pathname}${window.location.search}`

@@ -4,10 +4,10 @@ import cython
 from shapely import Point, get_coordinates
 
 from app.config import APP_URL
-from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
-from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import get_xattr
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_user
+from app.lib.io.xml_codec import get_xattr
+from app.lib.render import format_style
 from app.models.db.user import User, user_avatar_url
 from app.models.db.user_pref import UserPref, UserPrefListValidator
 from app.models.types import UserPrefKey
@@ -25,7 +25,7 @@ class User06Mixin:
         >>> encode_user(User(...))
         {'user': {'@id': 1234, '@display_name': 'userName', ...}}
         """
-        return {'user': await _encode_user(user, is_json=format_is_json())}
+        return {'user': await _encode_user(user, is_json=format_style.is_json())}
 
     @staticmethod
     async def encode_users(users: list[User]):
@@ -36,7 +36,7 @@ class User06Mixin:
         ... ])
         {'user': [{'@id': 1234, '@display_name': 'userName', ...}]}
         """
-        is_json = format_is_json()
+        is_json = format_style.is_json()
 
         async with TaskGroup() as tg:
             tasks = [
@@ -54,7 +54,7 @@ class User06Mixin:
         ... ])
         {'preferences': {'preference': [{'@k': 'key1', '@v': 'value1'}, {'@k': 'key2', '@v': 'value2'}]}}
         """
-        if format_is_json():
+        if format_style.is_json():
             return {'preferences': {pref['key']: pref['value'] for pref in prefs}}
 
         return {

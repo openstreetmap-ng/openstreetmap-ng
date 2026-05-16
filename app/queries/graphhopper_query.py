@@ -5,8 +5,8 @@ from shapely import Point, get_coordinates
 from starlette import status
 
 from app.config import GRAPHHOPPER_API_KEY, GRAPHHOPPER_URL
-from app.lib.http_client import HTTP
-from app.lib.translation import primary_translation_locale
+from app.lib.http.client import HTTP
+from app.lib.text.translation import primary_translation_locale
 from app.models.graphhopper import GraphHopperResponse
 from app.models.proto.shared_pb2 import RoutingResult
 

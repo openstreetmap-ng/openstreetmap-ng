@@ -10,14 +10,14 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import USER_NEW_DAYS, USER_RECENT_ACTIVITY_ENTRIES
-from app.lib.auth_context import auth_user, web_user
-from app.lib.date_utils import utcnow
-from app.lib.exceptions_context import raise_for
-from app.lib.image import Image
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.statistics import user_activity_summary
-from app.lib.translation import t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.exceptions.context import raise_for
+from app.lib.auth import user_token
+from app.lib.auth.context import auth_user, web_user
+from app.lib.io.image import Image
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.translation import t
+from app.lib.time.date_utils import utcnow
+from app.lib.time.statistics import user_activity_summary
 from app.models.db.user import User, user_is_admin, user_is_moderator, user_proto
 from app.models.proto.account_confirm_pb2 import Page as AccountConfirmPage
 from app.models.proto.profile_pb2 import Page as ProfilePage
@@ -25,12 +25,9 @@ from app.models.proto.reset_password_pb2 import Page as ResetPasswordPage
 from app.models.proto.settings_connections_pb2 import Provider
 from app.models.proto.signup_pb2 import Page as SignupPage
 from app.models.types import UserId
-from app.queries.changeset_comment_query import ChangesetCommentQuery
-from app.queries.changeset_query import ChangesetQuery
-from app.queries.diary_comment_query import DiaryCommentQuery
-from app.queries.diary_query import DiaryQuery
-from app.queries.note_comment_query import NoteCommentQuery
-from app.queries.note_query import NoteQuery
+from app.queries.changeset_query import ChangesetCommentQuery, ChangesetQuery
+from app.queries.diary_query import DiaryCommentQuery, DiaryQuery
+from app.queries.note_query import NoteCommentQuery, NoteQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_follow_query import UserFollowQuery
 from app.queries.user_profile_query import UserProfileQuery
@@ -90,13 +87,13 @@ async def reset_password(
 
     if token is not None:
         # TODO: check errors
-        token_struct = UserTokenStructUtils.from_str(token)
-        user_token = await UserTokenQuery.find_by_token_struct(
+        token_struct = user_token.parse(token)
+        token_record = await UserTokenQuery.find_by_token_struct(
             'reset_password', token_struct, check_email_hash=False
         )
-        if user_token is not None:
-            await UserQuery.resolve_users([user_token])
-            profile = user_token['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+        if token_record is not None:
+            await UserQuery.resolve_users([token_record])
+            profile = token_record['user']  # pyright: ignore [reportTypedDictNotRequiredAccess]
             page.confirm.token = token.get_secret_value()
             page.confirm.profile.CopyFrom(user_proto(profile))
 

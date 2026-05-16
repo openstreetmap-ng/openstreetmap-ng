@@ -2,9 +2,9 @@ from typing import override
 
 from connectrpc.request import RequestContext
 
-from app.lib.auth_context import require_web_user
-from app.lib.render_jinja import render_jinja
-from app.lib.rich_text import rich_text
+from app.lib.auth.context import require_web_user
+from app.lib.render.jinja import render_jinja
+from app.lib.render.rich_text import rich_text
 from app.models.proto.rich_text_connect import (
     Service,
     ServiceASGIApplication,

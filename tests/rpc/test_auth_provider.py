@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 from pytest import MonkeyPatch
 
-from app.lib import auth_provider
+from app.lib.auth import provider
 from app.models.proto.auth_provider_pb2 import (
     StartAuthorizeRequest,
     StartAuthorizeResponse,
@@ -9,7 +9,7 @@ from app.models.proto.auth_provider_pb2 import (
 
 
 async def test_start_authorize_github(client: AsyncClient, monkeypatch: MonkeyPatch):
-    monkeypatch.setattr(auth_provider, 'GITHUB_OAUTH_PUBLIC', 'test-client-id')
+    monkeypatch.setattr(provider, 'GITHUB_OAUTH_PUBLIC', 'test-client-id')
 
     r = await client.post(
         '/rpc/auth_provider.Service/StartAuthorize',

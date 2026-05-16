@@ -1,27 +1,27 @@
+import { Time } from "@components/datetime-inputs"
+import { PageOrder, StandardPaginationNav } from "@components/standard-pagination"
+import { Tags } from "@components/tags"
+import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { pathParam } from "@lib/codecs"
-import { API_URL } from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
-import { convertRenderElementsData } from "@lib/map/render-objects"
-import type { LonLat } from "@lib/map/state"
-import {
-  type Data_Context_EntryValid,
-  type DataValid,
-  Service,
-} from "@lib/proto/element_pb"
-import { type ElementIconValid, ElementType } from "@lib/proto/shared_pb"
-import { PageOrder, StandardPaginationNav } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { Tags } from "@lib/tags"
-import { setPageTitle } from "@lib/title"
+import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
+import { convertRenderElementsData } from "@map/render-objects"
+import type { LonLat } from "@map/state"
 import {
   type ReadonlySignal,
   useComputed,
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import {
+  type Data_Context_EntryValid,
+  type DataValid,
+  Service,
+} from "@proto/element_pb"
+import { type ElementIconValid, ElementType } from "@proto/shared_pb"
+import { setPageTitle } from "@runtime/title"
+import { API_URL } from "@utils/config"
+import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, Fragment } from "preact"

@@ -9,11 +9,12 @@ from starlette.exceptions import HTTPException
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 from app.config import ADMIN_USER_EXPORT_LIMIT, ADMIN_USER_LIST_PAGE_SIZE, ENV
-from app.lib.auth_context import require_web_user
-from app.lib.cookie import set_auth_cookie
-from app.lib.date_utils import datetime_unix, unix_datetime
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.audit import audit
+from app.lib.auth.context import require_web_user
+from app.lib.auth.cookie import set_auth_cookie
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.standard.pagination import sp_paginate_table
+from app.lib.time.date_utils import datetime_unix, unix_datetime
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.db.user import (
@@ -44,11 +45,10 @@ from app.models.types import ApplicationId, DisplayName, Email, UserId
 from app.queries.audit_query import AuditQuery
 from app.queries.user_passkey_query import UserPasskeyQuery
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
+from app.services.admin_user_service import AdminUserService
 from app.services.oauth2_token_service import OAuth2TokenService
 from app.services.system_app_service import SystemAppService
 from app.services.user_passkey_service import UserPasskeyService
-from app.services.user_service import UserService
 from app.services.user_totp_service import UserTOTPService
 
 
@@ -183,7 +183,7 @@ class _Service(Service):
     async def update(self, request: UpdateRequest, ctx: RequestContext):
         require_web_user('role_administrator')
 
-        await UserService.admin_update_user(
+        await AdminUserService.update_user(
             user_id=UserId(request.user_id),
             display_name=(
                 DisplayName(request.display_name)

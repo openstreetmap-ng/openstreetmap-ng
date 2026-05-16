@@ -13,17 +13,18 @@ from app.config import (
     AUTH_PROVIDER_VERIFICATION_MAX_AGE,
     COOKIE_AUTH_MAX_AGE,
 )
-from app.lib.auth_context import auth_user
-from app.lib.auth_provider import get_authorize_redirect
-from app.lib.cookie import (
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.cookie import (
     delete_cookie,
     set_auth_cookie,
     set_cookie,
 )
-from app.lib.crypto import hash_compare, hmac_bytes
-from app.lib.referrer import secure_referrer
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.lib.auth.crypto import hash_compare, hmac_bytes
+from app.lib.auth.provider import get_authorize_redirect
+from app.lib.http.referrer import secure_referrer
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
 from app.models.db.connected_account import AuthProviderAction
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.auth_provider_pb2 import AccountNotFoundPage, Action, Identity
@@ -31,7 +32,6 @@ from app.models.proto.server_pb2 import AuthProviderState, AuthProviderVerificat
 from app.models.proto.settings_connections_pb2 import Provider as ProviderEnum
 from app.models.proto.settings_connections_types import Provider
 from app.queries.connected_account_query import ConnectedAccountQuery
-from app.services.audit_service import audit
 from app.services.connected_account_service import ConnectedAccountService
 from app.services.system_app_service import SystemAppService
 from app.utils import extend_query_params
