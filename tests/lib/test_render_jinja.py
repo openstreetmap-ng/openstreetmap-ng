@@ -2,9 +2,9 @@ from datetime import timedelta
 
 import pytest
 
-from app.lib.date_utils import utcnow
-from app.lib.render_jinja import timeago
-from app.lib.translation import translation_context
+from app.lib.render.jinja import timeago
+from app.lib.text.translation import translation_context
+from app.lib.time.date_utils import utcnow
 from app.models.types import LocaleCode
 
 

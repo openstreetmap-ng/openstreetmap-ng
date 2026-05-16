@@ -1,4 +1,4 @@
-import { Action, Category, type CommentBody } from "@lib/proto/report_pb"
+import { Action, Category, type CommentBody } from "@proto/report_pb"
 import type { JSX } from "preact"
 
 const REPORT_ACTION_ICON: Record<Action, string> = {

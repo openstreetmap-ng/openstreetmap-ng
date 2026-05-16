@@ -1,12 +1,12 @@
-import { Time } from "@lib/datetime-inputs"
+import { Time } from "@components/datetime-inputs"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
 import {
   type GetUserCommentsPageResponseValid,
   Service,
   UserCommentsPageSchema,
-} from "@lib/proto/diary_pb"
-import { mountProtoPage } from "@lib/proto-page"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
+} from "@proto/diary_pb"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 
 mountProtoPage(UserCommentsPageSchema, ({ user }) => (

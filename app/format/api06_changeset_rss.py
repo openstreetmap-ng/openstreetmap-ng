@@ -3,9 +3,9 @@ from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
 
 from app.config import APP_URL
-from app.lib.date_utils import format_rfc2822_date
-from app.lib.render_jinja import render_jinja
-from app.lib.translation import t
+from app.lib.render.jinja import render_jinja
+from app.lib.text.translation import t
+from app.lib.time.date_utils import format_rfc2822_date
 from app.models.db.changeset import Changeset
 
 

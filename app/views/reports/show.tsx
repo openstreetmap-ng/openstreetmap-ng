@@ -1,7 +1,9 @@
-import { isAdministrator, REPORT_COMMENT_BODY_MAX_LENGTH } from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { mountProtoPage } from "@lib/proto-page"
-import { Role } from "@lib/proto/admin_users_pb"
+import { Time } from "@components/datetime-inputs"
+import { StandardForm } from "@components/standard-form"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
+import { type Signal, useSignal } from "@preact/signals"
+import { Role } from "@proto/admin_users_pb"
 import {
   Action,
   type CommentValid,
@@ -9,13 +11,11 @@ import {
   type ListCommentsResponseValid,
   Service,
   ShowPageSchema,
-} from "@lib/proto/report_pb"
-type ReportEvent = "comment" | "close" | "reopen"
+} from "@proto/report_pb"
+import { isAdministrator, REPORT_COMMENT_BODY_MAX_LENGTH } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { ReportCommentBody } from "./_comment"
-import { StandardForm } from "@lib/standard-form"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { type Signal, useSignal } from "@preact/signals"
+type ReportEvent = "comment" | "close" | "reopen"
 
 const reportedUserIdOf = (header: HeaderValid) =>
   header.target.case === "reportedUser" ? header.target.value.id : undefined

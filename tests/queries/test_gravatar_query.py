@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.image import DEFAULT_USER_AVATAR
+from app.lib.io.image import DEFAULT_USER_AVATAR
 from app.models.types import Email
 from app.queries.gravatar_query import GravatarQuery
 

@@ -4,9 +4,9 @@ from warnings import catch_warnings, filterwarnings
 import numpy as np
 from fastapi import APIRouter, Query, Response, status
 
+from app.exceptions.context import raise_for
 from app.format import Format06
-from app.lib.auth_context import api_user
-from app.lib.exceptions_context import raise_for
+from app.lib.auth.context import api_user
 from app.models.db.user import User
 from app.models.types import UserId
 from app.queries.user_query import UserQuery

@@ -6,7 +6,7 @@ from shapely import MultiPolygon, Point, Polygon, buffer, get_coordinates, set_s
 from shapely.geometry import shape
 from shapely.geometry.base import BaseGeometry
 
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
 
 _T = TypeVar('_T', bound=BaseGeometry)
 

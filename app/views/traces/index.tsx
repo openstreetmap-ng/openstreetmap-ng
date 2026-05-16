@@ -1,18 +1,18 @@
-import { config } from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
+import { Time } from "@components/datetime-inputs"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
+import type { UserValid } from "@proto/shared_pb"
 import {
   type GetPageResponse_EntryValid,
   type IndexPageValid,
   IndexPageSchema,
   Service,
-} from "@lib/proto/trace_pb"
-import type { UserValid } from "@lib/proto/shared_pb"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
+} from "@proto/trace_pb"
+import { config } from "@utils/config"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
-import { SummaryRow } from "./_summary"
+import { SummaryRow } from "./summary"
 
 const getHeading = (owner: IndexPageValid["owner"], tag: string | undefined) => {
   const heading =

@@ -3,7 +3,7 @@ from urllib.parse import urlsplit
 from pydantic import AfterValidator
 
 from app.config import URLSAFE_BLACKLIST
-from app.lib.translation import t
+from app.lib.text.translation import t
 
 _BLACKLIST_ISDISJOINT = frozenset(URLSAFE_BLACKLIST).isdisjoint
 

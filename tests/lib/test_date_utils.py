@@ -3,7 +3,8 @@ from datetime import UTC, datetime
 import pytest
 from dateutil.tz import tzoffset
 
-from app.lib.date_utils import (
+from app.lib.text.translation import translation_context
+from app.lib.time.date_utils import (
     datetime_unix,
     format_rfc2822_date,
     format_sql_date,
@@ -11,7 +12,6 @@ from app.lib.date_utils import (
     unix_datetime,
     utcnow,
 )
-from app.lib.translation import translation_context
 
 
 @pytest.mark.parametrize(

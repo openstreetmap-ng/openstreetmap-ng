@@ -5,9 +5,10 @@ from typing import Annotated
 from fastapi import APIRouter, Response
 from starlette import status
 
-from app.lib.auth_context import web_user
-from app.lib.date_utils import datetime_unix
-from app.lib.render_response import render_proto_page
+from app.lib.audit import audit
+from app.lib.auth.context import web_user
+from app.lib.render.proto import render_proto_page
+from app.lib.time.date_utils import datetime_unix
 from app.models.db.oauth2_application import (
     SYSTEM_APP_PAT_CLIENT_ID,
     OAuth2Application,
@@ -29,7 +30,6 @@ from app.queries.connected_account_query import ConnectedAccountQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
 
 router = APIRouter()
 

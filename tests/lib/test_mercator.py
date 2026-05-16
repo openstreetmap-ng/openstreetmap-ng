@@ -1,6 +1,6 @@
 import numpy as np
 
-from app.lib.mercator import mercator
+from app.lib.geo.mercator import mercator
 
 
 def test_mercator():

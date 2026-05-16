@@ -8,16 +8,16 @@ from zid import zid
 
 from app.config import MESSAGE_RECIPIENTS_LIMIT
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.exceptions_context import raise_for
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t, translation_context
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t, translation_context
 from app.models.db.message import Message, MessageInit, messages_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import DisplayName, MessageId, UserId
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
-from app.services.audit_service import audit
 from app.services.email_service import EmailService
 
 

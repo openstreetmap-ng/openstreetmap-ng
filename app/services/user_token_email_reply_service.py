@@ -4,10 +4,10 @@ from zid import zid
 
 from app.config import EMAIL_REPLY_USAGE_LIMIT, SMTP_MESSAGES_FROM_HOST
 from app.db import db
-from app.lib.auth_context import auth_context, auth_user
-from app.lib.crypto import hash_bytes
-from app.lib.exceptions_context import raise_for
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.exceptions.context import raise_for
+from app.lib.auth import user_token
+from app.lib.auth.context import auth_context, auth_user
+from app.lib.auth.crypto import hash_bytes
 from app.models.db.mail import MailSource
 from app.models.db.user import User
 from app.models.db.user_token import UserTokenEmailReplyInit
@@ -31,7 +31,7 @@ class UserTokenEmailReplyService:
         Create a new user email reply address.
         Replying user can use this address to send a message to the current user.
         """
-        token = UserTokenStructUtils.to_str(
+        token = user_token.encode(
             await _create_token(
                 replying_user, mail_source, reply_to_user_id=reply_to_user_id
             )

@@ -4,8 +4,8 @@ from connectrpc.request import RequestContext
 from shapely import Point, set_srid
 
 from app.format import FormatRender
-from app.lib.geo_utils import meters_to_degrees
-from app.lib.query_features import QueryFeatures
+from app.lib.geo.distance import meters_to_degrees
+from app.lib.text.query_features import QueryFeatures
 from app.models.proto.query_features_connect import (
     Service,
     ServiceASGIApplication,

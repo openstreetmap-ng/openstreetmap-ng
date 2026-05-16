@@ -1,4 +1,4 @@
-from app.lib.trace_file import TraceFile
+from app.lib.io.trace_file import TraceFile
 from app.models.types import StorageKey
 
 

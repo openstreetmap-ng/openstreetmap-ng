@@ -6,14 +6,14 @@ from totp_rs import totp_time_window, totp_verify
 
 from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.crypto import decrypt, encrypt
-from app.lib.password_hash import PasswordLike
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import t
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.crypto import decrypt, encrypt
+from app.lib.auth.password import PasswordLike
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import t
 from app.models.types import UserId
 from app.queries.user_totp_query import UserTOTPQuery
-from app.services.audit_service import audit
 from app.services.user_password_service import UserPasswordService
 
 

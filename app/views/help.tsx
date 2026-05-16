@@ -1,7 +1,7 @@
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/help_pb"
-import type { ComponentChildren } from "preact"
+import { PageSchema } from "@proto/help_pb"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
+import type { ComponentChildren } from "preact"
 
 const HelpCard = ({
   href,

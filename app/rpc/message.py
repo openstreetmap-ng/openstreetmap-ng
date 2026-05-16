@@ -3,11 +3,10 @@ from typing import override
 
 import cython
 from connectrpc.request import RequestContext
-from psycopg.sql import SQL
 
 from app.config import MESSAGES_INBOX_PAGE_SIZE
-from app.lib.auth_context import require_web_user
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.auth.context import require_web_user
+from app.lib.standard.pagination import sp_paginate_table
 from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import user_proto
 from app.models.proto.message_connect import (

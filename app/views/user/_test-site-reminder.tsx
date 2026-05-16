@@ -1,6 +1,6 @@
-import { ENV } from "@lib/config"
+import { BPopover } from "@components/bootstrap-wrappers"
+import { ENV } from "@utils/config"
 import type { VNode } from "preact"
-import { BPopover } from "../lib/bootstrap"
 
 export const TestSiteReminder = ({ children }: { children: VNode }) => (
   <BPopover

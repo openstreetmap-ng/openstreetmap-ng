@@ -2,10 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter
 
+from app.exceptions.context import raise_for
 from app.format import Format06
-from app.lib.auth_context import api_user
-from app.lib.exceptions_context import raise_for
-from app.lib.xml_body import xml_body
+from app.lib.auth.context import api_user
+from app.lib.io.xml_body import xml_body
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.user import User
 from app.models.types import UserPrefKey

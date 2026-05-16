@@ -12,13 +12,13 @@ from sentry_sdk import capture_exception
 from sentry_sdk.api import start_transaction
 
 from app.db import db, db_lock, without_indexes
-from app.lib.progress import progress
-from app.lib.retry import retry
-from app.lib.sentry import (
+from app.lib.http.retry import retry
+from app.lib.telemetry.progress import progress
+from app.lib.telemetry.sentry import (
     SENTRY_ELEMENT_SPATIAL_MONITOR,
     SENTRY_ELEMENT_SPATIAL_MONITOR_SLUG,
 )
-from app.lib.testmethod import testmethod
+from app.lib.telemetry.testmethod import testmethod
 from app.models.types import SequenceId
 from app.utils import calc_num_workers
 

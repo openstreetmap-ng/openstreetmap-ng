@@ -7,10 +7,10 @@ BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
 
 # Reason: Lambda default arguments fail with embedsignature=True
 # https://github.com/cython/cython/issues/6880
-BLACKLIST["app/lib/pydantic_settings_integration.py"]=1
+BLACKLIST["app/lib/settings_integration.py"]=1
 
 DIRS=(
-  "app/exceptions" "app/exceptions06" "app/format" "app/lib"
+  "app/exceptions" "app/format" "app/lib"
   "app/middlewares" "app/responses" "app/services"
   "app/queries" "app/validators"
 )
@@ -23,7 +23,7 @@ done
 
 EXTRA_PATHS=(
   "app/db.py" "app/utils.py"
-  "app/models/element.py" "app/models/scope.py" "app/models/tags_format.py"
+  "app/models/element.py" "app/models/scope.py"
   "scripts/preload_convert.py" "scripts/replication_download.py"
   "scripts/replication_generate.py"
 )

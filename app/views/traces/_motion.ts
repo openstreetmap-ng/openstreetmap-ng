@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "@lib/config"
+import { prefersReducedMotion } from "@utils/config"
 
 const REDUCED_MOTION_DURATION_FACTOR = 4
 
