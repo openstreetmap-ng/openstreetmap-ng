@@ -1,6 +1,6 @@
 import logging
 
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.proto.server_pb2 import StatelessUserTokenStruct
 from app.models.types import UserSubscriptionTargetId

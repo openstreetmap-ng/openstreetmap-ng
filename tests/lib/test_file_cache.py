@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import pytest
 
-from app.lib.file_cache import FileCache
+from app.lib.io.file_cache import FileCache
 from app.models.types import StorageKey
 
 

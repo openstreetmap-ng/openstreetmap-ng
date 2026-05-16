@@ -3,7 +3,7 @@ from shapely import MultiPolygon, Polygon
 
 from app.config import QUERY_FEATURES_RESULTS_LIMIT
 from app.db import db
-from app.lib.geo_utils import polygon_to_h3_search
+from app.lib.geo.h3 import polygon_to_h3_search
 from app.models.db.element_spatial import ElementSpatial
 
 

@@ -1,6 +1,6 @@
-import { mountProtoPage } from "@lib/proto-page"
-import { Service, UploadPageSchema, Visibility } from "@lib/proto/trace_pb"
-import { formDataBytes, StandardForm } from "@lib/standard-form"
+import { formDataBytes, StandardForm } from "@components/standard-form"
+import { Service, UploadPageSchema, Visibility } from "@proto/trace_pb"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { MetadataFields } from "./edit"
 

@@ -1,7 +1,7 @@
-import { isLoggedIn } from "@lib/config"
-import { AccountNotFoundPageSchema } from "@lib/proto/auth_provider_pb"
-import { mountProtoPage } from "@lib/proto-page"
-import { getAuthProviderTitle } from "@lib/auth-provider"
+import { getAuthProviderTitle } from "@components/auth-provider"
+import { AccountNotFoundPageSchema } from "@proto/auth_provider_pb"
+import { isLoggedIn } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { showLoginModal } from "./login"
 

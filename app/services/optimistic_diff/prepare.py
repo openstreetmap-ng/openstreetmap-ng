@@ -9,9 +9,9 @@ import numpy as np
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
-from app.lib.auth_context import auth_user
-from app.lib.changeset_bounds import extend_changeset_bounds
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_user
+from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
 from app.models.element import (
@@ -23,8 +23,7 @@ from app.models.element import (
 )
 from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
-from app.queries.changeset_bounds_query import ChangesetBoundsQuery
-from app.queries.changeset_query import ChangesetQuery
+from app.queries.changeset_query import ChangesetBoundsQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
 from speedup import element_id, element_type, split_typed_element_id
 

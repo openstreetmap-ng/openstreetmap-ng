@@ -1,8 +1,8 @@
-import type { LonLatZoom } from "@lib/map/state"
-import { wrapMessageEventValidator } from "@lib/utils"
+import type { LonLatZoom } from "@map/state"
+import { wrapMessageEventValidator } from "@utils/dom-helpers"
 import { Collapse } from "bootstrap"
-import { updateNavbarAndHash } from "./navbar-left"
-import { messagesCountUnread } from "./navbar-right"
+import { updateNavbarAndHash } from "./navbar-left-state"
+import { messagesCountUnread } from "./navbar-right-state"
 
 const navbar = document.querySelector(".navbar")
 const navbarCollapseInstance = navbar

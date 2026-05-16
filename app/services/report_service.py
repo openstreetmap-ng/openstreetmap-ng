@@ -8,9 +8,9 @@ from zid import zid
 
 from app.config import APP_URL
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.standard_feedback import StandardFeedback
-from app.lib.translation import nt, t
+from app.lib.auth.context import auth_user
+from app.lib.standard.feedback import StandardFeedback
+from app.lib.text.translation import nt, t
 from app.models.db.report import ReportInit, ReportTypeId
 from app.models.db.report_comment import (
     ReportActionId,
@@ -19,14 +19,13 @@ from app.models.db.report_comment import (
 )
 from app.models.proto.admin_users_types import Role
 from app.models.proto.report_types import Action, Category, Type
-from app.models.types import ReportId
+from app.models.types import ReportCommentId, ReportId
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.diary_query import DiaryQuery
 from app.queries.message_query import MessageQuery
 from app.queries.note_query import NoteQuery
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
-from app.queries.report_comment_query import ReportCommentQuery
-from app.queries.report_query import ReportQuery
+from app.queries.report_query import ReportCommentQuery, ReportQuery
 from app.queries.trace_query import TraceQuery
 from app.queries.user_query import UserQuery
 from app.services.email_service import EmailService
@@ -309,6 +308,36 @@ class ReportService:
             report_id,
             user_id,
         )
+
+
+# === Report Comments ===
+
+
+class ReportCommentService:
+    @staticmethod
+    async def update_visibility(
+        comment_id: ReportCommentId,
+        new_visibility: Role,
+    ):
+        user = auth_user(required=True)
+        user_id = user['id']
+
+        async with db(True) as conn:
+            result = await conn.execute(
+                """
+                UPDATE report_comment SET visible_to = %s
+                WHERE id = %s AND visible_to != %s
+                """,
+                (new_visibility, comment_id, new_visibility),
+            )
+
+            if result.rowcount:
+                logging.debug(
+                    'Changed visibility of comment %d to %r by user %d',
+                    comment_id,
+                    new_visibility,
+                    user_id,
+                )
 
 
 @cython.cfunc

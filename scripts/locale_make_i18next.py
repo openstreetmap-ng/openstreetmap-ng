@@ -10,34 +10,42 @@ _I18NEXT_DIR = Path('config/locale/i18next')
 _I18NEXT_DIR.mkdir(parents=True, exist_ok=True)
 _I18NEXT_MAP_PATH = _I18NEXT_DIR.joinpath('map.json')
 
-_INCLUDE_PREFIXES = [
-    'javascripts.map.layers.title',
-    'javascripts.share.title',
-    'osm_community_index.communities',
-    'service',
-    'site.key.table.entry',
-    'socials.label',
-]
-
-_INCLUDE_PREFIXES_DOT = tuple(f'{prefix}.' for prefix in _INCLUDE_PREFIXES)
+# Escape hatch for include-prefixes that cannot be reached from the
+# auto-detected template-literal pattern `t(`prefix.${...}`)` in TS/TSX
+# sources. Prefer refactoring the call site so the prefix is visible to the
+# extractor (see app/views/user/profile/_edit-modals.tsx for an example)
+# before adding entries here. Entries are validated against en.json at build
+# time and must resolve to a non-empty subtree.
+_EXTRA_INCLUDE_PREFIXES: list[str] = []
 
 # i18next plural suffixes to strip when matching used keys
 _PLURAL_SUFFIXES = ('_zero', '_one', '_two', '_few', '_many', '_other')
 
-# Match i18next.t() and t() calls with literal strings
+# Match i18next.t() / t() / tRich() calls with a literal first argument.
+# Group 1: "double-quoted" key.  Group 2: 'single-quoted' key.
+# Group 3: `template literal` content, possibly containing ${...}; we
+# post-process this to extract either a literal key (no interpolation) or a
+# static prefix ending in '.' (the part before the first ${).
 _FIND_USED_KEYS_OPTIONS = re2.Options()
 _FIND_USED_KEYS_OPTIONS.dot_nl = True
 _FIND_USED_KEYS_RE = re2.compile(
     r'(?:\bi18next\.t|(?:^|[^.\w])(?:t|tRich))\s*\(\s*'
-    r'(?:"((?:\\.|[^"\\])*)"|\'((?:\\.|[^\'\\])*)\')'
+    r'(?:"((?:\\.|[^"\\])*)"'
+    r"|'((?:\\.|[^'\\])*)'"
+    r'|`([^`]*)`)'
     r'\s*[,)]',
     _FIND_USED_KEYS_OPTIONS,
 )
 
 
 def find_used_keys():
-    """Extract translation keys used in the source files."""
-    result = set()
+    """Extract translation keys and dynamic prefixes used in the source files.
+
+    Returns (used_keys, prefixes, mtime). Prefixes are dot-terminated and cover
+    every key under that namespace (e.g. 'service.' covers 'service.github.title').
+    """
+    used_keys: set[str] = set()
+    prefixes: set[str] = set()
     mtime = 0
 
     for source in (
@@ -48,16 +56,60 @@ def find_used_keys():
         found = False
         for match in _FIND_USED_KEYS_RE.finditer(source.read_text()):
             found = True
-            key = match[1] or match[2]
-            if key:
-                result.add(key)
+            if (key := match[1]) is not None or (key := match[2]) is not None:
+                if key:
+                    used_keys.add(key)
+            elif (template := match[3]) is not None:
+                interp = template.find('${')
+                if interp < 0:
+                    if template:
+                        used_keys.add(template)
+                else:
+                    static = template[:interp]
+                    if static.endswith('.'):
+                        prefixes.add(static)
         if found:
             mtime = max(mtime, source.stat().st_mtime)
 
-    return result, mtime
+    return used_keys, prefixes, mtime
 
 
-def filter_unused_keys(obj: dict, used_keys: set[str], *, _parent_path: str = ''):
+def validate_prefixes(prefixes: set[str], en_data: dict):
+    """Assert every prefix resolves to a non-empty subtree in en.json.
+
+    Catches both stale escape-hatch entries and typos in dynamic `t(`...${}`)`
+    calls (the path simply won't exist in the locale data).
+    """
+    errors: list[str] = []
+    for prefix in sorted(prefixes):
+        node = en_data
+        for part in prefix.rstrip('.').split('.'):
+            if not isinstance(node, dict) or part not in node:
+                node = None
+                break
+            node = node[part]
+        if not isinstance(node, dict):
+            errors.append(
+                f'  {prefix!r}: path missing or resolves to a leaf in en.json'
+            )
+        elif not node:
+            errors.append(f'  {prefix!r}: resolves to an empty subtree')
+    if errors:
+        raise RuntimeError(
+            'i18n prefix validation failed:\n'
+            + '\n'.join(errors)
+            + '\n(refactor the source to a literal `t(`prefix.${...}`)` call'
+            ' or remove the stale _EXTRA_INCLUDE_PREFIXES entry)'
+        )
+
+
+def filter_unused_keys(
+    obj: dict,
+    used_keys: set[str],
+    prefixes_dot: tuple[str, ...],
+    *,
+    _parent_path: str = '',
+):
     """Filter translation dictionary by used keys."""
     filtered = {}
 
@@ -67,7 +119,7 @@ def filter_unused_keys(obj: dict, used_keys: set[str], *, _parent_path: str = ''
         # Recursively filter nested dictionaries
         if isinstance(value, dict):
             if filtered_nested := filter_unused_keys(
-                value, used_keys, _parent_path=current_path
+                value, used_keys, prefixes_dot, _parent_path=current_path
             ):
                 filtered[key] = filtered_nested
         # Check if this key should be included
@@ -80,7 +132,7 @@ def filter_unused_keys(obj: dict, used_keys: set[str], *, _parent_path: str = ''
                         candidate = current_path[: -len(suffix)]
                         break
 
-            if candidate in used_keys or current_path.startswith(_INCLUDE_PREFIXES_DOT):
+            if candidate in used_keys or current_path.startswith(prefixes_dot):
                 filtered[key] = value
 
     return filtered
@@ -111,11 +163,20 @@ def main():
     file_map: dict[str, str] = {}
     transform_count = 0
 
-    used_keys, used_keys_mtime = find_used_keys()
-    combined_keys = used_keys.copy()
-    combined_keys.update(_INCLUDE_PREFIXES)
+    used_keys, detected_prefixes, used_keys_mtime = find_used_keys()
+    all_prefixes = detected_prefixes | {
+        f'{p.rstrip(".")}.' for p in _EXTRA_INCLUDE_PREFIXES
+    }
+    prefixes_dot = tuple(sorted(all_prefixes))
+    # `used_keys` already lists every prefix anchor we want preserved at the
+    # leaf level (e.g. `service` itself, alongside `service.*` descendants).
+    combined_keys = used_keys | {p.rstrip('.') for p in all_prefixes}
     original_keys_count = 0
     filtered_keys_count = 0
+
+    en_path = _POSTPROCESS_DIR / 'en.json'
+    if en_path.is_file():
+        validate_prefixes(all_prefixes, orjson.loads(en_path.read_bytes()))
 
     for source_path in _POSTPROCESS_DIR.glob('*.json'):
         locale = source_path.stem
@@ -137,7 +198,9 @@ def main():
         translation_data = orjson.loads(source_path.read_bytes())
         if locale == 'en':
             original_keys_count = count_keys(translation_data)
-        translation_data = filter_unused_keys(translation_data, combined_keys)
+        translation_data = filter_unused_keys(
+            translation_data, combined_keys, prefixes_dot
+        )
         if locale == 'en':
             filtered_keys_count = count_keys(translation_data)
 
@@ -175,8 +238,11 @@ def main():
         f'transformed {transform_count} locales'
     )
     print(
-        f'[i18next] Source analysis found {len(used_keys)} used keys',
+        f'[i18next] Source analysis found {len(used_keys)} used keys, '
+        f'{len(detected_prefixes)} dynamic prefixes',
     )
+    for prefix in sorted(detected_prefixes):
+        print(f'[i18next]   prefix: {prefix.rstrip(".")}.*')
     if original_keys_count:
         print(
             f'[i18next] Filtered {original_keys_count} → {filtered_keys_count} keys '

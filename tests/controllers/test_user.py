@@ -5,7 +5,7 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 
-from app.lib.crypto import hmac_bytes
+from app.lib.auth.crypto import hmac_bytes
 from app.models.proto.auth_provider_pb2 import Identity
 from app.models.proto.server_pb2 import AuthProviderVerification
 from app.models.proto.settings_connections_types import Provider
@@ -51,16 +51,15 @@ async def test_signup_redirect_when_authenticated(client: AsyncClient):
 
 
 async def test_signup_prefills_auth_provider_verification(client: AsyncClient):
-    r = await client.get(
-        '/signup',
-        cookies={
-            'auth_provider_verification': _signed_auth_provider_verification(
-                provider='github',
-                name='GitHub User',
-                email='github@example.com',
-            )
-        },
+    client.cookies.set(
+        'auth_provider_verification',
+        _signed_auth_provider_verification(
+            provider='github',
+            name='GitHub User',
+            email='github@example.com',
+        ),
     )
+    r = await client.get('/signup')
     assert r.is_success, r.text
 
     state = decode_page_state(r.text, SignupPage)

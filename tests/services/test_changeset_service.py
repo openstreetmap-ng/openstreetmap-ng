@@ -9,7 +9,7 @@ from app.config import (
     CHANGESET_OPEN_TIMEOUT,
 )
 from app.db import db
-from app.lib.date_utils import utcnow
+from app.lib.time.date_utils import utcnow
 from app.models.types import ChangesetId
 from app.queries.changeset_query import ChangesetQuery
 from app.services.changeset_service import ChangesetService

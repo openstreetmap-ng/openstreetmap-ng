@@ -6,9 +6,9 @@ from feedgen.feed import FeedGenerator
 from shapely import get_coordinates
 
 from app.config import API_URL, APP_URL
-from app.lib.http_client import HTTPError
-from app.lib.render_jinja import render_jinja
-from app.lib.translation import t
+from app.lib.http.client import HTTPError
+from app.lib.render.jinja import render_jinja
+from app.lib.text.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment
 from app.queries.nominatim_query import NominatimQuery

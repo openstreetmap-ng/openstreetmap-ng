@@ -4,7 +4,7 @@ from typing import TypedDict, assert_never, get_args, overload
 from shapely import Point
 
 from app.config import DELETED_USER_EMAIL_SUFFIX, TEST_USER_EMAIL_SUFFIX
-from app.lib.image import Image, UserAvatarType
+from app.lib.io.image import Image, UserAvatarType
 from app.models.proto.admin_users_types import Role
 from app.models.proto.shared_pb2 import User as ProtoUser
 from app.models.scope import Scope

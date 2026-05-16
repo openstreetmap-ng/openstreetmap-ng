@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import NotRequired, TypedDict
 
-from app.lib.rich_text import resolve_rich_text
+from app.lib.render.rich_text import resolve_rich_text
 from app.models.db.user import UserDisplay
 from app.models.types import ChangesetCommentId, ChangesetId, UserId
 

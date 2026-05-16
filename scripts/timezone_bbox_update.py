@@ -8,7 +8,7 @@ import orjson
 from shapely.geometry import shape
 from zstandard import ZstdDecompressor
 
-from app.lib.http_client import HTTP, http_context
+from app.lib.http.client import HTTP, http_context
 
 
 @contextmanager
@@ -134,7 +134,7 @@ async def main():
         )
 
     output = generate_typescript_file(result)
-    output_path = Path('app/views/lib/timezone-bbox.ts')
+    output_path = Path('app/views/data/timezone-bbox.ts')
     output_path.write_text(output)
 
 

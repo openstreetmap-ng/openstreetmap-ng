@@ -1,16 +1,16 @@
-import { useDisposeEffect } from "@lib/dispose-scope"
+import { StandardForm } from "@components/standard-form"
+import { useSignal } from "@preact/signals"
 import {
   PageSchema,
   Service,
   type ListResponse,
   type ListResponse_TaskValid,
-} from "@lib/proto/admin_tasks_pb"
-import { mountProtoPage } from "@lib/proto-page"
-import { rpcUnary } from "@lib/rpc"
-import { StandardForm } from "@lib/standard-form"
-import { useSignal } from "@preact/signals"
+} from "@proto/admin_tasks_pb"
 import { SECOND } from "@std/datetime/constants"
-import { Nav } from "../settings/_nav"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import { mountProtoPage } from "@utils/proto-page"
+import { rpcUnary } from "@utils/rpc"
+import { Nav } from "../settings/nav"
 
 const AdminTaskCard = ({
   task,

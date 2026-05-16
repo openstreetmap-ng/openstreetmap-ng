@@ -4,7 +4,7 @@ from typing import Any, NamedTuple
 import cython
 from shapely import MultiLineString, get_coordinates
 
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
 from app.models.db.trace import Trace, trace_is_timestamps_via_api
 
 

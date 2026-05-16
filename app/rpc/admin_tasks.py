@@ -2,8 +2,8 @@ from typing import override
 
 from connectrpc.request import RequestContext
 
-from app.lib.auth_context import require_web_user
-from app.lib.standard_feedback import StandardFeedback
+from app.lib.auth.context import require_web_user
+from app.lib.standard.feedback import StandardFeedback
 from app.models.proto.admin_tasks_connect import (
     Service,
     ServiceASGIApplication,

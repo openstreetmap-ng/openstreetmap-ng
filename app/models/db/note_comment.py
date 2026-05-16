@@ -2,7 +2,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 from typing import NotRequired, TypedDict
 
-from app.lib.rich_text import resolve_rich_text
+from app.lib.render.rich_text import resolve_rich_text
 from app.models.db.note import Note
 from app.models.db.user import UserDisplay
 from app.models.proto.note_types import GetCommentsResponse_Comment_Event

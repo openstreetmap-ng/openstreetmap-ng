@@ -1,30 +1,32 @@
 import type { MessageInitShape } from "@bufbuild/protobuf"
-import { ENV } from "@lib/config"
-import { mountProtoPage } from "@lib/proto-page"
+import { StandardForm } from "@components/standard-form"
+import { useSignal } from "@preact/signals"
 import {
   CredentialsSchema,
   LoginRequestSchema,
   type LoginResponse,
   type PasskeyAssertion,
   Service,
-} from "@lib/proto/auth_pb"
-import { Action } from "@lib/proto/auth_provider_pb"
-import { PageSchema as LoginPageSchema } from "@lib/proto/login_pb"
-import { StandardForm } from "@lib/standard-form"
-import { NON_DIGIT_RE, throwAbortError } from "@lib/utils"
-import { getPasskeyAssertion, startConditionalMediation } from "@lib/webauthn"
-import { useSignal } from "@preact/signals"
+} from "@proto/auth_pb"
+import { Action } from "@proto/auth_provider_pb"
+import { PageSchema as LoginPageSchema } from "@proto/login_pb"
 import { memoize } from "@std/cache/memoize"
+import { ENV } from "@utils/config"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import { throwAbortError } from "@utils/dom-helpers"
+import { mountProtoPage } from "@utils/proto-page"
+import { getPasskeyAssertion, startConditionalMediation } from "@utils/webauthn"
 import { Modal } from "bootstrap"
 import { t } from "i18next"
 import type { RefObject } from "preact"
 import { render } from "preact"
 import type { MutableRef } from "preact/hooks"
 import { useEffect, useId, useRef } from "preact/hooks"
-import { useDisposeEffect } from "../lib/dispose-scope"
 import { getAuthProviderReferer } from "./_auth-provider-referer"
 import { AuthSwitcher } from "./_auth-switcher"
 import { TestSiteReminder } from "./_test-site-reminder"
+
+const NON_DIGIT_RE = /\D/g
 
 enum LoginState {
   credentials,

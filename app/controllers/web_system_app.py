@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Form
 
-from app.lib.auth_context import web_user
+from app.lib.auth.context import web_user
 from app.models.db.user import User
 from app.services.system_app_service import SystemAppService
 

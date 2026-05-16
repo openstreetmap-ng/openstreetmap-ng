@@ -7,8 +7,8 @@ from polyline_rs import encode_lonlat
 from psycopg.sql import SQL
 
 from app.config import TRACES_LIST_PAGE_SIZE
-from app.lib.auth_context import auth_scopes, auth_user, require_web_user
-from app.lib.standard_pagination import sp_paginate_table
+from app.lib.auth.context import auth_scopes, auth_user, require_web_user
+from app.lib.standard.pagination import sp_paginate_table
 from app.models.db.trace import Trace
 from app.models.db.user import user_proto
 from app.models.proto.trace_connect import Service, ServiceASGIApplication

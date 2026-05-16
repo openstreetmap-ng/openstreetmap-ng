@@ -11,11 +11,11 @@ from app.config import (
     STATIC_CACHE_MAX_AGE,
     STATIC_CACHE_STALE,
 )
-from app.lib.avatar import generate_avatar
+from app.lib.render.avatar import generate_avatar
 from app.middlewares.headers_middleware import cache_control
 from app.models.types import ImageProxyId, NoteId, StorageKey, UserId
 from app.queries.image_query import ImageQuery
-from app.queries.note_comment_query import NoteCommentQuery
+from app.queries.note_query import NoteCommentQuery
 from app.queries.user_query import UserQuery
 from app.services.image_proxy_service import ImageProxyService
 

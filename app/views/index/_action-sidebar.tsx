@@ -2,14 +2,14 @@ import type { DescMessage, DescMethodUnary, MessageValidType } from "@bufbuild/p
 import { Code, ConnectError } from "@connectrpc/connect"
 import { IndexRoute } from "@index/index"
 import { routerNavigate } from "@index/router"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@lib/rpc"
 import {
   type ReadonlySignal,
   type Signal,
   useComputed,
   useSignal,
 } from "@preact/signals"
+import { useDisposeSignalEffect } from "@utils/dispose-scope"
+import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@utils/rpc"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
 

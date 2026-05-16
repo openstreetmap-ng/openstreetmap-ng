@@ -1,6 +1,6 @@
 from httpx import AsyncClient
 
-from app.lib.auth_context import auth_context
+from app.lib.auth.context import auth_context
 from app.models.proto.follow_pb2 import (
     ListRequest,
     ListResponse,

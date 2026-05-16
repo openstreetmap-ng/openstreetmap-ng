@@ -1,7 +1,8 @@
-import { queryParam } from "@lib/codecs"
-import { Time } from "@lib/datetime-inputs"
-import { unixToLocalDatetime } from "@lib/datetime-local"
-import { mountProtoPage } from "@lib/proto-page"
+import { Time } from "@components/datetime-inputs"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserAgentIcons } from "@components/user-agent-icons"
+import { UserLink } from "@components/user-link"
+import { useComputed, useSignal } from "@preact/signals"
 import {
   type EventValid,
   FiltersSchema,
@@ -9,14 +10,12 @@ import {
   Service,
   Type,
   TypeSchema,
-} from "@lib/proto/audit_pb"
-import { defineProtoQueryContract } from "@lib/query-contract"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { useUrlQueryState } from "@lib/url-signals"
-import { UserAgentIcons } from "@lib/user-agent-icons"
-import { formatPackedIp } from "@lib/utils"
-import { useComputed, useSignal } from "@preact/signals"
+} from "@proto/audit_pb"
+import { formatPackedIp, unixToLocalDatetime } from "@utils/format"
+import { queryParam } from "@utils/path-codecs"
+import { mountProtoPage } from "@utils/proto-page"
+import { defineProtoQueryContract } from "@utils/query-contract"
+import { useUrlQueryState } from "@utils/query-signals"
 import { t } from "i18next"
 import type { SubmitEventHandler } from "preact"
 import { useId } from "preact/hooks"

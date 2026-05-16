@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
-from app.lib.locale import DEFAULT_LOCALE
+from app.lib.text.locale import DEFAULT_LOCALE
 from app.queries.user_query import UserQuery
 from tests.utils.assert_model import assert_model
 

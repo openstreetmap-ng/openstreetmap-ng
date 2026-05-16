@@ -93,12 +93,36 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: "@index",
-        replacement: fileURLToPath(import.meta.resolve("./app/views/index")),
+        find: "@components",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/components")),
       },
       {
-        find: "@lib",
-        replacement: fileURLToPath(import.meta.resolve("./app/views/lib")),
+        find: "@utils",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/utils")),
+      },
+      {
+        find: "@runtime",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/runtime")),
+      },
+      {
+        find: "@styles",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/styles")),
+      },
+      {
+        find: "@proto",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/proto")),
+      },
+      {
+        find: "@map",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/map")),
+      },
+      {
+        find: "@data",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/data")),
+      },
+      {
+        find: "@index",
+        replacement: fileURLToPath(import.meta.resolve("./app/views/index")),
       },
       {
         find: /^bootstrap$/,

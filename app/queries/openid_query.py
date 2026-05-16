@@ -4,8 +4,8 @@ from typing import NotRequired, TypedDict
 import orjson
 
 from app.config import OPENID_DISCOVERY_HTTP_TIMEOUT
-from app.lib.crypto import hash_storage_key
-from app.lib.http_client import HTTP
+from app.lib.auth.crypto import hash_storage_key
+from app.lib.http.client import HTTP
 from app.services.cache_service import CacheContext, CacheService
 
 _CTX = CacheContext('OpenID')
