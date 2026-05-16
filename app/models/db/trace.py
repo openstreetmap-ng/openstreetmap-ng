@@ -14,7 +14,7 @@ from app.config import (
     TRACE_TAG_MAX_LENGTH,
     TRACE_TAGS_LIMIT,
 )
-from app.lib.auth_context import auth_scopes, auth_user
+from app.lib.auth.context import auth_scopes, auth_user
 from app.models.db.user import UserDisplay, user_is_moderator
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId, UserId

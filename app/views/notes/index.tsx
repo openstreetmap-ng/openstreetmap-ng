@@ -1,5 +1,6 @@
-import { queryParam } from "@lib/codecs"
-import { Time } from "@lib/datetime-inputs"
+import { Time } from "@components/datetime-inputs"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
 import {
   GetUserPageRequest_StatusFilter,
   GetUserPageRequest_StatusFilterSchema,
@@ -7,13 +8,12 @@ import {
   Service,
   Status,
   UserPageSchema,
-} from "@lib/proto/note_pb"
-import { mountProtoPage } from "@lib/proto-page"
-import { defineQueryContract } from "@lib/query-contract"
-import { StandardPagination } from "@lib/standard-pagination"
-import { UserLink } from "@lib/user-link"
-import { usePathSuffixQueryState } from "@lib/url-signals"
-import { isUnmodifiedLeftClick } from "@lib/utils"
+} from "@proto/note_pb"
+import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
+import { queryParam } from "@utils/path-codecs"
+import { mountProtoPage } from "@utils/proto-page"
+import { defineQueryContract } from "@utils/query-contract"
+import { usePathSuffixQueryState } from "@utils/query-signals"
 import { t } from "i18next"
 import { useId } from "preact/hooks"
 

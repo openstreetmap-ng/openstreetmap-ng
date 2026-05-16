@@ -25,8 +25,8 @@ from pydantic import BaseModel, create_model
 
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
 from app.db import db
-from app.lib.date_utils import utcnow
-from app.services.audit_service import audit
+from app.lib.audit import audit
+from app.lib.time.date_utils import utcnow
 
 TaskId = NewType('TaskId', str)
 

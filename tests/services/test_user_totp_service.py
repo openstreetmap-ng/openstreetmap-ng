@@ -2,9 +2,9 @@ import pytest
 from pydantic import SecretStr
 from totp_rs import totp_generate, totp_time_window
 
-from app.lib.auth_context import auth_context
-from app.lib.locale import DEFAULT_LOCALE
-from app.lib.translation import translation_context
+from app.lib.auth.context import auth_context
+from app.lib.text.locale import DEFAULT_LOCALE
+from app.lib.text.translation import translation_context
 from app.models.types import DisplayName, Password
 from app.queries.user_query import UserQuery
 from app.queries.user_totp_query import UserTOTPQuery

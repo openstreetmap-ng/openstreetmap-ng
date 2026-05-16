@@ -1,7 +1,7 @@
 import pytest
 
-from app.lib.feature_prefix import features_prefixes
-from app.lib.translation import translation_context
+from app.lib.text.feature_prefix import features_prefixes
+from app.lib.text.translation import translation_context
 from app.models.db.element import ElementInit
 from app.models.element import ElementId
 from app.models.types import ChangesetId, LocaleCode

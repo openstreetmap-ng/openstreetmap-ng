@@ -13,12 +13,13 @@ from app.config import (
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.crypto import hash_bytes
-from app.lib.exceptions_context import raise_for
-from app.lib.standard_feedback import StandardFeedback
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.crypto import hash_bytes
+from app.lib.standard.feedback import StandardFeedback
 from app.lib.storage import AVATAR_STORAGE
-from app.lib.translation import t
+from app.lib.text.translation import t
 from app.models.db.oauth2_application import (
     OAuth2ApplicationInit,
     OAuth2Uri,
@@ -26,7 +27,6 @@ from app.models.db.oauth2_application import (
 )
 from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey
-from app.services.audit_service import audit
 from app.services.image_service import ImageService
 from app.validators.url import parse_uri
 from speedup import buffered_rand_urlsafe

@@ -1,11 +1,11 @@
-import "./id.scss"
-import "iD/dist/iD.css"
 import "iD"
+import "iD/dist/iD.css"
+import "./id.scss"
 
-import { API_URL, ID_PATH, primaryLanguage } from "@lib/config"
-import { parentLoadSystemApp } from "@lib/system-app"
+import { parentLoadSystemApp } from "@runtime/iframe-system-app"
 import { assertExists } from "@std/assert"
 import { throttle } from "@std/async/unstable-throttle"
+import { API_URL, ID_PATH, primaryLanguage } from "@utils/config"
 
 const container = document.querySelector("div.id-container")
 assertExists(container, "iD container not found")

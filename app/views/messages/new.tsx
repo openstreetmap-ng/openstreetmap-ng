@@ -1,16 +1,16 @@
+import { MultiInput } from "@components/multi-input"
+import { StandardForm } from "@components/standard-form"
+import { NewPageSchema, Service } from "@proto/message_pb"
 import {
   DISPLAY_NAME_MAX_LENGTH,
   MESSAGE_BODY_MAX_LENGTH,
   MESSAGE_RECIPIENTS_LIMIT,
   MESSAGE_SUBJECT_MAX_LENGTH,
-} from "@lib/config"
-import { mountProtoPage } from "@lib/proto-page"
-import { MultiInput } from "@lib/multi-input"
-import { Service, NewPageSchema } from "@lib/proto/message_pb"
-import { StandardForm } from "@lib/standard-form"
+} from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { useEffect, useRef } from "preact/hooks"
-import { RichTextControl } from "../rich-text/_control"
+import { RichTextControl } from "../rich-text/control"
 
 mountProtoPage(NewPageSchema, ({ recipients, subject, body }) => {
   const messageBodyRef = useRef<HTMLTextAreaElement>(null)

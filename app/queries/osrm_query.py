@@ -8,8 +8,8 @@ from polyline_rs import decode_latlon, encode_latlon
 from shapely import Point, get_coordinates
 
 from app.config import OSRM_URL
-from app.lib.http_client import HTTP
-from app.lib.translation import t
+from app.lib.http.client import HTTP
+from app.lib.text.translation import t
 from app.models.osrm import OSRMResponse, OSRMStep
 from app.models.proto.shared_pb2 import RoutingResult
 

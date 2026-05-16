@@ -19,7 +19,7 @@ from app.config import (
     EMAIL_MIN_LENGTH,
     ENV,
 )
-from app.lib.crypto import hash_bytes
+from app.lib.auth.crypto import hash_bytes
 from app.models.types import Email
 from app.services.cache_service import CacheContext, CacheService
 from app.validators.whitespace import BoundaryWhitespaceValidator
@@ -99,7 +99,7 @@ async def _check_domain_deliverability(domain: str) -> bool:
                 rrset = None
             except NXDOMAIN:
                 return  # domain does not exist, skip further checks
-            except (NoNameservers, Timeout):
+            except NoNameservers, Timeout:
                 raise  # something's wrong on our side
             except DNSException:
                 # some other error, log and proceed gracefully

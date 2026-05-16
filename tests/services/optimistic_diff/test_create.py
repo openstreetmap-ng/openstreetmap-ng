@@ -1,7 +1,7 @@
 import pytest
 from shapely import Point
 
-from app.lib.user_role_limits import UserRoleLimits
+from app.lib.auth.user_limits import UserRoleLimits
 from app.models.db.element import ElementInit, validate_elements
 from app.models.element import ElementId
 from app.models.proto.shared_types import ElementType

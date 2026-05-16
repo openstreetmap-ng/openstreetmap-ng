@@ -5,7 +5,7 @@ import pytest
 from PIL import Image as PILImage
 
 from app.config import IMAGE_MAX_FRAMES
-from app.lib.image import Image
+from app.lib.io.image import Image
 
 
 @pytest.mark.parametrize(

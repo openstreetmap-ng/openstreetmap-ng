@@ -10,11 +10,11 @@ from starlette.responses import RedirectResponse
 
 from app.config import DIARY_LIST_PAGE_SIZE
 from app.format import FormatRSS06
-from app.lib.auth_context import auth_user, web_user
-from app.lib.locale import LOCALES_NAMES_MAP, normalize_locale
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import primary_translation_locale, t
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth import user_token
+from app.lib.auth.context import auth_user, web_user
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.locale import LOCALES_NAMES_MAP, normalize_locale
+from app.lib.text.translation import primary_translation_locale, t
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.diary import diaries_resolve_rich_text
 from app.models.db.user import User, user_proto
@@ -26,8 +26,7 @@ from app.models.proto.diary_pb2 import (
 )
 from app.models.proto.shared_pb2 import LonLat
 from app.models.types import DiaryId, LocaleCode, UserId
-from app.queries.diary_comment_query import DiaryCommentQuery
-from app.queries.diary_query import DiaryQuery
+from app.queries.diary_query import DiaryCommentQuery, DiaryQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.rpc.diary import build_entry
@@ -91,7 +90,7 @@ async def post_unsubscribe(
     diary_id: DiaryId,
     token: Annotated[SecretStr, Query(min_length=1)],
 ):
-    token_struct = await UserTokenStructUtils.from_str_stateless(token)
+    token_struct = await user_token.parse_stateless(token)
     await UserTokenUnsubscribeService.unsubscribe('diary', diary_id, token_struct)
     return Response(None, status.HTTP_204_NO_CONTENT)
 

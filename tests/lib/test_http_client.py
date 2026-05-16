@@ -7,7 +7,7 @@ from aiohttp import web
 from aiohttp.abc import AbstractResolver, ResolveResult
 from multidict import CIMultiDict, CIMultiDictProxy
 
-from app.lib.http_client import (
+from app.lib.http.client import (
     HTTPClient,
     HTTPError,
     HTTPResponse,

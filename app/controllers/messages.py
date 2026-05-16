@@ -7,16 +7,15 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL
-from app.lib.auth_context import web_user
-from app.lib.date_utils import format_sql_date
-from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.exceptions.context import raise_for
+from app.lib.auth.context import web_user
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
+from app.lib.time.date_utils import format_sql_date
 from app.models.db.user import User
 from app.models.proto.message_pb2 import IndexPage, NewPage
 from app.models.types import DiaryCommentId, DiaryId, MessageId, UserId
-from app.queries.diary_comment_query import DiaryCommentQuery
-from app.queries.diary_query import DiaryQuery
+from app.queries.diary_query import DiaryCommentQuery, DiaryQuery
 from app.queries.message_query import MessageQuery
 from app.queries.user_query import UserQuery
 from app.validators.display_name import DisplayNameNormalizing

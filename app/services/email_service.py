@@ -28,12 +28,12 @@ from app.config import (
     SMTP_USER,
 )
 from app.db import db
-from app.lib.auth_context import auth_context
-from app.lib.crypto import hash_bytes
-from app.lib.date_utils import utcnow
-from app.lib.render_jinja import render_jinja
-from app.lib.translation import translation_context
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth import user_token
+from app.lib.auth.context import auth_context
+from app.lib.auth.crypto import hash_bytes
+from app.lib.render.jinja import render_jinja
+from app.lib.text.translation import translation_context
+from app.lib.time.date_utils import utcnow
 from app.models.db.mail import Mail, MailInit, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
 from app.models.proto.server_pb2 import StatelessUserTokenStruct
@@ -305,7 +305,7 @@ def _set_list_headers(message: EmailMessage, ref: str, to_user: User):
         return
 
     # Append stateless token param
-    token = UserTokenStructUtils.to_str(
+    token = user_token.encode(
         StatelessUserTokenStruct(
             issued_at=int(time()),
             user_id=to_user['id'],

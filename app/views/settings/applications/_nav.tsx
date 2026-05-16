@@ -1,5 +1,5 @@
 import { t } from "i18next"
-import { NavLinkItem } from "../_nav"
+import { NavLinkItem } from "../nav"
 
 export const ApplicationsNav = () => (
   <nav>

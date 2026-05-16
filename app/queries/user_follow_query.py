@@ -4,8 +4,8 @@ from psycopg.sql import SQL, Identifier
 
 from app.config import FOLLOWS_LIST_PAGE_SIZE
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.standard_pagination import (
+from app.lib.auth.context import auth_user
+from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_query,
 )

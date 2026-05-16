@@ -29,7 +29,7 @@ Main ASGI wiring is in `app/main.py`:
 
 - FastAPI app boots with lifespan-managed services and DB pool
 - RPC app is mounted at `/rpc` (`app/rpc/app.py`)
-- Static roots are served through precompression-aware file server (`app/responses/precompressed_static_files.py`)
+- Static roots are served through precompression-aware file server (`app/responses/precompressed.py`)
 - Routers are auto-imported from `app/controllers`
 - Surface areas currently coexist: web pages (`/`), legacy web form APIs (`/api/web/...`), OSM API controllers (`/api/0.6/...`, `/api/0.7/...`), and RPC (`/rpc/...`)
 
@@ -60,7 +60,13 @@ Top-level contributor-relevant locations:
 - `app/rpc` - Connect RPC service implementations
 - `app/models/proto` - source `.proto` plus generated Python artifacts
 - `app/views` - Jinja templates, TS/TSX, SCSS
-- `app/views/lib` - frontend shared runtime/components/macros
+- `app/views/components` - shared TSX widgets (StandardForm, MultiInput, Tags, …)
+- `app/views/utils` - pure TS utilities (codecs, format, dispose-scope, …) and paired build-time macros (`*.macro.ts`)
+- `app/views/runtime` - modules whose import triggers top-level side effects (polyfills, theme bootstrap, tracking, …); may also export helpers
+- `app/views/styles` - generic SCSS (variables, btn, form, badge, …)
+- `app/views/map` - map subsystem (configure, state, controls/, layers/)
+- `app/views/proto` - generated proto TS bindings
+- `app/views/data` - generated static data (e.g. timezone bboxes)
 - `app/services` - write paths and workflows
 - `app/queries` - read paths
 - `app/migrations` - database schema migrations (currently baseline in `app/migrations/0.sql`)
@@ -151,13 +157,13 @@ Use context helpers over passing request/auth manually:
 - `web_user(...)`, `api_user(...)`, `require_web_user(...)`
 - `get_request()` for request object
 
-Central auth logic lives in `app/lib/auth_context.py` and middleware.
+Central auth logic lives in `app/lib/auth/context.py` and middleware.
 
 ## 5.3 Errors and Feedback
 
 Use the right mechanism:
 
-- `raise_for.*` (`app/lib/exceptions_context.py`) for domain failures
+- `raise_for.*` (`app/exceptions/context.py`) for domain failures
 - `StandardFeedback.raise_error` for form/RPC validation feedback
 - raw `HTTPException` for lower-level technical boundary errors
 
@@ -168,7 +174,7 @@ Use the right mechanism:
 
 ## 5.4 Rich Text and External Data
 
-Rich text pipeline is in `app/lib/rich_text.py`:
+Rich text pipeline is in `app/lib/render/rich_text.py`:
 
 - markdown/plain rendering
 - sanitization (`nh3`)
@@ -184,8 +190,8 @@ External HTTP:
 
 When mapping optional datetimes into proto `uint64` unix fields, prefer:
 
-- `datetime_unix(...)` from `app/lib/date_utils.py`
-- `unix_datetime(...)` from `app/lib/date_utils.py` for the reverse (`uint64`/`None` -> `datetime`/`None`)
+- `datetime_unix(...)` from `app/lib/time/date_utils.py`
+- `unix_datetime(...)` from `app/lib/time/date_utils.py` for the reverse (`uint64`/`None` -> `datetime`/`None`)
 
 This keeps overload typing (`None -> None`, `datetime -> int`, `int -> datetime`) and avoids repeated inline conversion helpers in RPC/controllers.
 
@@ -228,7 +234,7 @@ Proto sources:
 Generated outputs:
 
 - Python stubs: `app/models/proto/*_pb2.py`, `*_connect.py`
-- TS stubs: `app/views/lib/proto/*_pb.ts`, `*_connect.ts`
+- TS stubs: `app/views/proto/*_pb.ts`, `*_connect.ts`
 
 Generation pipeline:
 
@@ -261,7 +267,7 @@ Design rules:
 - in package-scoped RPC proto files, keep global enums near the top of the file (after imports); for nested enums, place them at the top of the parent message body before fields
 - avoid impossible internal states by construction
 - avoid redundant re-validation deeper in service layers unless boundary cannot guarantee it
-- if a value set is config-driven (for example socials from `config/socials.toml`), prefer generic proto fields (`string`) and validate/map at the boundary (`app/lib/socials.py`) rather than duplicating enums in proto
+- if a value set is config-driven (for example socials from `config/socials.toml`), prefer generic proto fields (`string`) and validate/map at the boundary (`app/lib/text/socials.py`) rather than duplicating enums in proto
 - for enums shared across service boundaries and pages (for example OAuth scopes), define once in `shared.proto` and reuse directly in Python/TS instead of adding string remap layers
 - when boundary adapters already return domain types (for example `list[UserSocial]`), keep services focused on persistence/workflow and avoid re-normalizing the same data again
 - if a message type is only relevant to one parent message, nest it under that parent and use a short contextual name (`Session`, `Activity`) instead of repeating parent prefixes (`SecuritySession`, etc.)
@@ -299,11 +305,11 @@ Template pattern:
 Client pattern:
 
 - decode base64 + `fromBinaryValid(...)`
-- for standardized proto pages, use `mountProtoPage(schema, Component)` from `app/views/lib/proto-page.ts`; it derives mount key from `schema.typeName`, decodes `[data-page-root][data-state]`, and renders `Component` with decoded proto state as props
+- for standardized proto pages, use `mountProtoPage(schema, Component)` from `app/views/utils/proto-page.ts`; it derives mount key from `schema.typeName`, decodes `[data-page-root][data-state]`, and renders `Component` with decoded proto state as props
 
 ## 7.4 Config Constants Derived From Proto
 
-`app/config.py` derives selected limits from proto validation descriptors (`_proto_validate`), then frontend imports values through `app/views/lib/config.macro.ts`.
+`app/config.py` derives selected limits from proto validation descriptors (`_proto_validate`), then frontend imports values through `app/views/utils/config.macro.ts`.
 
 When changing a proto limit, check whether corresponding config exports/macros should be updated.
 
@@ -332,7 +338,7 @@ Synchronous pre-paint script:
 
 Mount gating helper:
 
-- `app/views/lib/mount.ts` (body-class based)
+- `app/views/utils/mount.ts` (body-class based)
 
 Guideline:
 
@@ -357,7 +363,7 @@ Use:
 - treat `config` (`WebConfig`) as bootstrap snapshot data, not a reactive state container
 - for shared feature widgets rendered from many pages (for example settings navigation), derive globally available context (role, current pathname) inside the widget instead of threading pass-through props from each page root
 - for translated lookup tables in module scope, keep the constant name uppercase and read the map directly in render (for example `TAB_LABEL_BY_KEY[tab]`); avoid extra wrapper/memoize helpers unless they add clear value
-- for reused maps (for example scopes), colocate them in a shared helper (for example `app/views/lib/scope.ts`) and read the map directly instead of adding wrapper functions
+- for reused maps (for example scopes), colocate them in a shared helper (for example `app/views/components/scope.tsx`) and read the map directly instead of adding wrapper functions
 - for component prop typing, inline single-use prop object types directly in the component signature; keep named `*Props` aliases/interfaces only when reused
 - for hook generics (`useSignal`, `useRef`, `useState`), omit explicit `<T>` when the initializer already provides the desired type; keep explicit generics only when widening from literals/null/empty collections or when inference would otherwise become too narrow
 - for CSS class composition, prefer simple template strings (for example ``class={`accordion ${className}`}``) over conditional class helpers; avoid duplicated ternary class strings when only a suffix changes, and keep explicit spacing around interpolated segments for readability (for example ``class={`collapse ${isOpen ? "show" : ""}`}``)
@@ -366,8 +372,8 @@ Use:
 - for file-local TSX helpers and feature-local exports, use the shortest unambiguous names the file/path context already provides (`Row`, `ProviderCell`, `StatusCell`, `SummaryRow`, `EntryCard`); drop repeated feature prefixes when the symbol stays within one feature subtree, but keep the nearest useful qualifier when a bare name would be vague or collide
 - for conditional JSX branches that render nothing, prefer `: null` over `: undefined` in ternaries for consistency and clearer intent
 - for JSX form submit handlers, prefer `SubmitEventHandler<HTMLFormElement>` so `currentTarget`/`submitter` stay precisely typed without extra casts
-- keep tiny general-purpose helpers in existing utility modules (`app/views/lib/utils.ts`, `app/views/lib/format.ts`) instead of creating new one-off files
-- for internal-only binary identity strings (for example component keys), prefer `encodeAscii(...)` from `app/views/lib/utils.ts` over readable hex/base64 encodings; never use this raw representation for protocol payloads, URLs, or logs
+- keep tiny general-purpose helpers in existing utility modules (`app/views/utils/helpers.ts`, `app/views/utils/format.ts`) instead of creating new one-off files
+- for internal-only binary identity strings (for example component keys), prefer `encodeAscii(...)` from `app/views/utils/helpers.ts` over readable hex/base64 encodings; never use this raw representation for protocol payloads, URLs, or logs
 
 Avoid:
 
@@ -378,12 +384,12 @@ Avoid:
 ## 8.4 UI/UX and DX Patterns
 
 - keep URL as source of truth for map/index routes (`app/views/index/router.ts`)
-- centralize query parse/encode/key-mapping logic in `app/views/lib/query-contract.ts`; router/non-router/query-signal flows should reuse that contract instead of duplicating alias/decode/encode loops
-- for proto-backed non-router filters, prefer `defineProtoQueryContract(schema, ...)` (`app/views/lib/query-contract.ts`) so URL/form keys stay canonical proto `snake_case` while TS uses generated `camelCase` fields automatically
-- for non-proto query-backed pages, prefer `defineQueryContract(...)` (`app/views/lib/query-contract.ts`) with `queryParam` codecs over manual `URLSearchParams`/ad-hoc parse+encode logic
+- centralize query parse/encode/key-mapping logic in `app/views/utils/query-contract.ts`; router/non-router/query-signal flows should reuse that contract instead of duplicating alias/decode/encode loops
+- for proto-backed non-router filters, prefer `defineProtoQueryContract(schema, ...)` (`app/views/utils/query-contract.ts`) so URL/form keys stay canonical proto `snake_case` while TS uses generated `camelCase` fields automatically
+- for non-proto query-backed pages, prefer `defineQueryContract(...)` (`app/views/utils/query-contract.ts`) with `queryParam` codecs over manual `URLSearchParams`/ad-hoc parse+encode logic
 - when a page filter/query value maps to an existing proto enum, prefer `queryParam.enum(ProtoEnum, { default: ... })` with proto enum values in state/request code instead of duplicating string literal unions
-- for multi-field URL-backed page filters, prefer `useUrlQueryState(contract)` (`app/views/lib/url-signals.ts`) instead of manual `history.replaceState` + ad-hoc parse/encode loops
-- for pages that combine path-suffix tabs with query-contract state, prefer `usePathSuffixQueryState(variants, contract)` (`app/views/lib/url-signals.ts`) so typed `href(...)` generation stays coupled to the contract and avoids manual `contract.encode(...)` plumbing
+- for multi-field URL-backed page filters, prefer `useUrlQueryState(contract)` (`app/views/utils/url-signals.ts`) instead of manual `history.replaceState` + ad-hoc parse/encode loops
+- for pages that combine path-suffix tabs with query-contract state, prefer `usePathSuffixQueryState(variants, contract)` (`app/views/utils/url-signals.ts`) so typed `href(...)` generation stays coupled to the contract and avoids manual `contract.encode(...)` plumbing
 - keep normalization in codecs/contract (for example `queryParam.text()`, `queryParam.enum(..., { default: ... })`) to avoid per-page `nextFilters` fallback objects
 - `queryParam.text()` trims and omits empty strings; for form-built RPC requests, explicitly map optional empty strings to `undefined` when proto fields enforce `min_len` but remain optional
 - avoid query key aliases unless an explicit migration window requires them; keep one canonical URL key per field
@@ -399,13 +405,30 @@ Avoid:
 - favor includes and partial files over macros
 - prefix local `set` values with `_`
 - pass explicit include context to avoid hidden coupling
-- for partial files prefixed with `_`, mirror naming in related TS/SCSS where applicable
+- for partial files prefixed with `_`, mirror naming in related TS/SCSS where applicable; see Section 8.6 for the full folder-private rule (cross-folder imports of `_*` files are forbidden)
+
+## 8.6 File & Folder Conventions
+
+These rules apply to every file and folder under `app/views/`. The intent is a single coherent set of conventions covering naming, layout, and import direction.
+
+1. **Casing**: kebab-case for files and folders. PascalCase for exported components. camelCase for everything else. No exceptions.
+2. **Underscore prefix = folder-private** (TS/TSX): `_foo.{ts,tsx}` may only be imported by siblings in the same folder (or by the folder's `index.tsx`). Cross-folder imports of a `_*` TS/TSX file are forbidden. If a file needs to be shared, drop the underscore. For SCSS and Jinja, `_*` follows the long-standing Sass-partial / Jinja-partial convention (the underscore signals "not a standalone entry point" but the partial may be aggregated by any `@import`/`extends`).
+3. **Folder vs flat threshold**: a feature stays as a flat `feature.tsx` (+ optional sibling `.scss`) until any of: (a) it owns 2+ non-underscore sibling TS/TSX files; (b) it ships a sibling Jinja template; (c) it has a `*.macro.ts` pair. Once promoted to a folder, the entry file is named `index.tsx`. Exception: `app/views/index/` is allowed to be flat-with-router because every file represents a routed sub-screen rendered through `router-outlet.tsx`.
+4. **Singular naming**: feature/component file names are singular (`changeset-history.tsx`, not `changesets-history.tsx`). Plural is reserved for inherently-collection resource folders (`users/`, `messages/`, `notes/`, `traces/`, `applications/`).
+5. **Dual-role split**: a module exports **either** a component **or** state / imperative API, never both. When a feature owns both, split into `feature.tsx` (component) and `feature-state.ts` (signals + writers). The component file may import from state; state may not import the component.
+6. **Setup files**: feature-local TS files whose only purpose is import-time side effects keep the plain `.ts` extension and live in the feature folder (e.g. `navbar/navbar.ts`). Globally-scoped side-effect modules must live in `app/views/runtime/`. The folder is the signal — no special suffix is required.
+7. **Modal-per-file**: one modal per `_*-modal.tsx`, singular noun. Inline a modal only when it is <30 LOC of JSX, has no form, no per-modal translations, and is shown from a single trigger. Otherwise extract to `_*-modal.tsx`. If multiple modals share state, that state lives in a sibling `_*-modal-state.ts`, not bundled into a multi-modal file.
+8. **Helper extraction**: helpers used by exactly one component may live in that file but at **module scope**, not inside the component function body (closure-capture only when actually closing over component state). Helpers used by 2+ files move to `utils/` or a feature-local `*-helpers.ts`.
+9. **Macro pairing**: `*.macro.ts` is always co-located with its consumer. If the consumer is a `_*` file, the macro is also `_*.macro.ts` (privacy inherits).
+10. **No barrel `index.{ts,tsx}`**: a folder's `index` file is the feature entry (`index.tsx` for component features, `index.ts` for non-component features like iframe orchestration in `edit/`). Barrel files that exist purely to re-export sibling modules are forbidden. Imports use full paths.
+11. **`runtime/` vs `utils/`**: `utils/` modules must be safe to import for type-only or pure use — no top-level side effects. `runtime/` modules may export helpers but **importing them runs code**. Any `utils/` file that grows a top-level side effect must move to `runtime/`.
+12. **Import direction**: allowed direction is `entry → feature → (components | utils | runtime | proto | data | styles | map | navbar | rich-text)`. Designated cross-feature modules are: `map/`, `navbar/`, `rich-text/`. Features may not import from sibling features outside this list. Shared layers (`components/`, `utils/`) may not import from any feature folder.
 
 ## 9. Standard Frontend/Backend Primitives
 
 ## 9.1 StandardForm
 
-Source: `app/views/lib/standard-form.tsx`
+Source: `app/views/components/standard-form.tsx`
 
 Available patterns:
 
@@ -421,8 +444,8 @@ For mutation success handling, keep visible state coherent:
 
 ## 9.2 StandardPagination
 
-Backend helper: `app/lib/standard_pagination.py`
-Frontend component: `app/views/lib/standard-pagination.tsx`
+Backend helper: `app/lib/standard/pagination.py`
+Frontend component: `app/views/components/standard-pagination.tsx`
 
 Protocol:
 
@@ -435,7 +458,7 @@ Use `sp_paginate_table(...)` for common single-table pagination cases.
 
 ## 9.3 StandardFeedback
 
-Server helper: `app/lib/standard_feedback.py`
+Server helper: `app/lib/standard/feedback.py`
 Proto type: `StandardFeedbackDetail` in `app/models/proto/shared.proto`
 
 Use for user-facing validation/success/info messaging.
@@ -451,12 +474,14 @@ Authoring and processing flow:
 
 Client bootstrap:
 
-- `app/views/lib/i18n.ts`
+- `app/views/utils/i18n.ts`
 
 Important constraint:
 
 - translation key extraction is static-regex based; use literal keys in `t(...)`/`i18next.t(...)`/`tRich(...)`
-- if dynamic families are unavoidable, register prefixes in `_INCLUDE_PREFIXES` (`scripts/locale_make_i18next.py`)
+- dynamic families using template literals (`` t(`prefix.${...}.suffix`) ``) are auto-detected: the static portion before the first `${`, when it ends in `.`, is treated as a prefix include
+- prefer making dynamic families visible at the call site; if a key is computed elsewhere and only used via a variable (`t(option.someKey)`), refactor to a small local helper that calls `t()` with the template literal directly (see `app/views/user/profile/_edit-modals.tsx`)
+- as a last resort, list a prefix in `_EXTRA_INCLUDE_PREFIXES` (`scripts/locale_make_i18next.py`); the build validates every prefix (auto-detected and explicit) against `en.json` and fails loudly on typos or stale entries
 - internal/admin pages can use English copy, but prefer reusing existing keys for common low-effort labels/alt text (for example page navigation and image alt strings) before adding new literals
 
 ## 11. Build, Assets, and Delivery
@@ -495,7 +520,7 @@ Generated raster outputs live in `_generated` subfolders under static image tree
 
 ## 12.1 Frontend Config Macro
 
-`app/views/lib/config.macro.ts` executes python at build time to export selected backend constants to frontend TS.
+`app/views/utils/config.macro.ts` executes python at build time to export selected backend constants to frontend TS.
 
 If a backend constant is consumed client-side, expose it there instead of duplicating numeric literals.
 
@@ -504,10 +529,10 @@ If a backend constant is consumed client-side, expose it there instead of duplic
 Project uses `unplugin-macros` for compile-time data embedding.
 Common macro sources include:
 
-- `app/views/lib/locale.macro.ts`
-- `app/views/lib/shortlink.macro.ts`
-- `app/views/lib/tags.macro.ts`
-- `app/views/lib/user-agent-icons.macro.ts`
+- `app/views/utils/locale.macro.ts`
+- `app/views/utils/shortlink.macro.ts`
+- `app/views/components/tags.macro.ts`
+- `app/views/components/user-agent-icons.macro.ts`
 - feature macros like `app/views/user/profile/_social-options.macro.ts`
 
 Use macros for stable build-time datasets instead of fragile runtime DOM data duplication.
@@ -574,7 +599,7 @@ When adding or refactoring features:
 Do not hand-edit generated artifacts:
 
 - `app/models/proto/*_pb2.py`, `*_types.py`, `*_connect.py`
-- `app/views/lib/proto/*`
+- `app/views/proto/*`
 - generated static `_generated` assets
 - locale generated bundles under `config/locale/i18next` and `config/locale/gnu`
 
@@ -587,9 +612,9 @@ Backend core:
 - `app/main.py`
 - `app/db.py`
 - `app/config.py`
-- `app/lib/auth_context.py`
-- `app/lib/standard_feedback.py`
-- `app/lib/standard_pagination.py`
+- `app/lib/auth/context.py`
+- `app/lib/standard/feedback.py`
+- `app/lib/standard/pagination.py`
 - `app/services/migration_service.py`
 
 RPC/proto:
@@ -614,12 +639,12 @@ Frontend core:
 - `app/views/main.ts`
 - `app/views/main-sync.ts`
 - `app/views/main.scss`
-- `app/views/lib/mount.ts`
-- `app/views/lib/proto-page.ts`
-- `app/views/lib/scope.ts`
-- `app/views/lib/standard-form.tsx`
-- `app/views/lib/standard-pagination.tsx`
-- `app/views/lib/config.macro.ts`
+- `app/views/utils/mount.ts`
+- `app/views/utils/proto-page.ts`
+- `app/views/components/scope.tsx`
+- `app/views/components/standard-form.tsx`
+- `app/views/components/standard-pagination.tsx`
+- `app/views/utils/config.macro.ts`
 
 Feature examples:
 

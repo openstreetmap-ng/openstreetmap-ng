@@ -1,6 +1,6 @@
-import { formatMonthName, formatShortDate, formatWeekdayName } from "@lib/format"
-import type { Page_ActivityChartValid } from "@lib/proto/profile_pb"
+import type { Page_ActivityChartValid } from "@proto/profile_pb"
 import { DAY } from "@std/datetime/constants"
+import { formatMonthName, formatShortDate, formatWeekdayName } from "@utils/format"
 import { Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"

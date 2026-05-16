@@ -1,7 +1,7 @@
 from psycopg.rows import dict_row
 
 from app.db import db
-from app.lib.auth_context import auth_user
+from app.lib.auth.context import auth_user
 from app.models.db.connected_account import ConnectedAccount
 from app.models.proto.settings_connections_types import Provider
 from app.models.types import UserId

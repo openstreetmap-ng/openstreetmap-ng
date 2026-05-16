@@ -10,8 +10,8 @@ from urllib.parse import unquote_plus
 import orjson
 import re2
 
-from app.lib.http_client import HTTP, http_context
-from app.lib.retry import retry
+from app.lib.http.client import HTTP, http_context
+from app.lib.http.retry import retry
 
 _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
@@ -62,6 +62,7 @@ async def fetch_and_parse_sitemap(url: str):
             continue
 
         page = match['page']
+        assert page is not None, 'required regex group'
         page = unquote_plus(page)
 
         if page.startswith('Key:'):

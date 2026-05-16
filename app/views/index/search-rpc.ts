@@ -1,11 +1,11 @@
 import { useSidebar } from "@index/_action-sidebar"
-import { zoomPrecision } from "@lib/coords"
-import { boundsPadding } from "@lib/map/bounds"
-import type { LonLatZoom } from "@lib/map/state"
-import type { DataValid } from "@lib/proto/search_pb"
-import { Service } from "@lib/proto/search_pb"
+import { boundsPadding } from "@map/bounds"
+import type { LonLatZoom } from "@map/state"
 import { type ReadonlySignal, useComputed } from "@preact/signals"
+import type { DataValid } from "@proto/search_pb"
+import { Service } from "@proto/search_pb"
 import { roundTo } from "@std/math/round-to"
+import { zoomPrecision } from "@utils/coords"
 import type { Map as MaplibreMap } from "maplibre-gl"
 
 const getReverseRequest = (at: LonLatZoom) => {

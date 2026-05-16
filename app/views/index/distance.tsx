@@ -1,24 +1,16 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
-import { queryParam } from "@lib/codecs"
-import { type Scheduled, useDisposeEffect } from "@lib/dispose-scope"
-import { formatDistance, isMetricUnit } from "@lib/format"
-import { fitBoundsIfNeeded } from "@lib/map/bounds"
-import { closestPointOnSegment } from "@lib/map/geometry"
-import {
-  emptyFeatureCollection,
-  type LayerId,
-  layersConfig,
-} from "@lib/map/layers/layers"
-import {
-  getMarkerIconElement,
-  MARKER_ICON_ANCHOR,
-  type MarkerColor,
-} from "@lib/map/marker"
-import { type Polyline, polylineEquals } from "@lib/polyline"
-import { setPageTitle } from "@lib/title"
+import { fitBoundsIfNeeded } from "@map/bounds"
+import { closestPointOnSegment } from "@map/geometry"
+import { emptyFeatureCollection, type LayerId, layersConfig } from "@map/layers/layers"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR, type MarkerColor } from "@map/marker"
 import { batch, type Signal, useSignal, useSignalEffect } from "@preact/signals"
+import { setPageTitle } from "@runtime/title"
 import { assertEquals, assertGreater } from "@std/assert"
+import { type Scheduled, useDisposeEffect } from "@utils/dispose-scope"
+import { formatDistance, isMetricUnit } from "@utils/format"
+import { queryParam } from "@utils/path-codecs"
+import { type Polyline, polylineEquals } from "@utils/polyline"
 import type { Feature, LineString } from "geojson"
 import { t } from "i18next"
 import {

@@ -1,6 +1,6 @@
 from typing import Literal, NamedTuple, NotRequired, TypedDict, get_args
 
-from app.lib.rich_text import resolve_rich_text
+from app.lib.render.rich_text import resolve_rich_text
 from app.models.types import UserId
 
 type UserSocialType = Literal[

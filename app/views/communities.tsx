@@ -1,7 +1,7 @@
-import { LOCAL_CHAPTERS } from "@lib/config"
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/communities_pb"
+import { PageSchema } from "@proto/communities_pb"
+import { LOCAL_CHAPTERS } from "@utils/config"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 
 mountProtoPage(PageSchema, () => (
