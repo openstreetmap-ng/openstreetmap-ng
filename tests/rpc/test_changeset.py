@@ -1,6 +1,6 @@
 from httpx import AsyncClient
 
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from app.models.proto.changeset_pb2 import GetDiffRequest, GetDiffResponse
 
 
