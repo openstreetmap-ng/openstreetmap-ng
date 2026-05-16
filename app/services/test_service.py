@@ -6,7 +6,7 @@ from psycopg.errors import UniqueViolation
 from zid import zid
 
 from app.config import OAUTH_SECRET_PREVIEW_LENGTH, TEST_USER_EMAIL_SUFFIX
-from app.db import db
+from app.db import db, db_delete, db_insert
 from app.lib.auth.context import auth_context
 from app.lib.auth.crypto import hash_bytes
 from app.lib.telemetry.testmethod import testmethod
@@ -86,40 +86,28 @@ class TestService:
 
         try:
             async with db(True) as conn:
-                async with await conn.execute(
-                    """
-                    INSERT INTO "user" (
-                        email, email_verified, display_name,
-                        language, activity_tracking, crash_reporting,
-                        roles, created_at
-                    )
-                    VALUES (
-                        %(email)s, %(email_verified)s, %(display_name)s,
-                        %(language)s, %(activity_tracking)s, %(crash_reporting)s,
-                        %(roles)s, COALESCE(%(created_at)s, statement_timestamp())
-                    )
-                    ON CONFLICT (display_name) DO UPDATE SET
+                row = await db_insert(
+                    'user',
+                    {
+                        **user_init,
+                        'roles': roles or [],
+                        'created_at': t'COALESCE({created_at}, statement_timestamp())',
+                    },
+                    on_conflict=t"""(display_name) DO UPDATE SET
                         email = EXCLUDED.email,
                         email_verified = EXCLUDED.email_verified,
                         language = EXCLUDED.language,
                         roles = EXCLUDED.roles,
-                        created_at = COALESCE(%(created_at)s, "user".created_at)
-                    RETURNING id
-                    """,
-                    {
-                        **user_init,
-                        'roles': roles or [],
-                        'created_at': created_at,
-                    },
-                ) as r:
-                    (user_id,) = await r.fetchone()  # type: ignore
+                        created_at = COALESCE({created_at}, "user".created_at)""",
+                    returning='id',
+                    conn=conn,
+                )
+                (user_id,) = row
 
-                await conn.execute(
-                    """
-                    DELETE FROM user_password
-                    WHERE user_id = %s
-                    """,
-                    (user_id,),
+                await db_delete(
+                    'user_password',
+                    where={'user_id': user_id},
+                    conn=conn,
                 )
         except UniqueViolation:
             pass
@@ -159,35 +147,23 @@ class TestService:
             OAuth2Uri('urn:ietf:wg:oauth:2.0:oob'),
         ]
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO oauth2_application (
-                    id, user_id, name, client_id,
-                    client_secret_hashed, client_secret_preview,
-                    confidential, redirect_uris, scopes
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(name)s, %(client_id)s,
-                    %(client_secret_hashed)s, %(client_secret_preview)s,
-                    %(confidential)s, %(redirect_uris)s, %(scopes)s
-                )
-                ON CONFLICT (client_id) DO UPDATE SET
-                    name = EXCLUDED.name,
-                    client_secret_hashed = EXCLUDED.client_secret_hashed,
-                    client_secret_preview = EXCLUDED.client_secret_preview,
-                    confidential = EXCLUDED.confidential,
-                    redirect_uris = EXCLUDED.redirect_uris,
-                    scopes = EXCLUDED.scopes
-                """,
-                {
-                    **app_init,
-                    'client_secret_hashed': client_secret_hashed,
-                    'client_secret_preview': client_secret_preview,
-                    'confidential': is_confidential,
-                    'redirect_uris': redirect_uris,
-                    'scopes': sorted(scopes),
-                },
-            )
+        await db_insert(
+            'oauth2_application',
+            {
+                **app_init,
+                'client_secret_hashed': client_secret_hashed,
+                'client_secret_preview': client_secret_preview,
+                'confidential': is_confidential,
+                'redirect_uris': redirect_uris,
+                'scopes': sorted(scopes),
+            },
+            on_conflict=t"""(client_id) DO UPDATE SET
+                name = EXCLUDED.name,
+                client_secret_hashed = EXCLUDED.client_secret_hashed,
+                client_secret_preview = EXCLUDED.client_secret_preview,
+                confidential = EXCLUDED.confidential,
+                redirect_uris = EXCLUDED.redirect_uris,
+                scopes = EXCLUDED.scopes""",
+        )
 
         logging.info('Upserted test OAuth2 application %r', name)

@@ -1,6 +1,6 @@
 import logging
 
-from app.db import db
+from app.db import db_delete, db_insert
 from app.lib.auth.context import auth_user
 from app.models.types import UserId
 from app.queries.user_query import UserQuery
@@ -20,21 +20,16 @@ class UserFollowService:
         if target_user is None:
             return
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                INSERT INTO user_follow (follower_id, followee_id)
-                VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-                RETURNING follower_id
-                """,
-                (follower_id, target_user_id),
-            ) as r,
-        ):
-            if await r.fetchone() is None:
-                # Do nothing on existing follow
-                return
+        inserted = await db_insert(
+            'user_follow',
+            {'follower_id': follower_id, 'followee_id': target_user_id},
+            on_conflict=t'DO NOTHING',
+            returning='follower_id',
+            assert_returning=False,
+        )
+        if inserted is None:
+            # Do nothing on existing follow
+            return
 
         logging.debug('User %d followed user %d', follower_id, target_user_id)
 
@@ -42,14 +37,10 @@ class UserFollowService:
     async def unfollow(target_user_id: UserId):
         follower_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                DELETE FROM user_follow
-                WHERE follower_id = %s AND followee_id = %s
-                """,
-                (follower_id, target_user_id),
-            )
+        rowcount = await db_delete(
+            'user_follow',
+            where={'follower_id': follower_id, 'followee_id': target_user_id},
+        )
 
-            if result.rowcount:
-                logging.debug('User %d unfollowed user %d', follower_id, target_user_id)
+        if rowcount:
+            logging.debug('User %d unfollowed user %d', follower_id, target_user_id)

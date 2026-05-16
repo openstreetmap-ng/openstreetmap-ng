@@ -5,7 +5,7 @@ from starlette import status
 from starlette.exceptions import HTTPException
 
 from app.config import PASSKEY_LIMIT
-from app.db import db
+from app.db import db, db_delete, db_update
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.auth.password import PasswordLike
@@ -51,37 +51,30 @@ class UserPasskeyService:
         assert len(transports) <= 10
         assert all(len(tp) <= 20 for tp in transports)
 
+        aaguid = auth_data.aaguid
+        credential_id = auth_data.credential_id
+        algorithm = auth_data.algorithm
+        public_key = auth_data.public_key
         async with db(True) as conn:
-            result = await conn.execute(
-                """
+            result = await conn.execute(t"""
                 WITH passkey_count AS (
                     SELECT
                         -- Prevent count race conditions
-                        pg_advisory_xact_lock(6205915937564190191::bigint # %(user_id)s),
+                        pg_advisory_xact_lock(6205915937564190191::bigint # {user_id}),
                         COUNT(*) as cnt
                     FROM user_passkey
-                    WHERE user_id = %(user_id)s
+                    WHERE user_id = {user_id}
                 )
                 INSERT INTO user_passkey (
                     user_id, aaguid, credential_id,
                     algorithm, public_key, transports
                 )
                 SELECT
-                    %(user_id)s, %(aaguid)s, %(credential_id)s,
-                    %(algorithm)s, %(public_key)s, %(transports)s
+                    {user_id}, {aaguid}, {credential_id},
+                    {algorithm}, {public_key}, {transports}
                 FROM passkey_count
-                WHERE passkey_count.cnt < %(limit)s
-                """,
-                {
-                    'user_id': user_id,
-                    'aaguid': auth_data.aaguid,
-                    'credential_id': auth_data.credential_id,
-                    'algorithm': auth_data.algorithm,
-                    'public_key': auth_data.public_key,
-                    'transports': transports,
-                    'limit': PASSKEY_LIMIT,
-                },
-            )
+                WHERE passkey_count.cnt < {PASSKEY_LIMIT}
+            """)
             if not result.rowcount:
                 raise HTTPException(
                     status.HTTP_400_BAD_REQUEST, 'Passkey limit exceeded'
@@ -119,14 +112,12 @@ class UserPasskeyService:
             new_sign_count = verify_assertion(passkey, assertion)
 
             # Update sign count
-            await conn.execute(
-                """
-                UPDATE user_passkey SET
-                    sign_count = %s,
-                    last_used_at = DEFAULT
-                WHERE credential_id = %s
-                """,
-                (new_sign_count, passkey['credential_id']),
+            passkey_credential_id = passkey['credential_id']
+            await db_update(
+                'user_passkey',
+                {'sign_count': new_sign_count, 'last_used_at': t'DEFAULT'},
+                where={'credential_id': passkey_credential_id},
+                conn=conn,
             )
 
             return passkey['user_id']
@@ -153,18 +144,14 @@ class UserPasskeyService:
                 error_message=lambda: t('validation.password_is_incorrect'),
             )
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                DELETE FROM user_passkey
-                WHERE credential_id = %s AND user_id = %s
-                RETURNING aaguid
-                """,
-                (credential_id, user_id),
-            ) as r,
-        ):
-            row: tuple[UUID] | None = await r.fetchone()
+        async with db(True) as conn:
+            row = await db_delete(
+                'user_passkey',
+                where={'credential_id': credential_id, 'user_id': user_id},
+                returning='aaguid',
+                assert_returning=False,
+                conn=conn,
+            )
             if row is None:
                 return
 
@@ -189,23 +176,18 @@ class UserPasskeyService:
         user_id = auth_user(required=True)['id']
         name_value = name.strip() or None
 
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                UPDATE user_passkey
-                SET name = %s
-                WHERE credential_id = %s
-                  AND user_id = %s
-                RETURNING name, aaguid
-                """,
-                (name_value, credential_id, user_id),
-            ) as r,
-        ):
-            row: tuple[str | None, UUID] | None = await r.fetchone()
-            if row is None:
-                return None
+        row = await db_update(
+            'user_passkey',
+            {'name': name_value},
+            where={'credential_id': credential_id, 'user_id': user_id},
+            returning='name, aaguid',
+            assert_returning=False,
+        )
+        if row is None:
+            return None
 
+        stored_name: str | None
+        aaguid: UUID
         stored_name, aaguid = row
         if stored_name is not None:
             return stored_name

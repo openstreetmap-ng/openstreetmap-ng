@@ -3,7 +3,6 @@ from shapely import Point
 
 from app.db import db
 from app.lib.auth.context import auth_context
-from app.models.db.note import NoteInit
 from app.queries.note_query import NoteQuery
 from app.services.migration_service import (
     MigrationService,
@@ -15,20 +14,15 @@ from app.services.migration_service import (
 async def test_delete_note_without_comments():
     with auth_context(None):
         # Create a note without comments
-        note_init: NoteInit = {
-            'point': Point(0, 0),
-        }
+        point = Point(0, 0)
 
         async with (
             db(True) as conn,
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 INSERT INTO note (point)
-                VALUES (%(point)s)
+                VALUES ({point})
                 RETURNING id
-                """,
-                note_init,
-            ) as r,
+            """) as r,
         ):
             note_id = (await r.fetchone())[0]  # type: ignore
 

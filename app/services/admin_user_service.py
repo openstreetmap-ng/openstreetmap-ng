@@ -2,10 +2,9 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from psycopg import AsyncConnection
-from psycopg.sql import SQL, Composable
 
 from app.config import ENV
-from app.db import db
+from app.db import db, db_update
 from app.lib.audit import audit
 from app.lib.auth.password import PasswordLike
 from app.lib.standard.feedback import StandardFeedback
@@ -40,8 +39,7 @@ class AdminUserService:
         if user is None:
             StandardFeedback.raise_error(None, 'User not found')
 
-        assignments: list[Composable] = []
-        params: list[Any] = []
+        updates: dict[str, Any] = {}
         audits: list[Callable[[AsyncConnection], Awaitable[None]]] = []
 
         if display_name is not None:
@@ -60,8 +58,7 @@ class AdminUserService:
                     'display_name', 'Changing test user display_name is disabled'
                 )
 
-            assignments.append(SQL('display_name = %s'))
-            params.append(display_name)
+            updates['display_name'] = display_name
             audits.append(
                 lambda conn: audit(
                     'change_display_name',
@@ -91,13 +88,11 @@ class AdminUserService:
                     'email', t('validation.invalid_email_address')
                 )
 
-            assignments.append(SQL('email = %s'))
-            params.append(email)
+            updates['email'] = email
             audit_email_extra['email'] = email
 
         if user['email_verified'] != email_verified:
-            assignments.append(SQL('email_verified = %s'))
-            params.append(email_verified)
+            updates['email_verified'] = email_verified
             audit_email_extra['verified'] = email_verified
 
         if audit_email_extra:
@@ -120,8 +115,7 @@ class AdminUserService:
             )
 
         if user['roles'] != roles:
-            assignments.append(SQL('roles = %s'))
-            params.append(roles)
+            updates['roles'] = roles
             audits.append(
                 lambda conn: audit(
                     'change_roles',
@@ -131,15 +125,10 @@ class AdminUserService:
                 )
             )
 
-        query = SQL('UPDATE "user" SET {} WHERE id = %s').format(
-            SQL(', ').join(assignments)
-        )
-        params.append(user_id)
-
         async with db(True) as conn:
             if ENV != 'test':  # Prevent admin user updates on the test instance
-                if assignments:
-                    await conn.execute(query, params)
+                if updates:
+                    await db_update('user', updates, where={'id': user_id}, conn=conn)
                 if email is not None:
                     await UserTokenService.delete_all_for_user(conn, user_id)
                 if new_password is not None:

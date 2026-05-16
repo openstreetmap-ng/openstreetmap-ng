@@ -4,6 +4,7 @@ from io import BytesIO
 import cython
 from psycopg import AsyncConnection
 
+from app.db import db_fetchval, db_update
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.audit import audit
 from app.lib.geo.compressible_geometry import compressible_geometry
@@ -102,29 +103,20 @@ async def _update_changeset(
     closed_at = now if 'size_limit_reached' in changeset else None
     updated_at = now
 
-    await conn.execute(
-        """
-        UPDATE changeset
-        SET
-            size = %s,
-            num_create = %s,
-            num_modify = %s,
-            num_delete = %s,
-            union_bounds = ST_QuantizeCoordinates(%s, 7),
-            closed_at = %s,
-            updated_at = %s
-        WHERE id = %s
-        """,
-        (
-            changeset['size'],
-            changeset['num_create'],
-            changeset['num_modify'],
-            changeset['num_delete'],
-            changeset['union_bounds'],
-            closed_at,
-            updated_at,
-            changeset_id,
-        ),
+    union_bounds = changeset['union_bounds']
+    await db_update(
+        'changeset',
+        {
+            'size': changeset['size'],
+            'num_create': changeset['num_create'],
+            'num_modify': changeset['num_modify'],
+            'num_delete': changeset['num_delete'],
+            'union_bounds': t'ST_QuantizeCoordinates({union_bounds}, 7)',
+            'closed_at': closed_at,
+            'updated_at': updated_at,
+        },
+        where={'id': changeset_id},
+        conn=conn,
     )
 
     # Update the changeset bounds
@@ -133,16 +125,15 @@ async def _update_changeset(
     if bounds is None:
         return
 
-    await conn.execute(
-        """
+    await conn.execute(t"""
         WITH new_bounds AS (
             -- Extract individual polygons from the MultiPolygon
-            SELECT (ST_Dump(ST_QuantizeCoordinates(%(bounds)s, 7))).geom AS bounds
+            SELECT (ST_Dump(ST_QuantizeCoordinates({bounds}, 7))).geom AS bounds
         ),
         to_delete AS (
             -- Delete bounds that no longer exist in new set
             DELETE FROM changeset_bounds cb
-            WHERE changeset_id = %(changeset_id)s
+            WHERE changeset_id = {changeset_id}
               AND NOT EXISTS (
                 SELECT 1 FROM new_bounds nb
                 WHERE cb.bounds ~= nb.bounds
@@ -150,16 +141,14 @@ async def _update_changeset(
         )
         -- Insert bounds that don't exist yet
         INSERT INTO changeset_bounds (changeset_id, bounds)
-        SELECT %(changeset_id)s, bounds
+        SELECT {changeset_id}, bounds
         FROM new_bounds nb
         WHERE NOT EXISTS (
             SELECT 1 FROM changeset_bounds cb
-            WHERE cb.changeset_id = %(changeset_id)s
+            WHERE cb.changeset_id = {changeset_id}
               AND cb.bounds ~= nb.bounds
         )
-        """,
-        {'changeset_id': changeset_id, 'bounds': bounds},
-    )
+    """)
 
 
 async def _update_elements(
@@ -237,15 +226,12 @@ async def _update_elements(
     await _copy_elements(conn, elements)
 
     # Get the timestamp from an inserted element
-    async with await conn.execute(
-        """
-        SELECT created_at FROM element
-        WHERE sequence_id = %s
-        """,
-        (first_sequence_id,),
-    ) as r:
-        (created_at,) = await r.fetchone()  # type: ignore
-
+    created_at = await db_fetchval(
+        datetime,
+        t'SELECT created_at FROM element WHERE sequence_id = {first_sequence_id}',
+        conn=conn,
+    )
+    assert created_at is not None
     return created_at
 
 
@@ -264,16 +250,13 @@ async def _update_latest_elements(
     if not typed_ids:
         return
 
-    result = await conn.execute(
-        """
+    result = await conn.execute(t"""
         UPDATE element e SET latest = FALSE
-        FROM UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
+        FROM UNNEST({typed_ids}::bigint[], {versions}::bigint[]) AS v(typed_id, version)
         WHERE e.typed_id = v.typed_id
           AND e.version = v.version
           AND e.latest
-        """,
-        (typed_ids, versions),
-    )
+    """)
     if result.rowcount != len(typed_ids):
         raise OptimisticDiffError('Element is outdated')
 

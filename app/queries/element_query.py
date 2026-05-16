@@ -1,13 +1,21 @@
 from asyncio import TaskGroup
-from typing import Any, Literal, LiteralString, assert_never
+from string.templatelib import Template
+from typing import Literal, assert_never
 
 from psycopg import AsyncConnection, IsolationLevel
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
 from app.config import MAP_QUERY_LEGACY_NODES_LIMIT
-from app.db import db
+from app.db import (
+    db,
+    db_fetchcol,
+    db_fetchrow,
+    db_fetchrows,
+    db_fetchval,
+    t_and,
+    t_order,
+)
 from app.exceptions.context import raise_for
 from app.models.db.element import Element
 from app.models.element import (
@@ -32,13 +40,13 @@ class ElementQuery:
         Get the current sequence id.
         Returns 0 if no elements exist.
         """
-        async with (
-            db(conn) as conn,
-            await conn.execute(
-                'SELECT COALESCE(MAX(sequence_id), 0) FROM element'
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        result = await db_fetchval(
+            SequenceId,
+            t'SELECT COALESCE(MAX(sequence_id), 0) FROM element',
+            conn=conn,
+        )
+        assert result is not None
+        return result
 
     @staticmethod
     async def get_current_ids(
@@ -48,31 +56,24 @@ class ElementQuery:
         Get current sequence_id and max element IDs in a single query.
         Returns (sequence_id, node_id, way_id, relation_id). Returns 0 for missing types.
         """
-        async with (
-            db(conn) as conn,
-            await conn.execute(
-                """
+        row = await db_fetchrow(
+            t"""
                 SELECT
                     (SELECT COALESCE(MAX(sequence_id), 0) FROM element),
-                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id <= %s),
-                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id BETWEEN %s AND %s),
-                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id >= %s)
-                """,
-                (
-                    TYPED_ELEMENT_ID_NODE_MAX,
-                    TYPED_ELEMENT_ID_WAY_MIN,
-                    TYPED_ELEMENT_ID_WAY_MAX,
-                    TYPED_ELEMENT_ID_RELATION_MIN,
-                ),
-            ) as r,
-        ):
-            seq_id, node_typed, way_typed, rel_typed = await r.fetchone()  # type: ignore
-            return (
-                seq_id,
-                element_id(node_typed),
-                element_id(way_typed),
-                element_id(rel_typed),
-            )
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id <= {TYPED_ELEMENT_ID_NODE_MAX}),
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id BETWEEN {TYPED_ELEMENT_ID_WAY_MIN} AND {TYPED_ELEMENT_ID_WAY_MAX}),
+                    (SELECT COALESCE(MAX(typed_id), 0) FROM element WHERE typed_id >= {TYPED_ELEMENT_ID_RELATION_MIN})
+            """,
+            conn=conn,
+        )
+        assert row is not None
+        seq_id, node_typed, way_typed, rel_typed = row
+        return (
+            seq_id,
+            element_id(node_typed),
+            element_id(way_typed),
+            element_id(rel_typed),
+        )
 
     @staticmethod
     async def check_is_latest(versioned_refs: list[tuple[TypedElementId, int]]):
@@ -80,26 +81,23 @@ class ElementQuery:
         if not versioned_refs:
             return True
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT 1
-                FROM UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
-                WHERE EXISTS (
-                    SELECT 1 FROM element
-                    WHERE typed_id = v.typed_id
-                      AND version > v.version
-                )
-                LIMIT 1
+        ref_typed_ids = [ref[0] for ref in versioned_refs]
+        ref_versions = [ref[1] for ref in versioned_refs]
+        return (
+            await db_fetchval(
+                int,
+                t"""
+                    SELECT 1
+                    FROM UNNEST({ref_typed_ids}::bigint[], {ref_versions}::bigint[]) AS v(typed_id, version)
+                    WHERE EXISTS (
+                        SELECT 1 FROM element
+                        WHERE typed_id = v.typed_id
+                          AND version > v.version
+                    )
+                    LIMIT 1
                 """,
-                (
-                    [ref[0] for ref in versioned_refs],
-                    [ref[1] for ref in versioned_refs],
-                ),
-            ) as r,
-        ):
-            return await r.fetchone() is None
+            )
+        ) is None
 
     @staticmethod
     async def check_is_unreferenced(
@@ -111,18 +109,20 @@ class ElementQuery:
         if not members:
             return True
 
-        async with await conn.execute(
-            """
-            SELECT 1 FROM element
-            WHERE sequence_id > %s
-            AND members && %s::bigint[]
-            AND typed_id >= 1152921504606846976
-            AND latest
-            LIMIT 1
-            """,
-            (after_sequence_id, members),
-        ) as r:
-            return await r.fetchone() is None
+        return (
+            await db_fetchval(
+                int,
+                t"""
+                    SELECT 1 FROM element
+                    WHERE sequence_id > {after_sequence_id}
+                    AND members && {members}::bigint[]
+                    AND typed_id >= 1152921504606846976
+                    AND latest
+                    LIMIT 1
+                """,
+                conn=conn,
+            )
+        ) is None
 
     @staticmethod
     async def filter_hidden_refs(
@@ -134,29 +134,29 @@ class ElementQuery:
         if not typed_ids:
             return []
 
-        conditions: list[Composable] = [SQL('typed_id = v.typed_id')]
-        params: list[Any] = [typed_ids]
+        filters: list[Template] = [t'typed_id = v.typed_id']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
+            filters.append(t'sequence_id <= {at_sequence_id}')
 
-        query = SQL("""
-            SELECT typed_id
-            FROM UNNEST(%s::bigint[]) AS v(typed_id)
-            WHERE NOT EXISTS (
-                SELECT 1 FROM (
-                    SELECT visible FROM element
-                    WHERE {conditions}
-                    ORDER BY sequence_id DESC
-                    LIMIT 1
+        where = t_and(*filters)
+
+        return await db_fetchcol(
+            TypedElementId,
+            t"""
+                SELECT typed_id
+                FROM UNNEST({typed_ids}::bigint[]) AS v(typed_id)
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM (
+                        SELECT visible FROM element
+                        WHERE {where:q}
+                        ORDER BY sequence_id DESC
+                        LIMIT 1
+                    )
+                    WHERE visible
                 )
-                WHERE visible
-            )
-        """).format(conditions=SQL(' AND ').join(conditions))
-
-        async with db() as conn, await conn.execute(query, params) as r:
-            return [c for (c,) in await r.fetchall()]
+            """,
+        )
 
     @staticmethod
     async def map_refs_to_current_versions(
@@ -168,28 +168,23 @@ class ElementQuery:
         if not typed_ids:
             return {}
 
-        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
-        params: list[Any] = [typed_ids]
+        filters: list[Template] = [t'typed_id = ANY({typed_ids})']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
+            filters.append(t'sequence_id <= {at_sequence_id}')
 
-        query = SQL("""
-            SELECT DISTINCT ON (typed_id) typed_id, version
-            FROM element
-            WHERE {conditions}
-            ORDER BY typed_id DESC, {order_by} DESC
-        """).format(
-            conditions=SQL(' AND ').join(conditions),
-            order_by=(
-                # Allow for index-only scan
-                SQL('version') if at_sequence_id is None else SQL('sequence_id')
-            ),
+        where = t_and(*filters)
+        # Allow for index-only scan
+        order_by = t'version' if at_sequence_id is None else t'sequence_id'
+
+        return dict(
+            await db_fetchrows(t"""
+                SELECT DISTINCT ON (typed_id) typed_id, version
+                FROM element
+                WHERE {where:q}
+                ORDER BY typed_id DESC, {order_by:q} DESC
+            """)
         )
-
-        async with db() as conn, await conn.execute(query, params) as r:
-            return dict(await r.fetchall())
 
     @staticmethod
     async def find_versions_by_ref(
@@ -202,41 +197,30 @@ class ElementQuery:
     ) -> list[Element]:
         """Get versions by the given element ref."""
         sort_by: Literal['sequence_id', 'version'] = 'sequence_id'
-        conditions: list[Composable] = [SQL('typed_id = %s')]
-        params: list[Any] = [typed_id]
+        filters: list[Template] = [t'typed_id = {typed_id}']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
+            filters.append(t'sequence_id <= {at_sequence_id}')
 
         if version_range is not None:
             # Switch to version ordering when filtering by version range
             # Changes nothing but enables more efficient query
             sort_by = 'version'
-            conditions.append(SQL('version BETWEEN %s AND %s'))
-            params.extend(version_range)
+            v_lo, v_hi = version_range
+            filters.append(t'version BETWEEN {v_lo} AND {v_hi}')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT * FROM element
-            WHERE {conditions}
-            ORDER BY {order_by} {order_dir}
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions),
-            order_by=Identifier(sort_by),
-            order_dir=SQL(sort_dir),
-            limit=limit_clause,
-        )
+        where = t_and(*filters)
+        order_dir = t_order(sort_dir)
+        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT * FROM element
+                WHERE {where:q}
+                ORDER BY {sort_by:i} {order_dir:q}
+                {limit_clause:q}
+            """) as r,
         ):
             return await r.fetchall()  # type: ignore
 
@@ -251,42 +235,26 @@ class ElementQuery:
         if not versioned_refs:
             return []
 
-        conditions: list[Composable] = []
-        params: list[Any] = [
-            [ref[0] for ref in versioned_refs],
-            [ref[1] for ref in versioned_refs],
-        ]
+        ref_typed_ids = [ref[0] for ref in versioned_refs]
+        ref_versions = [ref[1] for ref in versioned_refs]
 
+        filters: list[Template] = []
         if at_sequence_id is not None:
-            conditions.append(SQL('e.sequence_id <= %s'))
-            params.append(at_sequence_id)
+            filters.append(t'e.sequence_id <= {at_sequence_id}')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        where_clause = (
-            SQL('WHERE {}').format(SQL(' AND ').join(conditions))
-            if conditions
-            else SQL('')
-        )
-
-        query = SQL("""
-            SELECT e.* FROM element e
-            JOIN UNNEST(%s::bigint[], %s::bigint[]) AS v(typed_id, version)
-              ON e.typed_id = v.typed_id AND e.version = v.version
-            {where}
-            {limit}
-        """).format(
-            where=where_clause,
-            limit=limit_clause,
-        )
+        where_sql = t_and(*filters)
+        where_clause = t'WHERE {where_sql:q}' if filters else t''
+        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT e.* FROM element e
+                JOIN UNNEST({ref_typed_ids}::bigint[], {ref_versions}::bigint[]) AS v(typed_id, version)
+                  ON e.typed_id = v.typed_id AND e.version = v.version
+                {where_clause:q}
+                {limit_clause:q}
+            """) as r,
         ):
             return await r.fetchall()  # type: ignore
 
@@ -306,38 +274,27 @@ class ElementQuery:
         if not typed_ids:
             return []
 
-        conditions: list[Composable] = [SQL('typed_id = ANY(%s)')]
-        params: list[Any] = [typed_ids]
+        filters: list[Template] = [t'typed_id = ANY({typed_ids})']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
+            filters.append(t'sequence_id <= {at_sequence_id}')
 
         if skip_typed_ids is not None:
-            conditions.append(SQL('typed_id != ALL(%s)'))
-            params.append(skip_typed_ids)
+            filters.append(t'typed_id != ALL({skip_typed_ids})')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT DISTINCT ON (typed_id) *
-            FROM element
-            WHERE {conditions}
-            ORDER BY typed_id {order_dir}, sequence_id DESC
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions),
-            order_dir=SQL(sort_dir),
-            limit=limit_clause,
-        )
+        where = t_and(*filters)
+        order_dir = t_order(sort_dir)
+        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT DISTINCT ON (typed_id) *
+                FROM element
+                WHERE {where:q}
+                ORDER BY typed_id {order_dir:q}, sequence_id DESC
+                {limit_clause:q}
+            """) as r,
         ):
             result: list[Element] = await r.fetchall()  # type: ignore
 
@@ -358,34 +315,25 @@ class ElementQuery:
         if not node_typed_ids:
             return result
 
-        conditions = [SQL('typed_id = ANY(%s)')]
-        params = [list(node_typed_ids)]
+        node_ids = list(node_typed_ids)
+        node_filters: list[Template] = [t'typed_id = ANY({node_ids})']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s'))
-            params.append(at_sequence_id)
+            node_filters.append(t'sequence_id <= {at_sequence_id}')
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit - len(result))
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT DISTINCT ON (typed_id) *
-            FROM element
-            WHERE {conditions}
-            ORDER BY typed_id {order_dir}, sequence_id DESC
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions),
-            order_dir=SQL(sort_dir),
-            limit=limit_clause,
-        )
+        node_where = t_and(*node_filters)
+        node_limit = limit - len(result) if limit is not None else None
+        node_limit_clause = t'LIMIT {node_limit}' if node_limit is not None else t''
 
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT DISTINCT ON (typed_id) *
+                FROM element
+                WHERE {node_where:q}
+                ORDER BY typed_id {order_dir:q}, sequence_id DESC
+                {node_limit_clause:q}
+            """) as r,
         ):
             result.extend(await r.fetchall())  # type: ignore
             return result
@@ -479,62 +427,44 @@ class ElementQuery:
             "at_sequence_id shouldn't be used with multiple members"
         )
 
-        conditions: list[Composable] = [SQL('members && %s::bigint[]')]
-        params: list[Any] = [members]
-        hint_index: LiteralString
+        filters: list[Template] = [t'members && {members}::bigint[]']
 
         if at_sequence_id is not None:
-            conditions.append(SQL('sequence_id <= %s AND (latest OR NOT latest)'))
-            params.append(at_sequence_id)
-            hint_index = 'element_members_idx element_members_history_idx'
+            filters.append(
+                t'sequence_id <= {at_sequence_id} AND (latest OR NOT latest)'
+            )
+            hint_sql = t'element_members_idx element_members_history_idx'
         else:
-            conditions.append(SQL('latest'))
-            hint_index = 'element_members_idx'
+            filters.append(t'latest')
+            hint_sql = t'element_members_idx'
 
         if parent_type is None:
-            conditions.append(SQL('typed_id >= 1152921504606846976'))
+            filters.append(t'typed_id >= 1152921504606846976')
         elif parent_type == 'way':
-            conditions.append(
-                SQL('typed_id BETWEEN 1152921504606846976 AND 2305843009213693951')
+            filters.append(
+                t'typed_id BETWEEN 1152921504606846976 AND 2305843009213693951'
             )
         elif parent_type == 'relation':
-            conditions.append(SQL('typed_id >= 2305843009213693952'))
+            filters.append(t'typed_id >= 2305843009213693952')
         else:
             assert_never(parent_type)
 
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
+        where = t_and(*filters)
+        distinct = t'' if at_sequence_id is None else t'DISTINCT ON (typed_id)'
+        order = t'typed_id' if at_sequence_id is None else t'typed_id, sequence_id DESC'
+        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
         # Find elements that reference the member typed_ids
-        query = SQL("""
-            /*+ BitmapScan(element {hint_index}) */
-            SELECT {distinct} *
-            FROM element
-            WHERE {conditions}
-            ORDER BY {order}
-            {limit}
-        """).format(
-            hint_index=SQL(hint_index),
-            distinct=(
-                SQL('')  #
-                if at_sequence_id is None
-                else SQL('DISTINCT ON (typed_id)')
-            ),
-            conditions=SQL(' AND ').join(conditions),
-            order=(
-                SQL('typed_id')
-                if at_sequence_id is None
-                else SQL('typed_id, sequence_id DESC')
-            ),
-            limit=limit_clause,
-        )
-
         async with (
             db(conn) as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                /*+ BitmapScan(element {hint_sql:q}) */
+                SELECT {distinct:q} *
+                FROM element
+                WHERE {where:q}
+                ORDER BY {order:q}
+                {limit_clause:q}
+            """) as r,
         ):
             return await r.fetchall()  # type: ignore
 
@@ -549,46 +479,29 @@ class ElementQuery:
         if not members:
             return {}
 
-        inner_conditions: list[Composable] = [
-            SQL("""
-                /*+ BitmapScan(element element_members_idx) */
-                members && %s::bigint[]
-                AND typed_id >= 1152921504606846976
-                AND latest
-            """)
-        ]
-        params: list[Any] = [members]
+        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
-        outer_conditions: list[Composable] = [SQL('member = ANY(%s)')]
-        params.append(members)
-
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT member, typed_id FROM (
-                SELECT typed_id, members
-                FROM element
-                WHERE {inner_conditions}
-            )
-            CROSS JOIN LATERAL UNNEST(members) member
-            WHERE {outer_conditions}
-            {limit}
-        """).format(
-            inner_conditions=SQL(' AND ').join(inner_conditions),
-            outer_conditions=SQL(' AND ').join(outer_conditions),
-            limit=limit_clause,
+        rows = await db_fetchrows(
+            t"""
+                SELECT member, typed_id FROM (
+                    SELECT typed_id, members
+                    FROM element
+                    WHERE /*+ BitmapScan(element element_members_idx) */
+                        members && {members}::bigint[]
+                        AND typed_id >= 1152921504606846976
+                        AND latest
+                )
+                CROSS JOIN LATERAL UNNEST(members) member
+                WHERE member = ANY({members})
+                {limit_clause:q}
+            """,
+            conn=conn,
         )
-
-        async with await conn.execute(query, params) as r:
-            result: dict[TypedElementId, set[TypedElementId]]
-            result = {member: set() for member in members}
-            for member, parent in await r.fetchall():
-                result[member].add(parent)
-            return result
+        result: dict[TypedElementId, set[TypedElementId]]
+        result = {member: set() for member in members}
+        for member, parent in rows:
+            result[member].add(parent)
+        return result
 
     @staticmethod
     async def find_by_changeset(
@@ -597,17 +510,13 @@ class ElementQuery:
         sort_by: Literal['typed_id', 'sequence_id'] = 'typed_id',
     ) -> list[Element]:
         """Get elements by the changeset id."""
-        query = SQL("""
-            SELECT * FROM element
-            WHERE changeset_id = %s
-            ORDER BY {sort_by}
-        """).format(sort_by=Identifier(sort_by))
-
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                query, (changeset_id,)
-            ) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT * FROM element
+                WHERE changeset_id = {changeset_id}
+                ORDER BY {sort_by:i}
+            """) as r,
         ):
             return await r.fetchall()  # type: ignore
 
@@ -640,26 +549,16 @@ class ElementQuery:
             nodes_limit += 1  # to detect limit exceeded
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
-            params: list[Any] = [geometry]
-
-            if nodes_limit is not None:
-                limit_clause = SQL('LIMIT %s')
-                params.append(nodes_limit)
-            else:
-                limit_clause = SQL('')
-
-            query = SQL("""
-                SELECT * FROM element
-                WHERE typed_id <= 1152921504606846975
-                AND point && %s
-                AND latest
-                {limit}
-            """).format(limit=limit_clause)
+            limit_clause = t'LIMIT {nodes_limit}' if nodes_limit is not None else t''
 
             # Find all matching nodes within the geometry
-            async with await conn.cursor(row_factory=dict_row).execute(
-                query, params
-            ) as r:
+            async with await conn.cursor(row_factory=dict_row).execute(t"""
+                SELECT * FROM element
+                WHERE typed_id <= 1152921504606846975
+                AND point && {geometry}
+                AND latest
+                {limit_clause:q}
+            """) as r:
                 nodes: list[Element] = await r.fetchall()  # type: ignore
                 if not nodes:
                     return []
@@ -737,14 +636,12 @@ class ElementQuery:
         if element['latest']:
             return None
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
+        typed_id = element['typed_id']
+        sequence_id = element['sequence_id']
+        return await db_fetchval(
+            SequenceId,
+            t"""
                 SELECT MIN(sequence_id) - 1 FROM element
-                WHERE typed_id = %s AND sequence_id > %s
-                """,
-                (element['typed_id'], element['sequence_id']),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+                WHERE typed_id = {typed_id} AND sequence_id > {sequence_id}
+            """,
+        )

@@ -1,6 +1,4 @@
-from psycopg.rows import dict_row
-
-from app.db import db
+from app.db import db_fetchall, db_fetchval
 from app.lib.auth.context import auth_user
 from app.models.db.connected_account import ConnectedAccount
 from app.models.proto.settings_connections_types import Provider
@@ -13,19 +11,14 @@ class ConnectedAccountQuery:
         provider: Provider, uid: str
     ) -> UserId | None:
         """Find a user id by auth provider and uid."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
+        return await db_fetchval(
+            UserId,
+            t"""
                 SELECT user_id
                 FROM connected_account
-                WHERE provider = %s AND uid = %s
-                """,
-                (provider, uid),
-            ) as r,
-        ):
-            row = await r.fetchone()
-            return row[0] if row is not None else None
+                WHERE provider = {provider} AND uid = {uid}
+            """,
+        )
 
     @staticmethod
     async def find_by_user(user_id: UserId | None = None) -> list[ConnectedAccount]:
@@ -33,14 +26,7 @@ class ConnectedAccountQuery:
         if user_id is None:
             user_id = auth_user(required=True)['id']
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM connected_account
-                WHERE user_id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            ConnectedAccount,
+            t'SELECT * FROM connected_account WHERE user_id = {user_id}',
+        )

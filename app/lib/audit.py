@@ -4,13 +4,13 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from ipaddress import ip_address
 from random import random
+from string.templatelib import Template
 from typing import Any, Literal
 
 import cython
 from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 from psycopg import AsyncConnection
-from psycopg.sql import SQL
 from psycopg.types.json import Jsonb
 from zid import zid
 
@@ -20,7 +20,7 @@ from app.config import (
     AUDIT_USER_AGENT_MAX_LENGTH,
     ENV,
 )
-from app.db import db
+from app.db import db, db_delete, db_insert
 from app.lib.auth.context import auth_oauth2, auth_user
 from app.lib.http.ip_address import anonymize_ip
 from app.middlewares.request_context_middleware import (
@@ -157,65 +157,49 @@ async def _audit_task(
     event_init: AuditEventInit,
     discard_repeated: timedelta | None,
 ):
-    query = SQL("""
-        INSERT INTO audit (
-            id, type, ip, user_agent, user_id,
-            target_user_id, application_id, token_id, extra
-        )
-        SELECT
-            %(id)s, %(type)s, %(ip)s, %(user_agent)s, %(user_id)s,
-            %(target_user_id)s, %(application_id)s, %(token_id)s, %(extra)s::jsonb
-        {}
-    """).format(
-        SQL(
-            """
-            WHERE NOT EXISTS (
-                SELECT 1 FROM audit
-                WHERE type = %(type)s
-                AND ip = %(ip)s
-                AND user_id IS NOT DISTINCT FROM %(user_id)s
-                AND target_user_id IS NOT DISTINCT FROM %(target_user_id)s
-                AND application_id IS NOT DISTINCT FROM %(application_id)s
-                AND token_id IS NOT DISTINCT FROM %(token_id)s
-                AND hashtext(extra::text) IS NOT DISTINCT FROM hashtext(%(extra)s::text)
-                AND extra::jsonb IS NOT DISTINCT FROM %(extra)s::jsonb
-                AND created_at > statement_timestamp() - %(discard_repeated)s
-                LIMIT 1
-            )
-            """
-            if discard_repeated is not None
-            else ''
-        )
-    )
+    values = {
+        **event_init,
+        'extra': Jsonb(raw) if (raw := event_init['extra']) else None,
+    }
 
-    async with db(True, conn) as conn:
-        await conn.execute(
-            query,
-            {
-                **event_init,
-                'extra': (Jsonb(extra) if (extra := event_init.get('extra')) else None),
-                'discard_repeated': discard_repeated,
-            },
-        )
+    where_not_exists: Template | None = None
+    if discard_repeated is not None:
+        type = values['type']
+        ip = values['ip']
+        user_id = values['user_id']
+        target_user_id = values['target_user_id']
+        application_id = values['application_id']
+        token_id = values['token_id']
+        extra = values['extra']
+        where_not_exists = t"""
+            SELECT 1 FROM audit CROSS JOIN (VALUES ({extra}::jsonb)) AS p(extra)
+            WHERE audit.type = {type}
+            AND audit.ip = {ip}
+            AND audit.user_id IS NOT DISTINCT FROM {user_id}
+            AND audit.target_user_id IS NOT DISTINCT FROM {target_user_id}
+            AND audit.application_id IS NOT DISTINCT FROM {application_id}
+            AND audit.token_id IS NOT DISTINCT FROM {token_id}
+            AND hashtext(audit.extra::text) IS NOT DISTINCT FROM hashtext(p.extra::text)
+            AND audit.extra IS NOT DISTINCT FROM p.extra
+            AND audit.created_at > statement_timestamp() - {discard_repeated}
+            LIMIT 1
+        """
+
+    await db_insert('audit', values, where_not_exists=where_not_exists, conn=conn)
 
 
 async def _cleanup_old_audit_logs():
     """Delete old audit logs based on configured retention periods."""
     async with db(True) as conn:
         for audit_type in AUDIT_TYPE_VALUES:
-            audit_policy = AUDIT_POLICY[audit_type]
-            result = await conn.execute(
-                """
-                DELETE FROM audit
-                WHERE type = %s
-                  AND created_at < statement_timestamp() - %s
-                """,
-                (audit_type, audit_policy.retention),
+            retention = AUDIT_POLICY[audit_type].retention
+            rowcount = await db_delete(
+                'audit',
+                where=t'type = {audit_type} AND created_at < statement_timestamp() - {retention}',
+                conn=conn,
             )
-            if result.rowcount:
-                logging.debug(
-                    'Deleted %d old %r audit logs', result.rowcount, audit_type
-                )
+            if rowcount:
+                logging.debug('Deleted %d old %r audit logs', rowcount, audit_type)
 
 
 def _enum_name(field: FieldDescriptor, value: int):

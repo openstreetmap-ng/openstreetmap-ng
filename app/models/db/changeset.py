@@ -12,13 +12,10 @@ if TYPE_CHECKING:
     from app.models.db.changeset_comment import ChangesetComment
 
 
-class ChangesetInit(TypedDict):
+class Changeset(TypedDict):
+    id: ChangesetId
     user_id: UserId | None
     tags: dict[str, str]
-
-
-class Changeset(ChangesetInit):
-    id: ChangesetId
     # TODO: normalize unicode, check unicode, check length
     # TODO: test updated at optimistic
     created_at: datetime

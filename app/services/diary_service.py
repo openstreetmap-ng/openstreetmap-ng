@@ -1,20 +1,16 @@
 from asyncio import TaskGroup
 from datetime import datetime
-from typing import Any
 
-from psycopg.sql import SQL, Composable
 from shapely import Point
 from zid import zid
 
-from app.db import db
+from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.text.translation import t, translation_context
-from app.models.db.diary import DiaryInit
 from app.models.db.diary_comment import (
     DiaryComment,
-    DiaryCommentInit,
     diary_comments_resolve_rich_text,
 )
 from app.models.types import (
@@ -42,28 +38,20 @@ class DiaryService:
         """Post a new diary entry."""
         user_id = auth_user(required=True)['id']
 
-        diary_init: DiaryInit = {
-            'user_id': user_id,
-            'title': title,
-            'body': body,
-            'language': language,
-            'point': point,
-        }
-
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                INSERT INTO diary (
-                    user_id, title, body, language, point
-                )
-                VALUES (
-                    %(user_id)s, %(title)s, %(body)s, %(language)s, ST_QuantizeCoordinates(%(point)s, 7)
-                )
-                RETURNING id
-                """,
-                diary_init,
-            ) as r:
-                diary_id: DiaryId = (await r.fetchone())[0]  # type: ignore
+            row = await db_insert(
+                'diary',
+                {
+                    'user_id': user_id,
+                    'title': title,
+                    'body': body,
+                    'language': language,
+                    'point': t'ST_QuantizeCoordinates({point}, 7)',
+                },
+                returning='id',
+                conn=conn,
+            )
+            diary_id: DiaryId = row[0]
 
             await audit('create_diary', conn, extra={'id': diary_id, 'title': title})
 
@@ -83,33 +71,24 @@ class DiaryService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE diary
-                SET
-                    title = %(title)s,
-                    body = %(body)s,
-                    body_rich_hash = CASE
-                        WHEN %(body)s != diary.body THEN NULL
-                        ELSE body_rich_hash
-                    END,
-                    language = %(language)s,
-                    point = %(point)s,
-                    updated_at = DEFAULT
-                WHERE id = %(diary_id)s
-                AND user_id = %(user_id)s
-                """,
+            rowcount = await db_update(
+                'diary',
                 {
-                    'diary_id': diary_id,
-                    'user_id': user_id,
                     'title': title,
                     'body': body,
+                    'body_rich_hash': t"""CASE
+                        WHEN {body} != diary.body THEN NULL
+                        ELSE body_rich_hash
+                    END""",
                     'language': language,
                     'point': point,
+                    'updated_at': t'DEFAULT',
                 },
+                where={'id': diary_id, 'user_id': user_id},
+                conn=conn,
             )
 
-            if not result.rowcount:
+            if not rowcount:
                 raise_for.diary_not_found(diary_id)
 
             await audit('update_diary', conn, extra={'id': diary_id})
@@ -117,30 +96,23 @@ class DiaryService:
     @staticmethod
     async def delete(diary_id: DiaryId, *, current_user_id: UserId | None = None):
         """Delete a diary entry."""
-        conditions: list[Composable] = [SQL('id = %s')]
-        params: list[Any] = [diary_id]
-
-        if current_user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(current_user_id)
-
-        query = SQL("""
-            DELETE FROM diary
-            WHERE {conditions}
-            RETURNING body_image_proxy_ids
-        """).format(conditions=SQL(' AND ').join(conditions))
+        user_filter = (
+            t'AND user_id = {current_user_id}' if current_user_id is not None else t''
+        )
 
         removed: list[ImageProxyId] = []
 
         async with db(True) as conn:
-            async with await conn.execute(query, params) as r:
-                rows: list[tuple[list[ImageProxyId] | None]] = await r.fetchall()
-
-            if rows:
-                for row in rows:
-                    if ids := row[0]:
-                        removed.extend(ids)
-
+            row = await db_delete(
+                'diary',
+                where=t'id = {diary_id} {user_filter:q}',
+                returning='body_image_proxy_ids',
+                assert_returning=False,
+                conn=conn,
+            )
+            if row is not None:
+                if ids := row[0]:
+                    removed.extend(ids)
                 await audit('delete_diary', conn, extra={'id': diary_id})
 
         # TODO: Re-enable image proxy pruning via background service (cache issue)
@@ -159,39 +131,28 @@ class DiaryCommentService:
         user_id = user['id']
 
         comment_id: DiaryCommentId = zid()  # type: ignore
-        comment_init: DiaryCommentInit = {
-            'id': comment_id,
-            'user_id': user_id,
-            'diary_id': diary_id,
-            'body': body,
-        }
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT id FROM diary
-                WHERE id = %s
-                FOR SHARE
-                """,
-                (diary_id,),
-            ) as r:
-                result = await r.fetchone()
-                if result is None:
-                    raise_for.diary_not_found(diary_id)
+            exists = await db_fetchval(
+                int,
+                t'SELECT id FROM diary WHERE id = {diary_id} FOR SHARE',
+                conn=conn,
+            )
+            if exists is None:
+                raise_for.diary_not_found(diary_id)
 
-            async with await conn.execute(
-                """
-                INSERT INTO diary_comment (
-                    id, user_id, diary_id, body
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(diary_id)s, %(body)s
-                )
-                RETURNING created_at
-                """,
-                comment_init,
-            ) as r:
-                created_at: datetime = (await r.fetchone())[0]  # type: ignore
+            row = await db_insert(
+                'diary_comment',
+                {
+                    'id': comment_id,
+                    'user_id': user_id,
+                    'diary_id': diary_id,
+                    'body': body,
+                },
+                returning='created_at',
+                conn=conn,
+            )
+            created_at: datetime = row[0]
 
             await audit(
                 'create_diary_comment',
@@ -217,20 +178,13 @@ class DiaryCommentService:
     @staticmethod
     async def delete(comment_id: DiaryCommentId, *, current_user_id: UserId | None):
         """Delete a diary comment."""
-        conditions: list[Composable] = [SQL('id = %s')]
-        params: list[Any] = [comment_id]
-
-        if current_user_id is not None:
-            conditions.append(SQL('user_id = %s'))
-            params.append(current_user_id)
-
-        query = SQL("""
-            DELETE FROM diary_comment
-            WHERE {conditions}
-        """).format(conditions=SQL(' AND ').join(conditions))
-
-        async with db(True) as conn:
-            await conn.execute(query, params)
+        user_filter = (
+            t'AND user_id = {current_user_id}' if current_user_id is not None else t''
+        )
+        await db_delete(
+            'diary_comment',
+            where=t'id = {comment_id} {user_filter:q}',
+        )
 
 
 async def _send_activity_email(comment: DiaryComment):

@@ -6,7 +6,7 @@ from pydantic import SecretStr
 from zid import zid
 
 from app.config import NAME
-from app.db import db
+from app.db import db_insert
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_user
 from app.lib.auth.crypto import hash_bytes
@@ -116,24 +116,10 @@ class SystemAppService:
             'code_challenge': None,
         }
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO oauth2_token (
-                    id, user_id, application_id, unlisted, name,
-                    token_hashed, token_preview, redirect_uri,
-                    scopes, code_challenge_method, code_challenge,
-                    authorized_at
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(application_id)s, %(unlisted)s, %(name)s,
-                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
-                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s,
-                    statement_timestamp()
-                )
-                """,
-                token_init,
-            )
+        await db_insert(
+            'oauth2_token',
+            {**token_init, 'authorized_at': t'statement_timestamp()'},
+        )
 
         logging.debug('Created %r access token for user %d', client_id, user_id)
         return AccessTokenResult(
@@ -152,32 +138,20 @@ async def _register_app(app: SystemApp):
         'client_id': app.client_id,
     }
 
-    async with (
-        db(True) as conn,
-        await conn.execute(
-            """
-            INSERT INTO oauth2_application (
-                id, user_id, name, client_id,
-                scopes, confidential, redirect_uris
-            )
-            VALUES (
-                %(id)s, %(user_id)s, %(name)s, %(client_id)s,
-                %(scopes)s, %(confidential)s, %(redirect_uris)s
-            )
-            ON CONFLICT (client_id) DO UPDATE SET
-                name = EXCLUDED.name,
-                scopes = EXCLUDED.scopes
-            RETURNING id
-            """,
-            {
-                **app_init,
-                'scopes': sorted(app.scopes),
-                'confidential': True,
-                'redirect_uris': [],
-            },
-        ) as r,
-    ):
-        app_id: ApplicationId = (await r.fetchone())[0]  # type: ignore
+    row = await db_insert(
+        'oauth2_application',
+        {
+            **app_init,
+            'scopes': sorted(app.scopes),
+            'confidential': True,
+            'redirect_uris': [],
+        },
+        on_conflict=t"""(client_id) DO UPDATE SET
+            name = EXCLUDED.name,
+            scopes = EXCLUDED.scopes""",
+        returning='id',
+    )
+    app_id: ApplicationId = row[0]
 
     SYSTEM_APP_CLIENT_ID_MAP[app.client_id] = app_id
     logging.info('Registered system app %r', app.name)

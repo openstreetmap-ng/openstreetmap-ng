@@ -6,7 +6,7 @@ from random import random
 from psycopg import AsyncConnection
 
 from app.config import PASSKEY_CHALLENGE_CLEANUP_PROBABILITY, PASSKEY_CHALLENGE_EXPIRE
-from app.db import db
+from app.db import db, db_delete, db_insert
 from speedup import buffered_randbytes
 
 
@@ -15,14 +15,7 @@ class UserPasskeyChallengeService:
     async def create():
         """Create a new passkey challenge."""
         challenge = buffered_randbytes(32)
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO user_passkey_challenge (challenge)
-                VALUES (%s)
-                """,
-                (challenge,),
-            )
+        await db_insert('user_passkey_challenge', {'challenge': challenge})
         return challenge
 
     @staticmethod
@@ -35,26 +28,22 @@ class UserPasskeyChallengeService:
             if random() < PASSKEY_CHALLENGE_CLEANUP_PROBABILITY:
                 await _delete_expired(conn)
 
-            async with await conn.execute(
-                """
-                DELETE FROM user_passkey_challenge
-                WHERE challenge = %s
-                  AND created_at > statement_timestamp() - %s
-                RETURNING created_at
-                """,
-                (challenge, PASSKEY_CHALLENGE_EXPIRE),
-            ) as r:
-                row = await r.fetchone()
-                return row[0] if row is not None else None
+            row = await db_delete(
+                'user_passkey_challenge',
+                where=t"""challenge = {challenge}
+                    AND created_at > statement_timestamp() - {PASSKEY_CHALLENGE_EXPIRE}""",
+                returning='created_at',
+                assert_returning=False,
+                conn=conn,
+            )
+            return row[0] if row is not None else None
 
 
 async def _delete_expired(conn: AsyncConnection):
-    result = await conn.execute(
-        """
-        DELETE FROM user_passkey_challenge
-        WHERE created_at <= statement_timestamp() - %s
-        """,
-        (PASSKEY_CHALLENGE_EXPIRE,),
+    rowcount = await db_delete(
+        'user_passkey_challenge',
+        where=t'created_at <= statement_timestamp() - {PASSKEY_CHALLENGE_EXPIRE}',
+        conn=conn,
     )
-    if result.rowcount:
-        logging.debug('Deleted %d expired passkey challenges', result.rowcount)
+    if rowcount:
+        logging.debug('Deleted %d expired passkey challenges', rowcount)

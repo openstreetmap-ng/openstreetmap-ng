@@ -1,5 +1,6 @@
 import logging
 from asyncio import TaskGroup
+from datetime import datetime
 from typing import Any, assert_never
 
 import cython
@@ -7,7 +8,7 @@ from psycopg import AsyncConnection, IsolationLevel
 from zid import zid
 
 from app.config import APP_URL
-from app.db import db
+from app.db import db, db_fetchval, db_insert, db_update
 from app.lib.auth.context import auth_user
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.text.translation import nt, t
@@ -57,22 +58,16 @@ class ReportService:
                 'type_id': type_id,
             }
 
-            async with await conn.execute(
-                """
-                INSERT INTO report (
-                    id, type, type_id
-                )
-                VALUES (
-                    %(id)s, %(type)s, %(type_id)s
-                )
-                ON CONFLICT (type, type_id) DO UPDATE SET
-                    closed_at = NULL,
-                    updated_at = DEFAULT
-                RETURNING id
-                """,
+            row = await db_insert(
+                'report',
                 report_init,
-            ) as r:
-                report_id: ReportId = (await r.fetchone())[0]  # type: ignore
+                on_conflict=t"""(type, type_id) DO UPDATE SET
+                    closed_at = NULL,
+                    updated_at = DEFAULT""",
+                returning='id',
+                conn=conn,
+            )
+            report_id: ReportId = row[0]
 
             visible_to = _category_to_visibility(category)
             comment_init: ReportCommentInit = {
@@ -218,24 +213,19 @@ class ReportService:
         user_id = user['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT 1 FROM report
-                WHERE id = %s
-                FOR UPDATE
-                """,
-                (report_id,),
-            ) as r:
-                result = await r.fetchone()
-                assert result is not None, f'Report {report_id} not found'
+            exists = await db_fetchval(
+                int,
+                t'SELECT 1 FROM report WHERE id = {report_id}',
+                for_update=True,
+                conn=conn,
+            )
+            assert exists is not None, f'Report {report_id} not found'
 
-            await conn.execute(
-                """
-                UPDATE report
-                SET updated_at = DEFAULT
-                WHERE id = %s
-                """,
-                (report_id,),
+            await db_update(
+                'report',
+                {'updated_at': t'DEFAULT'},
+                where={'id': report_id},
+                conn=conn,
             )
 
             comment_init: ReportCommentInit = {
@@ -263,31 +253,27 @@ class ReportService:
         user_id = user['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT closed_at FROM report
-                WHERE id = %s
-                FOR UPDATE
-                """,
-                (report_id,),
-            ) as r:
-                result = await r.fetchone()
-                assert result is not None, f'Report {report_id} not found'
+            closed_at = await db_fetchval(
+                datetime,
+                t'SELECT closed_at FROM report WHERE id = {report_id}',
+                for_update=True,
+                conn=conn,
+            )
 
-                is_closed = result[0] is not None
-                if close and is_closed:
-                    StandardFeedback.raise_error(None, 'Report is already closed')
-                if not close and not is_closed:
-                    StandardFeedback.raise_error(None, 'Report is already open')
+            is_closed = closed_at is not None
+            if close and is_closed:
+                StandardFeedback.raise_error(None, 'Report is already closed')
+            if not close and not is_closed:
+                StandardFeedback.raise_error(None, 'Report is already open')
 
-            await conn.execute(
-                """
-                UPDATE report SET
-                    closed_at = CASE WHEN %s THEN statement_timestamp() ELSE NULL END,
-                    updated_at = DEFAULT
-                WHERE id = %s
-                """,
-                (close, report_id),
+            await db_update(
+                'report',
+                {
+                    'closed_at': t'CASE WHEN {close} THEN statement_timestamp() ELSE NULL END',
+                    'updated_at': t'DEFAULT',
+                },
+                where={'id': report_id},
+                conn=conn,
             )
 
             comment_init: ReportCommentInit = {
@@ -322,22 +308,19 @@ class ReportCommentService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE report_comment SET visible_to = %s
-                WHERE id = %s AND visible_to != %s
-                """,
-                (new_visibility, comment_id, new_visibility),
-            )
+        rowcount = await db_update(
+            'report_comment',
+            {'visible_to': new_visibility},
+            where=t'id = {comment_id} AND visible_to != {new_visibility}',
+        )
 
-            if result.rowcount:
-                logging.debug(
-                    'Changed visibility of comment %d to %r by user %d',
-                    comment_id,
-                    new_visibility,
-                    user_id,
-                )
+        if rowcount:
+            logging.debug(
+                'Changed visibility of comment %d to %r by user %d',
+                comment_id,
+                new_visibility,
+                user_id,
+            )
 
 
 @cython.cfunc
@@ -406,18 +389,4 @@ async def _add_report_comment(
     /,
     comment_init: ReportCommentInit,
 ):
-    await conn.execute(
-        """
-        INSERT INTO report_comment (
-            id, report_id, user_id,
-            action, action_id, body,
-            category, visible_to
-        )
-        VALUES (
-            %(id)s, %(report_id)s, %(user_id)s,
-            %(action)s, %(action_id)s, %(body)s,
-            %(category)s, %(visible_to)s
-        )
-        """,
-        comment_init,
-    )
+    await db_insert('report_comment', comment_init, conn=conn)
