@@ -218,31 +218,28 @@ async def _cleanup_old_audit_logs():
                 )
 
 
+def _enum_name(field: FieldDescriptor, value: int):
+    """Map an enum field value to its symbolic name, falling back to the raw value."""
+    enum_type = field.enum_type
+    assert enum_type is not None, 'TYPE_ENUM field must have enum_type'
+    entry = enum_type.values_by_number.get(value)
+    return entry.name if entry is not None else value
+
+
 @cython.cfunc
 def _proto_dict(message: Message):
     out: dict[str, Any] = {}
 
     for field, value in message.ListFields():
         if field.is_repeated:
-            entries = list(value)
-            if field.type == FieldDescriptor.TYPE_ENUM:
-                values_by_number = field.enum_type.values_by_number
-                entries = [
-                    (
-                        entry_def.name
-                        if (entry_def := values_by_number.get(entry))
-                        else entry
-                    )
-                    for entry in entries
-                ]
-            out[field.name] = entries
-            continue
-
-        if field.type == FieldDescriptor.TYPE_ENUM:
-            entry_def = field.enum_type.values_by_number.get(value)
-            out[field.name] = entry_def.name if entry_def is not None else value
-            continue
-
-        out[field.name] = value
+            out[field.name] = (
+                [_enum_name(field, v) for v in value]
+                if field.type == FieldDescriptor.TYPE_ENUM
+                else list(value)
+            )
+        elif field.type == FieldDescriptor.TYPE_ENUM:
+            out[field.name] = _enum_name(field, value)
+        else:
+            out[field.name] = value
 
     return out
