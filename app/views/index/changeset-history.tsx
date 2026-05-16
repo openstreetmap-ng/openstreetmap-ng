@@ -37,14 +37,14 @@ import {
 import { setPageTitle } from "@runtime/title"
 import { minBy } from "@std/collections/min-by"
 import { SECOND } from "@std/datetime/constants"
-import { pathParam, queryParam } from "@utils/path-codecs"
 import { darkenColor } from "@utils/color"
 import { type Scheduled, useDisposeEffect } from "@utils/dispose-scope"
 import { tRich } from "@utils/i18n"
 import { createKeyedAbort, type KeyedAbortToken } from "@utils/keyed-abort"
+import type { Bounds, OSMChangeset } from "@utils/osm-objects"
+import { pathParam, queryParam } from "@utils/path-codecs"
 import { rpcClient } from "@utils/rpc"
 import { scrollElementIntoView } from "@utils/scroll"
-import type { Bounds, OSMChangeset } from "@utils/osm-objects"
 import { t } from "i18next"
 import {
   type GeoJSONSource,

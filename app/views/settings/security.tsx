@@ -32,8 +32,8 @@ import {
   GENERATE_RECOVERY_CODES_MODAL_ID,
   GenerateRecoveryCodesModal,
 } from "./_generate-recovery-codes-modal"
-import { Nav } from "./nav"
 import { SETUP_TOTP_MODAL_ID, SetupTotpModal } from "./_setup-totp-modal"
+import { Nav } from "./nav"
 
 const formatTimestamp = (
   unix: bigint,

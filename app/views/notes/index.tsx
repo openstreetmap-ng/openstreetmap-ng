@@ -9,8 +9,8 @@ import {
   Status,
   UserPageSchema,
 } from "@proto/note_pb"
-import { queryParam } from "@utils/path-codecs"
 import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
+import { queryParam } from "@utils/path-codecs"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineQueryContract } from "@utils/query-contract"
 import { usePathSuffixQueryState } from "@utils/query-signals"

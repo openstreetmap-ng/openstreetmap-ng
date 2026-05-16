@@ -13,7 +13,6 @@ import type {
   StandardPaginationRequest,
   StandardPaginationState,
 } from "@proto/shared_pb"
-import { queryParam } from "@utils/path-codecs"
 import {
   STANDARD_PAGINATION_DISTANCE,
   STANDARD_PAGINATION_MAX_FULL_PAGES,
@@ -21,6 +20,7 @@ import {
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
 import { throwAbortError } from "@utils/dom-helpers"
 import { encodeAscii } from "@utils/format"
+import { queryParam } from "@utils/path-codecs"
 import { connectErrorToMessage, type LooseMessageInitShape, rpcUnary } from "@utils/rpc"
 import {
   currentUrlSignal,

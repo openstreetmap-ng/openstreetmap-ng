@@ -33,13 +33,13 @@ import {
 } from "@proto/user_subscription_pb"
 import { setPageTitle } from "@runtime/title"
 import { assertNever } from "@std/assert/unstable-never"
-import { pathParam } from "@utils/path-codecs"
 import {
   config,
   isLoggedIn,
   isModerator,
   NOTE_COMMENT_BODY_MAX_LENGTH,
 } from "@utils/config"
+import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { showLoginModal } from "../user/login"

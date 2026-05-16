@@ -19,7 +19,6 @@ import type {
   RoutingResultValid,
 } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
-import { queryParam } from "@utils/path-codecs"
 import { formatPoint, tryParsePoint, zoomPrecision } from "@utils/coords"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import {
@@ -34,9 +33,10 @@ import {
   type RoutingEngine,
   routingEngineStorage,
 } from "@utils/local-storage"
+import type { Bounds } from "@utils/osm-objects"
+import { queryParam } from "@utils/path-codecs"
 import { polylineDecode } from "@utils/polyline"
 import { scrollElementIntoView } from "@utils/scroll"
-import type { Bounds } from "@utils/osm-objects"
 import type { Feature, FeatureCollection, LineString } from "geojson"
 import { t } from "i18next"
 import {

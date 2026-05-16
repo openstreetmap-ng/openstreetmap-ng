@@ -10,13 +10,13 @@ import {
   IndexPageSchema,
   Service,
 } from "@proto/message_pb"
-import { queryParam } from "@utils/path-codecs"
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
 import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
+import { queryParam } from "@utils/path-codecs"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineQueryContract } from "@utils/query-contract"
-import { connectErrorToMessage, rpcUnary } from "@utils/rpc"
 import { type QueryContractSignal, usePathSuffixQueryState } from "@utils/query-signals"
+import { connectErrorToMessage, rpcUnary } from "@utils/rpc"
 import { t } from "i18next"
 import { useEffect, useRef } from "preact/hooks"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"

@@ -11,8 +11,8 @@ import {
   Type,
   TypeSchema,
 } from "@proto/audit_pb"
-import { queryParam } from "@utils/path-codecs"
 import { formatPackedIp, unixToLocalDatetime } from "@utils/format"
+import { queryParam } from "@utils/path-codecs"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineProtoQueryContract } from "@utils/query-contract"
 import { useUrlQueryState } from "@utils/query-signals"

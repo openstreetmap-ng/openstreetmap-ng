@@ -11,8 +11,8 @@ import { t } from "i18next"
 import { createRef, render } from "preact"
 import { showLoginModal } from "../user/login"
 import { LanguageSwitcher } from "./_language-switcher"
-import { messagesCountUnread } from "./navbar-right-state"
 import { ThemeSwitcher } from "./_theme-switcher"
+import { messagesCountUnread } from "./navbar-right-state"
 
 const navLinks = [
   {

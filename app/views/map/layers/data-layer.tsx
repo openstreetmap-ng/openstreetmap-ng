@@ -6,8 +6,8 @@ import { batch, signal } from "@preact/signals"
 import { Service } from "@proto/element_pb"
 import { MAP_QUERY_AREA_MAX_SIZE } from "@utils/config"
 import { createKeyedAbort } from "@utils/keyed-abort"
-import { rpcClient } from "@utils/rpc"
 import type { OSMNode, OSMWay } from "@utils/osm-objects"
+import { rpcClient } from "@utils/rpc"
 import { t } from "i18next"
 import type {
   GeoJSONSource,
