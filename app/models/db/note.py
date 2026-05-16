@@ -27,7 +27,7 @@ class Note(NoteInit):
 
     # runtime
     num_comments: NotRequired[int]
-    comments: NotRequired[list['NoteComment']]
+    comments: NotRequired[list[NoteComment]]
 
 
 def note_status(note: Note) -> Status:

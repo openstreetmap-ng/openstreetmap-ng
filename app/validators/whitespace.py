@@ -2,7 +2,7 @@ import string
 
 from pydantic import AfterValidator
 
-from app.lib.translation import t
+from app.lib.text.translation import t
 
 _WHITESPACE_CHARS = tuple(string.whitespace)
 

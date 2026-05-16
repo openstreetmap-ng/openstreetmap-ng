@@ -8,10 +8,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import APP_URL, ENV, OAUTH_CODE_CHALLENGE_MAX_LENGTH
-from app.lib.auth_context import api_user, web_user
-from app.lib.exceptions_context import raise_for
-from app.lib.render_response import render_proto_page, render_response
-from app.lib.translation import t
+from app.exceptions.context import raise_for
+from app.lib.auth.context import api_user, web_user
+from app.lib.render.proto import render_proto_page, render_response
+from app.lib.text.translation import t
 from app.models.db.oauth2_application import (
     OAuth2Application,
     OAuth2Uri,
@@ -212,7 +212,7 @@ async def post_token(
         if scheme.casefold() == 'basic':
             try:
                 decoded = b64decode(param, validate=True).decode()
-            except (BinasciiError, UnicodeDecodeError):
+            except BinasciiError, UnicodeDecodeError:
                 raise_for.oauth_bad_client_id()
             client_id, _, client_secret_ = decoded.partition(':')  # type: ignore
             client_secret = SecretStr(client_secret_) if client_secret_ else None

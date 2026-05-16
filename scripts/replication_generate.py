@@ -20,8 +20,8 @@ from app.config import (
 )
 from app.db import db
 from app.format import Format06
-from app.lib.date_utils import utcnow
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
+from app.lib.time.date_utils import utcnow
 from app.models.db.element import Element
 from app.utils import calc_num_workers
 

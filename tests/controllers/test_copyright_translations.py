@@ -2,8 +2,8 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 
-from app.lib.auth_context import auth_context
-from app.lib.translation import t, translation_context
+from app.lib.auth.context import auth_context
+from app.lib.text.translation import t, translation_context
 from app.models.types import DisplayName, LocaleCode
 from app.services.test_service import TestService
 

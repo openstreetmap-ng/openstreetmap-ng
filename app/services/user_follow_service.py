@@ -1,7 +1,7 @@
 import logging
 
 from app.db import db
-from app.lib.auth_context import auth_user
+from app.lib.auth.context import auth_user
 from app.models.types import UserId
 from app.queries.user_query import UserQuery
 

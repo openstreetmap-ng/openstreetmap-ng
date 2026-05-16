@@ -2,7 +2,7 @@ from typing import override
 
 from connectrpc.request import RequestContext
 
-from app.lib.auth_context import require_web_user
+from app.lib.auth.context import require_web_user
 from app.models.proto.user_subscription_connect import (
     Service,
     ServiceASGIApplication,

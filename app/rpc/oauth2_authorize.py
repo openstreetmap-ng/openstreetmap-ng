@@ -4,7 +4,7 @@ from connectrpc.request import RequestContext
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from app.lib.auth_context import require_web_user
+from app.lib.auth.context import require_web_user
 from app.models.db.oauth2_application import OAuth2Uri
 from app.models.db.oauth2_token import (
     OAuth2CodeChallengeMethod,

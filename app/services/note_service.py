@@ -8,10 +8,11 @@ from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
 
 from app.db import db
-from app.lib.auth_context import auth_scopes, auth_user
-from app.lib.exceptions_context import raise_for
-from app.lib.http_client import HTTPError
-from app.lib.translation import t, translation_context
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_scopes, auth_user
+from app.lib.http.client import HTTPError
+from app.lib.text.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note, NoteInit
 from app.models.db.note_comment import (
@@ -23,9 +24,8 @@ from app.models.db.user import user_is_moderator
 from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
-from app.queries.note_comment_query import NoteCommentQuery
+from app.queries.note_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
-from app.services.audit_service import audit
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry

@@ -2,7 +2,7 @@ version: v2
 
 plugins:
   - local: protoc-gen-es
-    out: app/views/lib/proto
+    out: app/views/proto
     opt:
       - target=ts
       - json_types=false

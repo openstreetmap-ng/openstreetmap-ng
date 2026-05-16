@@ -1,11 +1,11 @@
-import { configureMap } from "@lib/map/configure-map"
-import { configureDefaultMapBehavior } from "@lib/map/defaults"
+import { configureMap } from "@map/configure-map"
+import { configureDefaultMapBehavior } from "@map/defaults"
 import {
   addMapLayer,
   addMapLayerSources,
   type LayerId,
   layersConfig,
-} from "@lib/map/layers/layers"
+} from "@map/layers/layers"
 import { assertExists } from "@std/assert"
 import { memoize } from "@std/cache"
 import type { Map as MaplibreMap } from "maplibre-gl"

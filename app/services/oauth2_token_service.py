@@ -16,9 +16,10 @@ from app.config import (
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
 )
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
+from app.lib.audit import audit
+from app.lib.auth.context import auth_user
+from app.lib.auth.crypto import hash_bytes, hash_compare, hash_s256_code_challenge
 from app.models.db.oauth2_application import (
     SYSTEM_APP_PAT_CLIENT_ID,
     OAuth2Application,
@@ -36,7 +37,6 @@ from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, OAuth2TokenId, UserId
 from app.queries.oauth2_application_query import OAuth2ApplicationQuery
 from app.queries.oauth2_token_query import OAuth2TokenQuery
-from app.services.audit_service import audit
 from app.services.system_app_service import SYSTEM_APP_CLIENT_ID_MAP
 from speedup import buffered_rand_urlsafe
 

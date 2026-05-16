@@ -1,7 +1,7 @@
 import pytest
 
 from app.config import STANDARD_PAGINATION_DISTANCE
-from app.lib.standard_pagination import (
+from app.lib.standard.pagination import (
     _cursor_codec,
     _plan,
     _update_discovery,

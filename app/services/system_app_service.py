@@ -7,9 +7,9 @@ from zid import zid
 
 from app.config import NAME
 from app.db import db
-from app.lib.auth_context import auth_user
-from app.lib.crypto import hash_bytes
-from app.lib.exceptions_context import raise_for
+from app.exceptions.context import raise_for
+from app.lib.auth.context import auth_user
+from app.lib.auth.crypto import hash_bytes
 from app.models.db.oauth2_application import (
     SYSTEM_APP_ID_CLIENT_ID,
     SYSTEM_APP_PAT_CLIENT_ID,

@@ -8,7 +8,7 @@ from lxml import html as lxml_html
 from lxml.etree import ParserError
 from zid import zid
 
-from app.lib.rich_text import resolve_rich_text
+from app.lib.render.rich_text import resolve_rich_text
 from app.models.db.user import UserDisplay
 from app.models.types import MessageId, UserId
 
@@ -31,8 +31,8 @@ class Message(MessageInit):
     # runtime
     from_user: NotRequired[UserDisplay]
     body_rich: NotRequired[str]
-    recipients: NotRequired[list['MessageRecipient']]
-    user_recipient: NotRequired['MessageRecipient']
+    recipients: NotRequired[list[MessageRecipient]]
+    user_recipient: NotRequired[MessageRecipient]
 
 
 class MessageRecipient(TypedDict):
@@ -116,7 +116,7 @@ def _decode_payload(payload: bytes, charset: str | None):
     if charset is not None:
         try:
             return payload.decode(charset)
-        except (LookupError, UnicodeDecodeError):
+        except LookupError, UnicodeDecodeError:
             pass
 
     try:
@@ -129,7 +129,7 @@ def _decode_payload(payload: bytes, charset: str | None):
 def _html_to_text(html: str):
     try:
         document = lxml_html.document_fromstring(html)
-    except (ParserError, ValueError):
+    except ParserError, ValueError:
         return ''
 
     body = document.find('body')

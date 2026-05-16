@@ -3,8 +3,8 @@ from typing import override
 from connectrpc.request import RequestContext
 from pydantic import TypeAdapter, ValidationError
 
-from app.lib.cookie import delete_cookie, set_auth_cookie
-from app.lib.standard_feedback import StandardFeedback
+from app.lib.auth.cookie import delete_cookie, set_auth_cookie
+from app.lib.standard.feedback import StandardFeedback
 from app.middlewares.request_context_middleware import get_request
 from app.models.db.oauth2_application import SYSTEM_APP_WEB_CLIENT_ID
 from app.models.proto.signup_connect import Service, ServiceASGIApplication

@@ -1,8 +1,8 @@
 import cython
 
-from app.lib.date_utils import legacy_date
-from app.lib.format_style_context import format_is_json
-from app.lib.xmltodict import get_xattr
+from app.lib.io.xml_codec import get_xattr
+from app.lib.render import format_style
+from app.lib.time.date_utils import legacy_date
 from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import ChangesetComment
 
@@ -17,7 +17,7 @@ class Changeset06Mixin:
         ... ])
         {'changeset': [{'@id': 1, '@created_at': ..., ..., 'discussion': {'comment': [...]}}]}
         """
-        is_json: cython.bint = format_is_json()
+        is_json: cython.bint = format_style.is_json()
         return {
             'changesets' if is_json else 'changeset': [
                 _encode_changeset(changeset, is_json=is_json)

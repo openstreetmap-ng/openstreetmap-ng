@@ -5,8 +5,8 @@ from starlette import status
 
 from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
-from app.lib.auth_context import auth_context
-from app.lib.exceptions_context import exceptions_context
+from app.exceptions.context import exceptions_context
+from app.lib.auth.context import auth_context
 from app.models.proto.message_pb2 import (
     DeleteRequest,
     GetRequest,

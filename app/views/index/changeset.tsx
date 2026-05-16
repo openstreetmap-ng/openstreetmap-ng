@@ -1,40 +1,15 @@
+import { Time } from "@components/datetime-inputs"
+import { ReportButton } from "@components/report"
+import { StandardForm } from "@components/standard-form"
+import { PageOrder, StandardPagination } from "@components/standard-pagination"
+import { Tags } from "@components/tags"
+import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
 import { defineRoute } from "@index/router"
-import { pathParam } from "@lib/codecs"
-import {
-  API_URL,
-  CHANGESET_COMMENT_BODY_MAX_LENGTH,
-  config,
-  isLoggedIn,
-} from "@lib/config"
-import { Time } from "@lib/datetime-inputs"
-import { useDisposeSignalEffect } from "@lib/dispose-scope"
-import { makeBoundsMinimumSize } from "@lib/map/bounds"
-import { type FocusLayerPaint, focusObjects } from "@lib/map/layers/focus-layer"
-import { convertRenderElementsData } from "@lib/map/render-objects"
-import {
-  type AddCommentResponseValid,
-  type DataValid,
-  Service,
-  type Data_Element as Element,
-  type GetCommentsResponse_CommentValid,
-  type GetCommentsResponseValid,
-} from "@lib/proto/changeset_pb"
-import { ElementType } from "@lib/proto/shared_pb"
-import { connectErrorToMessage, rpcUnary } from "@lib/rpc"
-import {
-  Service as SubscriptionService,
-  Target as SubscriptionTarget,
-} from "@lib/proto/user_subscription_pb"
-import { ReportButton } from "@lib/report"
-import { UserLink } from "@lib/user-link"
-import { StandardForm } from "@lib/standard-form"
-import { PageOrder, StandardPagination } from "@lib/standard-pagination"
-import { Tags } from "@lib/tags"
-import { setPageTitle } from "@lib/title"
-import { showLoginModal } from "../user/login"
-import type { OSMChangeset, OSMObject } from "@lib/types"
+import { makeBoundsMinimumSize } from "@map/bounds"
+import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
+import { convertRenderElementsData } from "@map/render-objects"
 import {
   type ReadonlySignal,
   type Signal,
@@ -42,8 +17,32 @@ import {
   useSignal,
   useSignalEffect,
 } from "@preact/signals"
+import {
+  type AddCommentResponseValid,
+  type DataValid,
+  type Data_Element as Element,
+  type GetCommentsResponse_CommentValid,
+  type GetCommentsResponseValid,
+  Service,
+} from "@proto/changeset_pb"
+import { ElementType } from "@proto/shared_pb"
+import {
+  Service as SubscriptionService,
+  Target as SubscriptionTarget,
+} from "@proto/user_subscription_pb"
+import { setPageTitle } from "@runtime/title"
+import {
+  API_URL,
+  CHANGESET_COMMENT_BODY_MAX_LENGTH,
+  config,
+  isLoggedIn,
+} from "@utils/config"
+import { useDisposeSignalEffect } from "@utils/dispose-scope"
+import type { OSMChangeset, OSMObject } from "@utils/osm-objects"
+import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
+import { showLoginModal } from "../user/login"
 
 const focusPaint: FocusLayerPaint = {
   "fill-opacity": 0,

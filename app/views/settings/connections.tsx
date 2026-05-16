@@ -3,19 +3,19 @@ import {
   CONFIGURED_PROVIDERS,
   getAuthProviderDescription,
   getAuthProviderTitle,
-} from "@lib/auth-provider"
-import { mountProtoPage } from "@lib/proto-page"
-import { Action, Service as AuthProviderService } from "@lib/proto/auth_provider_pb"
+} from "@components/auth-provider"
+import { StandardForm } from "@components/standard-form"
+import { useSignal } from "@preact/signals"
+import { Action, Service as AuthProviderService } from "@proto/auth_provider_pb"
 import {
   Service as ConnectionsService,
   PageSchema,
   Provider,
-} from "@lib/proto/settings_connections_pb"
-import { StandardForm } from "@lib/standard-form"
-import { useSignal } from "@preact/signals"
+} from "@proto/settings_connections_pb"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
-import { Nav } from "./_nav"
+import { Nav } from "./nav"
 
 export const ProviderIdentity = ({
   provider,
