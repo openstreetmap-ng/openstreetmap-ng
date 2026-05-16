@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs"
 import { parse } from "@std/toml"
+import { readFileSync } from "node:fs"
 
 type SocialConfig = {
   icon?: string

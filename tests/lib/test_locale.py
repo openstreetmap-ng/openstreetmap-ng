@@ -1,6 +1,6 @@
 import pytest
 
-from app.lib.locale import (
+from app.lib.text.locale import (
     INSTALLED_LOCALES_NAMES_MAP,
     LOCALES_NAMES_MAP,
     is_installed_locale,

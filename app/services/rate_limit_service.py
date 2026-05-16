@@ -9,7 +9,7 @@ from starlette import status
 
 from app.config import RATE_LIMIT_CLEANUP_PROBABILITY
 from app.db import db
-from app.services.audit_service import audit
+from app.lib.audit import audit
 
 _DEFAULT_QUOTA_WINDOW = timedelta(hours=1)
 

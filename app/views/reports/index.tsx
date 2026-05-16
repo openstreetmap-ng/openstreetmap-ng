@@ -1,5 +1,6 @@
-import { Time } from "@lib/datetime-inputs"
-import { mountProtoPage } from "@lib/proto-page"
+import { Time } from "@components/datetime-inputs"
+import { StandardPagination } from "@components/standard-pagination"
+import { UserLink } from "@components/user-link"
 import {
   Action,
   IndexPageSchema,
@@ -7,14 +8,13 @@ import {
   Service,
   Status,
   StatusSchema,
-} from "@lib/proto/report_pb"
-import { queryParam } from "@lib/codecs"
-import { defineQueryContract } from "@lib/query-contract"
-import { ReportCommentBody } from "./_comment"
-import { StandardPagination } from "@lib/standard-pagination"
-import { useUrlQueryState } from "@lib/url-signals"
-import { UserLink } from "@lib/user-link"
+} from "@proto/report_pb"
+import { queryParam } from "@utils/path-codecs"
+import { mountProtoPage } from "@utils/proto-page"
+import { defineQueryContract } from "@utils/query-contract"
+import { useUrlQueryState } from "@utils/query-signals"
 import { t } from "i18next"
+import { ReportCommentBody } from "./_comment"
 
 const STATUS_QUERY = defineQueryContract({
   status: queryParam.enum(StatusSchema, { default: Status.any }),

@@ -7,7 +7,7 @@
       // Symmetric vertical padding so the bottom inset is consistent across
       // every preview shape: bare action header (close/reopen with no text),
       // body paragraph alone, or both with a divider. The shared base rule
-      // (`.social-entry .body` in lib/social.scss) leaves the bottom at 0
+      // (`.social-entry .body` in styles/social.scss) leaves the bottom at 0
       // and expects each list to provide its own bottom spacing.
       padding-bottom: 0.375rem;
 

@@ -1,4 +1,4 @@
-import { rightSidebar } from "@lib/map/main-map"
+import { rightSidebar } from "@map/main-map"
 import { effect } from "@preact/signals"
 import { Tooltip } from "bootstrap"
 import type { IControl, Map as MaplibreMap } from "maplibre-gl"

@@ -1,10 +1,10 @@
-import { config } from "@lib/config"
-import { tRich } from "@lib/i18n"
-import { encodeMapState, parseLonLatZoom } from "@lib/map/state"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema } from "@lib/proto/fixthemap_pb"
-import { qsParse } from "@lib/qs"
-import { stripSpecial } from "@lib/format"
+import { encodeMapState, parseLonLatZoom } from "@map/state"
+import { PageSchema } from "@proto/fixthemap_pb"
+import { config } from "@utils/config"
+import { stripSpecial } from "@utils/format"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
+import { qsParse } from "@utils/query-string"
 import { t } from "i18next"
 
 const buildNoteHref = () => {

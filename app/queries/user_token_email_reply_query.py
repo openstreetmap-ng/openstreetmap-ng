@@ -3,7 +3,7 @@ from email.utils import parseaddr
 
 from pydantic import SecretStr
 
-from app.lib.user_token_struct_utils import UserTokenStructUtils
+from app.lib.auth import user_token
 from app.models.types import Email
 from app.queries.user_token_query import UserTokenQuery
 
@@ -18,7 +18,7 @@ class UserTokenEmailReplyQuery:
         reply_address = Email(parseaddr(reply_address)[1])
         try:
             token_str = SecretStr(reply_address.split('@', 1)[0])
-            token_struct = UserTokenStructUtils.from_str(token_str)
+            token_struct = user_token.parse(token_str)
         except Exception:
             logging.debug('Invalid reply address format %r', reply_address)
             return None

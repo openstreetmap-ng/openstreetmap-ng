@@ -5,10 +5,10 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.config import OAUTH_PAT_LIMIT
-from app.lib.auth_context import web_user
-from app.lib.date_utils import datetime_unix
-from app.lib.render_response import render_proto_page
-from app.lib.translation import t
+from app.lib.auth.context import web_user
+from app.lib.render.proto import render_proto_page
+from app.lib.text.translation import t
+from app.lib.time.date_utils import datetime_unix
 from app.models.db.oauth2_application import (
     SYSTEM_APP_PAT_CLIENT_ID,
     oauth2_app_avatar_url,

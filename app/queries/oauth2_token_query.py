@@ -5,7 +5,7 @@ from psycopg.sql import SQL, Identifier
 from pydantic import SecretStr
 
 from app.db import db
-from app.lib.crypto import hash_bytes
+from app.lib.auth.crypto import hash_bytes
 from app.models.db.oauth2_application import SYSTEM_APP_PAT_CLIENT_ID
 from app.models.db.oauth2_token import OAuth2Token
 from app.models.db.user import User

@@ -3,8 +3,8 @@ from psycopg.rows import dict_row
 from psycopg.sql import SQL
 
 from app.db import db
-from app.lib.translation import t
-from app.lib.webauthn import AAGUID_DB
+from app.lib.auth.webauthn import AAGUID_DB
+from app.lib.text.translation import t
 from app.models.db.user_passkey import UserPasskey
 from app.models.types import UserId
 

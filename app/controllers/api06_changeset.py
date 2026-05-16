@@ -7,20 +7,19 @@ from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
 from app.config import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from app.exceptions.context import raise_for
 from app.format import Format06
-from app.lib.auth_context import api_user
-from app.lib.date_utils import parse_date
-from app.lib.exceptions_context import raise_for
-from app.lib.geo_utils import parse_bbox
-from app.lib.xml_body import xml_body
+from app.lib.auth.context import api_user
+from app.lib.geo.parse import parse_bbox
+from app.lib.io.xml_body import xml_body
+from app.lib.time.date_utils import parse_date
 from app.models.db.changeset_comment import changeset_comments_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import ChangesetId, UserId
-from app.queries.changeset_comment_query import ChangesetCommentQuery
-from app.queries.changeset_query import ChangesetQuery
+from app.queries.changeset_query import ChangesetCommentQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
-from app.responses.osm_response import DiffResultResponse, OSMChangeResponse
+from app.responses.osm import DiffResultResponse, OSMChangeResponse
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 from app.validators.display_name import DisplayNameNormalizing

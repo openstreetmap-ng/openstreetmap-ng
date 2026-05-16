@@ -1,7 +1,7 @@
 import cython
 
-from app.lib.feature_icon import FeatureIcon, features_icons
-from app.lib.feature_name import features_names
+from app.lib.text.feature_icon import FeatureIcon, features_icons
+from app.lib.text.feature_name import features_names
 from app.models.db.element import Element
 from app.models.element import TypedElementId
 from app.models.proto.changeset_pb2 import Data as ProtoChangesetData

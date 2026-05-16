@@ -1,7 +1,7 @@
 import pytest
 
-from app.lib.locale import DEFAULT_LOCALE
-from app.lib.translation import (
+from app.lib.text.locale import DEFAULT_LOCALE
+from app.lib.text.translation import (
     primary_translation_locale,
     t,
     translation_context,

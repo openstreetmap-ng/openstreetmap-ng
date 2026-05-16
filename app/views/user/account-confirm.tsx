@@ -1,7 +1,7 @@
-import { tRich } from "@lib/i18n"
-import { mountProtoPage } from "@lib/proto-page"
-import { PageSchema, Service } from "@lib/proto/account_confirm_pb"
-import { StandardForm } from "@lib/standard-form"
+import { StandardForm } from "@components/standard-form"
+import { PageSchema, Service } from "@proto/account_confirm_pb"
+import { tRich } from "@utils/i18n"
+import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 
 mountProtoPage(PageSchema, () => (

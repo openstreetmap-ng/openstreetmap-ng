@@ -2,7 +2,7 @@ from annotated_types import Gt
 from httpx import AsyncClient
 
 from app.config import LEGACY_HIGH_PRECISION_TIME
-from app.lib.xmltodict import XMLToDict
+from app.lib.io.xml_codec import XMLToDict
 from tests.utils.assert_model import assert_model
 
 

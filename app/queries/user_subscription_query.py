@@ -3,7 +3,7 @@ from typing import Any
 from psycopg.rows import dict_row
 
 from app.db import db
-from app.lib.auth_context import auth_user
+from app.lib.auth.context import auth_user
 from app.models.db.user import User
 from app.models.db.user_subscription import UserSubscriptionTarget
 from app.models.types import UserSubscriptionTargetId

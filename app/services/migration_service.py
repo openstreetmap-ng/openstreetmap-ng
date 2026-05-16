@@ -11,7 +11,7 @@ from psycopg.sql import SQL, Identifier
 
 from app.config import ENV
 from app.db import db
-from app.lib.crypto import hash_bytes
+from app.lib.auth.crypto import hash_bytes
 from app.models.types import ChangesetId
 from app.services.admin_task_service import register_admin_task
 from app.utils import calc_num_workers

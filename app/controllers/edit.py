@@ -3,8 +3,8 @@ from typing import Annotated, Literal, assert_never
 from fastapi import APIRouter
 
 from app.config import ID_URL, RAPID_URL
-from app.lib.auth_context import web_user
-from app.lib.render_response import render_response
+from app.lib.auth.context import web_user
+from app.lib.render.response import render_response
 from app.middlewares.headers_middleware import CSP_HEADER
 from app.models.db.user import User
 

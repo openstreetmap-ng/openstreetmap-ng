@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import NewType, NotRequired, TypedDict
 
-from app.lib.image import DEFAULT_APP_AVATAR_URL, Image
+from app.lib.io.image import DEFAULT_APP_AVATAR_URL, Image
 from app.models.db.user import UserDisplay
 from app.models.scope import PublicScope
 from app.models.types import ApplicationId, ClientId, StorageKey, UserId

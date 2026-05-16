@@ -4,8 +4,8 @@ from hashlib import md5
 from starlette import status
 
 from app.config import GRAVATAR_CACHE_EXPIRE
-from app.lib.http_client import HTTP
-from app.lib.image import DEFAULT_USER_AVATAR, Image
+from app.lib.http.client import HTTP
+from app.lib.io.image import DEFAULT_USER_AVATAR, Image
 from app.models.types import Email, StorageKey
 from app.services.cache_service import CacheContext, CacheService
 

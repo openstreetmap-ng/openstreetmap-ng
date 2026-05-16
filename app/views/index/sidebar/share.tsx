@@ -1,16 +1,13 @@
+import { CopyField } from "@components/copy-group"
 import { SidebarHeader } from "@index/_action-sidebar"
 import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
-import { tryParseLonLat } from "@lib/coords"
-import { CopyField } from "@lib/copy-group"
-import { useDisposeEffect } from "@lib/dispose-scope"
-import { shareExportFormatStorage } from "@lib/local-storage"
-import { boundsPadding } from "@lib/map/bounds"
-import { LocationFilterControl } from "@lib/map/controls/location-filter"
-import { exportMapImage } from "@lib/map/export-image"
-import { activeBaseLayerId, addLayerEventHandler } from "@lib/map/layers/layers"
-import { mainMap } from "@lib/map/main-map"
-import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@lib/map/marker"
+import { boundsPadding } from "@map/bounds"
+import { LocationFilterControl } from "@map/controls/location-filter"
+import { exportMapImage } from "@map/export-image"
+import { activeBaseLayerId, addLayerEventHandler } from "@map/layers/layers"
+import { mainMap } from "@map/main-map"
+import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
 import {
   getInitialMapState,
   getMapEmbedHtml,
@@ -19,9 +16,12 @@ import {
   getMapShortlink,
   type LonLatZoom,
   type MapState,
-} from "@lib/map/state"
+} from "@map/state"
 import { batch, effect, useComputed, useSignal, useSignalEffect } from "@preact/signals"
 import { format as formatDate } from "@std/datetime/format"
+import { tryParseLonLat } from "@utils/coords"
+import { useDisposeEffect } from "@utils/dispose-scope"
+import { shareExportFormatStorage } from "@utils/local-storage"
 import { t } from "i18next"
 import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"

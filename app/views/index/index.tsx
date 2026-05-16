@@ -1,9 +1,9 @@
 import { defineRoute } from "@index/router"
 import { searchFormQuery } from "@index/search"
-import { isLoggedIn } from "@lib/config"
-import { tRich } from "@lib/i18n"
-import { bannerHidden } from "@lib/local-storage"
-import { setPageTitle } from "@lib/title"
+import { setPageTitle } from "@runtime/title"
+import { isLoggedIn } from "@utils/config"
+import { tRich } from "@utils/i18n"
+import { bannerHidden } from "@utils/local-storage"
 import { t } from "i18next"
 import { useEffect } from "preact/hooks"
 

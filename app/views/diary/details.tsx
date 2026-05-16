@@ -1,7 +1,7 @@
-import { config } from "@lib/config"
-import { mountProtoPage } from "@lib/proto-page"
-import { DetailsPageSchema } from "@lib/proto/diary_pb"
-import { UserLink } from "@lib/user-link"
+import { UserLink } from "@components/user-link"
+import { DetailsPageSchema } from "@proto/diary_pb"
+import { config } from "@utils/config"
+import { mountProtoPage } from "@utils/proto-page"
 import { EntryCard, EntryMeta } from "./_entry"
 import { DiaryTab, Nav } from "./_nav"
 

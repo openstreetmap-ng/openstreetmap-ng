@@ -13,12 +13,12 @@ from app.config import (
     NOMINATIM_SEARCH_HTTP_TIMEOUT,
     NOMINATIM_URL,
 )
-from app.lib.crypto import hash_storage_key
-from app.lib.feature_icon import features_icons
-from app.lib.feature_prefix import features_prefixes
-from app.lib.http_client import HTTP
-from app.lib.search import SearchResult
-from app.lib.translation import primary_translation_locale
+from app.lib.auth.crypto import hash_storage_key
+from app.lib.http.client import HTTP
+from app.lib.text.feature_icon import features_icons
+from app.lib.text.feature_prefix import features_prefixes
+from app.lib.text.search import SearchResult
+from app.lib.text.translation import primary_translation_locale
 from app.models.db.element import Element
 from app.models.element import ElementId, TypedElementId
 from app.models.proto.shared_types import ElementType

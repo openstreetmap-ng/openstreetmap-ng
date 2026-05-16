@@ -1,4 +1,4 @@
-from app.lib.image import Image
+from app.lib.io.image import Image
 from app.lib.storage import AVATAR_STORAGE, BACKGROUND_STORAGE
 
 
