@@ -15,7 +15,7 @@ from starlette import status
 from starlette.responses import Response
 
 from app.db import db
-from app.lib.geo_utils import polygon_to_h3
+from app.lib.geo.h3 import polygon_to_h3
 from app.queries.timescaledb_query import TimescaleDBQuery
 
 router = APIRouter()
