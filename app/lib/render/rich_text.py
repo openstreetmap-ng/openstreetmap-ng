@@ -15,7 +15,7 @@ from markdown_it import MarkdownIt
 from markdown_it.renderer import RendererHTML
 from markdown_it.token import Token
 from markdown_it.utils import EnvType, OptionsDict
-from psycopg.sql import SQL, Identifier
+from psycopg.sql import SQL
 
 from app.config import RICH_TEXT_CACHE_EXPIRE, TRUSTED_HOSTS
 from app.db import db
@@ -159,7 +159,7 @@ async def resolve_rich_text(
             for obj in mapping.values()
         ]
 
-    params: list[Any] = []
+    rows: list[tuple[Any, Any, Any]] = []
     proxy_results: dict[Any, list[ImageProxyId]] = {}
 
     for task, obj in zip(tasks, mapping.values()):
@@ -169,29 +169,24 @@ async def resolve_rich_text(
         current_hash = obj[rich_hash_field_name]
         if current_hash != cache_id:
             obj[rich_hash_field_name] = cache_id  # type: ignore
-            params.extend((obj[pk_field], current_hash, cache_id))
+            rows.append((obj[pk_field], current_hash, cache_id))
         if proxy_result is not None:
             proxy_results[obj[pk_field]] = proxy_result
 
-    if params:
+    if rows:
         async with db(True, autocommit=True) as conn:
-            num_rows = len(params) // 3
-            await conn.execute(
-                SQL("""
-                    UPDATE {table} SET {field} = v.new_hash
-                    FROM (VALUES {values}) AS v(id, old_hash, new_hash)
-                    WHERE {table}.{pk_field} = v.id
-                      AND {field} IS NOT DISTINCT FROM v.old_hash
-                """).format(
-                    table=Identifier(table),
-                    field=Identifier(rich_hash_field_name),
-                    pk_field=Identifier(pk_field),
-                    values=SQL(',').join([SQL('(%s, %s, %s)')] * num_rows),
-                ),
-                params,
-            )
+            values_sql = SQL(',').join([
+                t'({row_id}, {old_hash}, {new_hash})'
+                for row_id, old_hash, new_hash in rows
+            ])
+            await conn.execute(t"""
+                UPDATE {table:i} SET {rich_hash_field_name:i} = v.new_hash
+                FROM (VALUES {values_sql:q}) AS v(id, old_hash, new_hash)
+                WHERE {table:i}.{pk_field:i} = v.id
+                  AND {rich_hash_field_name:i} IS NOT DISTINCT FROM v.old_hash
+            """)
 
-        logging.debug('Rich text %r hash changed for %d objects', field, num_rows)
+        logging.debug('Rich text %r hash changed for %d objects', field, len(rows))
 
     if proxy_results:
         await _update_image_proxy_ids(
@@ -216,7 +211,7 @@ async def _update_image_proxy_ids(
     if image_proxy_field not in first_obj:
         return
 
-    params = []
+    rows: list[tuple[Any, list[ImageProxyId] | None, list[ImageProxyId]]] = []
     removed_ids: set[ImageProxyId] = set()
 
     for obj in objs:
@@ -226,32 +221,27 @@ async def _update_image_proxy_ids(
 
         old_ids: list[ImageProxyId] | None = obj[image_proxy_field]
         if new_ids != old_ids:
-            params.extend((obj[pk_field], old_ids, new_ids))
+            rows.append((obj[pk_field], old_ids, new_ids))
             obj[image_proxy_field] = new_ids  # type: ignore
             if old_ids:
                 new_removed_ids = set(old_ids)
                 new_removed_ids.difference_update(new_ids)
                 removed_ids |= new_removed_ids
 
-    if not params:
+    if not rows:
         return
 
     async with db(True, autocommit=True) as conn:
-        await conn.execute(
-            SQL("""
-                UPDATE {table} SET {field} = v.new_ids
-                FROM (VALUES {values}) AS v(id, old_ids, new_ids)
-                WHERE {table}.id = v.id
-                  AND {field} IS NOT DISTINCT FROM v.old_ids
-            """).format(
-                table=Identifier(table),
-                field=Identifier(image_proxy_field),
-                values=SQL(',').join(
-                    [SQL('(%s, %s::bigint[], %s)')] * (len(params) // 3)
-                ),
-            ),
-            params,
-        )
+        values_sql = SQL(',').join([
+            t'({row_id}, {old_ids}::bigint[], {new_ids})'
+            for row_id, old_ids, new_ids in rows
+        ])
+        await conn.execute(t"""
+            UPDATE {table:i} SET {image_proxy_field:i} = v.new_ids
+            FROM (VALUES {values_sql:q}) AS v(id, old_ids, new_ids)
+            WHERE {table:i}.id = v.id
+              AND {image_proxy_field:i} IS NOT DISTINCT FROM v.old_ids
+        """)
 
     # TODO: Re-enable image proxy pruning via background service (cache issue)
     # if removed_ids:

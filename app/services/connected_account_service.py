@@ -1,8 +1,7 @@
 from app.config import AUTH_PROVIDER_UID_MAX_LENGTH
-from app.db import db
+from app.db import db, db_delete, db_insert
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
-from app.models.db.connected_account import ConnectedAccountInit
 from app.models.proto.settings_connections_types import Provider
 
 
@@ -20,23 +19,11 @@ class ConnectedAccountService:
 
         user_id = auth_user(required=True)['id']
 
-        connected_account_init: ConnectedAccountInit = {
-            'provider': provider,
-            'uid': uid,
-            'user_id': user_id,
-        }
-
         async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO connected_account (
-                    user_id, provider, uid
-                )
-                VALUES (
-                    %(user_id)s, %(provider)s, %(uid)s
-                )
-                """,
-                connected_account_init,
+            await db_insert(
+                'connected_account',
+                {'user_id': user_id, 'provider': provider, 'uid': uid},
+                conn=conn,
             )
             await audit(
                 'add_connected_account', conn, extra={'provider': provider, 'uid': uid}
@@ -48,11 +35,9 @@ class ConnectedAccountService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            await conn.execute(
-                """
-                DELETE FROM connected_account
-                WHERE user_id = %s AND provider = %s
-                """,
-                (user_id, provider),
+            await db_delete(
+                'connected_account',
+                where={'user_id': user_id, 'provider': provider},
+                conn=conn,
             )
             await audit('remove_connected_account', conn, extra={'provider': provider})

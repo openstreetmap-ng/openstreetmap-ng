@@ -148,12 +148,11 @@ async def sp_paginate_table(
 
     `where` carries its own parameter values inline (use t-string composition).
     """
-    table_id = Identifier(table)
     return await sp_paginate_query(
         row_type,
         sp_state,
         select=SQL('*'),
-        from_=t'{table_id:i}',
+        from_=t'{table:i}',
         where=where,
         cursor_key=cursor_column,
         id_key=id_column,
@@ -170,7 +169,7 @@ async def sp_paginate_query(
     sp_state: StandardPaginationRequestLike,
     /,
     *,
-    select: Composable,
+    select: Composable | Template,
     from_: Composable | Template,
     where: Composable | Template = SQL('TRUE'),
     cursor_key: LiteralString,
@@ -339,7 +338,7 @@ async def sp_paginate_query(
     if display_dir is not None and display_dir != order_dir:
         items.reverse()
 
-    state.DiscardUnknownFields()  # type: ignore
+    state.DiscardUnknownFields()
     return items, state  # type: ignore
 
 
@@ -498,7 +497,7 @@ def _plan(
 async def _select_page(
     conn: AsyncConnection,
     *,
-    select: Composable,
+    select: Composable | Template,
     from_: Composable | Template,
     where: Composable | Template,
     cursor_sql: Composable,
@@ -514,11 +513,11 @@ async def _select_page(
         assert plan.anchor_op is not None
         anchor_op = SQL(plan.anchor_op)
         anchor_cursor, anchor_id = plan.anchor
-        anchor_clause: Template | Composable = t"""
+        anchor_clause = t"""
             AND ({cursor_sql:i}, {id_sql:i}) {anchor_op:q} ({anchor_cursor}, {anchor_id})
         """
     else:
-        anchor_clause = SQL('')
+        anchor_clause = t''
 
     order = _order_dir_sql(plan.order_dir)
     offset = plan.offset

@@ -23,34 +23,23 @@ USER_TOKEN_EXPIRE: dict[UserTokenType, timedelta] = {
 }
 
 
-class UserTokenInit(TypedDict):
+class UserToken(TypedDict):
     id: UserTokenId
     type: UserTokenType
     user_id: UserId
     user_email_hashed: bytes
     token_hashed: bytes
+    created_at: datetime
 
     # runtime
     user: NotRequired[User]
 
 
-class UserToken(UserTokenInit):
-    created_at: datetime
-
-
-class UserTokenEmailInit(UserTokenInit):
+class UserTokenEmail(UserToken):
     email_change_new: Email | None
 
 
-class UserTokenEmail(UserTokenEmailInit, UserToken):
-    pass
-
-
-class UserTokenEmailReplyInit(UserTokenInit):
+class UserTokenEmailReply(UserToken):
     email_reply_source: MailSource
     email_reply_to_user_id: UserId
     email_reply_usage_count: int
-
-
-class UserTokenEmailReply(UserTokenEmailReplyInit, UserToken):
-    pass

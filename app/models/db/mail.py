@@ -8,7 +8,7 @@ type MailSource = (
 )  # None: for system/no source
 
 
-class MailInit(TypedDict):
+class Mail(TypedDict):
     id: MailId
     source: MailSource
     from_user_id: UserId | None
@@ -17,9 +17,6 @@ class MailInit(TypedDict):
     body: str
     ref: str | None
     priority: int
-
-
-class Mail(MailInit):
     processing_counter: int
     created_at: datetime
     scheduled_at: datetime

@@ -1,10 +1,7 @@
-from typing import Any
-
 import cython
-from psycopg.sql import SQL, Composable
 
 from app.config import USER_PREF_BULK_SET_LIMIT
-from app.db import db
+from app.db import db, db_delete, db_insert_many
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
@@ -27,22 +24,21 @@ class UserPrefService:
         if num_prefs > USER_PREF_BULK_SET_LIMIT:
             raise_for.pref_bulk_set_limit_exceeded()
 
-        values: list[Composable] = [SQL('(%s, %s, %s, %s)')] * num_prefs
-        params: list[Any] = []
-        for pref in prefs:
-            params.extend((pref['user_id'], pref['app_id'], pref['key'], pref['value']))
-
-        query = SQL("""
-            INSERT INTO user_pref (
-                user_id, app_id, key, value
-            )
-            VALUES {}
-            ON CONFLICT (user_id, app_id, key) DO UPDATE SET
-                value = EXCLUDED.value
-        """).format(SQL(',').join(values))
-
         async with db(True) as conn:
-            await conn.execute(query, params)
+            await db_insert_many(
+                'user_pref',
+                [
+                    {
+                        'user_id': pref['user_id'],
+                        'app_id': pref['app_id'],
+                        'key': pref['key'],
+                        'value': pref['value'],
+                    }
+                    for pref in prefs
+                ],
+                on_conflict=t'(user_id, app_id, key) DO UPDATE SET value = EXCLUDED.value',
+                conn=conn,
+            )
             await audit(
                 'update_prefs',
                 conn,
@@ -53,26 +49,15 @@ class UserPrefService:
     async def delete(app_id: ApplicationId | None, *, key: UserPrefKey | None = None):
         """Delete user preference(s) by app id and optional key."""
         user_id = auth_user(required=True)['id']
+        key_filter = t'AND key = {key}' if key is not None else t''
 
         async with db(True) as conn:
-            if key is not None:
-                result = await conn.execute(
-                    """
-                    DELETE FROM user_pref
-                    WHERE user_id = %s
-                    AND app_id IS NOT DISTINCT FROM %s
-                    AND key = %s
-                    """,
-                    (user_id, app_id, key),
-                )
-            else:
-                result = await conn.execute(
-                    """
-                    DELETE FROM user_pref
-                    WHERE user_id = %s
-                    AND app_id IS NOT DISTINCT FROM %s
-                    """,
-                    (user_id, app_id),
-                )
-            if result.rowcount:
+            rowcount = await db_delete(
+                'user_pref',
+                where=t"""user_id = {user_id}
+                    AND app_id IS NOT DISTINCT FROM {app_id}
+                    {key_filter:q}""",
+                conn=conn,
+            )
+            if rowcount:
                 await audit('delete_prefs', conn, extra={'app': app_id, 'key': key})

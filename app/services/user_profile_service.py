@@ -2,7 +2,7 @@ import logging
 from typing import Literal
 
 from app.config import ENV
-from app.db import db
+from app.db import db, db_insert, db_update
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.auth.password import PasswordLike
@@ -41,16 +41,11 @@ class UserProfileService:
         else:
             avatar_type = preset
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET avatar_type = %s,
-                    avatar_id = %s
-                WHERE id = %s
-                """,
-                (avatar_type, avatar_id, user_id),
-            )
+        await db_update(
+            'user',
+            {'avatar_type': avatar_type, 'avatar_id': avatar_id},
+            where={'id': user_id},
+        )
 
         # Cleanup old avatar
         if old_avatar_id is not None:
@@ -77,15 +72,11 @@ class UserProfileService:
             else None
         )
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET background_id = %s
-                WHERE id = %s
-                """,
-                (background_id, user_id),
-            )
+        await db_update(
+            'user',
+            {'background_id': background_id},
+            where={'id': user_id},
+        )
 
         # Cleanup old background
         if old_background_id is not None:
@@ -102,18 +93,14 @@ class UserProfileService:
         user_id = auth_user(required=True)['id']
         value = description.strip() or None
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO user_profile (user_id, description)
-                VALUES (%(user_id)s, %(description)s)
-                ON CONFLICT (user_id) DO UPDATE SET
-                    description = EXCLUDED.description,
-                    description_rich_hash = NULL
-                WHERE user_profile.description IS DISTINCT FROM EXCLUDED.description
-                """,
-                {'user_id': user_id, 'description': value},
-            )
+        await db_insert(
+            'user_profile',
+            {'user_id': user_id, 'description': value},
+            on_conflict=t"""(user_id) DO UPDATE SET
+                description = EXCLUDED.description,
+                description_rich_hash = NULL
+                WHERE user_profile.description IS DISTINCT FROM EXCLUDED.description""",
+        )
 
     @staticmethod
     async def update_socials(
@@ -123,17 +110,13 @@ class UserProfileService:
         """Update user's social links."""
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO user_profile (user_id, socials)
-                VALUES (%(user_id)s, %(socials)s)
-                ON CONFLICT (user_id) DO UPDATE SET
-                    socials = EXCLUDED.socials
-                WHERE user_profile.socials != EXCLUDED.socials
-                """,
-                {'user_id': user_id, 'socials': socials},
-            )
+        await db_insert(
+            'user_profile',
+            {'user_id': user_id, 'socials': socials},
+            on_conflict=t"""(user_id) DO UPDATE SET
+                socials = EXCLUDED.socials
+                WHERE user_profile.socials != EXCLUDED.socials""",
+        )
 
     @staticmethod
     async def update_settings(
@@ -159,16 +142,16 @@ class UserProfileService:
             )
 
         async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE "user"
-                SET display_name = %s,
-                    language = %s,
-                    activity_tracking = %s,
-                    crash_reporting = %s
-                WHERE id = %s
-                """,
-                (display_name, language, activity_tracking, crash_reporting, user_id),
+            await db_update(
+                'user',
+                {
+                    'display_name': display_name,
+                    'language': language,
+                    'activity_tracking': activity_tracking,
+                    'crash_reporting': crash_reporting,
+                },
+                where={'id': user_id},
+                conn=conn,
             )
             if display_name != user['display_name']:
                 await audit('change_display_name', conn, extra={'name': display_name})
@@ -210,15 +193,11 @@ class UserProfileService:
         """Update the user timezone."""
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE "user"
-                SET timezone = %s
-                WHERE id = %s AND timezone != %s
-                """,
-                (timezone, user_id, timezone),
-            )
+        rowcount = await db_update(
+            'user',
+            {'timezone': timezone},
+            where=t'id = {user_id} AND timezone != {timezone}',
+        )
 
-            if result.rowcount:
-                logging.debug('Updated user %d timezone to %r', user_id, timezone)
+        if rowcount:
+            logging.debug('Updated user %d timezone to %r', user_id, timezone)

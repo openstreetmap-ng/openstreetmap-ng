@@ -6,14 +6,11 @@ from app.models.db.user import UserDisplay
 from app.models.types import ChangesetCommentId, ChangesetId, UserId
 
 
-class ChangesetCommentInit(TypedDict):
+class ChangesetComment(TypedDict):
+    id: ChangesetCommentId
     user_id: UserId
     changeset_id: ChangesetId
     body: str  # TODO: validate size
-
-
-class ChangesetComment(ChangesetCommentInit):
-    id: ChangesetCommentId
     body_rich_hash: bytes | None
     created_at: datetime
 

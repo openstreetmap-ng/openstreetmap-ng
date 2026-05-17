@@ -1,14 +1,13 @@
 from zid import zid
 
 from app.config import APP_DOMAIN
-from app.db import db
+from app.db import db, db_delete, db_fetchrow, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth import user_token
 from app.lib.auth.context import auth_user
 from app.lib.auth.crypto import hash_bytes
 from app.lib.text.translation import t
-from app.models.db.user_token import UserTokenEmailInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserId, UserTokenId
 from app.queries.user_token_query import UserTokenQuery
@@ -60,52 +59,45 @@ class UserTokenEmailService:
         if token is None:
             raise_for.bad_user_token_struct()
 
+        token_id = token_struct.id
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT user_id, email_change_new FROM user_token
-                WHERE id = %s AND type = %s
-                FOR UPDATE
+            row: tuple[UserId, Email | None] | None = await db_fetchrow(
+                t"""
+                    SELECT user_id, email_change_new FROM user_token
+                    WHERE id = {token_id} AND type = {token_type}
                 """,
-                (token_struct.id, token_type),
-            ) as r:
-                row: tuple[UserId, Email | None] | None = await r.fetchone()
-                if row is None:
-                    raise_for.bad_user_token_struct()
-                user_id, new_email = row
+                for_update=True,
+                conn=conn,
+            )
+            if row is None:
+                raise_for.bad_user_token_struct()
+            user_id, new_email = row
 
             if new_email is not None:
-                await conn.execute(
-                    """
-                    UPDATE "user"
-                    SET email = %s, email_verified = TRUE
-                    WHERE id = %s
-                    """,
-                    (new_email, user_id),
+                await db_update(
+                    'user',
+                    {'email': new_email, 'email_verified': True},
+                    where={'id': user_id},
+                    conn=conn,
                 )
                 audit_extra = {'email': new_email}
                 await UserTokenService.delete_all_for_user(conn, user_id)
             else:
-                async with await conn.execute(
-                    """
-                    UPDATE "user"
-                    SET email_verified = TRUE
-                    WHERE id = %s AND NOT email_verified
-                    RETURNING email
-                    """,
-                    (user_id,),
-                ) as r:
-                    email_row: tuple[Email] | None = await r.fetchone()
-                    audit_extra = (
-                        {'email': email_row[0], 'account_confirm': True}
-                        if email_row is not None
-                        else None
-                    )
-
-                await conn.execute(
-                    'DELETE FROM user_token WHERE id = %s',
-                    (token_struct.id,),
+                email_row = await db_update(
+                    'user',
+                    {'email_verified': True},
+                    where=t'id = {user_id} AND NOT email_verified',
+                    returning='email',
+                    assert_returning=False,
+                    conn=conn,
                 )
+                audit_extra = (
+                    {'email': email_row[0], 'account_confirm': True}
+                    if email_row is not None
+                    else None
+                )
+
+                await db_delete('user_token', where={'id': token_id}, conn=conn)
 
             if audit_extra is not None:
                 await audit('change_email', conn, user_id=user_id, extra=audit_extra)
@@ -117,28 +109,23 @@ async def _create_token(new_email: Email | None):
     token_bytes = buffered_randbytes(32)
     token_id: UserTokenId = zid()  # type: ignore
 
-    token_init: UserTokenEmailInit = {
-        'id': token_id,
-        'type': 'email_change' if new_email is not None else 'account_confirm',
-        'user_id': user['id'],
-        'user_email_hashed': hash_bytes(user['email']),
-        'token_hashed': hash_bytes(token_bytes),
-        'email_change_new': new_email,
-    }
+    token_type = 'email_change' if new_email is not None else 'account_confirm'
+    user_id = user['id']
+    user_email_hashed = hash_bytes(user['email'])
+    token_hashed = hash_bytes(token_bytes)
 
     async with db(True) as conn:
-        await conn.execute(
-            """
-            INSERT INTO user_token (
-                id, type, user_id, user_email_hashed,
-                token_hashed, email_change_new
-            )
-            VALUES (
-                %(id)s, %(type)s, %(user_id)s, %(user_email_hashed)s,
-                %(token_hashed)s, %(email_change_new)s
-            )
-            """,
-            token_init,
+        await db_insert(
+            'user_token',
+            {
+                'id': token_id,
+                'type': token_type,
+                'user_id': user_id,
+                'user_email_hashed': user_email_hashed,
+                'token_hashed': token_hashed,
+                'email_change_new': new_email,
+            },
+            conn=conn,
         )
         await audit(
             'request_change_email',

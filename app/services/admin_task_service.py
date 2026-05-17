@@ -24,7 +24,7 @@ from psycopg.rows import dict_row
 from pydantic import BaseModel, create_model
 
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
-from app.db import db
+from app.db import db, db_delete, db_insert, db_update
 from app.lib.audit import audit
 from app.lib.time.date_utils import utcnow
 
@@ -101,15 +101,13 @@ class AdminTaskService:
         if not _REGISTRY:
             return []
 
+        registry_ids = list(_REGISTRY)
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+            await conn.cursor(row_factory=dict_row).execute(t"""
                 SELECT * FROM admin_task
-                WHERE id = ANY(%s)
-                """,
-                (list(_REGISTRY),),
-            ) as r,
+                WHERE id = ANY({registry_ids})
+            """) as r,
         ):
             rows = {row['id']: row for row in await r.fetchall()}
 
@@ -147,24 +145,17 @@ class AdminTaskService:
 async def _start_task(definition: TaskDefinition, args: dict[str, Any]):
     timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
+    task_id = definition['id']
     async with db(True, autocommit=True) as conn, conn.pipeline():
         # Delete timed out tasks
-        await conn.execute(
-            """
-            DELETE FROM admin_task
-            WHERE heartbeat_at <= %s
-            """,
-            (timeout_at,),
+        await db_delete(
+            'admin_task',
+            where=t'heartbeat_at <= {timeout_at}',
+            conn=conn,
         )
 
         # Register the task
-        await conn.execute(
-            """
-            INSERT INTO admin_task (id)
-            VALUES (%s)
-            """,
-            (definition['id'],),
-        )
+        await db_insert('admin_task', {'id': task_id}, conn=conn)
 
     # Start the task and manage its lifecycle
     await _run_task(definition, args)
@@ -203,14 +194,7 @@ async def _run_task(definition: TaskDefinition, args: dict[str, Any]):
             heartbeat_task.cancel()
 
             # Delete the task when finished
-            async with db(True, autocommit=True) as conn:
-                await conn.execute(
-                    """
-                    DELETE FROM admin_task
-                    WHERE id = %s
-                    """,
-                    (task_id,),
-                )
+            await db_delete('admin_task', where={'id': task_id})
 
         logging.info('Task %r finished successfully', task_id)
 
@@ -220,15 +204,11 @@ async def _heartbeat_loop(task_id: TaskId):
         # Periodically update the heartbeat field
         await sleep(ADMIN_TASK_HEARTBEAT_INTERVAL.total_seconds())
 
-        async with db(True, autocommit=True) as conn:
-            await conn.execute(
-                """
-                UPDATE admin_task
-                SET heartbeat_at = DEFAULT
-                WHERE id = %s
-                """,
-                (task_id,),
-            )
+        await db_update(
+            'admin_task',
+            {'heartbeat_at': t'DEFAULT'},
+            where={'id': task_id},
+        )
 
         logging.debug('Task %r heartbeat sent', task_id)
 

@@ -7,10 +7,16 @@ from typing import NamedTuple
 
 from packaging.version import Version
 from psycopg import AsyncConnection
-from psycopg.sql import SQL, Identifier
 
 from app.config import ENV
-from app.db import db
+from app.db import (
+    db,
+    db_delete,
+    db_fetchrow,
+    db_fetchrows,
+    db_fetchval,
+    db_insert,
+)
 from app.lib.auth.crypto import hash_bytes
 from app.models.types import ChangesetId
 from app.services.admin_task_service import register_admin_task
@@ -32,37 +38,38 @@ class MigrationService:
         """Fix the sequence counters."""
         async with db(True, autocommit=True) as conn:
             # For each table, get the correct sequence name and then set its value
-            async with await conn.execute("""
-                SELECT
-                    table_name,
-                    column_name,
-                    pg_get_serial_sequence(table_name, column_name)
-                FROM information_schema.columns
-                WHERE table_schema = 'public'
-                AND table_name IN (
-                    'user',
-                    'changeset',
-                    'changeset_bounds',
-                    'element',
-                    'note',
-                    'note_comment'
-                )
-                AND identity_generation = 'ALWAYS'
-            """) as r:
-                sequences: list[tuple[str, str, str]] = await r.fetchall()
+            sequences: list[tuple[str, str, str]] = await db_fetchrows(
+                t"""
+                    SELECT
+                        table_name,
+                        column_name,
+                        pg_get_serial_sequence(table_name, column_name)
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                    AND table_name IN (
+                        'user',
+                        'changeset',
+                        'changeset_bounds',
+                        'element',
+                        'note',
+                        'note_comment'
+                    )
+                    AND identity_generation = 'ALWAYS'
+                """,
+                conn=conn,
+            )
 
             for table, column, sequence in sequences:
-                query = SQL('SELECT MAX({}) FROM {}').format(
-                    Identifier(column), Identifier(table)
+                last_value = await db_fetchval(
+                    int,
+                    t'SELECT MAX({column:i}) FROM {table:i}',
+                    conn=conn,
                 )
-                async with await conn.execute(query) as r:
-                    row: tuple[int] | None = await r.fetchone()
-                    if row is None:
-                        continue
+                if last_value is None:
+                    continue
 
-                last_value = row[0]
                 logging.debug('Setting sequence counter %r to %d', sequence, last_value)
-                await conn.execute('SELECT setval(%s, %s)', (sequence, last_value))
+                await conn.execute(t'SELECT setval({sequence}, {last_value})')
 
     @staticmethod
     @register_admin_task
@@ -73,11 +80,8 @@ class MigrationService:
     ):
         parallelism = calc_num_workers(parallelism)
 
-        async with (
-            db() as conn,
-            await conn.execute('SELECT COALESCE(MAX(id), 0) FROM note') as r,
-        ):
-            max_id = (await r.fetchone())[0]  # type: ignore
+        max_id = await db_fetchval(int, t'SELECT COALESCE(MAX(id), 0) FROM note')
+        assert max_id is not None
 
         semaphore = Semaphore(parallelism)
         logging.info(
@@ -88,16 +92,14 @@ class MigrationService:
 
         async def process_chunk(start_id: int, end_id: int):
             async with semaphore, db(True) as conn:
-                await conn.execute(
-                    """
-                    DELETE FROM note
-                    WHERE id BETWEEN %s AND %s
-                    AND NOT EXISTS (
-                        SELECT 1 FROM note_comment
-                        WHERE note_id = note.id
-                    )
-                    """,
-                    (start_id, end_id),
+                await db_delete(
+                    'note',
+                    where=t"""id BETWEEN {start_id} AND {end_id}
+                        AND NOT EXISTS (
+                            SELECT 1 FROM note_comment
+                            WHERE note_id = note.id
+                        )""",
+                    conn=conn,
                 )
 
         async with TaskGroup() as tg:
@@ -118,11 +120,8 @@ class MigrationService:
         """
         parallelism = calc_num_workers(parallelism)
 
-        async with (
-            db() as conn,
-            await conn.execute('SELECT COALESCE(MAX(id), 0) FROM changeset') as r,
-        ):
-            max_id = (await r.fetchone())[0]  # type: ignore
+        max_id = await db_fetchval(int, t'SELECT COALESCE(MAX(id), 0) FROM changeset')
+        assert max_id is not None
 
         semaphore = Semaphore(parallelism)
         logging.info(
@@ -133,8 +132,7 @@ class MigrationService:
 
         async def process_chunk(start_id: int, end_id: int):
             async with semaphore, db(True) as conn:
-                await conn.execute(
-                    """
+                await conn.execute(t"""
                     WITH good AS (
                         SELECT
                             changeset_id,
@@ -143,7 +141,7 @@ class MigrationService:
                             COUNT(*) FILTER (WHERE version > 1 AND visible) AS num_modify,
                             COUNT(*) FILTER (WHERE version > 1 AND NOT visible) AS num_delete
                         FROM element
-                        WHERE changeset_id BETWEEN %s AND %s
+                        WHERE changeset_id BETWEEN {start_id} AND {end_id}
                         GROUP BY changeset_id
                         HAVING EXISTS (
                             SELECT 1 FROM changeset
@@ -159,9 +157,7 @@ class MigrationService:
                         num_delete = good.num_delete
                     FROM good
                     WHERE id = changeset_id
-                    """,
-                    (start_id, end_id),
-                )
+                """)
 
         async with TaskGroup() as tg:
             for start_id in range(1, max_id + 1, batch_size):
@@ -171,16 +167,18 @@ class MigrationService:
     @staticmethod
     async def cleanup_orphan_changesets_and_elements():
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT
-                (   SELECT COALESCE(MAX(changeset_id), 0) FROM element),
-                (   SELECT COALESCE(MAX(id), 0) FROM changeset)
-                """
-            ) as r:
-                element_max: ChangesetId
-                changeset_max: ChangesetId
-                element_max, changeset_max = await r.fetchone()  # type: ignore
+            row = await db_fetchrow(
+                t"""
+                    SELECT
+                    (   SELECT COALESCE(MAX(changeset_id), 0) FROM element),
+                    (   SELECT COALESCE(MAX(id), 0) FROM changeset)
+                """,
+                conn=conn,
+            )
+            assert row is not None
+            element_max: ChangesetId
+            changeset_max: ChangesetId
+            element_max, changeset_max = row
 
             if element_max > changeset_max:
                 logging.warning(
@@ -189,9 +187,8 @@ class MigrationService:
                     element_max,
                     changeset_max,
                 )
-                await conn.execute(
-                    'DELETE FROM element WHERE changeset_id > %s',
-                    (changeset_max,),
+                await db_delete(
+                    'element', where=t'changeset_id > {changeset_max}', conn=conn
                 )
             elif element_max < changeset_max:
                 logging.warning(
@@ -200,13 +197,11 @@ class MigrationService:
                     element_max,
                     changeset_max,
                 )
-                await conn.execute(
-                    'DELETE FROM changeset WHERE id > %s',
-                    (element_max,),
-                )
-                await conn.execute(
-                    'DELETE FROM changeset_bounds WHERE changeset_id > %s',
-                    (element_max,),
+                await db_delete('changeset', where=t'id > {element_max}', conn=conn)
+                await db_delete(
+                    'changeset_bounds',
+                    where=t'changeset_id > {element_max}',
+                    conn=conn,
                 )
 
     @staticmethod
@@ -218,10 +213,11 @@ class MigrationService:
         """
         async with db(True) as conn:
             # Try to acquire migration lock
-            async with await conn.execute(
-                'SELECT pg_try_advisory_xact_lock(4708896507819139515::bigint)'
-            ) as r:
-                acquired: bool = (await r.fetchone())[0]  # type: ignore
+            acquired = await db_fetchval(
+                bool,
+                t'SELECT pg_try_advisory_xact_lock(4708896507819139515::bigint)',
+                conn=conn,
+            )
 
             if not acquired:
                 # Another process is running migrations; wait for completion
@@ -325,13 +321,15 @@ async def _ensure_db_table(conn: AsyncConnection):
 
 async def _get_current_migration(conn: AsyncConnection):
     """Get the current database schema version."""
-    async with await conn.execute("""
-        SELECT version, hash FROM migration
-        ORDER BY applied_at DESC
-        LIMIT 1
-    """) as r:
-        row = await r.fetchone()
-        return _MigrationInfo(Version(row[0]), row[1]) if row is not None else None
+    row = await db_fetchrow(
+        t"""
+            SELECT version, hash FROM migration
+            ORDER BY applied_at DESC
+            LIMIT 1
+        """,
+        conn=conn,
+    )
+    return _MigrationInfo(Version(row[0]), row[1]) if row is not None else None
 
 
 def _find_migrations(
@@ -390,15 +388,14 @@ async def _apply_migrations(
             )
 
             await conn.cursor(binary=False).execute(content)  # type: ignore
-            await conn.execute(
-                """
-                INSERT INTO migration (version, hash)
-                VALUES (%s, %s)
-                ON CONFLICT (version) DO UPDATE SET
+            version_str = str(version)
+            await db_insert(
+                'migration',
+                {'version': version_str, 'hash': hash},
+                on_conflict=t"""(version) DO UPDATE SET
                     hash = EXCLUDED.hash,
-                    applied_at = DEFAULT
-                """,
-                (str(version), hash),
+                    applied_at = DEFAULT""",
+                conn=conn,
             )
 
             logging.debug('Successfully applied migration %s', version)

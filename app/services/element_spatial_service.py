@@ -11,7 +11,7 @@ from psycopg.errors import InternalError_
 from sentry_sdk import capture_exception
 from sentry_sdk.api import start_transaction
 
-from app.db import db, db_lock, without_indexes
+from app.db import db, db_fetchrow, db_fetchval, db_insert, db_lock, without_indexes
 from app.lib.http.retry import retry
 from app.lib.telemetry.progress import progress
 from app.lib.telemetry.sentry import (
@@ -341,19 +341,15 @@ async def _update(
 
     Watermark tracks completion; crash restarts from last committed watermark.
     """
-    async with (
-        db() as conn,
-        await conn.execute(
-            """
-            SELECT
-            (   SELECT COALESCE(MAX(sequence_id), 0) FROM element),
-            (   SELECT COALESCE((SELECT sequence_id FROM element_spatial_watermark LIMIT 1), 0))
-            """
-        ) as r,
-    ):
-        max_sequence: SequenceId
-        last_sequence: SequenceId
-        max_sequence, last_sequence = await r.fetchone()  # type: ignore
+    row = await db_fetchrow(t"""
+        SELECT
+        (   SELECT COALESCE(MAX(sequence_id), 0) FROM element),
+        (   SELECT COALESCE((SELECT sequence_id FROM element_spatial_watermark LIMIT 1), 0))
+    """)
+    assert row is not None
+    max_sequence: SequenceId
+    last_sequence: SequenceId
+    max_sequence, last_sequence = row
 
     num_items = max_sequence - last_sequence
     if num_items == 0:
@@ -411,14 +407,14 @@ async def _process_depth(
     """Process a single depth of element_spatial updates. Returns True if progress was made."""
     # Determine what to process and how many items
     if depth:
-        async with (
-            # db(True) because element_spatial_pending_rels is UNLOGGED
-            db(True) as conn,
-            await conn.execute(
-                'SELECT COUNT(*) FROM element_spatial_pending_rels'
-            ) as r,
-        ):
-            (num_items,) = await r.fetchone()  # type: ignore
+        # db(True) because element_spatial_pending_rels is UNLOGGED
+        async with db(True) as conn:
+            num_items = await db_fetchval(
+                int,
+                t'SELECT COUNT(*) FROM element_spatial_pending_rels',
+                conn=conn,
+            )
+            assert num_items is not None
 
         if num_items == 0:
             logging.debug('Depth %d: No relations to process', depth)
@@ -496,17 +492,17 @@ async def _process_depth(
                 await conn.execute('ANALYZE element_spatial_staging')
 
         else:
-            async with await conn.execute(
-                """
-                SELECT COUNT(*) FROM element_spatial_staging
-                WHERE depth = %s
+            rels_inserted = await db_fetchval(
+                int,
+                t"""
+                    SELECT COUNT(*) FROM element_spatial_staging
+                    WHERE depth = {depth}
                 """,
-                (depth,),
-            ) as r:
-                (rels_inserted,) = await r.fetchone()  # type: ignore
-                if rels_inserted == 0:
-                    logging.debug('Depth %d: No more progress is being made', depth)
-                    return False
+                conn=conn,
+            )
+            if not rels_inserted:
+                logging.debug('Depth %d: No more progress is being made', depth)
+                return False
 
     return True
 
@@ -524,29 +520,24 @@ async def _seed_pending_relations(
 
     async with db(True) as conn:
         if depth == 0:
-            await conn.execute(
-                """
+            seq_start = last_sequence + 1
+            await conn.execute(t"""
                 INSERT INTO element_spatial_pending_rels (typed_id)
                 SELECT typed_id FROM element
-                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
+                WHERE sequence_id BETWEEN {seq_start} AND {max_sequence}
                   AND typed_id >= 2305843009213693952
                   AND latest
                 ON CONFLICT DO NOTHING
-                """,
-                {'seq_start': last_sequence + 1, 'seq_end': max_sequence},
-            )
+            """)
         else:
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 DELETE FROM element_spatial_pending_rels
                 WHERE typed_id IN (
                     SELECT typed_id
                     FROM element_spatial_staging
-                    WHERE depth = %(depth)s
+                    WHERE depth = {depth}
                 )
-                """,
-                {'depth': depth},
-            )
+            """)
 
         # Initial build (watermark=0): pending already contains all latest relations via the
         # sequence-range insert above. Additional parent discovery via members overlap
@@ -589,13 +580,12 @@ async def _seed_pending_relations(
 async def _seed_from_element_batch(seq_start: int, seq_end: int, semaphore: Semaphore):
     """Find relations whose members include nodes from given sequence range."""
     async with semaphore, db(True) as conn:
-        await conn.execute(
-            """
+        await conn.execute(t"""
             INSERT INTO element_spatial_pending_rels (typed_id)
             SELECT typed_id FROM element
             WHERE members && ARRAY(
                 SELECT typed_id FROM element
-                WHERE sequence_id BETWEEN %(seq_start)s AND %(seq_end)s
+                WHERE sequence_id BETWEEN {seq_start} AND {seq_end}
                   AND typed_id <= 1152921504606846975
                   AND latest
               )
@@ -603,50 +593,46 @@ async def _seed_from_element_batch(seq_start: int, seq_end: int, semaphore: Sema
               AND latest
               AND tags IS NOT NULL
             ON CONFLICT DO NOTHING
-            """,
-            {'seq_start': seq_start, 'seq_end': seq_end},
-        )
+        """)
 
 
 async def _materialize_staging_batches(batch_size: int, *, depth: int) -> int:
     """Materialize staging batches. Returns number of batches."""
     async with db(True) as conn:
         await conn.execute('TRUNCATE element_spatial_staging_batch')
-        await conn.execute(
-            """
+        await conn.execute(t"""
             WITH staging_rows AS (
                 SELECT
                     typed_id,
                     ROW_NUMBER() OVER (ORDER BY typed_id) AS rn
                 FROM element_spatial_staging
-                WHERE %(depth)s = 0 OR depth = %(depth)s
+                WHERE {depth} = 0 OR depth = {depth}
             ),
             batched AS (
                 SELECT
-                    ((rn - 1) / %(batch_size)s)::INTEGER AS batch_id,
+                    ((rn - 1) / {batch_size})::INTEGER AS batch_id,
                     ARRAY_AGG(typed_id) AS typed_ids
                 FROM staging_rows
                 GROUP BY batch_id
             )
             INSERT INTO element_spatial_staging_batch (batch_id, typed_ids)
             SELECT batch_id, typed_ids FROM batched
-            """,
-            {'depth': depth, 'batch_size': batch_size},
-        )
+        """)
 
-        async with await conn.execute(
-            'SELECT COUNT(*) FROM element_spatial_staging_batch'
-        ) as r:
-            (num_batches,) = await r.fetchone()  # type: ignore
-            return num_batches
+        num_batches = await db_fetchval(
+            int,
+            t'SELECT COUNT(*) FROM element_spatial_staging_batch',
+            conn=conn,
+        )
+        assert num_batches is not None
+        return num_batches
 
 
 async def _materialize_pending_rels_batches(batch_size: int) -> int:
     """Materialize pending relation batches. Returns number of batches."""
     async with db(True) as conn:
         await conn.execute('TRUNCATE element_spatial_pending_rels_batch')
-        await conn.execute(
-            """
+        await conn.execute(t"""
             WITH pending_rows AS (
                 SELECT
                     typed_id,
@@ -655,42 +641,39 @@ async def _materialize_pending_rels_batches(batch_size: int) -> int:
             ),
             batched AS (
                 SELECT
-                    ((rn - 1) / %(batch_size)s)::INTEGER AS batch_id,
+                    ((rn - 1) / {batch_size})::INTEGER AS batch_id,
                     ARRAY_AGG(typed_id) AS typed_ids
                 FROM pending_rows
                 GROUP BY batch_id
             )
             INSERT INTO element_spatial_pending_rels_batch (batch_id, typed_ids)
             SELECT batch_id, typed_ids FROM batched
-            """,
-            {'batch_size': batch_size},
-        )
+        """)
 
-        async with await conn.execute(
-            'SELECT COUNT(*) FROM element_spatial_pending_rels_batch'
-        ) as r:
-            (num_batches,) = await r.fetchone()  # type: ignore
-            return num_batches
+        num_batches = await db_fetchval(
+            int,
+            t'SELECT COUNT(*) FROM element_spatial_pending_rels_batch',
+            conn=conn,
+        )
+        assert num_batches is not None
+        return num_batches
 
 
 async def _seed_from_staging_batch(batch_id: int, semaphore: Semaphore):
     """Find relations using pre-materialized batches."""
     async with semaphore, db(True) as conn:
-        await conn.execute(
-            """
+        await conn.execute(t"""
             INSERT INTO element_spatial_pending_rels (typed_id)
             SELECT typed_id FROM element
             WHERE members && (
                 SELECT typed_ids FROM element_spatial_staging_batch
-                WHERE batch_id = %(batch_id)s
+                WHERE batch_id = {batch_id}
             )
               AND typed_id >= 2305843009213693952
               AND latest
               AND tags IS NOT NULL
             ON CONFLICT DO NOTHING
-            """,
-            {'batch_id': batch_id},
-        )
+        """)
 
 
 async def _finalize_staging(*, max_sequence: int, last_sequence: int):
@@ -734,14 +717,11 @@ async def _finalize_staging(*, max_sequence: int, last_sequence: int):
                 geom = EXCLUDED.geom
             """
         )
-        await conn.execute(
-            """
-            INSERT INTO element_spatial_watermark (id, sequence_id)
-            VALUES (1, %(seq)s)
-            ON CONFLICT (id) DO UPDATE SET
-                sequence_id = EXCLUDED.sequence_id
-            """,
-            {'seq': max_sequence},
+        await db_insert(
+            'element_spatial_watermark',
+            {'id': 1, 'sequence_id': max_sequence},
+            on_conflict=t'(id) DO UPDATE SET sequence_id = EXCLUDED.sequence_id',
+            conn=conn,
         )
 
         await conn.execute('TRUNCATE element_spatial_staging')

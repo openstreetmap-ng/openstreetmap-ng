@@ -7,7 +7,7 @@ from fastapi import UploadFile
 from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
-from app.db import db
+from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
 from app.lib.audit import audit
@@ -94,20 +94,17 @@ class TraceService:
         try:
             # Insert into database
             async with db(True) as conn:
-                async with await conn.execute(
-                    """
-                    INSERT INTO trace (
-                        user_id, name, description, tags, visibility,
-                        file_id, size, segments, elevations, capture_times
-                    ) VALUES (
-                        %(user_id)s, %(name)s, %(description)s, %(tags)s, %(visibility)s,
-                        %(file_id)s, %(size)s, ST_QuantizeCoordinates(%(segments)s, 7), %(elevations)s, %(capture_times)s
-                    )
-                    RETURNING id
-                    """,
-                    trace_init,
-                ) as r:
-                    trace_id: TraceId = (await r.fetchone())[0]  # type: ignore
+                segments = trace_init['segments']
+                row = await db_insert(
+                    'trace',
+                    {
+                        **trace_init,
+                        'segments': t'ST_QuantizeCoordinates({segments}, 7)',
+                    },
+                    returning='id',
+                    conn=conn,
+                )
+                trace_id: TraceId = row[0]
 
                 await audit(
                     'create_trace',
@@ -162,25 +159,14 @@ class TraceService:
         meta_init = TraceMetaInitValidator.validate_python(meta_init)
 
         async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE trace
-                SET
-                    name = %(name)s,
-                    description = %(description)s,
-                    tags = %(tags)s,
-                    visibility = %(visibility)s,
-                    updated_at = DEFAULT
-                WHERE id = %(trace_id)s AND user_id = %(user_id)s
-                """,
-                {
-                    **meta_init,
-                    'trace_id': trace_id,
-                    'user_id': user_id,
-                },
+            rowcount = await db_update(
+                'trace',
+                {**meta_init, 'updated_at': t'DEFAULT'},
+                where={'id': trace_id, 'user_id': user_id},
+                conn=conn,
             )
 
-            if not result.rowcount:
+            if not rowcount:
                 raise_for.trace_access_denied(trace_id)
 
             if len(audit_extra) > 1:
@@ -192,32 +178,27 @@ class TraceService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT file_id FROM trace
-                WHERE id = %s
-                """,
-                (trace_id,),
-            ) as r:
-                row: tuple[StorageKey] | None = await r.fetchone()
-                if row is None:
-                    raise_for.trace_not_found(trace_id)
+            file_id = await db_fetchval(
+                StorageKey,
+                t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                conn=conn,
+            )
+            if file_id is None:
+                raise_for.trace_not_found(trace_id)
 
-            result = await conn.execute(
-                """
-                DELETE FROM trace
-                WHERE id = %s AND user_id = %s
-                """,
-                (trace_id, user_id),
+            rowcount = await db_delete(
+                'trace',
+                where={'id': trace_id, 'user_id': user_id},
+                conn=conn,
             )
 
-            if not result.rowcount:
+            if not rowcount:
                 raise_for.trace_access_denied(trace_id)
 
             await audit('delete_trace', conn, extra={'id': trace_id})
 
         # After successful delete, also remove the file
-        await TRACE_STORAGE.delete(row[0])
+        await TRACE_STORAGE.delete(file_id)
 
 
 def _schedule_trace_recompression(

@@ -5,7 +5,7 @@ from pydantic import SecretBytes, SecretStr
 from totp_rs import totp_time_window, totp_verify
 
 from app.config import TOTP_MAX_ATTEMPTS_PER_WINDOW
-from app.db import db
+from app.db import db, db_delete, db_fetchval, db_insert, db_insert_many
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.auth.crypto import decrypt, encrypt
@@ -53,15 +53,17 @@ class UserTOTPService:
         secret_encrypted = encrypt(secret_bytes)
 
         async with db(True) as conn:
-            result = await conn.execute(
-                """
-                INSERT INTO user_totp (user_id, secret_encrypted, digits)
-                VALUES (%s, %s, %s)
-                ON CONFLICT DO NOTHING
-                """,
-                (user_id, secret_encrypted, digits),
+            rowcount = await db_insert(
+                'user_totp',
+                {
+                    'user_id': user_id,
+                    'secret_encrypted': secret_encrypted,
+                    'digits': digits,
+                },
+                on_conflict=t'DO NOTHING',
+                conn=conn,
             )
-            if result.rowcount:
+            if rowcount:
                 await _record_used_code(conn, user_id, code_str, time_window)
                 await audit('add_totp', conn, extra={'digits': digits})
 
@@ -75,14 +77,15 @@ class UserTOTPService:
 
             # Rate limit attempts in current time window
             time_window = totp_time_window()
-            async with await conn.execute(
-                """
-                SELECT COUNT(*) FROM user_totp_used_code
-                WHERE user_id = %s AND time_window = %s
+            attempts_count = await db_fetchval(
+                int,
+                t"""
+                    SELECT COUNT(*) FROM user_totp_used_code
+                    WHERE user_id = {user_id} AND time_window = {time_window}
                 """,
-                (user_id, time_window),
-            ) as r:
-                (attempts_count,) = await r.fetchone()  # type: ignore
+                conn=conn,
+            )
+            assert attempts_count is not None
 
             if attempts_count >= TOTP_MAX_ATTEMPTS_PER_WINDOW:
                 await audit(
@@ -120,12 +123,10 @@ class UserTOTPService:
                 return False
 
             # Cleanup old used codes
-            await conn.execute(
-                """
-                DELETE FROM user_totp_used_code
-                WHERE user_id = %s AND time_window < %s - 1
-                """,
-                (user_id, time_window),
+            await db_delete(
+                'user_totp_used_code',
+                where=t'user_id = {user_id} AND time_window < {time_window} - 1',
+                conn=conn,
             )
             return True
 
@@ -154,13 +155,9 @@ class UserTOTPService:
             if totp is None:
                 return
 
-            await conn.execute(
-                'DELETE FROM user_totp WHERE user_id = %s',
-                (user_id,),
-            )
-            await conn.execute(
-                'DELETE FROM user_totp_used_code WHERE user_id = %s',
-                (user_id,),
+            await db_delete('user_totp', where={'user_id': user_id}, conn=conn)
+            await db_delete(
+                'user_totp_used_code', where={'user_id': user_id}, conn=conn
             )
             await audit(
                 'remove_totp',
@@ -175,14 +172,14 @@ async def _record_used_code(
     # Prevent replay: check if this code was already used in any of the valid time windows
     # Try to insert the used code for t-1, t, and t+1 windows
     # If any window already has this code, rows_inserted will be less than 3
-    result = await conn.execute(
-        """
-        INSERT INTO user_totp_used_code (user_id, code, time_window)
-        VALUES (%(user_id)s, %(code)s, %(time_window)s - 1),
-               (%(user_id)s, %(code)s, %(time_window)s),
-               (%(user_id)s, %(code)s, %(time_window)s + 1)
-        ON CONFLICT (user_id, time_window, code) DO NOTHING
-        """,
-        {'user_id': user_id, 'code': code, 'time_window': time_window},
+    rowcount = await db_insert_many(
+        'user_totp_used_code',
+        [
+            {'user_id': user_id, 'code': code, 'time_window': t'{time_window} - 1'},
+            {'user_id': user_id, 'code': code, 'time_window': time_window},
+            {'user_id': user_id, 'code': code, 'time_window': t'{time_window} + 1'},
+        ],
+        on_conflict=t'(user_id, time_window, code) DO NOTHING',
+        conn=conn,
     )
-    return result.rowcount == 3
+    return rowcount == 3

@@ -1,6 +1,4 @@
-from psycopg.rows import dict_row
-
-from app.db import db
+from app.db import db_fetchone
 from app.models.db.user_profile import UserProfile, user_profiles_resolve_rich_text
 from app.models.types import UserId
 
@@ -11,17 +9,10 @@ class UserProfileQuery:
         user_id: UserId, *, resolve_rich_text: bool = True
     ) -> UserProfile:
         """Get a user profile by user id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM user_profile
-                WHERE user_id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            profile: UserProfile | None = await r.fetchone()  # type: ignore
+        profile = await db_fetchone(
+            UserProfile,
+            t'SELECT * FROM user_profile WHERE user_id = {user_id}',
+        )
 
         if profile is None:
             return {

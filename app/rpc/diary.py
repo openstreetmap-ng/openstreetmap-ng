@@ -5,7 +5,6 @@ from typing import override
 import cython
 from connectrpc.request import RequestContext
 from fastapi import HTTPException
-from psycopg.sql import SQL, Composable
 from shapely import Point
 from starlette import status
 
@@ -44,7 +43,7 @@ from app.services.diary_service import DiaryCommentService, DiaryService
 class _Service(Service):
     @override
     async def get_page(self, request: GetPageRequest, ctx: RequestContext):
-        where: Template | Composable
+        where: Template
         if request.HasField('user_id'):
             user_id = UserId(request.user_id)
             where = t'user_id = {user_id}'
@@ -54,7 +53,7 @@ class _Service(Service):
                 raise HTTPException(status.HTTP_400_BAD_REQUEST, 'Invalid language')
             where = t'language = {language}'
         else:
-            where = SQL('TRUE')
+            where = t'TRUE'
 
         diaries, state = await sp_paginate_table(
             Diary,
