@@ -35,11 +35,8 @@ del _provider_mapping
 type AuthProviderAction = Literal['login', 'signup', 'settings']
 
 
-class ConnectedAccountInit(TypedDict):
+class ConnectedAccount(TypedDict):
     provider: Provider
     uid: str
     user_id: UserId
-
-
-class ConnectedAccount(ConnectedAccountInit):
     created_at: datetime

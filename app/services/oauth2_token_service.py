@@ -1,11 +1,9 @@
 import logging
 from datetime import datetime
 from random import random
-from typing import Any, Literal, assert_never, overload
+from typing import Literal, assert_never, overload
 
 from psycopg import AsyncConnection
-from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
 from pydantic import SecretStr
 from zid import zid
 
@@ -15,7 +13,7 @@ from app.config import (
     OAUTH_SECRET_PREVIEW_LENGTH,
     OAUTH_SILENT_AUTH_QUERY_SESSION_LIMIT,
 )
-from app.db import db
+from app.db import db, db_delete, db_fetchone, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
@@ -142,22 +140,7 @@ class OAuth2TokenService:
             'code_challenge': code_challenge,
         }
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO oauth2_token (
-                    id, user_id, application_id, unlisted, name,
-                    token_hashed, token_preview, redirect_uri,
-                    scopes, code_challenge_method, code_challenge
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(application_id)s, %(unlisted)s, %(name)s,
-                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
-                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
-                )
-                """,
-                token_init,
-            )
+        await db_insert('oauth2_token', token_init)
 
         # Check if this is an OOB (out-of-band) token
         if oauth2_token_is_oob(redirect_uri):
@@ -198,19 +181,19 @@ class OAuth2TokenService:
         authorization_code_hashed = hash_bytes(authorization_code)
 
         async with db(True) as conn:
-            async with await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM oauth2_token
-                WHERE token_hashed = %s
-                AND created_at > statement_timestamp() - %s
-                AND authorized_at IS NULL
-                FOR UPDATE
+            token = await db_fetchone(
+                OAuth2Token,
+                t"""
+                    SELECT * FROM oauth2_token
+                    WHERE token_hashed = {authorization_code_hashed}
+                    AND created_at > statement_timestamp() - {OAUTH_AUTHORIZATION_CODE_TIMEOUT}
+                    AND authorized_at IS NULL
+                    FOR UPDATE
                 """,
-                (authorization_code_hashed, OAUTH_AUTHORIZATION_CODE_TIMEOUT),
-            ) as r:
-                token: OAuth2Token | None = await r.fetchone()  # type: ignore
-                if token is None:
-                    raise_for.oauth_bad_user_token()
+                conn=conn,
+            )
+            if token is None:
+                raise_for.oauth_bad_user_token()
 
             try:
                 # Verify redirect URI
@@ -236,32 +219,28 @@ class OAuth2TokenService:
 
             except Exception:
                 # Delete the token if verification fails
-                await conn.execute(
-                    """
-                    DELETE FROM oauth2_token
-                    WHERE id = %s
-                    """,
-                    (token['id'],),
-                )
+                token_id = token['id']
+                await db_delete('oauth2_token', where={'id': token_id}, conn=conn)
                 raise
 
             access_token = buffered_rand_urlsafe(32)
             access_token_hashed = hash_bytes(access_token)
+            token_id = token['id']
 
-            async with await conn.execute(
-                """
-                UPDATE oauth2_token
-                SET token_hashed = %s,
-                    authorized_at = statement_timestamp(),
-                    redirect_uri = NULL,
-                    code_challenge_method = NULL,
-                    code_challenge = NULL
-                WHERE id = %s
-                RETURNING authorized_at
-                """,
-                (access_token_hashed, token['id']),
-            ) as r:
-                authorized_at: datetime = (await r.fetchone())[0]  # type: ignore
+            row = await db_update(
+                'oauth2_token',
+                {
+                    'token_hashed': access_token_hashed,
+                    'authorized_at': t'statement_timestamp()',
+                    'redirect_uri': None,
+                    'code_challenge_method': None,
+                    'code_challenge': None,
+                },
+                where={'id': token_id},
+                returning='authorized_at',
+                conn=conn,
+            )
+            authorized_at: datetime = row[0]
 
             await audit(
                 'authorize_app',
@@ -303,21 +282,7 @@ class OAuth2TokenService:
         }
 
         async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO oauth2_token (
-                    id, user_id, application_id, unlisted, name,
-                    token_hashed, token_preview, redirect_uri,
-                    scopes, code_challenge_method, code_challenge
-                )
-                VALUES (
-                    %(id)s, %(user_id)s, %(application_id)s, %(unlisted)s, %(name)s,
-                    %(token_hashed)s, %(token_preview)s, %(redirect_uri)s,
-                    %(scopes)s, %(code_challenge_method)s, %(code_challenge)s
-                )
-                """,
-                token_init,
-            )
+            await db_insert('oauth2_token', token_init, conn=conn)
 
             await audit(
                 'create_pat',
@@ -338,25 +303,15 @@ class OAuth2TokenService:
         del access_token_
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE oauth2_token
-                SET token_hashed = %s,
-                    token_preview = %s,
-                    authorized_at = statement_timestamp()
-                WHERE id = %s
-                AND user_id = %s
-                AND application_id = %s
-                """,
-                (
-                    access_token_hashed,
-                    access_token_preview,
-                    pat_id,
-                    user_id,
-                    app_id,
-                ),
-            )
+        await db_update(
+            'oauth2_token',
+            {
+                'token_hashed': access_token_hashed,
+                'token_preview': access_token_preview,
+                'authorized_at': t'statement_timestamp()',
+            },
+            where={'id': pat_id, 'user_id': user_id, 'application_id': app_id},
+        )
 
         return access_token
 
@@ -365,14 +320,10 @@ class OAuth2TokenService:
         """Revoke the given token by id."""
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                DELETE FROM oauth2_token
-                WHERE id = %s AND user_id = %s
-                """,
-                (token_id, user_id),
-            )
+        await db_delete(
+            'oauth2_token',
+            where={'id': token_id, 'user_id': user_id},
+        )
 
         logging.debug('Revoked OAuth2 token %d', token_id)
 
@@ -381,14 +332,10 @@ class OAuth2TokenService:
         """Revoke the given access token."""
         access_token_hashed = hash_bytes(access_token.get_secret_value())
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                DELETE FROM oauth2_token
-                WHERE token_hashed = %s
-                """,
-                (access_token_hashed,),
-            )
+        await db_delete(
+            'oauth2_token',
+            where={'token_hashed': access_token_hashed},
+        )
 
         logging.debug('Revoked OAuth2 access token')
 
@@ -403,21 +350,15 @@ class OAuth2TokenService:
         if user_id is None:
             user_id = auth_user(required=True)['id']
 
-        conditions: list[Composable] = [SQL('user_id = %s AND application_id = %s')]
-        params: list[Any] = [user_id, app_id]
-
-        if skip_ids is not None:
-            conditions.append(SQL('NOT (id = ANY(%s))'))
-            params.append(skip_ids)
-
-        query = SQL("""
-            DELETE FROM oauth2_token
-            WHERE {conditions}
-        """).format(conditions=SQL(' AND ').join(conditions))
+        where = (
+            t'user_id = {user_id} AND application_id = {app_id} AND NOT (id = ANY({skip_ids}))'
+            if skip_ids is not None
+            else t'user_id = {user_id} AND application_id = {app_id}'
+        )
 
         async with db(True) as conn:
-            result = await conn.execute(query, params)
-            if result.rowcount:
+            rowcount = await db_delete('oauth2_token', where=where, conn=conn)
+            if rowcount:
                 await audit('revoke_app', conn, extra={'id': app_id})
 
     @staticmethod
@@ -428,17 +369,10 @@ class OAuth2TokenService:
         skip_ids: list[OAuth2TokenId] | None = None,
     ):
         """Revoke all current user tokens for the given OAuth2 client."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT id FROM oauth2_application
-                WHERE client_id = %s
-                """,
-                (client_id,),
-            ) as r,
-        ):
-            app: OAuth2Application | None = await r.fetchone()  # type: ignore
+        app = await db_fetchone(
+            OAuth2Application,
+            t'SELECT id FROM oauth2_application WHERE client_id = {client_id}',
+        )
 
         if app is not None:
             await OAuth2TokenService.revoke_by_app_id(
@@ -447,17 +381,13 @@ class OAuth2TokenService:
 
 
 async def _delete_stale_unauthorized(conn: AsyncConnection):
-    result = await conn.execute(
-        """
-        DELETE FROM oauth2_token
-        WHERE authorized_at IS NULL
-          AND application_id != %s
-          AND created_at < statement_timestamp() - %s
-        """,
-        (
-            SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID],
-            OAUTH_AUTHORIZATION_CODE_TIMEOUT,
-        ),
+    pat_app_id = SYSTEM_APP_CLIENT_ID_MAP[SYSTEM_APP_PAT_CLIENT_ID]
+    rowcount = await db_delete(
+        'oauth2_token',
+        where=t"""authorized_at IS NULL
+            AND application_id != {pat_app_id}
+            AND created_at < statement_timestamp() - {OAUTH_AUTHORIZATION_CODE_TIMEOUT}""",
+        conn=conn,
     )
-    if result.rowcount:
-        logging.debug('Deleted %d stale unauthorized OAuth2 tokens', result.rowcount)
+    if rowcount:
+        logging.debug('Deleted %d stale unauthorized OAuth2 tokens', rowcount)

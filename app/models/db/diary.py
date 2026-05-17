@@ -9,16 +9,13 @@ from app.models.types import DiaryId, ImageProxyId, LocaleCode, UserId
 from app.services.image_proxy_service import ImageProxyService
 
 
-class DiaryInit(TypedDict):
+class Diary(TypedDict):
+    id: DiaryId
     user_id: UserId
     title: str
     body: str  # TODO: validate size
     language: LocaleCode
     point: Point | None
-
-
-class Diary(DiaryInit):
-    id: DiaryId
     body_rich_hash: bytes | None
     body_image_proxy_ids: list[ImageProxyId] | None
     created_at: datetime

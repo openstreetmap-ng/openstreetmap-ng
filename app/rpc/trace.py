@@ -4,9 +4,9 @@ from typing import override
 
 from connectrpc.request import RequestContext
 from polyline_rs import encode_lonlat
-from psycopg.sql import SQL
 
 from app.config import TRACES_LIST_PAGE_SIZE
+from app.db import t_and
 from app.lib.auth.context import auth_scopes, auth_user, require_web_user
 from app.lib.standard.pagination import sp_paginate_table
 from app.models.db.trace import Trace
@@ -54,7 +54,7 @@ class _Service(Service):
             Trace,
             request.state,
             table='trace',
-            where=SQL(' AND ').join(filters or [t'TRUE']),
+            where=t_and(*filters),
             page_size=TRACES_LIST_PAGE_SIZE,
             cursor_column='id',
             cursor_kind='id',

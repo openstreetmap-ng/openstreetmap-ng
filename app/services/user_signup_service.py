@@ -1,4 +1,4 @@
-from app.db import db
+from app.db import db, db_insert
 from app.lib.audit import audit
 from app.lib.auth.context import auth_context
 from app.lib.auth.password import PasswordLike
@@ -44,21 +44,13 @@ class UserSignupService:
         }
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                INSERT INTO "user" (
-                    email, email_verified, display_name,
-                    language, activity_tracking, crash_reporting
-                )
-                VALUES (
-                    %(email)s, %(email_verified)s, %(display_name)s,
-                    %(language)s, %(activity_tracking)s, %(crash_reporting)s
-                )
-                RETURNING id
-                """,
+            row = await db_insert(
+                'user',
                 user_init,
-            ) as r:
-                user_id: UserId = (await r.fetchone())[0]  # type: ignore
+                returning='id',
+                conn=conn,
+            )
+            user_id: UserId = row[0]
 
             await UserPasswordService.set_password_unsafe(conn, user_id, password)
             await audit(

@@ -2,10 +2,7 @@ from datetime import datetime
 from string.templatelib import Template
 from typing import Literal, assert_never
 
-from psycopg.rows import dict_row
-from psycopg.sql import SQL
-
-from app.db import db
+from app.db import db_fetchall, db_fetchcol, db_fetchone, t_and, t_or, t_order
 from app.models.db.oauth2_application import OAuth2Application
 from app.models.types import ApplicationId, ClientId, DisplayName, UserId
 from app.queries.user_query import UserQuery
@@ -25,48 +22,36 @@ class OAuth2ApplicationQuery:
 
     @staticmethod
     async def find_by_ids(ids: list[ApplicationId]) -> list[OAuth2Application]:
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchall(
+            OAuth2Application,
+            t"""
                 SELECT * FROM oauth2_application
-                WHERE id = ANY(%s)
-                """,
-                (ids,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+                WHERE id = ANY({ids})
+            """,
+        )
 
     @staticmethod
     async def find_by_client_id(client_id: ClientId) -> OAuth2Application | None:
         """Find an OAuth2 application by client id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchone(
+            OAuth2Application,
+            t"""
                 SELECT * FROM oauth2_application
-                WHERE client_id = %s
-                """,
-                (client_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+                WHERE client_id = {client_id}
+            """,
+        )
 
     @staticmethod
     async def find_by_user(user_id: UserId) -> list[OAuth2Application]:
         """Get all OAuth2 applications by user id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchall(
+            OAuth2Application,
+            t"""
                 SELECT * FROM oauth2_application
-                WHERE user_id = %s
+                WHERE user_id = {user_id}
                 ORDER BY id DESC
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            """,
+        )
 
     @staticmethod
     async def resolve_applications(
@@ -108,21 +93,21 @@ class OAuth2ApplicationQuery:
         interacted_user: str | None = None,
         created_after: datetime | None = None,
         created_before: datetime | None = None,
-    ):
-        filters: list[Template] = []
-
+    ) -> Template:
+        search_cond: Template | None = None
         if search:
             pattern = f'%{search}%'
-            ors: list[Template] = [
+            ors: list[Template | None] = [
                 t'name ILIKE {pattern}',
                 t'client_id = {search}',
             ]
             if search.isdigit():
                 search_id = int(search)
                 ors.append(t'id = {search_id}')
-            ors_joined = SQL(' OR ').join(ors)
-            filters.append(t'({ors_joined:q})')
+            inner = t_or(*ors)
+            search_cond = t'({inner:q})'
 
+        owner_cond: Template | None = None
         if owner:
             owner_ids: list[UserId] = []
 
@@ -138,10 +123,11 @@ class OAuth2ApplicationQuery:
                 owner_ids.append(user_by_name['id'])
 
             if not owner_ids:
-                return SQL('FALSE')
+                return t'FALSE'
 
-            filters.append(t'user_id = ANY({owner_ids})')
+            owner_cond = t'user_id = ANY({owner_ids})'
 
+        interacted_cond: Template | None = None
         if interacted_user:
             interactor_ids: list[UserId] = []
 
@@ -159,25 +145,24 @@ class OAuth2ApplicationQuery:
                 interactor_ids.append(user_by_name['id'])
 
             if not interactor_ids:
-                return SQL('FALSE')
+                return t'FALSE'
 
-            filters.append(t"""
+            interacted_cond = t"""
                 EXISTS (
                     SELECT 1 FROM oauth2_token
                     WHERE application_id = oauth2_application.id
                     AND user_id = ANY({interactor_ids})
                     AND authorized_at IS NOT NULL
                 )
-            """)
+            """
 
-        if created_after:
-            filters.append(t'created_at >= {created_after}')
-        if created_before:
-            filters.append(t'created_at <= {created_before}')
-
-        if not filters:
-            return SQL('TRUE')
-        return SQL(' AND ').join(filters)
+        return t_and(
+            search_cond,
+            owner_cond,
+            interacted_cond,
+            t'created_at >= {created_after}' if created_after else None,
+            t'created_at <= {created_before}' if created_before else None,
+        )
 
     @staticmethod
     async def find_ids(
@@ -199,18 +184,18 @@ class OAuth2ApplicationQuery:
         )
 
         if sort == 'created_desc':
-            order_dir = SQL('DESC')
+            order_dir = t_order('desc')
         elif sort == 'created_asc':
-            order_dir = SQL('ASC')
+            order_dir = t_order('asc')
         else:
             assert_never(sort)
 
-        query = t"""
-            SELECT id FROM oauth2_application
-            WHERE {where:q}
-            ORDER BY created_at {order_dir:q}, id {order_dir:q}
-            LIMIT {limit}
-        """
-
-        async with db() as conn, await conn.execute(query) as r:
-            return [c for (c,) in await r.fetchall()]
+        return await db_fetchcol(
+            ApplicationId,
+            t"""
+                SELECT id FROM oauth2_application
+                WHERE {where:q}
+                ORDER BY created_at {order_dir:q}, id {order_dir:q}
+                LIMIT {limit}
+            """,
+        )

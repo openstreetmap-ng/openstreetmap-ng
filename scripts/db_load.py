@@ -105,16 +105,13 @@ async def _detect_settings():
 async def _gather_table_chunks(table: _Table):
     async with (
         db() as conn,
-        await conn.execute(
-            """
+        await conn.execute(t"""
             SELECT ck.id, ck.hypertable_id, ck.schema_name, ck.table_name
             FROM _timescaledb_catalog.hypertable ht
             JOIN _timescaledb_catalog.chunk ck ON ht.id = ck.hypertable_id
             WHERE ht.schema_name = 'public'
-            AND ht.table_name = %s
-            """,
-            (table,),
-        ) as r,
+            AND ht.table_name = {table}
+        """) as r,
     ):
         return list(starmap(_TimescaleChunk, await r.fetchall()))
 
@@ -124,18 +121,17 @@ async def _filter_index_chunks(name: str, chunks: list[_TimescaleChunk]):
     if chunks_range is None:
         return chunks
 
+    chunk_table_names = [c.table_name for c in chunks]
+    range_start, range_end = chunks_range
     async with (
         db() as conn,
-        await conn.execute(
-            """
+        await conn.execute(t"""
             SELECT chunk_name
             FROM timescaledb_information.chunks
-            WHERE chunk_name = ANY(%s)
-            AND range_end_integer > %s
-            AND range_start_integer <= %s
-            """,
-            ([c.table_name for c in chunks], *chunks_range),
-        ) as r,
+            WHERE chunk_name = ANY({chunk_table_names})
+            AND range_end_integer > {range_start}
+            AND range_start_integer <= {range_end}
+        """) as r,
     ):
         chunk_names = {c for (c,) in await r.fetchall()}
         return [c for c in chunks if c.table_name in chunk_names]
@@ -226,13 +222,11 @@ async def _load_tables(mode: _Mode):
                 table,
                 indexes,
             )
-            await conn.execute(
-                """
+            index_list = list(indexes)
+            await conn.execute(t"""
                 UPDATE pg_index SET indislive = FALSE
-                WHERE indexrelid = ANY(%s::regclass[])
-                """,
-                (list(indexes),),
-            )
+                WHERE indexrelid = ANY({index_list}::regclass[])
+            """)
 
             if constraints:
                 logging.info(
@@ -270,14 +264,12 @@ async def _load_tables(mode: _Mode):
             len(chunks),
         )
 
+        index_list = list(indexes)
         async with db(True, autocommit=True) as conn:
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 UPDATE pg_index SET indislive = TRUE
-                WHERE indexrelid = ANY(%s::regclass[])
-                """,
-                (list(indexes),),
-            )
+                WHERE indexrelid = ANY({index_list}::regclass[])
+            """)
 
             if not chunks and indexes:
                 await conn.execute(

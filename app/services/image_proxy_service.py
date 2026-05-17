@@ -18,7 +18,7 @@ from app.config import (
     IMAGE_PROXY_ERROR_CACHE_EXPIRE,
     IMAGE_PROXY_FETCH_MAX_BYTES,
 )
-from app.db import db
+from app.db import db, db_delete, db_fetchone, db_update
 from app.exceptions.context import raise_for
 from app.lib.http.client import HTTP, HTTPError
 from app.lib.io.image import Image
@@ -30,6 +30,7 @@ from app.services.cache_service import CacheContext, CacheService
 
 _CACHE_CONTEXT = CacheContext('ImageProxy')
 _INLINE_RE = re2.compile(r'src="/api/web/img/proxy/(\d{1,20})"')
+_COMMA = SQL(',')
 _PREFETCH_TG: TaskGroup
 
 
@@ -51,34 +52,32 @@ class ImageProxyService:
         # Deduplicate URLs while preserving order
         unique_urls = list(dict.fromkeys(urls))
 
-        params = []
-        for proxy_id, url in zip(zids(len(unique_urls)), unique_urls):
-            params.extend((proxy_id, url))
-
-        query = SQL("""
-            WITH inserted AS (
-                INSERT INTO image_proxy (id, url)
-                VALUES {}
-                ON CONFLICT (url) DO NOTHING
-                RETURNING *
-            ),
-            existing AS (
-                SELECT * FROM image_proxy
-                WHERE url = ANY(%s)
-                AND NOT EXISTS (
-                    SELECT 1 FROM inserted
-                    WHERE inserted.url = image_proxy.url
-                )
-            )
-            SELECT * FROM inserted
-            UNION ALL
-            SELECT * FROM existing
-        """).format(SQL(',').join([SQL('(%s, %s)')] * len(unique_urls)))
-        params.append(unique_urls)
+        values_sql = _COMMA.join([
+            t'({proxy_id}, {url})'
+            for proxy_id, url in zip(zids(len(unique_urls)), unique_urls)
+        ])
 
         async with (
             db(True) as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
+            await conn.cursor(row_factory=dict_row).execute(t"""
+                WITH inserted AS (
+                    INSERT INTO image_proxy (id, url)
+                    VALUES {values_sql:q}
+                    ON CONFLICT (url) DO NOTHING
+                    RETURNING *
+                ),
+                existing AS (
+                    SELECT * FROM image_proxy
+                    WHERE url = ANY({unique_urls})
+                    AND NOT EXISTS (
+                        SELECT 1 FROM inserted
+                        WHERE inserted.url = image_proxy.url
+                    )
+                )
+                SELECT * FROM inserted
+                UNION ALL
+                SELECT * FROM existing
+            """) as r,
         ):
             rows: dict[str, ImageProxy] = {  # type: ignore
                 row['url']: row for row in await r.fetchall()
@@ -152,15 +151,13 @@ class ImageProxyService:
         if not workload:
             return
 
+        id_list = list(ids)
         async with (
             db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+            await conn.cursor(row_factory=dict_row).execute(t"""
                 SELECT * FROM image_proxy
-                WHERE id = ANY(%s)
-                """,
-                (list(ids),),
-            ) as r,
+                WHERE id = ANY({id_list})
+            """) as r,
         ):
             entries: dict[ImageProxyId, ImageProxy] = {
                 row['id']: row for row in await r.fetchall()
@@ -185,36 +182,32 @@ class ImageProxyService:
         if not ids:
             return
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                DELETE FROM image_proxy
-                WHERE id = ANY(%s)
-                  AND NOT EXISTS (
+        rowcount = await db_delete(
+            'image_proxy',
+            where=t"""id = ANY({ids})
+                AND NOT EXISTS (
                     SELECT 1
                     FROM diary
                     WHERE body_image_proxy_ids @> ARRAY[image_proxy.id]
-                )
-                """,
-                (ids,),
-            )
-            if result.rowcount:
-                logging.debug('Pruned %d unused image proxies', result.rowcount)
+                )""",
+        )
+        if rowcount:
+            logging.debug('Pruned %d unused image proxies', rowcount)
 
 
 async def _generate(proxy_id: ImageProxyId):
     async with db(True) as conn:
-        async with await conn.cursor(row_factory=dict_row).execute(
-            """
-            SELECT * FROM image_proxy
-            WHERE id = %s
-            FOR UPDATE
+        row = await db_fetchone(
+            ImageProxy,
+            t"""
+                SELECT * FROM image_proxy
+                WHERE id = {proxy_id}
+                FOR UPDATE
             """,
-            (proxy_id,),
-        ) as r:
-            row: ImageProxy | None = await r.fetchone()  # type: ignore
-            if row is None:
-                raise_for.image_not_found()
+            conn=conn,
+        )
+        if row is None:
+            raise_for.image_not_found()
 
         url = row['url']
 
@@ -274,16 +267,16 @@ async def _generate(proxy_id: ImageProxyId):
                 logging.info('Image proxy thumbnail failed for %s', url, exc_info=True)
                 await _clear_thumbnail(conn, proxy_id)
             else:
-                await conn.execute(
-                    """
-                    UPDATE image_proxy
-                    SET width = %s,
-                        height = %s,
-                        thumbnail = %s,
-                        thumbnail_updated_at = statement_timestamp()
-                    WHERE id = %s
-                    """,
-                    (width, height, thumbnail, proxy_id),
+                await db_update(
+                    'image_proxy',
+                    {
+                        'width': width,
+                        'height': height,
+                        'thumbnail': thumbnail,
+                        'thumbnail_updated_at': t'statement_timestamp()',
+                    },
+                    where={'id': proxy_id},
+                    conn=conn,
                 )
                 logging.debug('Updated thumbnail for image proxy %d', proxy_id)
 
@@ -294,12 +287,13 @@ async def _generate(proxy_id: ImageProxyId):
 
 
 async def _clear_thumbnail(conn: AsyncConnection, proxy_id: ImageProxyId):
-    await conn.execute(
-        """
-        UPDATE image_proxy
-        SET thumbnail = NULL,
-            thumbnail_updated_at = statement_timestamp() - %s
-        WHERE id = %s
-        """,
-        (IMAGE_PROXY_CACHE_EXPIRE - IMAGE_PROXY_ERROR_CACHE_EXPIRE, proxy_id),
+    offset = IMAGE_PROXY_CACHE_EXPIRE - IMAGE_PROXY_ERROR_CACHE_EXPIRE
+    await db_update(
+        'image_proxy',
+        {
+            'thumbnail': None,
+            'thumbnail_updated_at': t'statement_timestamp() - {offset}',
+        },
+        where={'id': proxy_id},
+        conn=conn,
     )
