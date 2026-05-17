@@ -232,15 +232,12 @@ async def _binary_search_boundary(
         mid: cython.size_t = (low + high) // 2
 
         # Find an existing sequence_id at or after mid
-        async with await conn.execute(
-            """
+        async with await conn.execute(t"""
             SELECT sequence_id, created_at FROM element
-            WHERE sequence_id >= %s
+            WHERE sequence_id >= {mid}
             ORDER BY sequence_id
             LIMIT 1
-            """,
-            (mid,),
-        ) as r:
+        """) as r:
             row = await r.fetchone()
 
         if row is None:
@@ -271,16 +268,14 @@ async def _fetch_changes(
     num_elements: cython.size_t = 0
     num_chunks: cython.size_t = 0
 
+    seq_start, seq_end = seq_range
     async with (
         db() as conn,
-        await conn.cursor(row_factory=dict_row).execute(
-            """
+        await conn.cursor(row_factory=dict_row).execute(t"""
             SELECT * FROM element
-            WHERE sequence_id BETWEEN %s AND %s
+            WHERE sequence_id BETWEEN {seq_start} AND {seq_end}
             ORDER BY sequence_id
-            """,
-            seq_range,
-        ) as r,
+        """) as r,
     ):
         while True:
             rows: list[Element] = await r.fetchmany(_CHUNK_SIZE)  # type: ignore

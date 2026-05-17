@@ -1,17 +1,23 @@
 from datetime import datetime
 from ipaddress import ip_address, ip_network
 from string.templatelib import Template
-from typing import Any, Literal, TypedDict, assert_never
+from typing import Literal, TypedDict, assert_never
 
-from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable, Identifier
+from psycopg.sql import SQL, Identifier
 from shapely import Point
 
 from app.config import (
     DELETED_USER_EMAIL_SUFFIX,
     NEARBY_USERS_RADIUS_METERS,
 )
-from app.db import db
+from app.db import (
+    db_fetchall,
+    db_fetchcol,
+    db_fetchone,
+    db_fetchrows,
+    t_and,
+    t_order,
+)
 from app.lib.auth.context import auth_user
 from app.lib.text.user_name_blacklist import is_user_name_blacklisted
 from app.models.db.element import Element
@@ -36,47 +42,26 @@ class UserQuery:
     @staticmethod
     async def find_by_id(user_id: UserId) -> User | None:
         """Find a user by id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM "user"
-                WHERE id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+        return await db_fetchone(
+            User,
+            t'SELECT * FROM "user" WHERE id = {user_id}',
+        )
 
     @staticmethod
     async def find_by_display_name(display_name: DisplayName) -> User | None:
         """Find a user by display name."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM "user"
-                WHERE display_name = %s
-                """,
-                (display_name,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+        return await db_fetchone(
+            User,
+            t'SELECT * FROM "user" WHERE display_name = {display_name}',
+        )
 
     @staticmethod
     async def find_by_email(email: Email) -> User | None:
         """Find a user by email."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM "user"
-                WHERE email = %s
-                """,
-                (email,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+        return await db_fetchone(
+            User,
+            t'SELECT * FROM "user" WHERE email = {email}',
+        )
 
     @staticmethod
     async def find_by_display_name_or_email(
@@ -97,18 +82,10 @@ class UserQuery:
         """Find users by ids."""
         if not user_ids:
             return []
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM "user"
-                WHERE id = ANY(%s)
-                """,
-                (user_ids,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            User,
+            t'SELECT * FROM "user" WHERE id = ANY({user_ids})',
+        )
 
     @staticmethod
     async def find_by_display_names(
@@ -117,18 +94,10 @@ class UserQuery:
         """Find users by display names."""
         if not display_names:
             return []
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM "user"
-                WHERE display_name = ANY(%s)
-                """,
-                (display_names,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            User,
+            t'SELECT * FROM "user" WHERE display_name = ANY({display_names})',
+        )
 
     @staticmethod
     async def find_nearby(
@@ -138,26 +107,15 @@ class UserQuery:
         limit: int | None = None,
     ) -> list[User]:
         """Find nearby users. Users position is determined by their home point."""
-        params: list[Any] = [point, max_distance, point]
-
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT * FROM "user"
-            WHERE ST_DWithin(home_point, %s, %s)
-            ORDER BY home_point <-> %s
-            {limit}
-        """).format(limit=limit_clause)
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            User,
+            t"""
+                SELECT * FROM "user"
+                WHERE ST_DWithin(home_point, {point}, {max_distance})
+                ORDER BY home_point <-> {point}
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def check_display_name_available(
@@ -207,28 +165,22 @@ class UserQuery:
     ) -> list[UserId]:
         """Find the ids of deleted users."""
         email_suffix = f'%{DELETED_USER_EMAIL_SUFFIX}'
-        filters: list[Template] = [t'email LIKE {email_suffix}']
-
-        if after is not None:
-            filters.append(t'id > {after}')
-        if before is not None:
-            filters.append(t'id < {before}')
-
-        where = SQL(' AND ').join(filters)
-        order = SQL(sort)
-        limit_clause: Template | Composable = (
-            t'LIMIT {limit}' if limit is not None else SQL('')
+        where = t_and(
+            t'email LIKE {email_suffix}',
+            t'id > {after}' if after is not None else None,
+            t'id < {before}' if before is not None else None,
         )
+        order = t_order(sort)
 
-        query = t"""
-            SELECT id FROM "user"
-            WHERE {where:q}
-            ORDER BY id {order:q}
-            {limit_clause:q}
-        """
-
-        async with db() as conn, await conn.execute(query) as r:
-            return [c for (c,) in await r.fetchall()]
+        return await db_fetchcol(
+            UserId,
+            t"""
+                SELECT id FROM "user"
+                WHERE {where:q}
+                ORDER BY id {order:q}
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def resolve_users(
@@ -256,20 +208,15 @@ class UserQuery:
         if not id_map:
             return
 
-        query = SQL("""
-            SELECT {} FROM "user"
-            WHERE id = ANY(%s)
-        """).format(_USER_DISPLAY_SELECT if kind is UserDisplay else SQL('*'))
-
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                query, (list(id_map),)
-            ) as r,
-        ):
-            for row in await r.fetchall():
-                for item in id_map[row['id']]:
-                    item[user_key] = row
+        select_sql = _USER_DISPLAY_SELECT if kind is UserDisplay else SQL('*')
+        ids = list(id_map)
+        rows = await db_fetchall(
+            User,
+            t'SELECT {select_sql:q} FROM "user" WHERE id = ANY({ids})',
+        )
+        for row in rows:
+            for item in id_map[row['id']]:
+                item[user_key] = row
 
     @staticmethod
     async def resolve_elements_users(elements: list[Element]):
@@ -286,22 +233,17 @@ class UserQuery:
             else:
                 list_.append(element)
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT id, user_id FROM changeset
-                WHERE id = ANY(%s)
-                """,
-                (list(id_map),),
-            ) as r,
-        ):
-            changeset_id: ChangesetId
-            user_id: UserId | None
-            for changeset_id, user_id in await r.fetchall():
-                if user_id is not None:
-                    for element in id_map[changeset_id]:
-                        element['user_id'] = user_id
+        changeset_ids = list(id_map)
+        rows = await db_fetchrows(t"""
+            SELECT id, user_id FROM changeset
+            WHERE id = ANY({changeset_ids})
+        """)
+        changeset_id: ChangesetId
+        user_id: UserId | None
+        for changeset_id, user_id in rows:
+            if user_id is not None:
+                for element in id_map[changeset_id]:
+                    element['user_id'] = user_id
 
         await UserQuery.resolve_users(elements)
 
@@ -315,53 +257,48 @@ class UserQuery:
         created_before: datetime | None = None,
         application_id: ApplicationId | None = None,
     ):
-        filters: list[Template] = []
-
+        search_cond: Template | None = None
         if search:
             try:
                 search_ip = ip_address(search)
-                filters.append(t"""
+                search_cond = t"""
                     EXISTS (
                         SELECT 1 FROM audit
                         WHERE user_id = "user".id AND ip = {search_ip}
                     )
-                """)
+                """
             except ValueError:
                 try:
                     search_net = ip_network(search, strict=False)
-                    filters.append(t"""
+                    search_cond = t"""
                         EXISTS (
                             SELECT 1 FROM audit
                             WHERE user_id = "user".id AND ip <<= {search_net}
                         )
-                    """)
+                    """
                 except ValueError:
                     pattern = f'%{search}%'
-                    filters.append(
+                    search_cond = (
                         t'(email ILIKE {pattern} OR display_name ILIKE {pattern})'
                     )
 
-        if unverified:
-            filters.append(t'NOT email_verified')
-        if roles:
-            filters.append(t'roles && {roles}')
-        if created_after:
-            filters.append(t'created_at >= {created_after}')
-        if created_before:
-            filters.append(t'created_at <= {created_before}')
-        if application_id is not None:
-            filters.append(t"""
+        return t_and(
+            search_cond,
+            t'NOT email_verified' if unverified else None,
+            t'roles && {roles}' if roles else None,
+            t'created_at >= {created_after}' if created_after else None,
+            t'created_at <= {created_before}' if created_before else None,
+            t"""
                 EXISTS (
                     SELECT 1 FROM oauth2_token
                     WHERE user_id = "user".id
                     AND application_id = {application_id}
                     AND authorized_at IS NOT NULL
                 )
-            """)
-
-        if not filters:
-            return SQL('TRUE')
-        return SQL(' AND ').join(filters)
+            """
+            if application_id is not None
+            else None,
+        )
 
     @staticmethod
     async def find_ids(
@@ -384,23 +321,22 @@ class UserQuery:
             application_id=application_id,
         )
 
-        order_dir: SQL
         if sort == 'created_desc':
-            order_dir = SQL('DESC')
+            order_dir = t_order('desc')
         elif sort == 'created_asc':
-            order_dir = SQL('ASC')
+            order_dir = t_order('asc')
         else:
             assert_never(sort)
 
-        query = t"""
-            SELECT id FROM "user"
-            WHERE {where:q}
-            ORDER BY created_at {order_dir:q}, id {order_dir:q}
-            LIMIT {limit}
-        """
-
-        async with db() as conn, await conn.execute(query) as r:
-            return [c for (c,) in await r.fetchall()]
+        return await db_fetchcol(
+            UserId,
+            t"""
+                SELECT id FROM "user"
+                WHERE {where:q}
+                ORDER BY created_at {order_dir:q}, id {order_dir:q}
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def get_2fa_status(user_ids: list[UserId]) -> dict[UserId, _2FAStatus]:
@@ -408,29 +344,23 @@ class UserQuery:
         if not user_ids:
             return {}
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT
-                    u.user_id,
-                    EXISTS(SELECT 1 FROM user_passkey WHERE user_id = u.user_id) AS has_passkeys,
-                    EXISTS(SELECT 1 FROM user_totp WHERE user_id = u.user_id) AS has_totp,
-                    EXISTS(
-                        SELECT 1 FROM user_recovery_code
-                        WHERE user_id = u.user_id
-                        AND array_remove(codes_hashed, NULL) != '{}'
-                    ) AS has_recovery
-                FROM unnest(%s::bigint[]) AS u(user_id)
-                """,
-                (user_ids,),
-            ) as r,
-        ):
-            return {
-                row[0]: _2FAStatus(
-                    has_passkeys=row[1],
-                    has_totp=row[2],
-                    has_recovery=row[3],
-                )
-                for row in await r.fetchall()
-            }
+        rows = await db_fetchrows(t"""
+            SELECT
+                u.user_id,
+                EXISTS(SELECT 1 FROM user_passkey WHERE user_id = u.user_id) AS has_passkeys,
+                EXISTS(SELECT 1 FROM user_totp WHERE user_id = u.user_id) AS has_totp,
+                EXISTS(
+                    SELECT 1 FROM user_recovery_code
+                    WHERE user_id = u.user_id
+                    AND array_remove(codes_hashed, NULL) != '{{}}'
+                ) AS has_recovery
+            FROM unnest({user_ids}::bigint[]) AS u(user_id)
+        """)
+        return {
+            row[0]: _2FAStatus(
+                has_passkeys=row[1],
+                has_totp=row[2],
+                has_recovery=row[3],
+            )
+            for row in rows
+        }

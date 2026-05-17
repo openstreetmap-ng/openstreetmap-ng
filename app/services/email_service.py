@@ -9,7 +9,6 @@ from typing import Any, Literal, overload
 
 import cython
 from aiosmtplib import SMTP
-from psycopg.rows import dict_row
 from sentry_sdk import capture_exception
 from zid import zid
 
@@ -27,14 +26,14 @@ from app.config import (
     SMTP_PORT,
     SMTP_USER,
 )
-from app.db import db
+from app.db import db, db_delete, db_fetchone, db_insert, db_update
 from app.lib.auth import user_token
 from app.lib.auth.context import auth_context
 from app.lib.auth.crypto import hash_bytes
 from app.lib.render.jinja import render_jinja
 from app.lib.text.translation import translation_context
 from app.lib.time.date_utils import utcnow
-from app.models.db.mail import Mail, MailInit, MailSource
+from app.models.db.mail import Mail, MailSource
 from app.models.db.user import User, user_is_deleted, user_is_test
 from app.models.proto.server_pb2 import StatelessUserTokenStruct
 from app.models.types import MailId, UserId
@@ -95,30 +94,22 @@ class EmailService:
             body = render_jinja(template_name, template_data)
 
         mail_id: MailId = zid()  # type: ignore
-        mail_init: MailInit = {
-            'id': mail_id,
-            'source': source,
-            'from_user_id': from_user_id,
-            'to_user_id': to_user['id'],
-            'subject': subject,
-            'body': body,
-            'ref': ref,
-            'priority': priority,
-        }
+        to_user_id = to_user['id']
 
         async with db(True, autocommit=True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO mail (
-                    id, source, from_user_id, to_user_id,
-                    subject, body, ref, priority
-                )
-                VALUES (
-                    %(id)s, %(source)s, %(from_user_id)s, %(to_user_id)s,
-                    %(subject)s, %(body)s, %(ref)s, %(priority)s
-                )
-                """,
-                mail_init,
+            await db_insert(
+                'mail',
+                {
+                    'id': mail_id,
+                    'source': source,
+                    'from_user_id': from_user_id,
+                    'to_user_id': to_user_id,
+                    'subject': subject,
+                    'body': body,
+                    'ref': ref,
+                    'priority': priority,
+                },
+                conn=conn,
             )
 
         logging.info(
@@ -154,62 +145,56 @@ async def _process_task_inner():
     async with _smtp_factory() as smtp, db(True) as conn:
         while True:
             now = utcnow()
-            async with await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM mail
-                WHERE scheduled_at <= %s
-                ORDER BY processing_counter, priority DESC, created_at
-                FOR UPDATE SKIP LOCKED
-                LIMIT 1
+            mail = await db_fetchone(
+                Mail,
+                t"""
+                    SELECT * FROM mail
+                    WHERE scheduled_at <= {now}
+                    ORDER BY processing_counter, priority DESC, created_at
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT 1
                 """,
-                (now,),
-            ) as r:
-                mail: Mail | None = await r.fetchone()  # type: ignore
-                if mail is None:
-                    logging.debug('Finished scheduled mail processing')
-                    break
+                conn=conn,
+            )
+            if mail is None:
+                logging.debug('Finished scheduled mail processing')
+                break
 
-                mail_id = mail['id']
-                # TODO: Use UserQuery to load user data for from_user_id and to_user_id
+            mail_id = mail['id']
+            # TODO: Use UserQuery to load user data for from_user_id and to_user_id
 
-                try:
-                    logging.debug('Processing mail %r', mail_id)
-                    await _send_mail(smtp, mail)
-                    await conn.execute('DELETE FROM mail WHERE id = %s', (mail_id,))
+            try:
+                logging.debug('Processing mail %r', mail_id)
+                await _send_mail(smtp, mail)
+                await db_delete('mail', where={'id': mail_id}, conn=conn)
 
-                except Exception:
-                    capture_exception()
-                    expires_at = mail['created_at'] + MAIL_UNPROCESSED_EXPIRE
-                    scheduled_at = now + timedelta(
-                        minutes=mail['processing_counter'] ** MAIL_UNPROCESSED_EXPONENT
+            except Exception:
+                capture_exception()
+                expires_at = mail['created_at'] + MAIL_UNPROCESSED_EXPIRE
+                scheduled_at = now + timedelta(
+                    minutes=mail['processing_counter'] ** MAIL_UNPROCESSED_EXPONENT
+                )
+
+                if expires_at <= scheduled_at:
+                    logging.warning(
+                        'Expiring unprocessed mail %r, created at: %r',
+                        mail_id,
+                        mail['created_at'],
+                        exc_info=True,
                     )
+                    await db_delete('mail', where={'id': mail_id}, conn=conn)
+                    continue
 
-                    if expires_at <= scheduled_at:
-                        logging.warning(
-                            'Expiring unprocessed mail %r, created at: %r',
-                            mail_id,
-                            mail['created_at'],
-                            exc_info=True,
-                        )
-                        await conn.execute('DELETE FROM mail WHERE id = %s', (mail_id,))
-                        continue
-
-                    logging.info(
-                        'Requeuing unprocessed mail %r', mail_id, exc_info=True
-                    )
-                    await conn.execute(
-                        """
-                        UPDATE mail
-                        SET
-                            processing_counter = processing_counter + 1,
-                            scheduled_at = %(scheduled_at)s
-                        WHERE id = %(id)s
-                        """,
-                        {
-                            'id': mail_id,
-                            'scheduled_at': scheduled_at,
-                        },
-                    )
+                logging.info('Requeuing unprocessed mail %r', mail_id, exc_info=True)
+                await db_update(
+                    'mail',
+                    {
+                        'processing_counter': t'processing_counter + 1',
+                        'scheduled_at': scheduled_at,
+                    },
+                    where={'id': mail_id},
+                    conn=conn,
+                )
 
 
 async def _send_mail(smtp: SMTP, mail: Mail):

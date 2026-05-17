@@ -5,13 +5,12 @@ from time import perf_counter
 
 from zid import zid
 
-from app.db import db
+from app.db import db, db_insert
 from app.lib.audit import audit
 from app.lib.auth import user_token
 from app.lib.auth.crypto import hash_bytes
 from app.lib.text.translation import t, translation_context
 from app.models.db.user import User
-from app.models.db.user_token import UserTokenInit
 from app.models.proto.server_pb2 import UserTokenStruct
 from app.models.types import Email, UserTokenId
 from app.queries.user_query import UserQuery
@@ -58,25 +57,18 @@ async def _create_token(user: User):
     token_hashed = hash_bytes(token_bytes)
 
     token_id: UserTokenId = zid()  # type: ignore
-    token_init: UserTokenInit = {
-        'id': token_id,
-        'type': 'reset_password',
-        'user_id': user_id,
-        'user_email_hashed': user_email_hashed,
-        'token_hashed': token_hashed,
-    }
 
     async with db(True) as conn:
-        await conn.execute(
-            """
-            INSERT INTO user_token (
-                id, type, user_id, user_email_hashed, token_hashed
-            )
-            VALUES (
-                %(id)s, %(type)s, %(user_id)s, %(user_email_hashed)s, %(token_hashed)s
-            )
-            """,
-            token_init,
+        await db_insert(
+            'user_token',
+            {
+                'id': token_id,
+                'type': 'reset_password',
+                'user_id': user_id,
+                'user_email_hashed': user_email_hashed,
+                'token_hashed': token_hashed,
+            },
+            conn=conn,
         )
         await audit('request_reset_password', conn, extra={'uid': user_id})
 

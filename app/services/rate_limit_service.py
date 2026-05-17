@@ -8,7 +8,7 @@ from psycopg import AsyncConnection
 from starlette import status
 
 from app.config import RATE_LIMIT_CLEANUP_PROBABILITY
-from app.db import db
+from app.db import db, db_delete, db_insert
 from app.lib.audit import audit
 
 _DEFAULT_QUOTA_WINDOW = timedelta(hours=1)
@@ -33,25 +33,21 @@ class RateLimitService:
         quota_per_second = quota / quota_window_seconds
 
         # Uses a leaky bucket algorithm where the usage decreases over time.
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                INSERT INTO rate_limit (key, usage)
-                VALUES (%(key)s, %(change)s)
-                ON CONFLICT (key) DO UPDATE SET
+        async with db(True) as conn:
+            row = await db_insert(
+                'rate_limit',
+                {'key': key, 'usage': change},
+                on_conflict=t"""(key) DO UPDATE SET
                     usage = GREATEST(
                         rate_limit.usage -
-                        EXTRACT(EPOCH FROM (statement_timestamp() - rate_limit.updated_at)) * %(quota_per_second)s,
+                        EXTRACT(EPOCH FROM (statement_timestamp() - rate_limit.updated_at)) * {quota_per_second},
                         0
                     ) + EXCLUDED.usage,
-                    updated_at = DEFAULT
-                RETURNING usage
-                """,
-                {'key': key, 'change': change, 'quota_per_second': quota_per_second},
-            ) as r,
-        ):
-            usage: float = (await r.fetchone())[0]  # type: ignore
+                    updated_at = DEFAULT""",
+                returning='usage',
+                conn=conn,
+            )
+            usage: float = row[0]
 
             # probabilistic cleanup of expired entries
             if random() < RATE_LIMIT_CLEANUP_PROBABILITY:
@@ -81,12 +77,10 @@ class RateLimitService:
 
 
 async def _delete_expired(conn: AsyncConnection):
-    result = await conn.execute(
-        """
-        DELETE FROM rate_limit
-        WHERE updated_at < statement_timestamp() - %s
-        """,
-        (_DEFAULT_QUOTA_WINDOW,),
+    rowcount = await db_delete(
+        'rate_limit',
+        where=t'updated_at < statement_timestamp() - {_DEFAULT_QUOTA_WINDOW}',
+        conn=conn,
     )
-    if result.rowcount:
-        logging.debug('Deleted %d expired rate limit entries', result.rowcount)
+    if rowcount:
+        logging.debug('Deleted %d expired rate limit entries', rowcount)

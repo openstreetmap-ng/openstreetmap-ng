@@ -1,7 +1,5 @@
-from psycopg.rows import dict_row
-
 from app.config import RECOVERY_CODE_MAX_ATTEMPTS, RECOVERY_CODE_RATE_LIMIT_WINDOW
-from app.db import db
+from app.db import db, db_fetchone, db_insert
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.auth.password import PasswordLike
@@ -38,15 +36,13 @@ class UserRecoveryCodeService:
         display_codes, codes_hashed = generate_recovery_codes()
 
         async with db(True) as conn:
-            await conn.execute(
-                """
-                INSERT INTO user_recovery_code (user_id, codes_hashed)
-                VALUES (%s, %s)
-                ON CONFLICT (user_id) DO UPDATE
-                SET codes_hashed = EXCLUDED.codes_hashed,
-                    created_at = DEFAULT
-                """,
-                (user_id, codes_hashed),
+            await db_insert(
+                'user_recovery_code',
+                {'user_id': user_id, 'codes_hashed': codes_hashed},
+                on_conflict=t"""(user_id) DO UPDATE SET
+                    codes_hashed = EXCLUDED.codes_hashed,
+                    created_at = DEFAULT""",
+                conn=conn,
             )
             await audit('generate_recovery_codes', conn)
 
@@ -66,26 +62,23 @@ class UserRecoveryCodeService:
         )
 
         async with db(True) as conn:
-            async with (
-                await conn.cursor(row_factory=dict_row).execute(
-                    """
+            recovery = await db_fetchone(
+                UserRecoveryCode,
+                t"""
                     SELECT * FROM user_recovery_code
-                    WHERE user_id = %s
+                    WHERE user_id = {user_id}
                     FOR UPDATE
-                    """,
-                    (user_id,),
-                ) as r,
-            ):
-                recovery: UserRecoveryCode | None
-                recovery = await r.fetchone()  # type: ignore
-                if recovery is None:
-                    await audit(
-                        'auth_fail',
-                        conn,
-                        user_id=user_id,
-                        extra={'reason': 'recovery_invalid'},
-                    )
-                    return False
+                """,
+                conn=conn,
+            )
+            if recovery is None:
+                await audit(
+                    'auth_fail',
+                    conn,
+                    user_id=user_id,
+                    extra={'reason': 'recovery_invalid'},
+                )
+                return False
 
             # Verify code
             code_index = verify_recovery_code(code, recovery['codes_hashed'])
@@ -98,15 +91,12 @@ class UserRecoveryCodeService:
                 )
                 return False
 
-            # Mark code as used
-            await conn.execute(
-                """
+            # Mark code as used (array element assignment requires raw SQL)
+            await conn.execute(t"""
                 UPDATE user_recovery_code
-                SET codes_hashed[%s + 1] = NULL
-                WHERE user_id = %s
-                """,
-                (code_index, user_id),
-            )
+                SET codes_hashed[{code_index} + 1] = NULL
+                WHERE user_id = {user_id}
+            """)
             await audit(
                 'use_recovery_code',
                 conn,

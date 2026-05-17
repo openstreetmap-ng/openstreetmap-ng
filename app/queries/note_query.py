@@ -1,14 +1,10 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
-from string.templatelib import Template
-from typing import Any, Literal
+from typing import Literal
 
-from psycopg.abc import Params, Query
-from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable, Identifier
 from shapely.geometry.base import BaseGeometry
 
-from app.db import db
+from app.db import db_count, db_fetchall, db_fetchone, db_fetchrows, t_and, t_order
 from app.lib.auth.context import auth_user
 from app.lib.time.date_utils import utcnow
 from app.models.db.note import Note
@@ -26,44 +22,39 @@ class NoteQuery:
         commented_other: bool,
         open: bool | None,
     ):
-        filters: list[Template] = []
-
         if commented_other:
             # Notes where user commented but didn't open them.
-            filters.append(t"""
+            interaction_cond = t"""
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
                     AND user_id = {user_id}
                     AND event = 'commented'
                 )
-            """)
-            filters.append(t"""
-                NOT EXISTS (
+                AND NOT EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
                     AND user_id = {user_id}
                     AND event = 'opened'
                 )
-            """)
+            """
         else:
             # Notes opened by the user.
-            filters.append(t"""
+            interaction_cond = t"""
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
                     AND user_id = {user_id}
                     AND event = 'opened'
                 )
-            """)
+            """
 
-        # Only show hidden notes to moderators.
-        if not user_is_moderator(auth_user()):
-            filters.append(t'hidden_at IS NULL')
-
-        filters.append(t'({open}::bool IS NULL OR (closed_at IS NULL) = {open})')
-
-        return SQL(' AND ').join(filters)
+        return t_and(
+            interaction_cond,
+            # Only show hidden notes to moderators.
+            t'hidden_at IS NULL' if not user_is_moderator(auth_user()) else None,
+            t'({open}::bool IS NULL OR (closed_at IS NULL) = {open})',
+        )
 
     @staticmethod
     async def count_by_user(
@@ -81,12 +72,7 @@ class NoteQuery:
             commented_other=commented_other,
             open=open,
         )
-
-        async with (
-            db() as conn,
-            await conn.execute(t'SELECT COUNT(*) FROM note WHERE {where:q}') as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        return await db_count('note', where=where)
 
     @staticmethod
     async def find(
@@ -104,103 +90,77 @@ class NoteQuery:
         limit: int | None,
     ) -> list[Note]:
         """Find notes by query."""
-        sort_by_identifier = Identifier(
+        sort_by_col = (
             'id'
             # Optimize query plan when not filtering by date
             if sort_by == 'created_at' and date_from is None and date_to is None
             else sort_by
         )
-        conditions: list[Composable] = []
-        params: list[Any] = []
 
-        # Only show hidden notes to moderators
-        if not user_is_moderator(auth_user()):
-            conditions.append(SQL('hidden_at IS NULL'))
-
-        if phrase is not None:
-            conditions.append(
-                SQL("""
+        phrase_cond = (
+            t"""
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
-                    AND to_tsvector('simple', body) @@ phraseto_tsquery(%s)
+                    AND to_tsvector('simple', body) @@ phraseto_tsquery({phrase})
                 )
-                """)
-            )
-            params.append(phrase)
+            """
+            if phrase is not None
+            else None
+        )
 
         if event is not None:
             assert user_id is not None, 'user_id must be set if event is set'
-            conditions.append(
-                SQL("""
+            user_cond = t"""
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
-                    AND user_id = %s
-                    AND event = %s
+                    AND user_id = {user_id}
+                    AND event = {event}
                 )
-                """)
-            )
-            params.extend((user_id, event))
+            """
         elif user_id is not None:
-            conditions.append(
-                SQL("""
+            user_cond = t"""
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
-                    AND user_id = %s
+                    AND user_id = {user_id}
                 )
-                """)
-            )
-            params.append(user_id)
-
-        if note_ids is not None:
-            conditions.append(SQL('id = ANY(%s)'))
-            params.append(note_ids)
+            """
+        else:
+            user_cond = None
 
         if max_closed_days is not None:
             if max_closed_days > 0:
-                conditions.append(SQL('(closed_at IS NULL OR closed_at >= %s)'))
-                params.append(utcnow() - timedelta(days=max_closed_days))
+                cutoff = utcnow() - timedelta(days=max_closed_days)
+                closed_cond = t'(closed_at IS NULL OR closed_at >= {cutoff})'
             else:
-                conditions.append(SQL('closed_at IS NULL'))
-
-        if geometry is not None:
-            conditions.append(SQL('point && %s'))
-            params.append(geometry)
-
-        if date_from is not None:
-            conditions.append(SQL('{} >= %s').format(sort_by_identifier))
-            params.append(date_from)
-
-        if date_to is not None:
-            conditions.append(SQL('{} < %s').format(sort_by_identifier))
-            params.append(date_to)
-
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
+                closed_cond = t'closed_at IS NULL'
         else:
-            limit_clause = SQL('')
+            closed_cond = None
 
-        # Build the query with all conditions
-        query = SQL("""
-            SELECT * FROM note
-            WHERE {condition}
-            ORDER BY {order_by} {order_dir}
-            {limit}
-        """).format(
-            condition=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            order_by=sort_by_identifier,
-            order_dir=SQL(sort_dir),
-            limit=limit_clause,
+        where = t_and(
+            # Only show hidden notes to moderators
+            t'hidden_at IS NULL' if not user_is_moderator(auth_user()) else None,
+            phrase_cond,
+            user_cond,
+            t'id = ANY({note_ids})' if note_ids is not None else None,
+            closed_cond,
+            t'point && {geometry}' if geometry is not None else None,
+            t'{sort_by_col:i} >= {date_from}' if date_from is not None else None,
+            t'{sort_by_col:i} < {date_to}' if date_to is not None else None,
         )
+        order_dir = t_order(sort_dir)
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            Note,
+            t"""
+                SELECT * FROM note
+                WHERE {where:q}
+                ORDER BY {sort_by_col:i} {order_dir:q}
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def resolve_legacy_note(comments: list[NoteComment]) -> None:
@@ -229,55 +189,34 @@ class NoteCommentQuery:
         limit: int | None = None,
     ) -> list[NoteComment]:
         """Find note comments by query."""
-        conditions: list[Composable] = []
-        params: list[Any] = []
-
-        # Only show hidden notes to moderators
-        if not user_is_moderator(auth_user()):
-            conditions.append(SQL('note.hidden_at IS NULL'))
-
-        if geometry is not None:
-            conditions.append(SQL('note.point && %s'))
-            params.append(geometry)
-
-        if limit is not None:
-            limit_clause = SQL('LIMIT %s')
-            params.append(limit)
-        else:
-            limit_clause = SQL('')
-
-        query = SQL("""
-            SELECT * FROM note_comment
-            JOIN note ON note_id = note.id
-            WHERE {conditions}
-            ORDER BY id DESC
-            {limit}
-        """).format(
-            conditions=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            limit=limit_clause,
+        where = t_and(
+            # Only show hidden notes to moderators
+            t'note.hidden_at IS NULL' if not user_is_moderator(auth_user()) else None,
+            t'note.point && {geometry}' if geometry is not None else None,
         )
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(
+            NoteComment,
+            t"""
+                SELECT * FROM note_comment
+                JOIN note ON note_id = note.id
+                WHERE {where:q}
+                ORDER BY id DESC
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def find_header(note_id: NoteId) -> NoteComment | None:
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchone(
+            NoteComment,
+            t"""
                 SELECT * FROM note_comment
-                WHERE note_id = %s
+                WHERE note_id = {note_id}
                 ORDER BY id
                 LIMIT 1
-                """,
-                (note_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+            """,
+        )
 
     @staticmethod
     async def resolve_num_comments(notes: list[Note]) -> None:
@@ -286,21 +225,16 @@ class NoteCommentQuery:
             return
 
         id_map = {note['id']: note for note in notes}
+        ids = list(id_map)
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT c.value, (
-                    SELECT COUNT(*) FROM note_comment
-                    WHERE note_id = c.value
-                ) FROM unnest(%s) AS c(value)
-                """,
-                (list(id_map),),
-            ) as r,
-        ):
-            for note_id, count in await r.fetchall():
-                id_map[note_id]['num_comments'] = count
+        rows = await db_fetchrows(t"""
+            SELECT c.value, (
+                SELECT COUNT(*) FROM note_comment
+                WHERE note_id = c.value
+            ) FROM unnest({ids}) AS c(value)
+        """)
+        for note_id, count in rows:
+            id_map[note_id]['num_comments'] = count
 
     @staticmethod
     async def resolve_comments(
@@ -316,36 +250,28 @@ class NoteCommentQuery:
         id_map: dict[NoteId, list[NoteComment]] = {}
         for note in notes:
             id_map[note['id']] = note['comments'] = []
+        ids = list(id_map)
 
-        query: Query
-        params: Params
         if per_note_limit is not None:
-            # Using window functions to limit comments per note
-            query = SQL("""
-            WITH ranked_comments AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY note_id ORDER BY id {}) AS rn
-                FROM note_comment
-                WHERE note_id = ANY(%s)
-            )
-            SELECT * FROM ranked_comments
-            WHERE rn <= %s
-            ORDER BY note_id, id
-            """).format(SQL(per_note_sort))
-            params = (list(id_map), per_note_limit)
-        else:
-            # Without limit, just fetch all comments
-            query = """
-            SELECT * FROM note_comment
-            WHERE note_id = ANY(%s)
-            ORDER BY note_id, id
+            sort_sql = t_order(per_note_sort)
+            query = t"""
+                WITH ranked_comments AS (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY note_id ORDER BY id {sort_sql:q}) AS rn
+                    FROM note_comment
+                    WHERE note_id = ANY({ids})
+                )
+                SELECT * FROM ranked_comments
+                WHERE rn <= {per_note_limit}
+                ORDER BY note_id, id
             """
-            params = (list(id_map),)
+        else:
+            query = t"""
+                SELECT * FROM note_comment
+                WHERE note_id = ANY({ids})
+                ORDER BY note_id, id
+            """
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            comments: list[NoteComment] = await r.fetchall()  # type: ignore
+        comments = await db_fetchall(NoteComment, query)
 
         current_note_id: NoteId | None = None
         current_comments: list[NoteComment] = []

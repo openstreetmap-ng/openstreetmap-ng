@@ -1,9 +1,7 @@
 import logging
 from typing import Literal, overload
 
-from psycopg.rows import dict_row
-
-from app.db import db
+from app.db import db, db_fetchone, db_fetchval
 from app.lib.auth.crypto import hash_compare
 from app.models.db.user_token import (
     USER_TOKEN_EXPIRE,
@@ -49,34 +47,33 @@ class UserTokenQuery:
         check_email_hash: bool = True,
     ):
         """Find a user token by token struct."""
+        token_id = token_struct.id
+        expire = USER_TOKEN_EXPIRE[token_type]
         async with db() as conn:
-            async with await conn.cursor(row_factory=dict_row).execute(
-                """
-                SELECT * FROM user_token
-                WHERE id = %s AND created_at + %s > statement_timestamp()
+            token = await db_fetchone(
+                UserToken,
+                t"""
+                    SELECT * FROM user_token
+                    WHERE id = {token_id} AND created_at + {expire} > statement_timestamp()
                 """,
-                (token_struct.id, USER_TOKEN_EXPIRE[token_type]),
-            ) as r:
-                token: UserToken | None = await r.fetchone()  # type: ignore
-                if token is None:
-                    return None
+                conn=conn,
+            )
+            if token is None:
+                return None
 
             if not hash_compare(token_struct.token, token['token_hashed']):
                 logging.debug('Invalid user token secret for id %r', token_struct.id)
                 return None
 
             if check_email_hash:
-                async with await conn.execute(
-                    """
-                    SELECT email FROM "user"
-                    WHERE id = %s
-                    """,
-                    (token['user_id'],),
-                ) as r:
-                    row = await r.fetchone()
-                    if row is None:
-                        return None
-                    email: Email = row[0]
+                user_id = token['user_id']
+                email = await db_fetchval(
+                    Email,
+                    t'SELECT email FROM "user" WHERE id = {user_id}',
+                    conn=conn,
+                )
+                if email is None:
+                    return None
 
                 if not hash_compare(email, token['user_email_hashed']):
                     logging.debug('Invalid user token email for id %r', token_struct.id)

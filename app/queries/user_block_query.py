@@ -16,16 +16,13 @@ class UserBlockQuery:
         return _UserBlockCountByUserResult(0, 0)  # TODO: implement
         async with (
             db() as conn,
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 SELECT
                 (   SELECT COUNT(*) FROM user_block
-                    WHERE to_user_id = %s),
+                    WHERE to_user_id = {user_id}),
                 (   SELECT COUNT(*) FROM user_block
-                    WHERE to_user_id = %s AND NOT expired)
-                """,
-                (user_id, user_id),
-            ) as r,
+                    WHERE to_user_id = {user_id} AND NOT expired)
+            """) as r,
         ):
             total, active = await r.fetchone()  # type: ignore
             return _UserBlockCountByUserResult(total, active)
@@ -36,16 +33,13 @@ class UserBlockQuery:
         return _UserBlockCountByUserResult(0, 0)  # TODO: implement
         async with (
             db() as conn,
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 SELECT
                 (   SELECT COUNT(*) FROM user_block
-                    WHERE from_user_id = %s),
+                    WHERE from_user_id = {user_id}),
                 (   SELECT COUNT(*) FROM user_block
-                    WHERE from_user_id = %s AND NOT expired)
-                """,
-                (user_id, user_id),
-            ) as r,
+                    WHERE from_user_id = {user_id} AND NOT expired)
+            """) as r,
         ):
             total, active = await r.fetchone()  # type: ignore
             return _UserBlockCountByUserResult(total, active)
