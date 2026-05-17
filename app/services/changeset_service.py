@@ -14,7 +14,17 @@ from app.config import (
     CHANGESET_IDLE_TIMEOUT,
     CHANGESET_OPEN_TIMEOUT,
 )
-from app.db import db, db_lock
+from app.db import (
+    db,
+    db_delete,
+    db_fetchcol,
+    db_fetchrow,
+    db_fetchrows,
+    db_fetchval,
+    db_insert,
+    db_lock,
+    db_update,
+)
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_context, auth_scopes, auth_user
@@ -25,13 +35,17 @@ from app.lib.telemetry.sentry import (
 )
 from app.lib.telemetry.testmethod import testmethod
 from app.lib.text.translation import t, translation_context
-from app.models.db.changeset import ChangesetInit
 from app.models.db.changeset_comment import (
     ChangesetComment,
-    ChangesetCommentInit,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, NoteId, UserId
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -50,25 +64,14 @@ class ChangesetService:
         user_id = auth_user(required=True)['id']
         _require_note_write_scope(tags)
 
-        changeset_init: ChangesetInit = {
-            'user_id': user_id,
-            'tags': tags,
-        }
-
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                INSERT INTO changeset (
-                    user_id, tags
-                )
-                VALUES (
-                    %(user_id)s, %(tags)s
-                )
-                RETURNING id
-                """,
-                changeset_init,
-            ) as r:
-                changeset_id: ChangesetId = (await r.fetchone())[0]  # type: ignore
+            row = await db_insert(
+                'changeset',
+                {'user_id': user_id, 'tags': tags},
+                returning='id',
+                conn=conn,
+            )
+            changeset_id: ChangesetId = row[0]
 
             await audit('create_changeset', conn, extra={'id': changeset_id})
 
@@ -81,36 +84,33 @@ class ChangesetService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT user_id, closed_at
-                FROM changeset
-                WHERE id = %s
-                FOR UPDATE
+            row = await db_fetchrow(
+                t"""
+                    SELECT user_id, closed_at
+                    FROM changeset
+                    WHERE id = {changeset_id}
                 """,
-                (changeset_id,),
-            ) as r:
-                row = await r.fetchone()
-                if row is None:
-                    raise_for.changeset_not_found(changeset_id)
+                for_update=True,
+                conn=conn,
+            )
+            if row is None:
+                raise_for.changeset_not_found(changeset_id)
 
-                changeset_user_id: UserId
-                closed_at: datetime | None
-                changeset_user_id, closed_at = row
+            changeset_user_id: UserId
+            closed_at: datetime | None
+            changeset_user_id, closed_at = row
 
-                if changeset_user_id != user_id:
-                    raise_for.changeset_access_denied()
-                if closed_at is not None:
-                    raise_for.changeset_already_closed(changeset_id, closed_at)
-                _require_note_write_scope(tags)
+            if changeset_user_id != user_id:
+                raise_for.changeset_access_denied()
+            if closed_at is not None:
+                raise_for.changeset_already_closed(changeset_id, closed_at)
+            _require_note_write_scope(tags)
 
-            await conn.execute(
-                """
-                UPDATE changeset
-                SET tags = %s, updated_at = DEFAULT
-                WHERE id = %s
-                """,
-                (tags, changeset_id),
+            await db_update(
+                'changeset',
+                {'tags': tags, 'updated_at': t'DEFAULT'},
+                where={'id': changeset_id},
+                conn=conn,
             )
             await audit('update_changeset', conn, extra={'id': changeset_id})
 
@@ -121,37 +121,36 @@ class ChangesetService:
         tags: dict[str, str]
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT user_id, closed_at, tags
-                FROM changeset
-                WHERE id = %s
-                FOR UPDATE
+            row = await db_fetchrow(
+                t"""
+                    SELECT user_id, closed_at, tags
+                    FROM changeset
+                    WHERE id = {changeset_id}
                 """,
-                (changeset_id,),
-            ) as r:
-                row = await r.fetchone()
-                if row is None:
-                    raise_for.changeset_not_found(changeset_id)
+                for_update=True,
+                conn=conn,
+            )
+            if row is None:
+                raise_for.changeset_not_found(changeset_id)
 
-                changeset_user_id: UserId | None
-                closed_at: datetime | None
-                tags: dict[str, str]
-                changeset_user_id, closed_at, tags = row
+            changeset_user_id: UserId
+            closed_at: datetime | None
+            changeset_user_id, closed_at, tags = row
 
-                if changeset_user_id != user_id:
-                    raise_for.changeset_access_denied()
-                if closed_at is not None:
-                    raise_for.changeset_already_closed(changeset_id, closed_at)
-                _require_note_write_scope(tags)
+            if changeset_user_id != user_id:
+                raise_for.changeset_access_denied()
+            if closed_at is not None:
+                raise_for.changeset_already_closed(changeset_id, closed_at)
+            _require_note_write_scope(tags)
 
-            await conn.execute(
-                """
-                UPDATE changeset
-                SET closed_at = statement_timestamp(), updated_at = DEFAULT
-                WHERE id = %s
-                """,
-                (changeset_id,),
+            await db_update(
+                'changeset',
+                {
+                    'closed_at': t'statement_timestamp()',
+                    'updated_at': t'DEFAULT',
+                },
+                where={'id': changeset_id},
+                conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
 
@@ -190,39 +189,24 @@ class ChangesetCommentService:
         user = auth_user(required=True)
         user_id = user['id']
 
-        comment_init: ChangesetCommentInit = {
-            'user_id': user_id,
-            'changeset_id': changeset_id,
-            'body': text,
-        }
-
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT 1 FROM changeset
-                WHERE id = %s
-                FOR SHARE
-                """,
-                (changeset_id,),
-            ) as r:
-                if await r.fetchone() is None:
-                    raise_for.changeset_not_found(changeset_id)
+            exists = await db_fetchval(
+                int,
+                t'SELECT 1 FROM changeset WHERE id = {changeset_id} FOR SHARE',
+                conn=conn,
+            )
+            if exists is None:
+                raise_for.changeset_not_found(changeset_id)
 
-            async with await conn.execute(
-                """
-                INSERT INTO changeset_comment (
-                    user_id, changeset_id, body
-                )
-                VALUES (
-                    %(user_id)s, %(changeset_id)s, %(body)s
-                )
-                RETURNING id, created_at
-                """,
-                comment_init,
-            ) as r:
-                comment_id: ChangesetCommentId
-                created_at: datetime
-                comment_id, created_at = await r.fetchone()  # type: ignore
+            row = await db_insert(
+                'changeset_comment',
+                {'user_id': user_id, 'changeset_id': changeset_id, 'body': text},
+                returning='id, created_at',
+                conn=conn,
+            )
+            comment_id: ChangesetCommentId
+            created_at: datetime
+            comment_id, created_at = row
 
             await audit(
                 'create_changeset_comment',
@@ -248,28 +232,22 @@ class ChangesetCommentService:
     @staticmethod
     async def delete_comment_unsafe(comment_id: ChangesetCommentId):
         """Delete any changeset comment. Returns the parent changeset id."""
-        async with (
-            db(True) as conn,
-            await conn.execute(
-                """
-                DELETE FROM changeset_comment
-                WHERE id = %s
-                RETURNING changeset_id
-                """,
-                (comment_id,),
-            ) as r,
-        ):
-            result = await r.fetchone()
-            if result is None:
-                raise_for.changeset_comment_not_found(comment_id)
+        row = await db_delete(
+            'changeset_comment',
+            where={'id': comment_id},
+            returning='changeset_id',
+            assert_returning=False,
+        )
+        if row is None:
+            raise_for.changeset_comment_not_found(comment_id)
 
-            changeset_id: ChangesetId = result[0]
-            logging.debug(
-                'Deleted changeset comment %d from changeset %d',
-                comment_id,
-                changeset_id,
-            )
-            return changeset_id
+        changeset_id: ChangesetId = row[0]
+        logging.debug(
+            'Deleted changeset comment %d from changeset %d',
+            comment_id,
+            changeset_id,
+        )
+        return changeset_id
 
 
 @retry(None)
@@ -310,20 +288,19 @@ async def _process_task():
 async def _close_inactive():
     """Close all inactive changesets."""
     async with db(True) as conn:
-        async with await conn.execute(
-            """
-            UPDATE changeset
-            SET closed_at = statement_timestamp(), updated_at = DEFAULT
-            WHERE closed_at IS NULL AND (
-                updated_at < statement_timestamp() - %s OR
-                (updated_at >= statement_timestamp() - %s AND
-                created_at < statement_timestamp() - %s)
-            )
-            RETURNING user_id, tags
+        rows = await db_fetchrows(
+            t"""
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
+                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
+                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                )
+                RETURNING user_id, tags
             """,
-            (CHANGESET_IDLE_TIMEOUT, CHANGESET_IDLE_TIMEOUT, CHANGESET_OPEN_TIMEOUT),
-        ) as r:
-            rows: list[tuple[UserId | None, dict[str, str]]] = await r.fetchall()  # type: ignore
+            conn=conn,
+        )
 
         if rows:
             logging.debug('Closed %d inactive changesets', len(rows))
@@ -400,39 +377,33 @@ def _get_note_close_body(note_id: NoteId, tags: dict[str, str]) -> str:
 async def _delete_empty():
     """Delete empty changesets after a timeout."""
     async with db(True) as conn:
-        async with await conn.execute(
-            """
-            SELECT id FROM changeset
-            WHERE closed_at IS NOT NULL
-              AND closed_at < statement_timestamp() - %s
-              AND size = 0
+        changeset_ids = await db_fetchcol(
+            ChangesetId,
+            t"""
+                SELECT id FROM changeset
+                WHERE closed_at IS NOT NULL
+                  AND closed_at < statement_timestamp() - {CHANGESET_EMPTY_DELETE_TIMEOUT}
+                  AND size = 0
             """,
-            (CHANGESET_EMPTY_DELETE_TIMEOUT,),
-        ) as r:
-            changeset_ids = [c for (c,) in await r.fetchall()]
-            if not changeset_ids:
-                return
+            conn=conn,
+        )
+        if not changeset_ids:
+            return
 
-        await conn.execute(
-            """
-            DELETE FROM changeset
-            WHERE id = ANY(%s)
-            """,
-            (changeset_ids,),
+        await db_delete(
+            'changeset',
+            where=t'id = ANY({changeset_ids})',
+            conn=conn,
         )
-        await conn.execute(
-            """
-            DELETE FROM changeset_bounds
-            WHERE changeset_id = ANY(%s)
-            """,
-            (changeset_ids,),
+        await db_delete(
+            'changeset_bounds',
+            where=t'changeset_id = ANY({changeset_ids})',
+            conn=conn,
         )
-        await conn.execute(
-            """
-            DELETE FROM changeset_comment
-            WHERE changeset_id = ANY(%s)
-            """,
-            (changeset_ids,),
+        await db_delete(
+            'changeset_comment',
+            where=t'changeset_id = ANY({changeset_ids})',
+            conn=conn,
         )
 
         logging.debug('Deleted %d empty changesets', len(changeset_ids))

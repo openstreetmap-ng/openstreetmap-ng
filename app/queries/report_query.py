@@ -2,10 +2,8 @@ from asyncio import TaskGroup
 from typing import NamedTuple
 
 import cython
-from psycopg.rows import dict_row
-from psycopg.sql import SQL
 
-from app.db import db
+from app.db import db_count, db_fetchall, db_fetchone, db_fetchrow, db_fetchrows
 from app.lib.auth.context import auth_user
 from app.models.db.diary import Diary
 from app.models.db.message import Message
@@ -38,55 +36,41 @@ class ReportQuery:
     @staticmethod
     async def find_by_id(report_id: ReportId) -> Report | None:
         """Find a report by id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchone(
+            Report,
+            t"""
                 SELECT * FROM report
-                WHERE id = %s
-                """,
-                (report_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+                WHERE id = {report_id}
+            """,
+        )
 
     @staticmethod
     async def count_all(*, open: bool | None = None) -> int:
         """Count all reports, optionally filtered by open/closed status."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                SQL("""
-                    SELECT COUNT(*)
-                    FROM report
-                    WHERE {}
-                """).format(where_open(open))
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        return await db_count('report', where=where_open(open))
 
     @staticmethod
     async def count_requiring_attention(visible_to: Role):
         """Count reports requiring attention."""
         # Build query dynamically based on visibility level
         if visible_to == 'administrator':
-            select_clause = SQL("""
+            select_clause = t"""
                 COUNT(*) FILTER (
                     WHERE lc.visible_to = 'moderator'
                 ),
                 COUNT(*) FILTER (
                     WHERE lc.visible_to = 'administrator'
                 )
-            """)
+            """
         else:
-            select_clause = SQL("""
+            select_clause = t"""
                 COUNT(*) FILTER (
                     WHERE lc.visible_to = 'moderator'
                 ),
                 NULL
-            """)
+            """
 
-        query = SQL("""
+        row = await db_fetchrow(t"""
             WITH last_comment_ranked AS (
                 SELECT
                     rc.action,
@@ -96,23 +80,22 @@ class ReportQuery:
                 JOIN report r ON rc.report_id = r.id
                 WHERE r.closed_at IS NULL
             )
-            SELECT {}
+            SELECT {select_clause:q}
             FROM last_comment_ranked lc
             WHERE
                 lc.rn = 1 AND
                 lc.action NOT IN ('comment', 'close', 'reopen')
-        """).format(select_clause)
-
-        async with db() as conn, await conn.execute(query) as r:
-            return _ReportCountResult(*(await r.fetchone()))  # type: ignore
+        """)
+        assert row is not None
+        return _ReportCountResult(*row)
 
 
 def where_open(open: bool | None):
     if open is True:
-        return SQL('closed_at IS NULL')
+        return t'closed_at IS NULL'
     if open is False:
-        return SQL('closed_at IS NOT NULL')
-    return SQL('TRUE')
+        return t'closed_at IS NOT NULL'
+    return t'TRUE'
 
 
 # === Report Comments ===
@@ -124,17 +107,13 @@ class ReportCommentQuery:
         report_comment_id: ReportCommentId,
     ) -> ReportComment | None:
         """Find a report comment by id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchone(
+            ReportComment,
+            t"""
                 SELECT * FROM report_comment
-                WHERE id = %s
-                """,
-                (report_comment_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+                WHERE id = {report_comment_id}
+            """,
+        )
 
     @staticmethod
     async def resolve_comments(
@@ -150,34 +129,27 @@ class ReportCommentQuery:
         id_map: dict[ReportId, list[ReportComment]] = {}
         for report in reports:
             id_map[report['id']] = report['comments'] = []
+        ids = list(id_map)
 
         if per_report_limit is not None:
-            # Using window functions to limit comments per report (get last N comments)
-            query = """
-            WITH ranked_comments AS (
-                SELECT *, ROW_NUMBER() OVER (PARTITION BY report_id ORDER BY created_at DESC) AS rn
-                FROM report_comment
-                WHERE report_id = ANY(%s)
-            )
-            SELECT * FROM ranked_comments
-            WHERE rn <= %s
-            ORDER BY report_id, created_at
+            query = t"""
+                WITH ranked_comments AS (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY report_id ORDER BY created_at DESC) AS rn
+                    FROM report_comment
+                    WHERE report_id = ANY({ids})
+                )
+                SELECT * FROM ranked_comments
+                WHERE rn <= {per_report_limit}
+                ORDER BY report_id, created_at
             """
-            params = (list(id_map), per_report_limit)
         else:
-            # Without limit, just fetch all comments
-            query = """
-            SELECT * FROM report_comment
-            WHERE report_id = ANY(%s)
-            ORDER BY report_id, created_at
+            query = t"""
+                SELECT * FROM report_comment
+                WHERE report_id = ANY({ids})
+                ORDER BY report_id, created_at
             """
-            params = (list(id_map),)
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            comments: list[ReportComment] = await r.fetchall()  # type: ignore
+        comments = await db_fetchall(ReportComment, query)
 
         is_moderator: cython.bint = user_is_moderator(user)
         is_admin: cython.bint = user_is_admin(user)
@@ -308,18 +280,13 @@ class ReportCommentQuery:
             return
 
         id_map = {report['id']: report for report in reports}
+        ids = list(id_map)
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT c.value, (
-                    SELECT COUNT(*) FROM report_comment
-                    WHERE report_id = c.value
-                ) FROM unnest(%s) AS c(value)
-                """,
-                (list(id_map),),
-            ) as r,
-        ):
-            for report_id, count in await r.fetchall():
-                id_map[report_id]['num_comments'] = count
+        rows = await db_fetchrows(t"""
+            SELECT c.value, (
+                SELECT COUNT(*) FROM report_comment
+                WHERE report_id = c.value
+            ) FROM unnest({ids}) AS c(value)
+        """)
+        for report_id, count in rows:
+            id_map[report_id]['num_comments'] = count

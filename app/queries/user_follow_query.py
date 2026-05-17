@@ -1,9 +1,9 @@
 from typing import NamedTuple
 
-from psycopg.sql import SQL, Identifier
+from psycopg.sql import Identifier
 
 from app.config import FOLLOWS_LIST_PAGE_SIZE
-from app.db import db
+from app.db import db, db_count, db_fetchcol
 from app.lib.auth.context import auth_user
 from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
@@ -26,18 +26,16 @@ class UserFollowQuery:
         if user is None:
             return _FollowStatusResult(False, False)
 
+        current_user_id = user['id']
         async with (
             db() as conn,
-            await conn.execute(
-                """
+            await conn.execute(t"""
                 SELECT
                 (   SELECT EXISTS(SELECT 1 FROM user_follow
-                    WHERE follower_id = %(current_user_id)s AND followee_id = %(target_user_id)s)),
+                    WHERE follower_id = {current_user_id} AND followee_id = {target_user_id})),
                 (   SELECT EXISTS(SELECT 1 FROM user_follow
-                    WHERE follower_id = %(target_user_id)s AND followee_id = %(current_user_id)s))
-                """,
-                {'current_user_id': user['id'], 'target_user_id': target_user_id},
-            ) as r,
+                    WHERE follower_id = {target_user_id} AND followee_id = {current_user_id}))
+            """) as r,
         ):
             is_following, is_followed_by = await r.fetchone()  # type: ignore
             return _FollowStatusResult(is_following, is_followed_by)
@@ -48,23 +46,8 @@ class UserFollowQuery:
         Count follow relationships for the specified user.
         If followers is True, count followers of user_id. If False, count who user_id follows.
         """
-        async with (
-            db() as conn,
-            await conn.execute(
-                SQL(
-                    """
-                    SELECT COUNT(*) FROM user_follow
-                    WHERE {where_column} = %s
-                    """
-                ).format(
-                    where_column=Identifier(
-                        'followee_id' if followers else 'follower_id'
-                    )
-                ),
-                (user_id,),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        where_column = 'followee_id' if followers else 'follower_id'
+        return await db_count('user_follow', where=t'{where_column:i} = {user_id}')
 
     @staticmethod
     async def paginate(
@@ -80,13 +63,13 @@ class UserFollowQuery:
         Returned rows include `is_following` indicating whether `user_id` follows
         each row's user — i.e. on the followers tab this signals mutual follow.
         """
-        join_column = Identifier('follower_id' if followers else 'followee_id')
-        where_column = Identifier('followee_id' if followers else 'follower_id')
+        join_column = 'follower_id' if followers else 'followee_id'
+        where_column = 'followee_id' if followers else 'follower_id'
 
         return await sp_paginate_query(
             UserFollow,
             sp_state,
-            select=SQL("""
+            select=t"""
                 u.id,
                 u.display_name,
                 u.avatar_type,
@@ -94,14 +77,14 @@ class UserFollowQuery:
                 uf.created_at,
                 EXISTS (
                     SELECT 1 FROM user_follow
-                    WHERE follower_id = uf.{}
+                    WHERE follower_id = uf.{where_column:i}
                       AND followee_id = u.id
                 ) AS is_following
-            """).format(where_column),
-            from_=SQL("""
+            """,
+            from_=t"""
                 user_follow uf
-                JOIN "user" u ON u.id = uf.{}
-            """).format(join_column),
+                JOIN "user" u ON u.id = uf.{join_column:i}
+            """,
             where=t'uf.{where_column:i} = {user_id}',
             cursor_sql=Identifier('uf', 'created_at'),
             id_sql=Identifier('u', 'id'),
@@ -115,14 +98,10 @@ class UserFollowQuery:
     @staticmethod
     async def get_followee_ids(user_id: UserId) -> list[UserId]:
         """List user ids that the user follows."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
+        return await db_fetchcol(
+            UserId,
+            t"""
                 SELECT followee_id FROM user_follow
-                WHERE follower_id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return [c for (c,) in await r.fetchall()]
+                WHERE follower_id = {user_id}
+            """,
+        )

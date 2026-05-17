@@ -12,7 +12,7 @@ from app.config import (
     OAUTH_APP_URI_MAX_LENGTH,
     OAUTH_SECRET_PREVIEW_LENGTH,
 )
-from app.db import db
+from app.db import db, db_delete, db_fetchrow, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
@@ -21,7 +21,6 @@ from app.lib.standard.feedback import StandardFeedback
 from app.lib.storage import AVATAR_STORAGE
 from app.lib.text.translation import t
 from app.models.db.oauth2_application import (
-    OAuth2ApplicationInit,
     OAuth2Uri,
     oauth2_app_avatar_url,
 )
@@ -38,37 +37,29 @@ class OAuth2ApplicationService:
         """Create an OAuth2 application."""
         user_id = auth_user(required=True)['id']
         client_id = ClientId(buffered_rand_urlsafe(32))
-
         app_id: ApplicationId = zid()  # type: ignore
-        app_init: OAuth2ApplicationInit = {
-            'id': app_id,
-            'user_id': user_id,
-            'name': name,
-            'client_id': client_id,
-        }
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                WITH app_count AS (
-                    SELECT
-                        -- Prevent count race conditions
-                        pg_advisory_xact_lock(2847561039482756801::bigint # %(user_id)s),
-                        COUNT(*) as cnt
-                    FROM oauth2_application
-                    WHERE user_id = %(user_id)s
-                )
-                INSERT INTO oauth2_application (id, user_id, name, client_id)
-                SELECT %(id)s, %(user_id)s, %(name)s, %(client_id)s
-                FROM app_count
-                WHERE app_count.cnt < %(limit)s
-                RETURNING id
+            row = await db_fetchrow(
+                t"""
+                    WITH app_count AS (
+                        SELECT
+                            -- Prevent count race conditions
+                            pg_advisory_xact_lock(2847561039482756801::bigint # {user_id}),
+                            COUNT(*) as cnt
+                        FROM oauth2_application
+                        WHERE user_id = {user_id}
+                    )
+                    INSERT INTO oauth2_application (id, user_id, name, client_id)
+                    SELECT {app_id}, {user_id}, {name}, {client_id}
+                    FROM app_count
+                    WHERE app_count.cnt < {OAUTH_APP_ADMIN_LIMIT}
+                    RETURNING id
                 """,
-                {**app_init, 'limit': OAUTH_APP_ADMIN_LIMIT},
-            ) as r:
-                result = await r.fetchone()
+                conn=conn,
+            )
 
-            if result is None:
+            if row is None:
                 StandardFeedback.raise_error(None, t('validation.reached_app_limit'))
 
             await audit('create_app', conn, extra={'id': app_id, 'name': name})
@@ -127,33 +118,34 @@ class OAuth2ApplicationService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT name, confidential, scopes
-                FROM oauth2_application
-                WHERE id = %s AND user_id = %s
-                FOR UPDATE
+            row = await db_fetchrow(
+                t"""
+                    SELECT name, confidential, scopes
+                    FROM oauth2_application
+                    WHERE id = {app_id} AND user_id = {user_id}
                 """,
-                (app_id, user_id),
-            ) as r:
-                row: tuple[str, bool, list[PublicScope]] | None = await r.fetchone()
-                if row is None:
-                    raise_for.unauthorized()
-                old_name, old_confidential, old_scopes = row
+                for_update=True,
+                conn=conn,
+            )
+            if row is None:
+                raise_for.unauthorized()
+            old_name: str
+            old_confidential: bool
+            old_scopes: list[PublicScope]
+            old_name, old_confidential, old_scopes = row
 
             scopes_list = sorted(scopes)
-            await conn.execute(
-                """
-                UPDATE oauth2_application
-                SET
-                    name = %s,
-                    confidential = %s,
-                    redirect_uris = %s,
-                    scopes = %s,
-                    updated_at = DEFAULT
-                WHERE id = %s AND user_id = %s
-                """,
-                (name, is_confidential, redirect_uris, scopes_list, app_id, user_id),
+            await db_update(
+                'oauth2_application',
+                {
+                    'name': name,
+                    'confidential': is_confidential,
+                    'redirect_uris': redirect_uris,
+                    'scopes': scopes_list,
+                    'updated_at': t'DEFAULT',
+                },
+                where={'id': app_id, 'user_id': user_id},
+                conn=conn,
             )
 
             extra: dict[str, Any] = {'id': app_id}
@@ -167,14 +159,12 @@ class OAuth2ApplicationService:
                 await audit('change_app_settings', conn, extra=extra)
 
             if revoke_all_authorizations:
-                result = await conn.execute(
-                    """
-                    DELETE FROM oauth2_token
-                    WHERE application_id = %s
-                    """,
-                    (app_id,),
+                rowcount = await db_delete(
+                    'oauth2_token',
+                    where={'application_id': app_id},
+                    conn=conn,
                 )
-                if result.rowcount:
+                if rowcount:
                     await audit('revoke_app_all_users', conn, extra={'id': app_id})
 
     @staticmethod
@@ -183,35 +173,30 @@ class OAuth2ApplicationService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT avatar_id, client_id
-                FROM oauth2_application
-                WHERE id = %s AND user_id = %s
-                FOR UPDATE
+            row = await db_fetchrow(
+                t"""
+                    SELECT avatar_id, client_id
+                    FROM oauth2_application
+                    WHERE id = {app_id} AND user_id = {user_id}
                 """,
-                (app_id, user_id),
-            ) as r:
-                row = await r.fetchone()
-                if row is None:
-                    raise_for.unauthorized()
-                old_avatar_id: StorageKey | None
-                client_id: ClientId
-                old_avatar_id, client_id = row
+                for_update=True,
+                conn=conn,
+            )
+            if row is None:
+                raise_for.unauthorized()
+            old_avatar_id: StorageKey | None
+            client_id: ClientId
+            old_avatar_id, client_id = row
 
             avatar_id = (
                 await ImageService.upload_avatar(avatar_file) if avatar_file else None
             )
 
-            await conn.execute(
-                """
-                UPDATE oauth2_application
-                SET
-                    avatar_id = %s,
-                    updated_at = DEFAULT
-                WHERE id = %s AND user_id = %s
-                """,
-                (avatar_id, app_id, user_id),
+            await db_update(
+                'oauth2_application',
+                {'avatar_id': avatar_id, 'updated_at': t'DEFAULT'},
+                where={'id': app_id, 'user_id': user_id},
+                conn=conn,
             )
 
         if old_avatar_id is not None:
@@ -231,18 +216,15 @@ class OAuth2ApplicationService:
 
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                UPDATE oauth2_application
-                SET
-                    client_secret_hashed = %s,
-                    client_secret_preview = %s,
-                    updated_at = DEFAULT
-                WHERE id = %s AND user_id = %s
-                """,
-                (client_secret_hashed, client_secret_preview, app_id, user_id),
-            )
+        await db_update(
+            'oauth2_application',
+            {
+                'client_secret_hashed': client_secret_hashed,
+                'client_secret_preview': client_secret_preview,
+                'updated_at': t'DEFAULT',
+            },
+            where={'id': app_id, 'user_id': user_id},
+        )
 
         return client_secret
 
@@ -251,11 +233,7 @@ class OAuth2ApplicationService:
         """Delete an OAuth2 application."""
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            await conn.execute(
-                """
-                DELETE FROM oauth2_application
-                WHERE id = %s AND user_id = %s
-                """,
-                (app_id, user_id),
-            )
+        await db_delete(
+            'oauth2_application',
+            where={'id': app_id, 'user_id': user_id},
+        )

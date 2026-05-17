@@ -9,16 +9,13 @@ from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import NoteCommentId, NoteId, UserId
 
 
-class NoteCommentInit(TypedDict):
+class NoteComment(TypedDict):
+    id: NoteCommentId
     user_id: UserId | None
     user_ip: IPv4Address | IPv6Address | None
     note_id: NoteId
     event: GetCommentsResponse_Comment_Event
     body: str  # TODO: validate size
-
-
-class NoteComment(NoteCommentInit):
-    id: NoteCommentId
     body_rich_hash: bytes | None
     created_at: datetime
 

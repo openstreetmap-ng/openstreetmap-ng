@@ -2,18 +2,23 @@ import logging
 from asyncio import TaskGroup
 from datetime import datetime
 
-from psycopg.sql import SQL
-from psycopg.sql import Literal as PgLiteral
 from zid import zid
 
 from app.config import MESSAGE_RECIPIENTS_LIMIT
-from app.db import db
+from app.db import (
+    db,
+    db_delete,
+    db_fetchval,
+    db_insert,
+    db_insert_many,
+    db_update,
+)
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
 from app.lib.standard.feedback import StandardFeedback
 from app.lib.text.translation import t, translation_context
-from app.models.db.message import Message, MessageInit, messages_resolve_rich_text
+from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import User
 from app.models.types import DisplayName, MessageId, UserId
 from app.queries.message_query import MessageQuery
@@ -52,42 +57,25 @@ class MessageService:
             )
 
         message_id: MessageId = zid()  # type: ignore
-        message_init: MessageInit = {
-            'id': message_id,
-            'from_user_id': from_user_id,
-            'subject': subject,
-            'body': body,
-        }
 
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                INSERT INTO message (
-                    id, from_user_id,
-                    subject, body
-                )
-                VALUES (
-                    %(id)s, %(from_user_id)s,
-                    %(subject)s, %(body)s
-                )
-                RETURNING created_at
-                """,
-                message_init,
-            ) as r:
-                created_at: datetime = (await r.fetchone())[0]  # type: ignore
+            row = await db_insert(
+                'message',
+                {
+                    'id': message_id,
+                    'from_user_id': from_user_id,
+                    'subject': subject,
+                    'body': body,
+                },
+                returning='created_at',
+                conn=conn,
+            )
+            created_at: datetime = row[0]
 
-            await conn.execute(
-                SQL("""
-                INSERT INTO message_recipient (
-                    message_id, user_id
-                )
-                VALUES {}
-                """).format(
-                    SQL(',').join(
-                        SQL('({},%s)').format(PgLiteral(message_id)) * len(to_user_ids)
-                    )
-                ),
-                to_user_ids,
+            await db_insert_many(
+                'message_recipient',
+                [{'message_id': message_id, 'user_id': uid} for uid in to_user_ids],
+                conn=conn,
             )
 
             async with conn.pipeline():
@@ -127,23 +115,15 @@ class MessageService:
         """Mark a message as read or unread."""
         user_id = auth_user(required=True)['id']
 
-        async with db(True) as conn:
-            result = await conn.execute(
-                """
-                UPDATE message_recipient
-                SET read = %(read)s
-                WHERE message_id = %(message_id)s
-                  AND user_id = %(user_id)s
-                  AND read != %(read)s
-                  AND NOT hidden
-                """,
-                {
-                    'read': read,
-                    'message_id': message_id,
-                    'user_id': user_id,
-                },
-            )
-            return bool(result.rowcount)
+        rowcount = await db_update(
+            'message_recipient',
+            {'read': read},
+            where=t"""message_id = {message_id}
+                  AND user_id = {user_id}
+                  AND read != {read}
+                  AND NOT hidden""",
+        )
+        return bool(rowcount)
 
     @staticmethod
     async def delete_message(message_id: MessageId):
@@ -153,56 +133,47 @@ class MessageService:
 
         async with db(True) as conn:
             # Get sender and lock message
-            async with await conn.execute(
-                """
-                SELECT from_user_id FROM message
-                WHERE id = %s
-                FOR UPDATE
-                """,
-                (message_id,),
-            ) as r:
-                row = await r.fetchone()
-                if row is None:
-                    raise_for.message_not_found(message_id)
-                from_user_id: UserId = row[0]
+            from_user_id = await db_fetchval(
+                UserId,
+                t'SELECT from_user_id FROM message WHERE id = {message_id}',
+                for_update=True,
+                conn=conn,
+            )
+            if from_user_id is None:
+                raise_for.message_not_found(message_id)
 
             # Update sender if user is the sender
             if from_user_id == user_id:
-                await conn.execute(
-                    """
-                    UPDATE message SET from_user_hidden = TRUE
-                    WHERE id = %s AND NOT from_user_hidden
-                    """,
-                    (message_id,),
+                await db_update(
+                    'message',
+                    {'from_user_hidden': True},
+                    where=t'id = {message_id} AND NOT from_user_hidden',
+                    conn=conn,
                 )
             # Update recipient if user is a recipient
             else:
-                await conn.execute(
-                    """
-                    UPDATE message_recipient SET hidden = TRUE
-                    WHERE message_id = %s AND user_id = %s AND NOT hidden
-                    """,
-                    (message_id, user_id),
+                await db_update(
+                    'message_recipient',
+                    {'hidden': True},
+                    where=t'message_id = {message_id} AND user_id = {user_id} AND NOT hidden',
+                    conn=conn,
                 )
 
             # Check if anyone still has access to the message
-            async with await conn.execute(
-                """
-                SELECT 1 FROM message WHERE id = %s AND NOT from_user_hidden
-                UNION ALL
-                SELECT 1 FROM message_recipient WHERE message_id = %s AND NOT hidden
-                LIMIT 1
+            still_visible = await db_fetchval(
+                int,
+                t"""
+                    SELECT 1 FROM message WHERE id = {message_id} AND NOT from_user_hidden
+                    UNION ALL
+                    SELECT 1 FROM message_recipient WHERE message_id = {message_id} AND NOT hidden
+                    LIMIT 1
                 """,
-                (message_id, message_id),
-            ) as r:
-                should_delete = await r.fetchone() is None
+                conn=conn,
+            )
 
             # No one has access anymore - delete completely
-            if should_delete:
-                await conn.execute(
-                    'DELETE FROM message WHERE id = %s',
-                    (message_id,),
-                )
+            if still_visible is None:
+                await db_delete('message', where={'id': message_id}, conn=conn)
                 # message_recipient is deleted by cascade
 
 

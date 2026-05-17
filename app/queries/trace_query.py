@@ -1,13 +1,11 @@
 from string.templatelib import Template
-from typing import Any
 
 import cython
 import numpy as np
 from numpy.typing import NDArray
 from psycopg import IsolationLevel
 from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
-from psycopg.sql import Literal as PgLiteral
+from psycopg.sql import SQL
 from shapely import (
     MultiLineString,
     MultiPoint,
@@ -18,7 +16,15 @@ from shapely import (
     prepare,
 )
 
-from app.db import db
+from app.db import (
+    db,
+    db_count,
+    db_fetchall,
+    db_fetchone,
+    db_fetchrows,
+    t_and,
+    t_order,
+)
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_scopes, auth_user
 from app.lib.geo.h3 import polygon_to_h3
@@ -30,6 +36,8 @@ from app.models.db.trace import Trace, trace_is_visible
 from app.models.types import StorageKey, TraceId, UserId
 from app.queries.timescaledb_query import TimescaleDBQuery
 
+_UNION_ALL = SQL(' UNION ALL ')
+
 
 class TraceQuery:
     @staticmethod
@@ -38,17 +46,13 @@ class TraceQuery:
         Get a trace by id.
         Raises if the trace is not visible to the current user.
         """
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        trace = await db_fetchone(
+            Trace,
+            t"""
                 SELECT * FROM trace
-                WHERE id = %s
-                """,
-                (trace_id,),
-            ) as r,
-        ):
-            trace: Trace | None = await r.fetchone()  # type: ignore
+                WHERE id = {trace_id}
+            """,
+        )
 
         if trace is None:
             raise_for.trace_not_found(trace_id)
@@ -60,17 +64,13 @@ class TraceQuery:
     @staticmethod
     async def find_by_ids(ids: list[TraceId]) -> list[Trace]:
         """Find traces by ids for report context."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchall(
+            Trace,
+            t"""
                 SELECT * FROM trace
-                WHERE id = ANY(%s)
-                """,
-                (ids,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+                WHERE id = ANY({ids})
+            """,
+        )
 
     @staticmethod
     async def get_one_data_by_id(trace_id: TraceId) -> bytes:
@@ -87,18 +87,18 @@ class TraceQuery:
     @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count traces by user id."""
-        query = SQL("""
-            SELECT COUNT(*) FROM trace
-            WHERE user_id = %s
-        """)
-
-        # If unauthenticated, count public traces
+        # If unauthenticated, count public traces only
         user = auth_user()
-        if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes():
-            query = SQL("{} AND visibility IN ('identifiable', 'public')").format(query)
+        visibility_filter = (
+            t"AND visibility IN ('identifiable', 'public')"
+            if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes()
+            else t''
+        )
 
-        async with db() as conn, await conn.execute(query, (user_id,)) as r:
-            return (await r.fetchone())[0]  # type: ignore
+        return await db_count(
+            'trace',
+            where=t'user_id = {user_id} {visibility_filter:q}',
+        )
 
     @staticmethod
     async def find_recent(
@@ -111,27 +111,27 @@ class TraceQuery:
     ) -> list[Trace]:
         """Find recent traces."""
         order_desc: cython.bint = (after is None) or (before is not None)
-        filters: list[Template] = []
 
         # If unauthenticated, find public traces
         user = auth_user()
-        if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes():
-            filters.append(t"visibility IN ('identifiable', 'public')")
-        if user_id is not None:
-            filters.append(t'user_id = {user_id}')
-        if tag is not None:
-            filters.append(t'tags @> ARRAY[{tag}]')
-        if before is not None:
-            filters.append(t'id < {before}')
-        if after is not None:
-            filters.append(t'id > {after}')
-
-        where = SQL(' AND ').join(filters) if filters else SQL('TRUE')
-        order = SQL('DESC') if order_desc else SQL('ASC')
-        limit_clause: Template | Composable = (
-            t'LIMIT {limit}' if limit is not None else SQL('')
+        visibility_cond = (
+            t"visibility IN ('identifiable', 'public')"
+            if user is None or user['id'] != user_id or 'read_gpx' not in auth_scopes()
+            else None
         )
 
+        where = t_and(
+            visibility_cond,
+            t'user_id = {user_id}' if user_id is not None else None,
+            t'tags @> ARRAY[{tag}]' if tag is not None else None,
+            t'id < {before}' if before is not None else None,
+            t'id > {after}' if after is not None else None,
+        )
+        order = t_order('desc' if order_desc else 'asc')
+
+        # LIMIT must apply to inner ordering before optional subquery sort-flip,
+        # so it's inlined rather than passed via db_fetchall's limit kwarg.
+        limit_clause: Template = t'LIMIT {limit}' if limit is not None else t''
         query = t"""
             SELECT * FROM trace
             WHERE {where:q}
@@ -146,11 +146,7 @@ class TraceQuery:
                 ORDER BY id DESC
             """
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(Trace, query)
 
     @staticmethod
     async def find_by_geom(
@@ -161,50 +157,33 @@ class TraceQuery:
         legacy_offset: int | None = None,
     ) -> list[Trace]:
         """Find traces by geometry. Returns traces with segments intersecting the provided geometry."""
-        params: dict[str, Any] = {
-            'h3_cells': polygon_to_h3(geometry, max_resolution=11),
-            'visibility': (
-                ['identifiable', 'trackable']
-                if identifiable_trackable
-                else ['public', 'private']
-            ),
-            'limit': limit,
-        }
-
-        if legacy_offset is not None:
-            offset_clause = SQL('OFFSET %(legacy_offset)s')
-            params['legacy_offset'] = legacy_offset
-        else:
-            offset_clause = SQL('')
+        h3_cells = polygon_to_h3(geometry, max_resolution=11)
+        visibility = (
+            ['identifiable', 'trackable']
+            if identifiable_trackable
+            else ['public', 'private']
+        )
+        offset_clause = t'OFFSET {legacy_offset}' if legacy_offset is not None else t''
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
-            query = SQL("""
-                /*+ BitmapScan(trace trace_segments_idx) */
-                {query}
-                {offset}
-                LIMIT %(limit)s
-            """).format(
-                query=SQL(' UNION ALL ').join([
-                    SQL("""(
-                        SELECT * FROM trace
-                        WHERE h3_points_to_cells_range(segments, 11) && %(h3_cells)s::h3index[]
-                        AND visibility = ANY(%(visibility)s)
-                        AND id BETWEEN {chunk_start} AND {chunk_end}
-                        ORDER BY id DESC
-                    )""").format(
-                        chunk_start=PgLiteral(chunk_start),
-                        chunk_end=PgLiteral(chunk_end),
-                    )
-                    for chunk_start, chunk_end in await TimescaleDBQuery.get_chunks_ranges(
-                        'trace', conn
-                    )
-                ]),
-                offset=offset_clause,
-            )
+            chunks = await TimescaleDBQuery.get_chunks_ranges('trace', conn)
+            unions = _UNION_ALL.join([
+                t"""(
+                    SELECT * FROM trace
+                    WHERE h3_points_to_cells_range(segments, 11) && {h3_cells}::h3index[]
+                    AND visibility = ANY({visibility})
+                    AND id BETWEEN {chunk_start} AND {chunk_end}
+                    ORDER BY id DESC
+                )"""
+                for chunk_start, chunk_end in chunks
+            ])
 
-            async with await conn.cursor(row_factory=dict_row).execute(
-                query, params
-            ) as r:
+            async with await conn.cursor(row_factory=dict_row).execute(t"""
+                /*+ BitmapScan(trace trace_segments_idx) */
+                {unions:q}
+                {offset_clause:q}
+                LIMIT {limit}
+            """) as r:
                 traces: list[Trace] = await r.fetchall()  # type: ignore
                 if not traces:
                     return []
@@ -286,15 +265,15 @@ class TraceQuery:
             return
 
         trace_map = {trace['id']: trace for trace in traces}
-        params: list[Any] = [list(trace_map)]
+        trace_ids = list(trace_map)
 
-        if limit_per_trace is not None:
-            where_clause = SQL('WHERE index %% GREATEST(1, (size / %s)::int) = 0')
-            params.append(limit_per_trace)
-        else:
-            where_clause = SQL('')
+        where_clause = (
+            t'WHERE index % GREATEST(1, (size / {limit_per_trace})::int) = 0'
+            if limit_per_trace is not None
+            else t''
+        )
 
-        query = SQL("""
+        rows = await db_fetchrows(t"""
             SELECT id, ST_Collect(point)
             FROM (
                 SELECT
@@ -304,28 +283,23 @@ class TraceQuery:
                     size
                 FROM trace
                 CROSS JOIN LATERAL ST_DumpPoints(ST_Force2D(segments)) AS dp
-                WHERE id = ANY(%s)
+                WHERE id = ANY({trace_ids})
             )
-            {where}
+            {where_clause:q}
             GROUP BY id
-            """).format(where=where_clause)
+        """)
+        trace_id: TraceId
+        geom: MultiPoint
 
-        async with (
-            db() as conn,
-            await conn.execute(query, params) as r,
-        ):
-            trace_id: TraceId
-            geom: MultiPoint
+        for trace_id, geom in rows:
+            coords = get_coordinates(geom)
 
-            for trace_id, geom in await r.fetchall():
-                coords = get_coordinates(geom)
+            if resolution is not None:
+                # Optionally scale coordinates to the given resolution
+                coords = (
+                    mercator(coords, resolution, resolution).astype(np.uint)
+                    if len(coords) >= 2
+                    else np.empty((0,), dtype=np.uint)
+                )
 
-                if resolution is not None:
-                    # Optionally scale coordinates to the given resolution
-                    coords = (
-                        mercator(coords, resolution, resolution).astype(np.uint)
-                        if len(coords) >= 2
-                        else np.empty((0,), dtype=np.uint)
-                    )
-
-                trace_map[trace_id]['coords'] = coords
+            trace_map[trace_id]['coords'] = coords

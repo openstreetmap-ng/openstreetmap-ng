@@ -4,21 +4,18 @@ from typing import Any
 
 import cython
 from app.models.proto.note_types import GetCommentsResponse_Comment_Event
-from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
 from shapely import Point, get_coordinates
 
-from app.db import db
+from app.db import db, db_fetchone, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_scopes, auth_user
 from app.lib.http.client import HTTPError
 from app.lib.text.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
-from app.models.db.note import Note, NoteInit
+from app.models.db.note import Note
 from app.models.db.note_comment import (
     NoteComment,
-    NoteCommentInit,
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
@@ -50,48 +47,26 @@ class NoteService:
             user_ip = get_request_ip()
 
         async with db(True) as conn:
-            note_init: NoteInit = {
-                'point': point,
-            }
+            note_id: NoteId
+            note_created_at: datetime
+            note_id, note_created_at = await db_insert(
+                'note',
+                {'point': t'ST_QuantizeCoordinates({point}, 7)'},
+                returning='id, created_at',
+                conn=conn,
+            )
 
-            async with await conn.execute(
-                """
-                INSERT INTO note (
-                    point
-                )
-                VALUES (
-                    ST_QuantizeCoordinates(%(point)s, 7)
-                )
-                RETURNING id, created_at
-                """,
-                note_init,
-            ) as r:
-                note_id: NoteId
-                note_created_at: datetime
-                note_id, note_created_at = await r.fetchone()  # type: ignore
-
-            comment_init: NoteCommentInit = {
-                'user_id': user_id,
-                'user_ip': user_ip,
-                'note_id': note_id,
-                'event': 'opened',
-                'body': text,
-            }
-
-            await conn.execute(
-                """
-                INSERT INTO note_comment (
-                    user_id, user_ip, note_id, event, body, created_at
-                )
-                VALUES (
-                    %(user_id)s, %(user_ip)s, %(note_id)s, %(event)s, %(body)s, %(created_at)s
-                )
-                RETURNING created_at
-                """,
+            await db_insert(
+                'note_comment',
                 {
-                    **comment_init,
+                    'user_id': user_id,
+                    'user_ip': user_ip,
+                    'note_id': note_id,
+                    'event': 'opened',
+                    'body': text,
                     'created_at': note_created_at,
                 },
+                conn=conn,
             )
             await audit('create_note', conn, extra={'id': note_id})
 
@@ -113,50 +88,44 @@ class NoteService:
         user_id = user['id']
         send_activity_email: cython.bint = False
 
-        conditions: list[Composable] = [SQL('id = %s')]
-        params: list[Any] = [note_id]
-
         # Only show hidden notes to moderators
-        if not user_is_moderator(user):
-            conditions.append(SQL('hidden_at IS NULL'))
-
-        query = SQL("""
-            SELECT * FROM note
-            WHERE {conditions}
-            FOR UPDATE
-        """).format(conditions=SQL(' AND ').join(conditions))
+        hidden_filter = t'' if user_is_moderator(user) else t'AND hidden_at IS NULL'
 
         async with db(True) as conn:
-            async with await conn.cursor(row_factory=dict_row).execute(
-                query, params
-            ) as r:
-                note: Note | None = await r.fetchone()  # type: ignore
-                if note is None:
-                    if ignore_closed_or_missing:
-                        return False
-                    raise_for.note_not_found(note_id)
+            note = await db_fetchone(
+                Note,
+                t"""
+                    SELECT * FROM note
+                    WHERE id = {note_id}
+                    {hidden_filter:q}
+                    FOR UPDATE
+                """,
+                conn=conn,
+            )
+            if note is None:
+                if ignore_closed_or_missing:
+                    return False
+                raise_for.note_not_found(note_id)
 
-            del conditions
-            update: list[Composable] = []
-            params.clear()
+            updates: dict[str, Any] = {}
 
             if event == 'closed':
                 if note['closed_at'] is not None:
                     if ignore_closed_or_missing:
                         return False
                     raise_for.note_closed(note_id, note['closed_at'])
-                update.append(SQL('closed_at = statement_timestamp()'))
+                updates['closed_at'] = t'statement_timestamp()'
                 send_activity_email = True
 
             elif event == 'reopened':
                 # Unhide
                 if note['hidden_at'] is not None:
-                    update.append(SQL('hidden_at = NULL'))
+                    updates['hidden_at'] = None
                 # Reopen
                 elif note['closed_at'] is None:
                     raise_for.note_open(note_id)
                 else:
-                    update.append(SQL('closed_at = NULL'))
+                    updates['closed_at'] = None
                     send_activity_email = True
 
             elif event == 'commented':
@@ -167,46 +136,29 @@ class NoteService:
             elif event == 'hidden':
                 if not user_is_moderator(user):
                     raise_for.insufficient_scopes(['role_moderator'])
-                update.append(SQL('hidden_at = statement_timestamp()'))
+                updates['hidden_at'] = t'statement_timestamp()'
 
             else:
                 raise NotImplementedError(f'Unsupported note event {event!r}')
 
-            comment_init: NoteCommentInit = {
-                'user_id': user_id,
-                'user_ip': None,
-                'note_id': note_id,
-                'event': event,
-                'body': text,
-            }
-
-            async with await conn.execute(
-                """
-                INSERT INTO note_comment (
-                    user_id, user_ip, note_id, event, body
-                )
-                VALUES (
-                    %(user_id)s, %(user_ip)s, %(note_id)s, %(event)s, %(body)s
-                )
-                RETURNING id, created_at
-                """,
-                comment_init,
-            ) as r:
-                comment_id: NoteCommentId
-                created_at: datetime
-                comment_id, created_at = await r.fetchone()  # type: ignore
+            comment_id: NoteCommentId
+            created_at: datetime
+            comment_id, created_at = await db_insert(
+                'note_comment',
+                {
+                    'user_id': user_id,
+                    'user_ip': None,
+                    'note_id': note_id,
+                    'event': event,
+                    'body': text,
+                },
+                returning='id, created_at',
+                conn=conn,
+            )
 
             # Update the note's updated_at to match the comment's created_at
-            update.append(SQL('updated_at = %s'))
-            params.append(created_at)
-
-            query = SQL("""
-                UPDATE note
-                SET {} WHERE id = %s
-            """).format(SQL(',').join(update))
-            params.append(note_id)
-
-            await conn.execute(query, params)
+            updates['updated_at'] = created_at
+            await db_update('note', updates, where={'id': note_id}, conn=conn)
             if text:
                 await audit(
                     'create_note_comment',

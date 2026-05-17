@@ -7,14 +7,11 @@ from app.models.db.user import UserDisplay
 from app.models.types import DiaryCommentId, DiaryId, UserId
 
 
-class DiaryCommentInit(TypedDict):
+class DiaryComment(TypedDict):
     id: DiaryCommentId
     user_id: UserId
     diary_id: DiaryId
     body: str  # TODO: validate size
-
-
-class DiaryComment(DiaryCommentInit):
     body_rich_hash: bytes | None
     created_at: datetime
 

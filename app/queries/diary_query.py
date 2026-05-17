@@ -1,13 +1,9 @@
 from asyncio import TaskGroup
 from collections import defaultdict
-from string.templatelib import Template
-from typing import Any
 
 import cython
-from psycopg.rows import dict_row
-from psycopg.sql import SQL, Composable
 
-from app.db import db
+from app.db import db_count, db_fetchall, db_fetchone, db_fetchrows, t_and, t_order
 from app.lib.http.client import HTTPError
 from app.models.db.diary import Diary
 from app.models.db.diary_comment import DiaryComment
@@ -24,32 +20,18 @@ class DiaryQuery:
 
     @staticmethod
     async def find_by_ids(ids: list[DiaryId]) -> list[Diary]:
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchall(
+            Diary,
+            t"""
                 SELECT * FROM diary
-                WHERE id = ANY(%s)
-                """,
-                (ids,),
-            ) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+                WHERE id = ANY({ids})
+            """,
+        )
 
     @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count diaries by user id."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT COUNT(*) FROM diary
-                WHERE user_id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        return await db_count('diary', where={'user_id': user_id})
 
     @staticmethod
     async def find_recent(
@@ -66,19 +48,13 @@ class DiaryQuery:
         )
 
         order_desc: cython.bint = (after is None) or (before is not None)
-        filters: list[Template] = []
-
-        if user_id is not None:
-            filters.append(t'user_id = {user_id}')
-        if language is not None:
-            filters.append(t'language = {language}')
-        if before is not None:
-            filters.append(t'id < {before}')
-        if after is not None:
-            filters.append(t'id > {after}')
-
-        where = SQL(' AND ').join(filters) if filters else SQL('TRUE')
-        order = SQL('DESC') if order_desc else SQL('ASC')
+        where = t_and(
+            t'user_id = {user_id}' if user_id is not None else None,
+            t'language = {language}' if language is not None else None,
+            t'id < {before}' if before is not None else None,
+            t'id > {after}' if after is not None else None,
+        )
+        order = t_order('desc' if order_desc else 'asc')
 
         query = t"""
             SELECT * FROM diary
@@ -94,11 +70,7 @@ class DiaryQuery:
                 ORDER BY id DESC
             """
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(Diary, query)
 
     @staticmethod
     async def resolve_location_name(diaries: list[Diary]) -> None:
@@ -140,33 +112,18 @@ class DiaryCommentQuery:
     @staticmethod
     async def count_by_user(user_id: UserId) -> int:
         """Count diary comments by user id (for profile stats)."""
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT COUNT(*)
-                FROM diary_comment
-                WHERE user_id = %s
-                """,
-                (user_id,),
-            ) as r,
-        ):
-            return (await r.fetchone())[0]  # type: ignore
+        return await db_count('diary_comment', where={'user_id': user_id})
 
     @staticmethod
     async def find_by_id(comment_id: DiaryCommentId) -> DiaryComment | None:
         """Find a diary comment by id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(
-                """
+        return await db_fetchone(
+            DiaryComment,
+            t"""
                 SELECT * FROM diary_comment
-                WHERE id = %s
-                """,
-                (comment_id,),
-            ) as r,
-        ):
-            return await r.fetchone()  # type: ignore
+                WHERE id = {comment_id}
+            """,
+        )
 
     @staticmethod
     async def find_by_user(
@@ -178,40 +135,28 @@ class DiaryCommentQuery:
     ) -> list[DiaryComment]:
         """Find comments by user id."""
         order_desc: cython.bint = (after is None) or (before is not None)
-        conditions: list[Composable] = [SQL('user_id = %s')]
-        params: list[Any] = [user_id]
-
-        if before is not None:
-            conditions.append(SQL('id < %s'))
-            params.append(before)
-
-        if after is not None:
-            conditions.append(SQL('id > %s'))
-            params.append(after)
-
-        query = SQL("""
-            SELECT * FROM diary_comment
-            WHERE {where}
-            ORDER BY id {order}
-            LIMIT %s
-        """).format(
-            where=SQL(' AND ').join(conditions or (SQL('TRUE'),)),
-            order=SQL('DESC' if order_desc else 'ASC'),
+        where = t_and(
+            t'user_id = {user_id}',
+            t'id < {before}' if before is not None else None,
+            t'id > {after}' if after is not None else None,
         )
-        params.append(limit)
+        order = t_order('desc' if order_desc else 'asc')
+
+        query = t"""
+            SELECT * FROM diary_comment
+            WHERE {where:q}
+            ORDER BY id {order:q}
+            LIMIT {limit}
+        """
 
         # Always return in descending order
         if not order_desc:
-            query = SQL("""
-                SELECT * FROM ({})
+            query = t"""
+                SELECT * FROM ({query:q})
                 ORDER BY id DESC
-            """).format(query)
+            """
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(query, params) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+        return await db_fetchall(DiaryComment, query)
 
     @staticmethod
     async def resolve_num_comments(diaries: list[Diary]) -> None:
@@ -220,18 +165,13 @@ class DiaryCommentQuery:
             return
 
         id_map = {diary['id']: diary for diary in diaries}
+        ids = list(id_map)
 
-        async with (
-            db() as conn,
-            await conn.execute(
-                """
-                SELECT c.value, (
-                    SELECT COUNT(*) FROM diary_comment
-                    WHERE diary_id = c.value
-                ) FROM unnest(%s) AS c(value)
-                """,
-                (list(id_map),),
-            ) as r,
-        ):
-            for diary_id, count in await r.fetchall():
-                id_map[diary_id]['num_comments'] = count
+        rows = await db_fetchrows(t"""
+            SELECT c.value, (
+                SELECT COUNT(*) FROM diary_comment
+                WHERE diary_id = c.value
+            ) FROM unnest({ids}) AS c(value)
+        """)
+        for diary_id, count in rows:
+            id_map[diary_id]['num_comments'] = count

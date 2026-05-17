@@ -6,7 +6,7 @@ from psycopg import AsyncConnection
 from pydantic import SecretStr
 
 from app.config import ENV
-from app.db import db
+from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth import user_token
@@ -39,22 +39,17 @@ class UserPasswordService:
             if user_is_test(user):
                 return ENV != 'prod'
 
-            async with (
-                db() as conn,
-                await conn.execute(
-                    """
+            password_pb = await db_fetchval(
+                bytes,
+                t"""
                     SELECT password_pb
                     FROM user_password
-                    WHERE user_id = %s
-                    """,
-                    (user_id,),
-                ) as r,
-            ):
-                row = await r.fetchone()
-                if row is None:
-                    return False
+                    WHERE user_id = {user_id}
+                """,
+            )
+            if password_pb is None:
+                return False
 
-            password_pb: bytes = row[0]
             verification = PasswordHash.verify(password_pb, password)
             if not verification.success:
                 return False
@@ -62,17 +57,13 @@ class UserPasswordService:
             if not skip_rehash and verification.rehash_needed:
                 new_password_pb = PasswordHash.hash(password)
                 if new_password_pb is not None:
-                    async with db(True) as conn:
-                        result = await conn.execute(
-                            """
-                            UPDATE user_password
-                            SET password_pb = %s
-                            WHERE user_id = %s AND password_pb = %s
-                            """,
-                            (new_password_pb, user_id, password_pb),
-                        )
-                        if result.rowcount:
-                            logging.debug('Rehashed password for user %d', user_id)
+                    rowcount = await db_update(
+                        'user_password',
+                        {'password_pb': new_password_pb},
+                        where=t'user_id = {user_id} AND password_pb = {password_pb}',
+                    )
+                    if rowcount:
+                        logging.debug('Rehashed password for user %d', user_id)
 
             if verification.schema_needed is not None:
                 StandardFeedback.raise_error(
@@ -98,15 +89,13 @@ class UserPasswordService:
         """Set or update password for user (upsert)."""
         password_pb = PasswordHash.hash(password)
         assert password_pb is not None, 'Provided password schema cannot be used'
-        await conn.execute(
-            """
-            INSERT INTO user_password (user_id, password_pb)
-            VALUES (%s, %s)
-            ON CONFLICT (user_id) DO UPDATE SET
+        await db_insert(
+            'user_password',
+            {'user_id': user_id, 'password_pb': password_pb},
+            on_conflict=t"""(user_id) DO UPDATE SET
                 password_pb = EXCLUDED.password_pb,
-                updated_at = DEFAULT
-            """,
-            (user_id, password_pb),
+                updated_at = DEFAULT""",
+            conn=conn,
         )
 
     @staticmethod
@@ -152,23 +141,22 @@ class UserPasswordService:
                 SYSTEM_APP_WEB_CLIENT_ID, user_id=user_id
             )
 
+        token_id = token_struct.id
         async with db(True) as conn:
-            async with await conn.execute(
-                """
-                SELECT 1 FROM user_token
-                WHERE id = %s AND type = 'reset_password'
-                FOR UPDATE
+            exists = await db_fetchval(
+                int,
+                t"""
+                    SELECT 1 FROM user_token
+                    WHERE id = {token_id} AND type = 'reset_password'
                 """,
-                (token_struct.id,),
-            ) as r:
-                if await r.fetchone() is None:
-                    raise_for.bad_user_token_struct()
+                for_update=True,
+                conn=conn,
+            )
+            if exists is None:
+                raise_for.bad_user_token_struct()
 
             await UserPasswordService.set_password_unsafe(conn, user_id, new_password)
-            await conn.execute(
-                'DELETE FROM user_token WHERE id = %s',
-                (token_struct.id,),
-            )
+            await db_delete('user_token', where={'id': token_id}, conn=conn)
             await audit(
                 'change_password', conn, user_id=user_id, extra={'reason': 'reset'}
             )
