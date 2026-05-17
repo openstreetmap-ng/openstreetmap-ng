@@ -3,12 +3,12 @@ from string.templatelib import Template
 from typing import Literal, assert_never
 
 from psycopg import AsyncConnection, IsolationLevel
-from psycopg.rows import dict_row
 from shapely.geometry.base import BaseGeometry
 
 from app.config import MAP_QUERY_LEGACY_NODES_LIMIT
 from app.db import (
     db,
+    db_fetchall,
     db_fetchcol,
     db_fetchrow,
     db_fetchrows,
@@ -211,18 +211,16 @@ class ElementQuery:
 
         where = t_and(*filters)
         order_dir = t_order(sort_dir)
-        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        return await db_fetchall(
+            Element,
+            t"""
                 SELECT * FROM element
                 WHERE {where:q}
                 ORDER BY {sort_by:i} {order_dir:q}
-                {limit_clause:q}
-            """) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def find_by_versioned_refs(
@@ -244,19 +242,17 @@ class ElementQuery:
 
         where_sql = t_and(*filters)
         where_clause = t'WHERE {where_sql:q}' if filters else t''
-        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        return await db_fetchall(
+            Element,
+            t"""
                 SELECT e.* FROM element e
                 JOIN UNNEST({ref_typed_ids}::bigint[], {ref_versions}::bigint[]) AS v(typed_id, version)
                   ON e.typed_id = v.typed_id AND e.version = v.version
                 {where_clause:q}
-                {limit_clause:q}
-            """) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            """,
+            limit=limit,
+        )
 
     @staticmethod
     async def find_by_refs(
@@ -284,19 +280,17 @@ class ElementQuery:
 
         where = t_and(*filters)
         order_dir = t_order(sort_dir)
-        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        result = await db_fetchall(
+            Element,
+            t"""
                 SELECT DISTINCT ON (typed_id) *
                 FROM element
                 WHERE {where:q}
                 ORDER BY typed_id {order_dir:q}, sequence_id DESC
-                {limit_clause:q}
-            """) as r,
-        ):
-            result: list[Element] = await r.fetchall()  # type: ignore
+            """,
+            limit=limit,
+        )
 
         # Return if not recursing or reached the limit
         if not recurse_ways or (limit is not None and len(result) >= limit):
@@ -323,20 +317,20 @@ class ElementQuery:
 
         node_where = t_and(*node_filters)
         node_limit = limit - len(result) if limit is not None else None
-        node_limit_clause = t'LIMIT {node_limit}' if node_limit is not None else t''
 
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
-                SELECT DISTINCT ON (typed_id) *
-                FROM element
-                WHERE {node_where:q}
-                ORDER BY typed_id {order_dir:q}, sequence_id DESC
-                {node_limit_clause:q}
-            """) as r,
-        ):
-            result.extend(await r.fetchall())  # type: ignore
-            return result
+        result.extend(
+            await db_fetchall(
+                Element,
+                t"""
+                    SELECT DISTINCT ON (typed_id) *
+                    FROM element
+                    WHERE {node_where:q}
+                    ORDER BY typed_id {order_dir:q}, sequence_id DESC
+                """,
+                limit=node_limit,
+            )
+        )
+        return result
 
     @staticmethod
     async def find_by_any_refs(
@@ -452,21 +446,19 @@ class ElementQuery:
         where = t_and(*filters)
         distinct = t'' if at_sequence_id is None else t'DISTINCT ON (typed_id)'
         order = t'typed_id' if at_sequence_id is None else t'typed_id, sequence_id DESC'
-        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
-        # Find elements that reference the member typed_ids
-        async with (
-            db(conn) as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        return await db_fetchall(
+            Element,
+            t"""
                 /*+ BitmapScan(element {hint_sql:q}) */
                 SELECT {distinct:q} *
                 FROM element
                 WHERE {where:q}
                 ORDER BY {order:q}
-                {limit_clause:q}
-            """) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            """,
+            limit=limit,
+            conn=conn,
+        )
 
     @staticmethod
     async def map_refs_to_parent_refs(
@@ -478,8 +470,6 @@ class ElementQuery:
         """Map element refs to the refs of elements that reference them."""
         if not members:
             return {}
-
-        limit_clause = t'LIMIT {limit}' if limit is not None else t''
 
         rows = await db_fetchrows(
             t"""
@@ -493,8 +483,8 @@ class ElementQuery:
                 )
                 CROSS JOIN LATERAL UNNEST(members) member
                 WHERE member = ANY({members})
-                {limit_clause:q}
             """,
+            limit=limit,
             conn=conn,
         )
         result: dict[TypedElementId, set[TypedElementId]]
@@ -510,15 +500,14 @@ class ElementQuery:
         sort_by: Literal['typed_id', 'sequence_id'] = 'typed_id',
     ) -> list[Element]:
         """Get elements by the changeset id."""
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        return await db_fetchall(
+            Element,
+            t"""
                 SELECT * FROM element
                 WHERE changeset_id = {changeset_id}
                 ORDER BY {sort_by:i}
-            """) as r,
-        ):
-            return await r.fetchall()  # type: ignore
+            """,
+        )
 
     @staticmethod
     async def find_by_geom(
@@ -549,19 +538,20 @@ class ElementQuery:
             nodes_limit += 1  # to detect limit exceeded
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
-            limit_clause = t'LIMIT {nodes_limit}' if nodes_limit is not None else t''
-
             # Find all matching nodes within the geometry
-            async with await conn.cursor(row_factory=dict_row).execute(t"""
-                SELECT * FROM element
-                WHERE typed_id <= 1152921504606846975
-                AND point && {geometry}
-                AND latest
-                {limit_clause:q}
-            """) as r:
-                nodes: list[Element] = await r.fetchall()  # type: ignore
-                if not nodes:
-                    return []
+            nodes = await db_fetchall(
+                Element,
+                t"""
+                    SELECT * FROM element
+                    WHERE typed_id <= 1152921504606846975
+                    AND point && {geometry}
+                    AND latest
+                """,
+                limit=nodes_limit,
+                conn=conn,
+            )
+            if not nodes:
+                return []
 
             if legacy_nodes_limit and len(nodes) > MAP_QUERY_LEGACY_NODES_LIMIT:
                 raise_for.map_query_nodes_limit_exceeded()

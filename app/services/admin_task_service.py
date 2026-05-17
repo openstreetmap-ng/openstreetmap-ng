@@ -2,6 +2,7 @@ import logging
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable, Mapping
 from contextlib import asynccontextmanager
+from datetime import datetime
 from functools import cache
 from inspect import Parameter, _empty, signature
 from operator import itemgetter
@@ -20,11 +21,10 @@ from typing import (
     get_type_hints,
 )
 
-from psycopg.rows import dict_row
 from pydantic import BaseModel, create_model
 
 from app.config import ADMIN_TASK_HEARTBEAT_INTERVAL, ADMIN_TASK_TIMEOUT, ENV
-from app.db import db, db_delete, db_insert, db_update
+from app.db import db, db_delete, db_fetchrows, db_insert, db_update
 from app.lib.audit import audit
 from app.lib.time.date_utils import utcnow
 
@@ -102,14 +102,12 @@ class AdminTaskService:
             return []
 
         registry_ids = list(_REGISTRY)
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
-                SELECT * FROM admin_task
+        heartbeats: dict[str, datetime] = dict(
+            await db_fetchrows(t"""
+                SELECT id, heartbeat_at FROM admin_task
                 WHERE id = ANY({registry_ids})
-            """) as r,
-        ):
-            rows = {row['id']: row for row in await r.fetchall()}
+            """)
+        )
 
         timeout_at = utcnow() - ADMIN_TASK_TIMEOUT
 
@@ -118,8 +116,8 @@ class AdminTaskService:
                 'id': definition['id'],
                 'arguments': definition['arguments'],
                 'running': (
-                    (row := rows.get(id)) is not None
-                    and timeout_at < row['heartbeat_at']
+                    (heartbeat := heartbeats.get(id)) is not None
+                    and timeout_at < heartbeat
                 ),
             }
             for id, definition in _REGISTRY.items()

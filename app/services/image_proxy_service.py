@@ -7,7 +7,6 @@ import cython
 import re2
 from fastapi import HTTPException
 from psycopg import AsyncConnection
-from psycopg.rows import dict_row
 from psycopg.sql import SQL
 from sentry_sdk import capture_exception
 from starlette import status
@@ -18,7 +17,7 @@ from app.config import (
     IMAGE_PROXY_ERROR_CACHE_EXPIRE,
     IMAGE_PROXY_FETCH_MAX_BYTES,
 )
-from app.db import db, db_delete, db_fetchone, db_update
+from app.db import db, db_delete, db_fetchall, db_fetchone, db_update
 from app.exceptions.context import raise_for
 from app.lib.http.client import HTTP, HTTPError
 from app.lib.io.image import Image
@@ -57,31 +56,31 @@ class ImageProxyService:
             for proxy_id, url in zip(zids(len(unique_urls)), unique_urls)
         ])
 
-        async with (
-            db(True) as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
-                WITH inserted AS (
-                    INSERT INTO image_proxy (id, url)
-                    VALUES {values_sql:q}
-                    ON CONFLICT (url) DO NOTHING
-                    RETURNING *
-                ),
-                existing AS (
-                    SELECT * FROM image_proxy
-                    WHERE url = ANY({unique_urls})
-                    AND NOT EXISTS (
-                        SELECT 1 FROM inserted
-                        WHERE inserted.url = image_proxy.url
+        async with db(True) as conn:
+            fetched = await db_fetchall(
+                ImageProxy,
+                t"""
+                    WITH inserted AS (
+                        INSERT INTO image_proxy (id, url)
+                        VALUES {values_sql:q}
+                        ON CONFLICT (url) DO NOTHING
+                        RETURNING *
+                    ),
+                    existing AS (
+                        SELECT * FROM image_proxy
+                        WHERE url = ANY({unique_urls})
+                        AND NOT EXISTS (
+                            SELECT 1 FROM inserted
+                            WHERE inserted.url = image_proxy.url
+                        )
                     )
-                )
-                SELECT * FROM inserted
-                UNION ALL
-                SELECT * FROM existing
-            """) as r,
-        ):
-            rows: dict[str, ImageProxy] = {  # type: ignore
-                row['url']: row for row in await r.fetchall()
-            }
+                    SELECT * FROM inserted
+                    UNION ALL
+                    SELECT * FROM existing
+                """,
+                conn=conn,
+            )
+            rows = {row['url']: row for row in fetched}
             result = [rows[url] for url in urls]
 
         # Prefetch
@@ -152,16 +151,14 @@ class ImageProxyService:
             return
 
         id_list = list(ids)
-        async with (
-            db() as conn,
-            await conn.cursor(row_factory=dict_row).execute(t"""
+        fetched = await db_fetchall(
+            ImageProxy,
+            t"""
                 SELECT * FROM image_proxy
                 WHERE id = ANY({id_list})
-            """) as r,
-        ):
-            entries: dict[ImageProxyId, ImageProxy] = {
-                row['id']: row for row in await r.fetchall()
-            }  # type: ignore
+            """,
+        )
+        entries: dict[ImageProxyId, ImageProxy] = {row['id']: row for row in fetched}
 
         for item, html in workload:
 

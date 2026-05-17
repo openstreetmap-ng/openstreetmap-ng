@@ -454,9 +454,13 @@ def _where_tpl(where: Template | Mapping[str, object]) -> Template:
 
 @cython.cfunc
 def _apply_trailing(
-    query: Template, limit, for_update: cython.bint, conn: AsyncConnection
+    query: Template,
+    limit: int | None,
+    offset: int | None,
+    for_update: cython.bint,
+    conn: AsyncConnection,
 ) -> Template:
-    """Append LIMIT and FOR UPDATE in standard SQL clause order.
+    """Append LIMIT, OFFSET, and FOR UPDATE in standard SQL clause order.
 
     FOR UPDATE is silently skipped on read-only connections — opportunistic
     locking works in both read-only and write transactions without caller
@@ -468,6 +472,8 @@ def _apply_trailing(
     """
     if limit is not None:
         query = t'{query:q} LIMIT {limit}'
+    if offset is not None:
+        query = t'{query:q} OFFSET {offset}'
     if for_update and not conn.read_only:
         query = t'{query:q} FOR UPDATE'
     return query
@@ -541,7 +547,7 @@ async def db_fetchone(
       skipped if the connection is read-only.
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, None, for_update, conn)
+        query = _apply_trailing(query, None, None, for_update, conn)
         async with await conn.cursor(row_factory=dict_row).execute(query) as r:
             return await r.fetchone()  # type: ignore[return-value]
 
@@ -552,6 +558,7 @@ async def db_fetchall(
     /,
     *,
     limit: int | None = None,
+    offset: int | None = None,
     for_update: bool = False,
     conn: AsyncConnection | None = None,
 ) -> list[_T]:
@@ -559,11 +566,12 @@ async def db_fetchall(
     Fetch many rows as dict-shaped TypedDicts.
 
     - `limit=N` appends `LIMIT N` (parameter-bound) after the query body.
+    - `offset=M` appends `OFFSET M` (after LIMIT).
     - `for_update=True` appends `FOR UPDATE`; silently skipped on read-only conn.
       Combined with `limit`, only the returned rows are locked (LIMIT applies first).
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, limit, for_update, conn)
+        query = _apply_trailing(query, limit, offset, for_update, conn)
         async with await conn.cursor(row_factory=dict_row).execute(query) as r:
             return await r.fetchall()  # type: ignore[return-value]
 
@@ -580,7 +588,7 @@ async def db_fetchrow(
     - `for_update=True` appends `FOR UPDATE`; silently skipped on read-only conn.
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, None, for_update, conn)
+        query = _apply_trailing(query, None, None, for_update, conn)
         async with await conn.execute(query) as r:
             return await r.fetchone()
 
@@ -589,6 +597,7 @@ async def db_fetchrows(
     query: Template,
     *,
     limit: int | None = None,
+    offset: int | None = None,
     for_update: bool = False,
     conn: AsyncConnection | None = None,
 ) -> list[tuple]:
@@ -598,12 +607,12 @@ async def db_fetchrows(
 
     For `list[tuple[K, V]]` → `dict[K, V]` lookups, wrap with `dict(...)`.
 
-    - `limit=N` appends `LIMIT N`; `for_update=True` appends `FOR UPDATE`
-      (silently skipped on read-only conn). Combined, only the returned rows
-      are locked (LIMIT applies first).
+    - `limit=N` appends `LIMIT N`; `offset=M` appends `OFFSET M`;
+      `for_update=True` appends `FOR UPDATE` (silently skipped on read-only conn).
+      Combined with `limit`, only the returned rows are locked (LIMIT applies first).
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, limit, for_update, conn)
+        query = _apply_trailing(query, limit, offset, for_update, conn)
         async with await conn.execute(query) as r:
             return await r.fetchall()
 
@@ -614,6 +623,7 @@ async def db_fetchcol(
     /,
     *,
     limit: int | None = None,
+    offset: int | None = None,
     for_update: bool = False,
     conn: AsyncConnection | None = None,
 ) -> list[_T]:
@@ -624,11 +634,12 @@ async def db_fetchcol(
     uses positional `row[0]` access. Typed as `Callable[..., _T]` to accept
     both classes and `NewType` aliases (which are functions, not types).
 
-    - `limit=N` appends `LIMIT N`; `for_update=True` appends `FOR UPDATE`.
-      Combined, only the returned rows are locked (LIMIT applies first).
+    - `limit=N` appends `LIMIT N`; `offset=M` appends `OFFSET M`;
+      `for_update=True` appends `FOR UPDATE`. Combined with `limit`, only the
+      returned rows are locked (LIMIT applies first).
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, limit, for_update, conn)
+        query = _apply_trailing(query, limit, offset, for_update, conn)
         async with await conn.execute(query) as r:
             return [c for (c,) in await r.fetchall()]
 
@@ -651,7 +662,7 @@ async def db_fetchval(
     - `for_update=True` appends `FOR UPDATE`; silently skipped on read-only conn.
     """
     async with _db_or(conn) as conn:
-        query = _apply_trailing(query, None, for_update, conn)
+        query = _apply_trailing(query, None, None, for_update, conn)
         async with await conn.execute(query) as r:
             row = await r.fetchone()
             return row[0] if row is not None else None

@@ -17,7 +17,6 @@ import cython
 from fastapi import Body
 from protovalidate import collect_violations
 from psycopg import AsyncConnection
-from psycopg.rows import dict_row
 from psycopg.sql import SQL, Composable, Identifier
 from starlette.responses import Response
 
@@ -26,7 +25,7 @@ from app.config import (
     STANDARD_PAGINATION_DISTANCE,
     STANDARD_PAGINATION_MAX_FULL_PAGES,
 )
-from app.db import db
+from app.db import db, db_fetchall
 from app.lib.render.response import render_response
 from app.models.proto.shared_pb2 import (
     StandardPaginationRequest,
@@ -520,21 +519,21 @@ async def _select_page(
         anchor_clause = t''
 
     order = _order_dir_sql(plan.order_dir)
-    offset = plan.offset
-    limit = plan.limit
 
-    async with (
-        await conn.cursor(row_factory=dict_row).execute(t"""
+    return await db_fetchall(
+        dict,
+        t"""
             SELECT {select:q} FROM {from_:q}
             WHERE {where:q}
               AND {id_sql:i} <= {snapshot_max_id}
               AND ({cursor_sql:i}, {id_sql:i}) <= ({snapshot_cursor}, {snapshot_max_id})
               {anchor_clause:q}
             ORDER BY {cursor_sql:i} {order:q}, {id_sql:i} {order:q}
-            OFFSET {offset} LIMIT {limit}
-        """) as r,
-    ):
-        return await r.fetchall()
+        """,
+        limit=plan.limit,
+        offset=plan.offset,
+        conn=conn,
+    )
 
 
 async def _count_limited(
