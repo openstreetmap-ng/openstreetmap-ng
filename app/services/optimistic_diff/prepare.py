@@ -15,6 +15,7 @@ from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -105,11 +106,6 @@ class OptimisticDiffPrepare:
     Whether current edits must reject nodes located at 0,0.
     """
 
-    _null_island_refs: set[TypedElementId]
-    """
-    Node refs from edited ways that need a null island coordinate check.
-    """
-
     def __init__(
         self,
         conn: AsyncConnection,
@@ -129,7 +125,6 @@ class OptimisticDiffPrepare:
         self._bbox_points = []
         self._bbox_refs = set()
         self._reject_null_island = reject_null_island
-        self._null_island_refs = set()
 
     async def prepare(self):
         await self._preload_changeset()
@@ -210,9 +205,6 @@ class OptimisticDiffPrepare:
                 logging.debug('Optimistic skipping delete for %s (is used)', typed_id)
                 continue
 
-            if self._reject_null_island and action != 'delete':
-                self._check_null_island_local(element, type)
-
             # Mark unassigned members
             if (members_arr := element.get('members_arr')) is not None:
                 indices = np.nonzero(members_arr & (1 << 59))[0]
@@ -230,13 +222,13 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
+        self._check_null_island_elements()
+
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
             num_delete=num_delete,
         )
-
-        await self._check_null_island_refs()
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -404,63 +396,18 @@ class OptimisticDiffPrepare:
         if not_found:
             self._elements_check_members_remote |= dict.fromkeys(not_found, parent_tid)
 
-    def _check_null_island_local(self, element: ElementInit, element_type: ElementType):
-        """Check the current edit for null island coordinates."""
-        if element_type == 'node':
-            point = element['point']
-            if point is not None and _is_null_island(point):
-                raise_for.bad_null_island_coordinates()
+    def _check_null_island_elements(self):
+        """Reject suspicious changesets with repeated null island elements."""
+        if not self._reject_null_island or user_is_moderator(auth_user()):
             return
 
-        if element_type != 'way':
-            return
-
-        members = element['members']
-        if not members:
-            return
-
-        element_state = self.element_state
-        null_island_refs = self._null_island_refs
-
-        for member in members:
-            entry = element_state.get(member)
-            if entry is None:
-                null_island_refs.add(member)
-                continue
-
-            current = entry.current
-            point = current['point']
-            if current['visible'] and point is not None and _is_null_island(point):
-                raise_for.bad_null_island_coordinates()
-
-    async def _check_null_island_refs(self):
-        """Check way member nodes that were not already in the local element state."""
-        if not self._reject_null_island or not self._null_island_refs:
-            return
-
-        remote_refs: list[TypedElementId] = []
-        for typed_id in self._null_island_refs:
-            entry = self.element_state.get(typed_id)
-            if entry is None:
-                remote_refs.append(typed_id)
-                continue
-
-            current = entry.current
-            point = current['point']
-            if current['visible'] and point is not None and _is_null_island(point):
-                raise_for.bad_null_island_coordinates()
-
-        if not remote_refs:
-            return
-
-        elements = await ElementQuery.find_by_refs(
-            remote_refs,
-            at_sequence_id=self.at_sequence_id,
-            limit=len(remote_refs),
-        )
-        for element in elements:
+        count: cython.size_t = 0
+        for element in self.apply_elements:
             point = element['point']
             if element['visible'] and point is not None and _is_null_island(point):
+                count += 1
+
+            if count >= 2:
                 raise_for.bad_null_island_coordinates()
 
     def _push_bbox_info(

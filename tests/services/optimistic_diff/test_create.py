@@ -35,7 +35,7 @@ async def test_create_node(changeset_id: ChangesetId):
     assert_model(elements[0], element | {'typed_id': typed_id})
 
 
-async def test_create_rejects_null_island_when_enabled(changeset_id: ChangesetId):
+async def test_create_allows_single_null_island_when_enabled(changeset_id: ChangesetId):
     # Arrange
     element: ElementInit = {
         'changeset_id': changeset_id,
@@ -48,42 +48,45 @@ async def test_create_rejects_null_island_when_enabled(changeset_id: ChangesetId
         'members_roles': None,
     }
 
-    # Act & Assert
-    with pytest.raises(Exception, match='0,0'):
-        await OptimisticDiff.run([element], reject_null_island=True)
+    # Act
+    assigned_ref_map = await OptimisticDiff.run([element], reject_null_island=True)
+
+    # Assert
+    typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
+    elements = await ElementQuery.find_by_refs([typed_id], limit=1)
+    assert_model(elements[0], element | {'typed_id': typed_id})
 
 
-async def test_create_rejects_way_with_null_island_node_when_enabled(
+async def test_create_rejects_repeated_null_island_when_enabled(
     changeset_id: ChangesetId,
 ):
     # Arrange
-    node: ElementInit = {
-        'changeset_id': changeset_id,
-        'typed_id': typed_element_id('node', ElementId(-1)),
-        'version': 1,
-        'visible': True,
-        'tags': {},
-        'point': Point(0, 0),
-        'members': None,
-        'members_roles': None,
-    }
-    assigned_ref_map = await OptimisticDiff.run([node])
-    node_typed_id = assigned_ref_map[typed_element_id('node', ElementId(-1))][0]
-
-    way: ElementInit = {
-        'changeset_id': changeset_id,
-        'typed_id': typed_element_id('way', ElementId(-1)),
-        'version': 1,
-        'visible': True,
-        'tags': {},
-        'point': None,
-        'members': [node_typed_id],
-        'members_roles': None,
-    }
+    nodes: list[ElementInit] = [
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-1)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-2)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+    ]
 
     # Act & Assert
     with pytest.raises(Exception, match='0,0'):
-        await OptimisticDiff.run([way], reject_null_island=True)
+        await OptimisticDiff.run(nodes, reject_null_island=True)
 
 
 async def test_create_node_with_tags(changeset_id: ChangesetId):
