@@ -253,4 +253,4 @@ def _create_signed_verification(
         ).SerializeToString()
     )
     hmac_b64 = urlsafe_b64encode(hmac_bytes(buffer_b64))
-    return f'{buffer_b64.decode()}.{hmac_b64.decode()}'
+    return b'.'.join((buffer_b64, hmac_b64)).decode()

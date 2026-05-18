@@ -19,7 +19,9 @@ else:
 def parse(s: SecretStr):
     """Parse the given string into a user token struct."""
     try:
-        payload = b32decode(_add_b32_padding(s.get_secret_value()), casefold=True)
+        payload = b32decode(
+            _add_b32_padding(s.get_secret_value().encode('ascii')), casefold=True
+        )
     except ValueError:
         logging.info('User token is not well-encoded')
         raise_for.bad_user_token_struct()
@@ -34,7 +36,9 @@ def parse(s: SecretStr):
 async def parse_stateless(s: SecretStr):
     """Parse the given string into a stateless user token struct."""
     try:
-        payload = b32decode(_add_b32_padding(s.get_secret_value()), casefold=True)
+        payload = b32decode(
+            _add_b32_padding(s.get_secret_value().encode('ascii')), casefold=True
+        )
     except ValueError:
         logging.info('User token is not well-encoded')
         raise_for.bad_user_token_struct()
@@ -75,7 +79,7 @@ def encode(u: UserTokenStruct | StatelessUserTokenStruct):
 
 
 @cython.cfunc
-def _add_b32_padding(s: str):
+def _add_b32_padding(s: bytes):
     s_len: cython.size_t = len(s)
     pad_len: cython.size_t = int(ceil(s_len / 8) * 8 - s_len)
-    return s + ('=' * pad_len)
+    return s + (b'=' * pad_len)

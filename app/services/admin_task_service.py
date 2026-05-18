@@ -1,4 +1,5 @@
 import logging
+from annotationlib import Format
 from asyncio import TaskGroup, sleep
 from collections.abc import Callable, Mapping
 from contextlib import asynccontextmanager
@@ -64,7 +65,7 @@ def register_admin_task(func: Callable[_P, _R]):
     if task_id in _REGISTRY:
         raise ValueError(f'Task with {task_id=!r} is already registered')
 
-    sig = signature(func)
+    sig = signature(func, annotation_format=Format.FORWARDREF)
     arguments: dict[str, TaskArgument] = {}
 
     for name, param in sig.parameters.items():
@@ -167,7 +168,10 @@ def _func_args_model(func: Callable) -> type[BaseModel]:
             type_hints.get(name, Any),
             (... if (default := param.default) is Parameter.empty else default),
         )
-        for name, param in signature(func).parameters.items()
+        for name, param in signature(
+            func,
+            annotation_format=Format.FORWARDREF,
+        ).parameters.items()
     }
 
     return create_model(

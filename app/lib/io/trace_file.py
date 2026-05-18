@@ -4,6 +4,7 @@ import zlib
 from abc import ABC, abstractmethod
 from asyncio import to_thread
 from bz2 import BZ2Decompressor
+from compression import zstd
 from io import BytesIO
 from tarfile import TarError
 from typing import ClassVar, LiteralString, NamedTuple, override
@@ -12,12 +13,6 @@ from zipfile import BadZipFile, ZipFile
 import cython
 import magic
 from sizestr import sizestr
-from zstandard import (
-    DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
-    ZstdCompressor,
-    ZstdDecompressor,
-    ZstdError,
-)
 
 from app.config import (
     TRACE_FILE_ARCHIVE_MAX_FILES,
@@ -38,6 +33,10 @@ class _CompressResult(NamedTuple):
 
 _ZSTD_SUFFIX = '.zst'
 _ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
+_ZSTD_OPTIONS: dict[int, int] = {
+    zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
+}
 
 
 class TraceFile:
@@ -79,11 +78,9 @@ class TraceFile:
     async def compress(buffer: bytes):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         result = await to_thread(
-            ZstdCompressor(
-                level=TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-                threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
-            ).compress,
+            zstd.compress,
             buffer,
+            options=_ZSTD_OPTIONS,
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
@@ -230,31 +227,21 @@ class _ZstdProcessor(_TraceProcessor):
 
     @classmethod
     @override
-    def decompress(
-        cls,
-        buffer: bytes,
-        *,
-        chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
-    ):
-        decompressor = ZstdDecompressor().decompressobj()
-        chunks: list[bytes] = []
-        total_size: cython.size_t = 0
-
+    def decompress(cls, buffer: bytes):
+        decompressor = zstd.ZstdDecompressor()
         try:
-            i: cython.size_t
-            for i in range(0, len(buffer), chunk_size):
-                chunk = decompressor.decompress(buffer[i : i + chunk_size])
-                chunks.append(chunk)
-                total_size += len(chunk)
-                if total_size > TRACE_FILE_DECOMPRESSED_MAX_SIZE:
-                    raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
-        except ZstdError:
+            result = decompressor.decompress(buffer, TRACE_FILE_DECOMPRESSED_MAX_SIZE)
+        except zstd.ZstdError:
             raise_for.trace_file_archive_corrupted(cls.media_type)
-        if not decompressor.eof or decompressor.unused_data:
+        if not decompressor.eof:
+            if not decompressor.needs_input:
+                raise_for.input_too_big(TRACE_FILE_DECOMPRESSED_MAX_SIZE)
+            raise_for.trace_file_archive_corrupted(cls.media_type)
+        if decompressor.unused_data:
             raise_for.trace_file_archive_corrupted(cls.media_type)
 
-        _log_decompressed_size(cls.media_type, total_size)
-        return b''.join(chunks)
+        _log_decompressed_size(cls.media_type, len(result))
+        return result
 
 
 @cython.cfunc

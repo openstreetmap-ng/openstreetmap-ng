@@ -7,7 +7,7 @@ Keep it accurate. If your change invalidates any section, update this file in th
 
 OpenStreetMap-NG is a full-stack OSM web platform with:
 
-- Python 3.13 backend (`fastapi`, async `psycopg`)
+- Python 3.14 backend (`fastapi`, async `psycopg`)
 - PostgreSQL 18 + PostGIS + TimescaleDB
 - Connect RPC (protobuf over HTTP) at `/rpc`
 - SSR HTML with Jinja + client-side TS/TSX (Preact + signals)

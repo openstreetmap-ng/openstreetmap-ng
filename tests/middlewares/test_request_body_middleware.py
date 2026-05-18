@@ -1,6 +1,7 @@
 import gzip
 import zlib
 from collections.abc import Callable
+from compression import zstd
 from functools import partial
 from urllib.parse import urlencode
 
@@ -10,7 +11,6 @@ import pytest
 from annotated_types import Len
 from httpx import AsyncClient
 from starlette import status
-from zstandard import ZstdCompressor
 
 from app.config import REQUEST_BODY_MAX_SIZE
 from app.lib.io.xml_codec import XMLToDict
@@ -22,7 +22,7 @@ _ENCODING_COMPRESS: list[tuple[str, Callable[[bytes], bytes]]] = [
     ('gzip', partial(gzip.compress, compresslevel=1)),
     ('deflate', partial(zlib.compress, level=1)),
     ('br', partial(brotli.compress, quality=1)),
-    ('zstd', ZstdCompressor(level=1).compress),
+    ('zstd', partial(zstd.compress, level=1)),
 ]
 
 

@@ -17,7 +17,7 @@ _download_limiter = Semaphore(6)  # max concurrent downloads
 _wiki_pages_path = Path('config/wiki_pages.json')
 
 _SITEMAP_URL_RE = re2.compile(
-    r'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+.xml.gz'
+    rb'https://wiki\.openstreetmap\.org/sitemap-wiki-NS_\d+-\d+\.xml\.gz'
 )
 _WIKI_LOC_RE = re2.compile(r'/(?:(?P<locale>[\w-]+):)?(?P<page>(?:Key|Tag):.*?)</loc>')
 
@@ -35,8 +35,8 @@ async def discover_sitemap_urls():
         follow_redirects=True,
     )
     r.raise_for_status()
-    matches = _SITEMAP_URL_RE.finditer(r.text)
-    result = [match[0] for match in matches]
+    matches = _SITEMAP_URL_RE.finditer(r.content)
+    result = [match[0].decode('ascii') for match in matches]
     print(f'[🔍] Discovered {len(result)} sitemaps')
     return result
 

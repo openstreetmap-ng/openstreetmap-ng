@@ -1,5 +1,6 @@
 import logging
 import zlib
+from compression import zstd
 from io import BytesIO
 
 import brotli
@@ -8,7 +9,6 @@ from fastapi import Response
 from sizestr import sizestr
 from starlette import status
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
-from zstandard import DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE, ZstdDecompressor
 
 from app.config import REQUEST_BODY_MAX_SIZE
 from app.middlewares.request_context_middleware import get_request
@@ -101,27 +101,21 @@ class RequestBodyMiddleware:
         return await self.app(scope, wrapper, send)
 
 
-def _decompress_zstd(
-    buffer: bytes,
-    *,
-    chunk_size: cython.size_t = DECOMPRESSION_RECOMMENDED_OUTPUT_SIZE,
-):
-    decompressor = ZstdDecompressor().decompressobj()
-    chunks: list[bytes] = []
-    total_size: cython.size_t = 0
+def _decompress_zstd(buffer: bytes):
+    decompressor = zstd.ZstdDecompressor()
+    try:
+        result = decompressor.decompress(buffer, REQUEST_BODY_MAX_SIZE)
+    except zstd.ZstdError as e:
+        raise ValueError('Zstd stream is corrupted') from e
 
-    i: cython.size_t
-    for i in range(0, len(buffer), chunk_size):
-        chunk = decompressor.decompress(buffer[i : i + chunk_size])
-        chunks.append(chunk)
-        total_size += len(chunk)
-        if total_size > REQUEST_BODY_MAX_SIZE:
+    if not decompressor.eof:
+        if not decompressor.needs_input:
             raise _TooBigError
-
-    if not decompressor.eof or decompressor.unused_data:
+        raise ValueError('Zstd stream is corrupted')
+    if decompressor.unused_data:
         raise ValueError('Zstd stream is corrupted')
 
-    return b''.join(chunks)
+    return result
 
 
 def _decompress_brotli(
