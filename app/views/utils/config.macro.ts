@@ -13,6 +13,8 @@ const getPackageDist = (pkgName: string) => {
 
 export const {
   API_URL,
+  AVATAR_MAX_FILE_SIZE,
+  BACKGROUND_MAX_FILE_SIZE,
   CHANGESET_COMMENT_BODY_MAX_LENGTH,
   CONFIGURED_AUTH_PROVIDERS,
   DEFAULT_LOCALE,
@@ -52,6 +54,8 @@ export const {
   VERSION,
 }: {
   API_URL: string
+  AVATAR_MAX_FILE_SIZE: number
+  BACKGROUND_MAX_FILE_SIZE: number
   CHANGESET_COMMENT_BODY_MAX_LENGTH: number
   CONFIGURED_AUTH_PROVIDERS: (keyof typeof Provider)[]
   DEFAULT_LOCALE: string
@@ -104,6 +108,8 @@ from app.lib.telemetry.sentry import *
 LOCAL_CHAPTERS = [c._asdict() for c in _local_chapters]
 print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "API_URL",
+        "AVATAR_MAX_FILE_SIZE",
+        "BACKGROUND_MAX_FILE_SIZE",
         "CHANGESET_COMMENT_BODY_MAX_LENGTH",
         "CONFIGURED_AUTH_PROVIDERS",
         "DEFAULT_LOCALE",

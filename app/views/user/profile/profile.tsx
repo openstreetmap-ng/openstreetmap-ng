@@ -8,7 +8,12 @@ import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
-import { config, REQUEST_BODY_MAX_SIZE, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import {
+  AVATAR_MAX_FILE_SIZE,
+  BACKGROUND_MAX_FILE_SIZE,
+  config,
+  USER_RECENT_ACTIVITY_ENTRIES,
+} from "@utils/config"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -169,7 +174,9 @@ const BackgroundForm = ({
       class="background-form"
       method={Service.method.updateBackground}
       buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
+        backgroundFile: await formDataBytes(formData, "background_file", {
+          maxSize: BACKGROUND_MAX_FILE_SIZE,
+        }),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
@@ -250,7 +257,7 @@ const AvatarForm = ({
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
         const avatarFile = await formDataBytes(formData, "avatar_file", {
-          maxSize: REQUEST_BODY_MAX_SIZE,
+          maxSize: AVATAR_MAX_FILE_SIZE,
         })
         if (avatarFile.length) {
           return {
