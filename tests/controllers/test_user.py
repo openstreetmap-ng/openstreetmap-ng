@@ -23,7 +23,7 @@ def _signed_auth_provider_verification(*, provider: Provider, name: str, email: 
         ).SerializeToString()
     )
     hmac_b64 = urlsafe_b64encode(hmac_bytes(buffer_b64))
-    return f'{buffer_b64.decode()}.{hmac_b64.decode()}'
+    return b'.'.join((buffer_b64, hmac_b64)).decode()
 
 
 @pytest.mark.parametrize('path', ['', '/test', '/test?abc=def'])

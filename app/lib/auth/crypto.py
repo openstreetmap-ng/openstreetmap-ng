@@ -86,7 +86,7 @@ def hash_compare(
 
 def hash_s256_code_challenge(verifier: str):
     """Compute the S256 code challenge from the verifier."""
-    return urlsafe_b64encode(sha256(verifier.encode()).digest()).decode().rstrip('=')
+    return urlsafe_b64encode(sha256(verifier.encode()).digest()).rstrip(b'=').decode()
 
 
 def encrypt(s: SecretBytes):

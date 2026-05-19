@@ -20,7 +20,7 @@ def _encode_code(value: int):
     for i in range(11, -1, -1):
         buf[i] = _ENC[value % 58]
         value //= 58
-    return f'{buf[:4].decode()}-{buf[4:8].decode()}-{buf[8:].decode()}'
+    return (buf[:4] + b'-' + buf[4:8] + b'-' + buf[8:]).decode()
 
 
 @cython.cfunc

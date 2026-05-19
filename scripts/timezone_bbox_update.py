@@ -1,4 +1,5 @@
 import asyncio
+from compression import zstd
 from contextlib import contextmanager
 from math import isclose
 from pathlib import Path
@@ -6,7 +7,6 @@ from zoneinfo import TZPATH
 
 import orjson
 from shapely.geometry import shape
-from zstandard import ZstdDecompressor
 
 from app.lib.http.client import HTTP, http_context
 
@@ -58,7 +58,7 @@ async def get_country_bbox_dict():
     )
     r.raise_for_status()
 
-    content = ZstdDecompressor().decompress(r.content)
+    content = zstd.decompress(r.content)
     features = orjson.loads(content)['features']
     result: dict[str, tuple[float, float, float, float]] = {}
 

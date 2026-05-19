@@ -101,7 +101,7 @@ def static_img_pipeline(verbose: bool):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
+    parser = ArgumentParser(suggest_on_error=True)
     subparsers = parser.add_subparsers(dest='command', required=True)
 
     parser_file = subparsers.add_parser('file')

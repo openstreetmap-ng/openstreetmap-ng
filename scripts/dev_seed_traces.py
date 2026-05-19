@@ -35,7 +35,8 @@ def _parse_args():
         description=(
             'Dev-only helper: create many random-ish GPX traces via the web API.\n'
             'Intended for manual pagination performance testing.'
-        )
+        ),
+        suggest_on_error=True,
     )
     parser.add_argument('--base-url', default='http://localhost:8000')
 
@@ -178,7 +179,6 @@ async def _login_and_get_cookie(
         allow_redirects=False,
     ) as resp:
         content = await resp.read()
-        text = content.decode()
 
         if resp.status == 204:
             auth_cookie = client.cookie_jar.filter_cookies(URL(origin)).get('auth')
@@ -193,6 +193,7 @@ async def _login_and_get_cookie(
                 'Login requires additional steps (2FA/passkey). Use --auth-cookie or --dev-user instead.'
             )
 
+        text = content.decode()
         raise RuntimeError(f'Login failed: {resp.status} {text[:200]}')
 
 

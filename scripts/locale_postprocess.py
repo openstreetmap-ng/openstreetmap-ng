@@ -260,7 +260,7 @@ def deep_dict_update(d: dict, u: dict):
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
+    parser = ArgumentParser(suggest_on_error=True)
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
     main(args.verbose)

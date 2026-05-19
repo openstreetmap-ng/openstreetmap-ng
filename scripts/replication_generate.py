@@ -403,7 +403,10 @@ async def _run(timespan: _TimeSpan, no_backfill: bool):
 
 
 def main():
-    parser = ArgumentParser(description='Generate replication diffs continuously')
+    parser = ArgumentParser(
+        description='Generate replication diffs continuously',
+        suggest_on_error=True,
+    )
     parser.add_argument(
         'timespan',
         choices=get_args(_TimeSpan),

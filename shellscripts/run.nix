@@ -19,6 +19,10 @@
     ''
   else
     ''
+      if [ "$ENV" = prod ]; then
+        export PYTHON_DISABLE_REMOTE_DEBUG=1
+      fi
+
       exec python -m h2corn app.main:app \
         --port ${toString webPort} \
         --workers ${toString webWorkers} \
