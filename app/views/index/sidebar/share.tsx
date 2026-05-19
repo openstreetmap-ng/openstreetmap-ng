@@ -4,7 +4,11 @@ import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { boundsPadding } from "@map/bounds"
 import { LocationFilterControl } from "@map/controls/location-filter"
-import { exportMapImage } from "@map/export-image"
+import {
+  exportMapImage,
+  getRenderMapExportUrl,
+  type RenderExportFormat,
+} from "@map/export-image"
 import { activeBaseLayerId, addLayerEventHandler } from "@map/layers/layers"
 import { mainMap } from "@map/main-map"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR } from "@map/marker"
@@ -28,11 +32,45 @@ import { Marker } from "maplibre-gl"
 import type { SubmitEventHandler } from "preact"
 import { useRef } from "preact/hooks"
 
+type RasterShareFormat = {
+  kind: "raster"
+  mimeType: string
+  suffix: string
+  label: string
+}
+
+type RenderShareFormat = {
+  kind: "render"
+  mimeType: string
+  suffix: string
+  label: string
+  format: RenderExportFormat
+}
+
+type ShareFormat = RasterShareFormat | RenderShareFormat
+
 const SHARE_FORMATS = [
-  { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
-  { mimeType: "image/png", suffix: ".png", label: "PNG" },
-  { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
-] as const
+  { kind: "raster", mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
+  { kind: "raster", mimeType: "image/png", suffix: ".png", label: "PNG" },
+  { kind: "raster", mimeType: "image/webp", suffix: ".webp", label: "WebP" },
+  {
+    kind: "render",
+    mimeType: "image/svg+xml",
+    suffix: ".svg",
+    label: "SVG",
+    format: "svg",
+  },
+  {
+    kind: "render",
+    mimeType: "application/pdf",
+    suffix: ".pdf",
+    label: "PDF",
+    format: "pdf",
+  },
+] satisfies readonly ShareFormat[]
+const DEFAULT_SHARE_FORMAT = SHARE_FORMATS[1]!
+const getShareFormat = (mimeType: string) =>
+  SHARE_FORMATS.find((f) => f.mimeType === mimeType) ?? DEFAULT_SHARE_FORMAT
 
 let urlMarker: Marker | null = null
 
@@ -83,10 +121,10 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   // payload, avoiding a redundant boolean shadow.
   const shareMarkerLngLat = useSignal<LngLat | null>(null)
 
-  const shareExportFileSuffix = useComputed(
-    () =>
-      SHARE_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!.suffix,
+  const shareExportFormat = useComputed(() =>
+    getShareFormat(shareExportFormatStorage.value),
   )
+  const shareExportFileSuffix = useComputed(() => shareExportFormat.value.suffix)
 
   const shareMapState = useComputed(() => {
     const view = shareView.value
@@ -185,17 +223,26 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
         ? locationFilterRef.current!.getBounds()
         : null
 
+      const now = new Date()
+      const date = `${formatDate(now, "yyyy-MM-dd", { timeZone: "UTC" })} ${formatDate(now, "HH-mm-ss")}`
+      const exportFormat = getShareFormat(shareExportFormatStorage.value)
+
+      if (exportFormat.kind === "render") {
+        const a = document.createElement("a")
+        a.href = getRenderMapExportUrl(exportFormat.format, map, filterBounds)
+        a.download = `Map ${date}${shareExportFileSuffix.value}`
+        a.click()
+        return
+      }
+
       const blob = await exportMapImage(
-        shareExportFormatStorage.value,
+        exportFormat.mimeType,
         map,
         filterBounds,
         shareMarkerLngLat.peek(),
         withAttribution.value,
       )
       const url = URL.createObjectURL(blob)
-
-      const now = new Date()
-      const date = `${formatDate(now, "yyyy-MM-dd", { timeZone: "UTC" })} ${formatDate(now, "HH-mm-ss")}`
 
       const a = document.createElement("a")
       a.href = url

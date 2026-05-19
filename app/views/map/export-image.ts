@@ -1,3 +1,5 @@
+import { API_URL } from "@utils/config"
+import { qsEncode } from "@utils/query-string"
 import { t } from "i18next"
 import type {
   GeoJSONSource,
@@ -5,7 +7,7 @@ import type {
   LngLatBounds,
   Map as MaplibreMap,
 } from "maplibre-gl"
-import { boundsIntersect, boundsIntersection } from "./bounds"
+import { boundsIntersect, boundsIntersection, boundsToString } from "./bounds"
 import { loadMapImage } from "./image"
 import {
   addMapLayer,
@@ -35,6 +37,26 @@ layersConfig.set(LAYER_ID, {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#quality
 const IMAGE_QUALITY = 0.98
+const EARTH_RADIUS = 6378137
+const PRINT_METERS_PER_PIXEL = 1 / (92 * 39.3701)
+const STANDARD_PIXEL_SIZE = 0.00028
+const MAX_RENDER_AREA = 4_000_000 * STANDARD_PIXEL_SIZE ** 2
+const MAX_MERCATOR_LATITUDE = 85.05112878
+
+export type RenderExportFormat = "svg" | "pdf"
+
+export const getRenderMapExportUrl = (
+  format: RenderExportFormat,
+  map: MaplibreMap,
+  filterBounds: LngLatBounds | null,
+) => {
+  const exportBounds = getRenderExportBounds(map, filterBounds)
+  return `${API_URL}/api/web/map/export${qsEncode({
+    bbox: boundsToString(exportBounds, 7),
+    scale: getRenderScale(map, exportBounds).toString(),
+    format,
+  })}`
+}
 
 export const exportMapImage = async (
   mimeType: string,
@@ -151,6 +173,58 @@ export const exportMapImage = async (
       IMAGE_QUALITY,
     )
   })
+}
+
+const getRenderExportBounds = (map: MaplibreMap, filterBounds: LngLatBounds | null) => {
+  const mapBounds = map.getBounds()
+  return filterBounds && boundsIntersect(mapBounds, filterBounds)
+    ? boundsIntersection(mapBounds, filterBounds)
+    : mapBounds
+}
+
+const getRenderScale = (map: MaplibreMap, exportBounds: LngLatBounds) => {
+  const scale = getCurrentMapScale(map)
+  const minScale = getMinRenderScale(exportBounds)
+  return scale < minScale ? roundScale(minScale) : scale
+}
+
+const getCurrentMapScale = (map: MaplibreMap) => {
+  const bounds = map.getBounds().adjustAntiMeridian()
+  const centerLat = bounds.getCenter().lat
+  const halfWorldMeters = EARTH_RADIUS * Math.PI * Math.cos((centerLat * Math.PI) / 180)
+  const meters = (halfWorldMeters * (bounds.getEast() - bounds.getWest())) / 180
+  const canvas = map.getCanvas()
+  const width = canvas.clientWidth || canvas.width / window.devicePixelRatio
+  const pixelsPerMeter = width / meters
+  const scale = Math.round(1 / (pixelsPerMeter * PRINT_METERS_PER_PIXEL))
+  return Number.isFinite(scale) ? Math.max(1, scale) : 1
+}
+
+const getMinRenderScale = (bounds: LngLatBounds) => {
+  const adjusted = bounds.adjustAntiMeridian()
+  const southWest = projectMercator(adjusted.getSouthWest())
+  const northEast = projectMercator(adjusted.getNorthEast())
+  const area = Math.abs(northEast.x - southWest.x) * Math.abs(northEast.y - southWest.y)
+  const scale = Math.floor(Math.sqrt(area / MAX_RENDER_AREA))
+  return Number.isFinite(scale) ? Math.max(1, scale) : 1
+}
+
+const projectMercator = (lngLat: LngLat) => {
+  const lat = Math.max(
+    -MAX_MERCATOR_LATITUDE,
+    Math.min(MAX_MERCATOR_LATITUDE, lngLat.lat),
+  )
+  const lonRad = (lngLat.lng * Math.PI) / 180
+  const latRad = (lat * Math.PI) / 180
+  return {
+    x: EARTH_RADIUS * lonRad,
+    y: EARTH_RADIUS * Math.log(Math.tan(Math.PI / 4 + latRad / 2)),
+  }
+}
+
+const roundScale = (scale: number) => {
+  const precision = 5 * 10 ** (Math.floor(Math.log10(scale)) - 2)
+  return precision * Math.ceil(scale / precision)
 }
 
 /** Calculate the offsets for trimming the exported image */
