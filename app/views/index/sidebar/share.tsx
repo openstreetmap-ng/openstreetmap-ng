@@ -4,6 +4,7 @@ import { routerCtx } from "@index/router"
 import { SidebarToggleControl } from "@index/sidebar/_toggle-button"
 import { boundsPadding } from "@map/bounds"
 import { LocationFilterControl } from "@map/controls/location-filter"
+import { IMAGE_EXPORT_FORMATS, isImageExportMimeType } from "@map/export-format"
 import { exportMapImage } from "@map/export-image"
 import { activeBaseLayerId, addLayerEventHandler } from "@map/layers/layers"
 import { mainMap } from "@map/main-map"
@@ -27,12 +28,6 @@ import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"
 import type { SubmitEventHandler } from "preact"
 import { useRef } from "preact/hooks"
-
-const SHARE_FORMATS = [
-  { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
-  { mimeType: "image/png", suffix: ".png", label: "PNG" },
-  { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
-] as const
 
 let urlMarker: Marker | null = null
 
@@ -85,7 +80,8 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
 
   const shareExportFileSuffix = useComputed(
     () =>
-      SHARE_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!.suffix,
+      IMAGE_EXPORT_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!
+        .suffix,
   )
 
   const shareMapState = useComputed(() => {
@@ -292,9 +288,12 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
           <select
             class="form-select format-select mt-2"
             value={shareExportFormatStorage.value}
-            onChange={(e) => (shareExportFormatStorage.value = e.currentTarget.value)}
+            onChange={(e) => {
+              const { value } = e.currentTarget
+              if (isImageExportMimeType(value)) shareExportFormatStorage.value = value
+            }}
           >
-            {SHARE_FORMATS.map(({ mimeType, label }) => (
+            {IMAGE_EXPORT_FORMATS.map(({ mimeType, label }) => (
               <option
                 key={mimeType}
                 value={mimeType}

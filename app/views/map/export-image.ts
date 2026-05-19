@@ -6,6 +6,7 @@ import type {
   Map as MaplibreMap,
 } from "maplibre-gl"
 import { boundsIntersect, boundsIntersection } from "./bounds"
+import type { ImageExportMimeType } from "./export-format"
 import { loadMapImage } from "./image"
 import {
   addMapLayer,
@@ -37,7 +38,7 @@ layersConfig.set(LAYER_ID, {
 const IMAGE_QUALITY = 0.98
 
 export const exportMapImage = async (
-  mimeType: string,
+  mimeType: ImageExportMimeType,
   map: MaplibreMap,
   filterBounds: LngLatBounds | null,
   markerLngLat: LngLat | null,

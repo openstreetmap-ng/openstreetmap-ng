@@ -1,3 +1,4 @@
+import { isImageExportMimeType, type ImageExportMimeType } from "@map/export-format"
 import type { LayerId } from "@map/layers/layers"
 import type { MapState } from "@map/state"
 import { effect, type Signal, signal } from "@preact/signals"
@@ -169,10 +170,11 @@ export const overlayOpacityStorage = createScopedStorageSignal<number>(
   },
 )
 
-export const shareExportFormatStorage = createStorageSignal<string>(
+export const shareExportFormatStorage = createStorageSignal<ImageExportMimeType>(
   "shareExportFormat",
   {
     defaultValue: "image/jpeg",
+    validate: isImageExportMimeType,
   },
 )
 
