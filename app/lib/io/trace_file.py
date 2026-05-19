@@ -32,11 +32,6 @@ class _CompressResult(NamedTuple):
 
 
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
-_ZSTD_OPTIONS: dict[int, int] = {
-    zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
-}
 
 
 class TraceFile:
@@ -82,10 +77,14 @@ class TraceFile:
         threads: int = TRACE_FILE_COMPRESS_ZSTD_THREADS,
     ):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
+        options = {
+            zstd.CompressionParameter.compression_level: level,
+            zstd.CompressionParameter.nb_workers: threads,
+        }
         result = await to_thread(
             zstd.compress,
             buffer,
-            options=_ZSTD_OPTIONS,
+            options=options,
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, {'zstd_level': str(level)})
