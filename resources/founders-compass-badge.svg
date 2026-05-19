@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founder badge</title>
+  <desc id="desc">A folded map badge with an NG monogram, compass point, and Founder ribbon.</desc>
+  <defs>
+    <linearGradient id="map" x1="80" x2="432" y1="96" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d9f4b6"/>
+      <stop offset=".55" stop-color="#bde7a3"/>
+      <stop offset="1" stop-color="#93d28a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="160" x2="352" y1="120" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe68a"/>
+      <stop offset=".5" stop-color="#f5b942"/>
+      <stop offset="1" stop-color="#b97816"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#16351f" flood-opacity=".26"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="#f5f7ef"/>
+  <g filter="url(#soft-shadow)">
+    <path fill="url(#map)" d="M71 117 185 91l75 23 85-24 96 34-16 268-105 29-75-21-87 23-89-31 19-137Z"/>
+    <path fill="#fff" opacity=".18" d="m185 91 75 23-14 286-88 23Zm160-1 96 34-121 297-75-21Z"/>
+    <path fill="none" stroke="#80a873" stroke-linecap="round" stroke-width="4" opacity=".5" d="M102 173c58-16 91 18 140 6 58-14 83-59 160-33M93 263c60 24 105-10 156 8 50 18 84 61 158 43M130 355c44-28 92-14 131 4 45 20 86 15 126-18"/>
+    <path fill="none" stroke="#668bd0" stroke-linecap="round" stroke-width="7" opacity=".55" d="M100 319c47-17 72-73 115-77 48-5 74 48 126 41 33-4 52-29 80-31"/>
+    <path fill="none" stroke="#b45b68" stroke-linecap="round" stroke-linejoin="round" stroke-width="7" opacity=".62" d="m120 137 61 39-35 42 65 33-19 54 71 42 56-31 58 42"/>
+  </g>
+
+  <circle cx="256" cy="253" r="155" fill="#ffffff" opacity=".62"/>
+  <circle cx="256" cy="253" r="139" fill="none" stroke="url(#gold)" stroke-width="18"/>
+  <path fill="url(#gold)" d="m256 69 24 58 60 9-43 42 10 60-51-28-51 28 10-60-43-42 60-9Z"/>
+
+  <text x="256" y="285" fill="#ffffff" stroke="#101512" stroke-linejoin="round" stroke-width="14" font-family="Inter, Arial, sans-serif" font-size="126" font-weight="900" letter-spacing="0" text-anchor="middle">NG</text>
+  <text x="256" y="285" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="126" font-weight="900" letter-spacing="0" text-anchor="middle">NG</text>
+
+  <path fill="#213a2b" d="M116 345h280l-28 70H144Z"/>
+  <path fill="#f6c95c" d="M143 364h226v31H143Z"/>
+  <text x="256" y="386" fill="#213a2b" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="800" letter-spacing="0" text-anchor="middle">FOUNDER</text>
+</svg>
