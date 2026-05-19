@@ -312,7 +312,7 @@ let
       [ "$current_python" != "${python'}" ] && rm -rf .venv/
 
       echo "Installing Python dependencies"
-      export UV_SYSTEM_CERTS=true
+      export UV_NATIVE_TLS=true
       export UV_PYTHON="${python'}/bin/python"
       uv sync --frozen
       source .venv/bin/activate
