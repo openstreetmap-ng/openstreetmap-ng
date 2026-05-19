@@ -41,7 +41,7 @@ dependencies = [
   "phonenumbers",
   "pillow",
   "polyline-rs",
-  "protobuf==6.33.6",
+  "protobuf==6.33.5",
   "protoc-gen-connect-python",
   "protovalidate",
   "psycopg[binary,pool]",
