@@ -280,8 +280,10 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
           href={getAchaviChangesetDiffUrl(changesetIdStr)}
           target="_blank"
           rel="noopener noreferrer external"
+          aria-label={`Open changeset ${changesetIdStr} diff visualization in Achavi`}
+          title="Open changeset diff visualization in Achavi"
         >
-          Achavi diff <i class="bi bi-box-arrow-up-right" />
+          Achavi diff <i class="bi bi-box-arrow-up-right" aria-hidden="true" />
         </a>
       </small>
     </div>
