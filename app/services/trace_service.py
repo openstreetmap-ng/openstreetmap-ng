@@ -37,8 +37,6 @@ class TraceService:
         global _RECOMPRESS_TG
         async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
             yield
-            for t in _RECOMPRESS_TG._tasks:  # noqa: SLF001
-                t.cancel()
 
     @staticmethod
     async def upload(
