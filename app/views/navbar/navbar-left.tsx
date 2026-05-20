@@ -2,13 +2,14 @@ import { RemoteEditButton } from "@index/remote-edit"
 import { routerRemoteEditTarget } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
+import { isLoggedIn } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
 import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
-import { useEffect, useRef } from "preact/hooks"
+import { useEffect, useRef, useState } from "preact/hooks"
 import { currentHash, currentMapState, editDisabled } from "./navbar-left-state"
 
 const buildEditHref = (editor: Editor) => {
@@ -51,10 +52,17 @@ const EditorImg = ({
 }
 
 const NavbarLeft = () => {
+  const [editHelpActive, setEditHelpActive] = useState(
+    () =>
+      isLoggedIn &&
+      new URLSearchParams(window.location.search).get("edit_help") === "1",
+  )
   const dropdownRootRef = useRef<HTMLDivElement>(null)
+  const editLinkRef = useRef<HTMLAnchorElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
   const tooltipRef = useRef<Tooltip>(null)
+  const editHelpTooltipRef = useRef<Tooltip>(null)
   const rememberChoiceRef = useRef<HTMLInputElement>(null)
 
   // Effect: initialize dropdown
@@ -75,6 +83,40 @@ const NavbarLeft = () => {
     tooltipRef.current = tooltip
     return () => tooltip.dispose()
   }, [])
+
+  // Effect: initialize edit help tooltip
+  useEffect(() => {
+    const tooltip = new Tooltip(editLinkRef.current!, {
+      title: t("javascripts.edit_help"),
+      placement: "bottom",
+      trigger: "manual",
+    })
+    editHelpTooltipRef.current = tooltip
+    return () => tooltip.dispose()
+  }, [])
+
+  // Effect: show edit_help=1 tutorial hint and clear the query param when dismissed
+  useEffect(() => {
+    const tooltip = editHelpTooltipRef.current!
+    if (!editHelpActive) {
+      tooltip.hide()
+      return
+    }
+
+    tooltip.show()
+
+    const dismiss = () => {
+      tooltip.hide()
+      setEditHelpActive(false)
+
+      const url = new URL(window.location.href)
+      url.searchParams.delete("edit_help")
+      window.history.replaceState(null, "", url)
+    }
+
+    window.addEventListener("click", dismiss, { once: true })
+    return () => window.removeEventListener("click", dismiss)
+  }, [editHelpActive])
 
   // Effect: hide dropdown when edit is disabled
   useSignalEffect(() => {
@@ -98,7 +140,10 @@ const NavbarLeft = () => {
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (editHelpActive) {
+      tooltip.disable()
+      tooltip.hide()
+    } else if (editDisabled.value) {
       tooltip.enable()
     } else {
       tooltip.disable()
@@ -126,6 +171,7 @@ const NavbarLeft = () => {
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
+          ref={editLinkRef}
         >
           {t("layouts.edit")}
           <EditorImg
