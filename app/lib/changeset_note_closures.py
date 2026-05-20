@@ -24,7 +24,11 @@ def _parse_note_ids(value: str | None) -> list[NoteId]:
         if not raw_note_id.isdecimal():
             continue
 
-        note_id = NoteId(int(raw_note_id))
+        note_id_int = int(raw_note_id)
+        if note_id_int <= 0:
+            continue
+
+        note_id = NoteId(note_id_int)
         if note_id in seen:
             continue
 

@@ -10,7 +10,6 @@ def test_parse_changeset_note_closures():
     }) == {
         NoteId(12): 'default comment',
         NoteId(34): 'custom comment',
-        NoteId(0): 'default comment',
     }
 
 
