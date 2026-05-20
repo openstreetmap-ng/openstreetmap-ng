@@ -1,5 +1,6 @@
 import logging
 from asyncio import TaskGroup
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -28,15 +29,23 @@ from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
 _RECOMPRESS_TG: TaskGroup
+_RECOMPRESS_EXECUTOR: ThreadPoolExecutor
 
 
 class TraceService:
     @asynccontextmanager
     @staticmethod
     async def context():
-        global _RECOMPRESS_TG
-        async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
-            yield
+        global _RECOMPRESS_TG, _RECOMPRESS_EXECUTOR
+        _RECOMPRESS_EXECUTOR = ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix='trace-recompress',
+        )
+        try:
+            async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+                yield
+        finally:
+            _RECOMPRESS_EXECUTOR.shutdown(wait=True, cancel_futures=True)
 
     @staticmethod
     async def upload(
@@ -217,7 +226,10 @@ async def _recompress_trace_file(
     new_file_id: StorageKey | None = None
     file_id_updated = False
     try:
-        result = await TraceFile.recompress(file_bytes)
+        result = await TraceFile.recompress(
+            file_bytes,
+            executor=_RECOMPRESS_EXECUTOR,
+        )
         new_file_id = await TRACE_STORAGE.save(
             result.data,
             result.suffix,

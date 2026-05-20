@@ -2,8 +2,9 @@ import logging
 import tarfile
 import zlib
 from abc import ABC, abstractmethod
-from asyncio import to_thread
+from asyncio import get_running_loop, to_thread
 from bz2 import BZ2Decompressor
+from concurrent.futures import Executor
 from compression import zstd
 from io import BytesIO
 from tarfile import TarError
@@ -84,20 +85,17 @@ class TraceFile:
     @staticmethod
     async def compress(buffer: bytes, *, level: int = TRACE_FILE_COMPRESS_ZSTD_LEVEL):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
-        result = await to_thread(
-            zstd.compress,
-            buffer,
-            options=_zstd_options(level),
-        )
-        logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _zstd_metadata(level))
+        return await to_thread(_compress, buffer, level)
 
     @staticmethod
-    async def recompress(buffer: bytes):
+    async def recompress(buffer: bytes, *, executor: Executor):
         """Compress a trace file at the background archival level."""
-        return await TraceFile.compress(
+        loop = get_running_loop()
+        return await loop.run_in_executor(
+            executor,
+            _compress,
             buffer,
-            level=TRACE_FILE_BACKGROUND_COMPRESS_ZSTD_LEVEL,
+            TRACE_FILE_BACKGROUND_COMPRESS_ZSTD_LEVEL,
         )
 
     @staticmethod
@@ -108,6 +106,15 @@ class TraceFile:
             if file_id.endswith(_ZSTD_SUFFIX)
             else buffer
         )
+
+
+def _compress(buffer: bytes, level: int):
+    result = zstd.compress(
+        buffer,
+        options=_zstd_options(level),
+    )
+    logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
+    return _CompressResult(result, _ZSTD_SUFFIX, _zstd_metadata(level))
 
 
 class _TraceProcessor(ABC):
