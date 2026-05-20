@@ -15,6 +15,7 @@ import magic
 from sizestr import sizestr
 
 from app.config import (
+    TRACE_FILE_BACKGROUND_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_ARCHIVE_MAX_FILES,
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
@@ -32,11 +33,17 @@ class _CompressResult(NamedTuple):
 
 
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
-_ZSTD_OPTIONS: dict[int, int] = {
-    zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
-}
+
+
+def _zstd_metadata(level: int) -> dict[str, str]:
+    return {'zstd_level': str(level)}
+
+
+def _zstd_options(level: int) -> dict[int, int]:
+    return {
+        int(zstd.CompressionParameter.compression_level): level,
+        int(zstd.CompressionParameter.nb_workers): TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    }
 
 
 class TraceFile:
@@ -75,15 +82,23 @@ class TraceFile:
         raise_for.trace_file_archive_too_deep()
 
     @staticmethod
-    async def compress(buffer: bytes):
+    async def compress(buffer: bytes, *, level: int = TRACE_FILE_COMPRESS_ZSTD_LEVEL):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
         result = await to_thread(
             zstd.compress,
             buffer,
-            options=_ZSTD_OPTIONS,
+            options=_zstd_options(level),
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return _CompressResult(result, _ZSTD_SUFFIX, _zstd_metadata(level))
+
+    @staticmethod
+    async def recompress(buffer: bytes):
+        """Compress a trace file at the background archival level."""
+        return await TraceFile.compress(
+            buffer,
+            level=TRACE_FILE_BACKGROUND_COMPRESS_ZSTD_LEVEL,
+        )
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):
