@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OSM-NG Founder badge</title>
+  <desc id="desc">A founder recognition badge based on the OpenStreetMap-NG folded-map logo, with a compass star, NG monogram, and founder ribbon.</desc>
+  <defs>
+    <linearGradient id="gold" x1="96" y1="48" x2="416" y2="464" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff3b8"/>
+      <stop offset="0.45" stop-color="#d5a73b"/>
+      <stop offset="1" stop-color="#8e5f13"/>
+    </linearGradient>
+    <linearGradient id="map" x1="92" y1="96" x2="428" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d7f4be"/>
+      <stop offset="0.48" stop-color="#aee38f"/>
+      <stop offset="1" stop-color="#78c66f"/>
+    </linearGradient>
+    <linearGradient id="water" x1="78" y1="322" x2="424" y2="266" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#92c6ef"/>
+      <stop offset="1" stop-color="#447fc4"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="78" y1="356" x2="434" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1c674c"/>
+      <stop offset="1" stop-color="#0d342e"/>
+    </linearGradient>
+    <filter id="shadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#10231c" flood-opacity="0.28"/>
+    </filter>
+    <clipPath id="mapClip">
+      <path d="M92 83c55 13 96-17 155-4 59 13 105-20 171-3l28 151-27 189c-66-17-117 18-180 4-57-14-101 16-159 2L53 266z"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="256" cy="256" r="236" fill="#f8fff2"/>
+  <circle cx="256" cy="256" r="224" fill="url(#gold)"/>
+  <circle cx="256" cy="256" r="206" fill="#f8fff2"/>
+
+  <g filter="url(#shadow)">
+    <g clip-path="url(#mapClip)">
+      <path d="M92 83c55 13 96-17 155-4 59 13 105-20 171-3l28 151-27 189c-66-17-117 18-180 4-57-14-101 16-159 2L53 266z" fill="url(#map)"/>
+      <path d="M83 168c65 20 108-20 175 0 66 19 110-16 173 3" fill="none" stroke="#5e9f63" stroke-width="7" stroke-linecap="round" opacity="0.38"/>
+      <path d="M80 283c69-19 112 17 181-2 68-18 111 15 175-4" fill="none" stroke="#578d59" stroke-width="6" stroke-linecap="round" opacity="0.42"/>
+      <path d="M150 93c20 80-10 139 8 218 9 40 8 72-4 122" fill="none" stroke="#629e67" stroke-width="6" opacity="0.36"/>
+      <path d="M305 76c-13 65 18 121 11 184-6 70 16 114 29 166" fill="none" stroke="#629e67" stroke-width="6" opacity="0.34"/>
+      <path d="M112 132l75 30 40 67 68 19 38 70 72 35" fill="none" stroke="#c45455" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.72"/>
+      <path d="M76 332c73-53 132-58 176-37 44 20 92 22 174-37" fill="none" stroke="url(#water)" stroke-width="11" stroke-linecap="round" opacity="0.7"/>
+    </g>
+    <path d="M92 83c55 13 96-17 155-4 59 13 105-20 171-3l28 151-27 189c-66-17-117 18-180 4-57-14-101 16-159 2L53 266z" fill="none" stroke="#23452f" stroke-width="9" stroke-linejoin="round"/>
+
+    <path d="M256 106l20 46 50 4-38 32 12 49-44-26-44 26 12-49-38-32 50-4z" fill="url(#gold)" stroke="#7c5617" stroke-width="8" stroke-linejoin="round"/>
+    <g font-family="Arial Black, Arial, sans-serif" font-weight="900" text-anchor="middle">
+      <text x="256" y="292" font-size="146" fill="#10231c" stroke="#10231c" stroke-width="18" stroke-linejoin="round">NG</text>
+      <text x="256" y="292" font-size="146" fill="#ffffff">NG</text>
+    </g>
+
+    <path d="M74 356h364l-33 41 33 41H74l33-41z" fill="url(#ribbon)" stroke="#0c2c26" stroke-width="7" stroke-linejoin="round"/>
+    <text x="256" y="414" font-family="Arial, sans-serif" font-size="43" font-weight="800" fill="#fff4c0" text-anchor="middle">FOUNDER</text>
+  </g>
+</svg>
