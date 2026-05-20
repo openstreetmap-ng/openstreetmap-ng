@@ -7,7 +7,7 @@ from typing import Final, Literal, TypeAlias, assert_never
 import cython
 import numpy as np
 from psycopg import AsyncConnection
-from shapely import Point, bounds, box
+from shapely import Point, bounds, box, get_coordinates
 
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_user
@@ -28,6 +28,15 @@ from app.queries.element_query import ElementQuery
 from speedup import element_id, element_type, split_typed_element_id
 
 OSMChangeAction: TypeAlias = Literal['create', 'modify', 'delete']
+
+
+def _is_null_island_node(element: ElementInit):
+    point = element['point']
+    if not element['visible'] or point is None:
+        return False
+
+    x, y = get_coordinates(point)[0].tolist()
+    return x == 0 and y == 0
 
 
 @dataclass(kw_only=True, slots=True)
@@ -100,6 +109,11 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
+    _null_island_candidate_refs: set[TypedElementId]
+    """
+    Node refs touched directly or through changed ways.
+    """
+
     def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /):
         self.conn = conn
         self.apply_elements = []
@@ -111,6 +125,7 @@ class OptimisticDiffPrepare:
         self._reference_override = defaultdict(set)
         self._bbox_points = []
         self._bbox_refs = set()
+        self._null_island_candidate_refs = set()
 
     async def prepare(self):
         await self._preload_changeset()
@@ -191,6 +206,8 @@ class OptimisticDiffPrepare:
                 logging.debug('Optimistic skipping delete for %s (is used)', typed_id)
                 continue
 
+            self._push_null_island_candidate(element, type)
+
             # Mark unassigned members
             if (members_arr := element.get('members_arr')) is not None:
                 indices = np.nonzero(members_arr & (1 << 59))[0]
@@ -213,6 +230,8 @@ class OptimisticDiffPrepare:
             num_modify=num_modify,
             num_delete=num_delete,
         )
+
+        await self._check_null_island_edits()
 
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
@@ -512,6 +531,58 @@ class OptimisticDiffPrepare:
                     point = entry.current.get('point')
                     assert point is not None, f'Node {node_typed_id} point must be set'
                     bbox_points.append(point)
+
+    def _push_null_island_candidate(
+        self, element: ElementInit, element_type: ElementType
+    ):
+        """Track visible nodes affected by this upload for null island validation."""
+        if not element['visible']:
+            return
+
+        if element_type == 'node':
+            self._null_island_candidate_refs.add(element['typed_id'])
+        elif element_type == 'way':
+            if members := element['members']:
+                self._null_island_candidate_refs.update(members)
+        elif element_type == 'relation':
+            return
+        else:
+            assert_never(element_type)
+
+    async def _check_null_island_edits(self):
+        """Reject uploads touching two or more distinct visible nodes at (0, 0)."""
+        candidate_refs = self._null_island_candidate_refs
+        if len(candidate_refs) < 2:
+            return
+
+        null_island_refs: set[TypedElementId] = set()
+        remote_refs: list[TypedElementId] = []
+
+        for typed_id in candidate_refs:
+            entry = self.element_state.get(typed_id)
+            if entry is None:
+                if not (typed_id & (1 << 59)):
+                    remote_refs.append(typed_id)
+                continue
+
+            if _is_null_island_node(entry.current):
+                null_island_refs.add(typed_id)
+                if len(null_island_refs) >= 2:
+                    raise_for.diff_suspicious_null_island_edit()
+
+        if not remote_refs:
+            return
+
+        remote_elements = await ElementQuery.find_by_refs(
+            remote_refs,
+            at_sequence_id=self.at_sequence_id,
+            limit=len(remote_refs),
+        )
+        for element in remote_elements:
+            if _is_null_island_node(element):
+                null_island_refs.add(element['typed_id'])
+                if len(null_island_refs) >= 2:
+                    raise_for.diff_suspicious_null_island_edit()
 
     async def _preload_changeset(self):
         """Lock and load changeset state from the database."""
