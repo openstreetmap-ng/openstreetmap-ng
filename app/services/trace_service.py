@@ -125,15 +125,16 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                _RECOMPRESS_TG.create_task(
-                    _recompress_trace_file(trace_id, trace_init['file_id'], file)
-                )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        _RECOMPRESS_TG.create_task(
+            _recompress_trace_file(trace_id, trace_init['file_id'], file)
+        )
+        return trace_id
 
     @staticmethod
     async def update(
