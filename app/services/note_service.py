@@ -28,11 +28,21 @@ from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
 
 
+NOTE_CREATE_HASHTAG = '#osm-ng'
+
+
+def note_body_with_create_hashtag(text: str):
+    if NOTE_CREATE_HASHTAG in text:
+        return text
+    return f'{text}\n\n{NOTE_CREATE_HASHTAG}'
+
+
 class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
+        text = note_body_with_create_hashtag(text)
 
         user = auth_user()
         if user is not None:
