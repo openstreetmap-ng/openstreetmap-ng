@@ -1,4 +1,6 @@
 import logging
+from asyncio import TaskGroup, get_running_loop
+from contextlib import asynccontextmanager
 
 from sentry_sdk import capture_exception
 
@@ -6,6 +8,32 @@ from app.db import db_update
 from app.lib.io.trace_file import TraceFile
 from app.lib.storage import TRACE_STORAGE
 from app.models.types import StorageKey, TraceId
+
+_COMPRESSION_TG: TaskGroup | None = None
+
+
+class TraceUploadCompressionService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        """Context manager for trace upload compression tasks."""
+        global _COMPRESSION_TG
+        async with (_COMPRESSION_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+            for task in _COMPRESSION_TG._tasks:  # noqa: SLF001
+                task.cancel()
+        _COMPRESSION_TG = None
+
+    @staticmethod
+    def schedule(trace_id: TraceId, old_file_id: StorageKey, file: bytes):
+        """Schedule trace upload compression without blocking the response."""
+        if _COMPRESSION_TG is None:
+            get_running_loop().create_task(  # noqa: RUF006
+                compress_trace_upload(trace_id, old_file_id, file)
+            )
+            return
+
+        _COMPRESSION_TG.create_task(compress_trace_upload(trace_id, old_file_id, file))
 
 
 async def compress_trace_upload(

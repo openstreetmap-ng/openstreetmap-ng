@@ -1,5 +1,4 @@
 import logging
-from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
@@ -24,7 +23,7 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
-from app.services.trace_upload_compression import compress_trace_upload
+from app.services.trace_upload_compression import TraceUploadCompressionService
 
 
 class TraceService:
@@ -112,8 +111,10 @@ class TraceService:
                     },
                 )
 
-                get_running_loop().create_task(  # noqa: RUF006
-                    compress_trace_upload(trace_id, trace_init['file_id'], file)
+                TraceUploadCompressionService.schedule(
+                    trace_id,
+                    trace_init['file_id'],
+                    file,
                 )
                 return trace_id
 
