@@ -37,8 +37,9 @@ echo "Found ${#files[@]} source files"
 CFLAGS="$(python-config --cflags) $CFLAGS \
   -shared -fPIC"
 CYTHON_DIRECTIVES="overflowcheck=True,embedsignature=True"
+CYTHON_PROFILE_MODE=${CYTHON_ENABLE_PROFILING:-0}
 
-if [[ ${CYTHON_ENABLE_PROFILING:-0} == 1 ]]; then
+if [[ $CYTHON_PROFILE_MODE == 1 ]]; then
   CFLAGS="$CFLAGS \
     -DCYTHON_PROFILE=1 \
     -DCYTHON_USE_SYS_MONITORING=0"
@@ -47,6 +48,7 @@ fi
 
 export CFLAGS
 export CYTHON_DIRECTIVES
+export CYTHON_PROFILE_MODE
 
 LDFLAGS="$(python-config --ldflags) $LDFLAGS"
 export LDFLAGS
@@ -60,11 +62,13 @@ process_file() {
   module_name="${module_name//\//.}" # Replace '/' with '.'
   c_file="${pyfile%.py}.c"
   so_file="${pyfile%.py}$_SUFFIX"
+  mode_stamp="${so_file}.profile-${CYTHON_PROFILE_MODE}"
 
-  # Skip unchanged files
-  if [[ $so_file -nt $pyfile ]]; then
+  if [[ $so_file -nt $pyfile && -f $mode_stamp ]]; then
     return 0
   fi
+
+  rm -f "${so_file}".profile-*
 
   (
     set -x
@@ -80,6 +84,8 @@ process_file() {
     set -x
     $CC $CFLAGS "$c_file" -o "$so_file" $LDFLAGS
   )
+
+  touch "$mode_stamp"
 }
 export -f process_file
 
