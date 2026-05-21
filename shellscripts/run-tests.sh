@@ -29,6 +29,21 @@ if [[ $with_coverage == 1 ]]; then
     set -x
     python -m coverage run -m pytest "${args[@]}"
   )
+elif [[ ${RUN_TESTS_FAST_EXIT:-0} == 1 ]]; then
+  (
+    set -x
+    python - "${args[@]}" <<'PY'
+import os
+import sys
+
+import pytest
+
+result = pytest.main(sys.argv[1:])
+sys.stdout.flush()
+sys.stderr.flush()
+os._exit(result)
+PY
+  )
 else
   (
     set -x
