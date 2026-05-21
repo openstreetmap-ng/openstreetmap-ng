@@ -39,6 +39,7 @@ map:
       title: Routing engine
 changeset:
   open: Open
+  open_diff_view: Open changeset diff
   this_changeset_is_state: This changeset is {{state}}
   count_one: "changeset"
   count_other: "changesets"
