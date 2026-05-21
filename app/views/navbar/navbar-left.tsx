@@ -145,7 +145,10 @@ const NavbarLeft = () => {
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (isLoggedIn && routerCtx.value.queryParams.edit_help?.length) {
+      tooltip.disable()
+      tooltip.hide()
+    } else if (editDisabled.value) {
       tooltip.enable()
     } else {
       tooltip.disable()
