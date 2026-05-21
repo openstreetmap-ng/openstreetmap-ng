@@ -35,10 +35,18 @@ done
 echo "Found ${#files[@]} source files"
 
 CFLAGS="$(python-config --cflags) $CFLAGS \
-  -shared -fPIC \
-  -DCYTHON_PROFILE=1 \
-  -DCYTHON_USE_SYS_MONITORING=0"
+  -shared -fPIC"
+CYTHON_DIRECTIVES="overflowcheck=True,embedsignature=True"
+
+if [[ ${CYTHON_ENABLE_PROFILING:-0} == 1 ]]; then
+  CFLAGS="$CFLAGS \
+    -DCYTHON_PROFILE=1 \
+    -DCYTHON_USE_SYS_MONITORING=0"
+  CYTHON_DIRECTIVES="$CYTHON_DIRECTIVES,profile=True"
+fi
+
 export CFLAGS
+export CYTHON_DIRECTIVES
 
 LDFLAGS="$(python-config --ldflags) $LDFLAGS"
 export LDFLAGS
@@ -62,7 +70,7 @@ process_file() {
     set -x
     cython -3 \
       --annotate \
-      --directive overflowcheck=True,embedsignature=True,profile=True \
+      --directive "$CYTHON_DIRECTIVES" \
       --module-name "$module_name" \
       "$pyfile" -o "$c_file"
   )
