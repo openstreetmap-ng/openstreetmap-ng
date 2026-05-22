@@ -1,5 +1,6 @@
 import logging
-from asyncio import get_running_loop
+from asyncio import TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
@@ -26,8 +27,18 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_RECOMPRESS_TG: TaskGroup
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        """Context manager for background trace work."""
+        global _RECOMPRESS_TG
+        async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -120,7 +131,7 @@ class TraceService:
             raise
 
         # Recompress after the fast upload path has committed the trace.
-        get_running_loop().create_task(
+        _RECOMPRESS_TG.create_task(
             _recompress_task(trace_id, trace_init['file_id'], file)
         )
         return trace_id
