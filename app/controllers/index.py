@@ -164,6 +164,11 @@ async def help_():
     return await render_proto_page(HelpPage(), title_prefix=t('layouts.help'))
 
 
+@router.get('/software')
+async def software():
+    return await render_proto_page(AboutPage(), title_prefix=t('software.title'))
+
+
 @router.get('/fixthemap')
 async def fixthemap():
     return await render_proto_page(FixthemapPage(), title_prefix=t('fixthemap.title'))
