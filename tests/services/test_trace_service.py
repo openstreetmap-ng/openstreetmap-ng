@@ -45,7 +45,30 @@ async def test_delete_removes_file_from_deleted_trace(monkeypatch):
 
 
 async def test_recompress_context_drains_queued_trace(monkeypatch):
+    calls: list[tuple[TraceId, StorageKey]] = []
+
+    async def recompress_stored_task(
+        trace_id: TraceId,
+        old_file_id: StorageKey,
+    ):
+        calls.append((trace_id, old_file_id))
+
+    monkeypatch.setattr(trace_service, '_recompress_stored_task', recompress_stored_task)
+
+    async with trace_service.TraceService.context():
+        trace_service._RECOMPRESS_QUEUE.put_nowait(  # noqa: SLF001
+            (TraceId(1), StorageKey('old.zst'))
+        )
+
+    assert calls == [(TraceId(1), StorageKey('old.zst'))]
+
+
+async def test_recompress_stored_task_loads_saved_trace(monkeypatch):
     calls: list[tuple[TraceId, StorageKey, bytes]] = []
+
+    async def load(key: StorageKey):
+        assert key == StorageKey('old.zst')
+        return b'light-compressed'
 
     async def recompress_task(
         trace_id: TraceId,
@@ -54,14 +77,47 @@ async def test_recompress_context_drains_queued_trace(monkeypatch):
     ):
         calls.append((trace_id, old_file_id, file_bytes))
 
+    monkeypatch.setattr(
+        trace_service,
+        'TRACE_STORAGE',
+        SimpleNamespace(load=load),
+    )
+    monkeypatch.setattr(
+        trace_service.TraceFile,
+        'decompress_if_needed',
+        lambda buffer, _: buffer + b'-original',
+    )
     monkeypatch.setattr(trace_service, '_recompress_task', recompress_task)
 
-    async with trace_service.TraceService.context():
-        trace_service._RECOMPRESS_QUEUE.put_nowait(  # noqa: SLF001
-            (TraceId(1), StorageKey('old.zst'), b'original')
-        )
+    await trace_service._recompress_stored_task(  # noqa: SLF001
+        TraceId(1),
+        StorageKey('old.zst'),
+    )
 
-    assert calls == [(TraceId(1), StorageKey('old.zst'), b'original')]
+    assert calls == [
+        (TraceId(1), StorageKey('old.zst'), b'light-compressed-original')
+    ]
+
+
+async def test_recompress_stored_task_tolerates_load_failure(monkeypatch):
+    captured: list[None] = []
+
+    async def load(_: StorageKey):
+        raise FileNotFoundError('trace was deleted')
+
+    monkeypatch.setattr(
+        trace_service,
+        'TRACE_STORAGE',
+        SimpleNamespace(load=load),
+    )
+    monkeypatch.setattr(trace_service, 'capture_exception', lambda: captured.append(None))
+
+    await trace_service._recompress_stored_task(  # noqa: SLF001
+        TraceId(1),
+        StorageKey('old.zst'),
+    )
+
+    assert captured == [None]
 
 
 async def test_recompress_task_replaces_trace_file(monkeypatch):
