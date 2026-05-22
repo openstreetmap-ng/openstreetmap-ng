@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OSM-NG Founder waypoint badge</title>
+  <desc id="desc">A square OpenStreetMap-NG Founder badge using a folded map, waypoint pin, and founder ribbon.</desc>
+  <defs>
+    <linearGradient id="bg" x1="76" y1="74" x2="436" y2="438" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8fbf3"/>
+      <stop offset="1" stop-color="#d9ecd2"/>
+    </linearGradient>
+    <linearGradient id="mapGreen" x1="154" y1="136" x2="348" y2="358" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d9f4b7"/>
+      <stop offset="1" stop-color="#7fc15d"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="145%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#122016" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect x="24" y="24" width="464" height="464" rx="72" fill="url(#bg)"/>
+  <rect x="44" y="44" width="424" height="424" rx="56" fill="none" stroke="#253136" stroke-width="16"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M142 130l79 18 69-27 80 20 6 207-74 29-82-22-73 27-6-252z" fill="url(#mapGreen)" stroke="#263237" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M221 148l-1 207M290 121l12 256" fill="none" stroke="#263237" stroke-width="9" stroke-linecap="round" opacity=".55"/>
+    <path d="M159 199c37-16 69-17 101-2 38 18 73 14 103-10M161 271c34-14 67-13 98 2 36 18 71 18 105 0" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" opacity=".62"/>
+    <path d="M188 236l35-18 48 12 50-25 18 9" fill="none" stroke="#263237" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".35"/>
+  </g>
+
+  <g transform="translate(0 2)">
+    <path d="M256 101c-51 0-92 40-92 91 0 68 92 156 92 156s92-88 92-156c0-51-41-91-92-91z" fill="#253136"/>
+    <circle cx="256" cy="192" r="48" fill="#f4ce51"/>
+    <path d="M225 206v-52h17l28 31v-31h20v52h-17l-28-31v31h-20z" fill="#253136"/>
+  </g>
+
+  <g>
+    <path d="M111 349h290l34 39-34 39H111l-34-39 34-39z" fill="#253136"/>
+    <path d="M122 364h268l20 24-20 24H122l-20-24 20-24z" fill="#f4ce51"/>
+    <text x="256" y="400" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="35" font-weight="800" letter-spacing="4" fill="#253136">FOUNDER</text>
+  </g>
+
+  <g fill="#253136">
+    <circle cx="144" cy="102" r="8"/>
+    <circle cx="368" cy="102" r="8"/>
+    <circle cx="256" cy="438" r="8"/>
+  </g>
+</svg>
