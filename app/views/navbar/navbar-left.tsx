@@ -19,6 +19,20 @@ const buildEditHref = (editor: Editor) => {
   return `/edit${qsEncode(params)}${currentHash.value}`
 }
 
+const removeEditHelpQuery = () => {
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has("edit_help")) return
+
+  url.searchParams.delete("edit_help")
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
+
+  try {
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  } catch {
+    window.dispatchEvent(new Event("popstate"))
+  }
+}
+
 const getEditorImage = (editor: Editor) => {
   switch (editor) {
     case "id":
@@ -108,10 +122,7 @@ const NavbarLeft = () => {
     const dismiss = () => {
       tooltip.hide()
       setEditHelpActive(false)
-
-      const url = new URL(window.location.href)
-      url.searchParams.delete("edit_help")
-      window.history.replaceState(null, "", url)
+      removeEditHelpQuery()
     }
 
     window.addEventListener("click", dismiss, { once: true })
