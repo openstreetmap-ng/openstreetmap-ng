@@ -78,9 +78,9 @@ class FormatElementList:
         if not members:
             return []
 
-        type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]]
+        type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None, bool]]
         type_id_map = {
-            element['typed_id']: (name, icon)
+            element['typed_id']: (name, icon, not (element['tags'] or {}))
             for element, name, icon in zip(
                 members_elements,
                 features_names(members_elements),
@@ -159,7 +159,7 @@ def _encode_parents(
 
 @cython.cfunc
 def _encode_members(
-    type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None]],
+    type_id_map: dict[TypedElementId, tuple[str | None, FeatureIcon | None, bool]],
     members: list[TypedElementId],
     members_roles: list[str] | list[None] | None,
 ):
@@ -170,7 +170,7 @@ def _encode_members(
     for member, role in zip(members, members_roles):
         type, id = split_typed_element_id(member)
         data = type_id_map.get(member)
-        name, feature_icon = data or (None, None)
+        name, feature_icon, untagged = data or (None, None, False)
         icon = (
             ElementIcon(icon=feature_icon.filename, title=feature_icon.title)
             if feature_icon is not None
@@ -182,6 +182,7 @@ def _encode_members(
                 roles=(role,) if role is not None else None,
                 name=name,
                 icon=icon,
+                untagged=untagged and type == 'node',
             )
         )
     return result
