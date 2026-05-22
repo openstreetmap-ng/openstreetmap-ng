@@ -1,5 +1,5 @@
 import logging
-from asyncio import TaskGroup
+from asyncio import Queue, QueueFull, TaskGroup
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -28,6 +28,8 @@ from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
 _RECOMPRESS_TG: TaskGroup
+_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey, bytes] | None]
+_RECOMPRESS_QUEUE_MAX_SIZE = 1
 
 
 class TraceService:
@@ -35,9 +37,12 @@ class TraceService:
     @asynccontextmanager
     async def context():
         """Context manager for background trace work."""
-        global _RECOMPRESS_TG
+        global _RECOMPRESS_QUEUE, _RECOMPRESS_TG
+        _RECOMPRESS_QUEUE = Queue(_RECOMPRESS_QUEUE_MAX_SIZE)
         async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            _RECOMPRESS_TG.create_task(_recompress_worker())
             yield
+            await _RECOMPRESS_QUEUE.put(None)
 
     @staticmethod
     async def upload(
@@ -134,9 +139,12 @@ class TraceService:
         if ENV == 'test':
             await _recompress_task(trace_id, trace_init['file_id'], file)
         else:
-            _RECOMPRESS_TG.create_task(
-                _recompress_task(trace_id, trace_init['file_id'], file)
-            )
+            try:
+                _RECOMPRESS_QUEUE.put_nowait(
+                    (trace_id, trace_init['file_id'], file)
+                )
+            except QueueFull:
+                logging.debug('Skipping trace %d recompression: queue is full', trace_id)
         return trace_id
 
     @staticmethod
@@ -257,3 +265,13 @@ async def _recompress_task(
     except Exception:
         logging.warning('Failed to recompress trace file for trace %d', trace_id)
         capture_exception()
+
+
+async def _recompress_worker():
+    """Recompress queued traces without growing upload-time work unboundedly."""
+    while True:
+        item = await _RECOMPRESS_QUEUE.get()
+        if item is None:
+            return
+
+        await _recompress_task(*item)
