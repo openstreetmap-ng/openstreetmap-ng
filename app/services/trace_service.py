@@ -1,5 +1,5 @@
 import logging
-from asyncio import Queue, QueueFull, TaskGroup
+from asyncio import Queue, TaskGroup
 from contextlib import asynccontextmanager
 from sys import modules
 from typing import Any
@@ -29,8 +29,7 @@ from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
 _RECOMPRESS_TG: TaskGroup
-_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey, bytes] | None]
-_RECOMPRESS_QUEUE_MAX_SIZE = 1
+_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey] | None]
 _TESTING = 'pytest' in modules
 
 
@@ -40,7 +39,7 @@ class TraceService:
     async def context():
         """Context manager for background trace work."""
         global _RECOMPRESS_QUEUE, _RECOMPRESS_TG
-        _RECOMPRESS_QUEUE = Queue(_RECOMPRESS_QUEUE_MAX_SIZE)
+        _RECOMPRESS_QUEUE = Queue()
         async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
             _RECOMPRESS_TG.create_task(_recompress_worker())
             yield
@@ -141,12 +140,7 @@ class TraceService:
         if _TESTING:
             await _recompress_task(trace_id, trace_init['file_id'], file)
         else:
-            try:
-                _RECOMPRESS_QUEUE.put_nowait(
-                    (trace_id, trace_init['file_id'], file)
-                )
-            except QueueFull:
-                logging.debug('Skipping trace %d recompression: queue is full', trace_id)
+            _RECOMPRESS_QUEUE.put_nowait((trace_id, trace_init['file_id']))
         return trace_id
 
     @staticmethod
@@ -269,6 +263,20 @@ async def _recompress_task(
         capture_exception()
 
 
+async def _recompress_stored_task(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+):
+    """Reload the saved trace and recompress it outside the upload request."""
+    try:
+        file_buffer = await TRACE_STORAGE.load(old_file_id)
+        file_bytes = TraceFile.decompress_if_needed(file_buffer, old_file_id)
+        await _recompress_task(trace_id, old_file_id, file_bytes)
+    except Exception:
+        logging.warning('Failed to load trace file for recompressing trace %d', trace_id)
+        capture_exception()
+
+
 async def _recompress_worker():
     """Recompress queued traces without growing upload-time work unboundedly."""
     while True:
@@ -276,4 +284,4 @@ async def _recompress_worker():
         if item is None:
             return
 
-        await _recompress_task(*item)
+        await _recompress_stored_task(*item)
