@@ -242,7 +242,12 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
+    try:
     img = open_image(BytesIO(data))
+except (OSError, ValueError) as e:
+    logging.warning('Failed to open uploaded image: %s', e)
+    raise_for.image_unreadable()
+
     ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
