@@ -44,6 +44,26 @@ async def test_delete_removes_file_from_deleted_trace(monkeypatch):
     assert deleted == [StorageKey('recompressed.zst')]
 
 
+async def test_recompress_context_drains_queued_trace(monkeypatch):
+    calls: list[tuple[TraceId, StorageKey, bytes]] = []
+
+    async def recompress_task(
+        trace_id: TraceId,
+        old_file_id: StorageKey,
+        file_bytes: bytes,
+    ):
+        calls.append((trace_id, old_file_id, file_bytes))
+
+    monkeypatch.setattr(trace_service, '_recompress_task', recompress_task)
+
+    async with trace_service.TraceService.context():
+        trace_service._RECOMPRESS_QUEUE.put_nowait(  # noqa: SLF001
+            (TraceId(1), StorageKey('old.zst'), b'original')
+        )
+
+    assert calls == [(TraceId(1), StorageKey('old.zst'), b'original')]
+
+
 async def test_recompress_task_replaces_trace_file(monkeypatch):
     saved: list[tuple[bytes, str, dict[str, str]]] = []
     deleted: list[StorageKey] = []
