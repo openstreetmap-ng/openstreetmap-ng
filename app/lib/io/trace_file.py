@@ -20,6 +20,7 @@ from app.config import (
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_DECOMPRESSED_MAX_SIZE,
     TRACE_FILE_MAX_LAYERS,
+    TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
 )
 from app.exceptions.context import raise_for
 from app.models.types import StorageKey
@@ -32,13 +33,6 @@ class _CompressResult(NamedTuple):
 
 
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
-_ZSTD_OPTIONS: dict[int, int] = {
-    zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
-}
-
-
 class TraceFile:
     @staticmethod
     def extract(buffer: bytes):
@@ -77,13 +71,12 @@ class TraceFile:
     @staticmethod
     async def compress(buffer: bytes):
         """Compress the trace file buffer. Returns the compressed buffer and the file name suffix."""
-        result = await to_thread(
-            zstd.compress,
-            buffer,
-            options=_ZSTD_OPTIONS,
-        )
-        logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return await _compress_zstd(buffer, level=TRACE_FILE_COMPRESS_ZSTD_LEVEL)
+
+    @staticmethod
+    async def recompress(buffer: bytes):
+        """Compress the trace file buffer with the archival zstd level."""
+        return await _compress_zstd(buffer, level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):
@@ -259,3 +252,20 @@ _TRACE_PROCESSORS: dict[str, type[_TraceProcessor]] = {
         _ZstdProcessor,
     )
 }
+
+
+async def _compress_zstd(buffer: bytes, *, level: int):
+    result = await to_thread(
+        zstd.compress,
+        buffer,
+        options={
+            zstd.CompressionParameter.compression_level: level,
+            zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
+        },
+    )
+    logging.debug(
+        'Trace file zstd-compressed at level %d size is %s',
+        level,
+        sizestr(len(result)),
+    )
+    return _CompressResult(result, _ZSTD_SUFFIX, {'zstd_level': str(level)})
