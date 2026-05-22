@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import UploadFile
 from sentry_sdk import capture_exception
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import ENV, TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -131,9 +131,12 @@ class TraceService:
             raise
 
         # Recompress after the fast upload path has committed the trace.
-        _RECOMPRESS_TG.create_task(
-            _recompress_task(trace_id, trace_init['file_id'], file)
-        )
+        if ENV == 'test':
+            await _recompress_task(trace_id, trace_init['file_id'], file)
+        else:
+            _RECOMPRESS_TG.create_task(
+                _recompress_task(trace_id, trace_init['file_id'], file)
+            )
         return trace_id
 
     @staticmethod
