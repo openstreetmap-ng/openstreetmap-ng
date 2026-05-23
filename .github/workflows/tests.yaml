@@ -28,7 +28,7 @@ jobs:
       - name: Build Cython modules
         if: matrix.implementation == 'cython'
         run: |
-          nix-shell --pure --run "cython-build-fast"
+          nix-shell --pure --run "cython-clean && cython-build-fast"
 
       - name: Start services
         run: |
