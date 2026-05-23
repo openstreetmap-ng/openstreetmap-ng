@@ -36,8 +36,4 @@ jobs:
 
       - name: Run tests
         run: |
-          run_tests_args="--extended --term"
-          if [[ "${{ matrix.implementation }}" == "cython" ]]; then
-            run_tests_args="$run_tests_args --no-coverage"
-          fi
-          nix-shell --pure --run "run-tests $run_tests_args"
+          nix-shell --pure --run "run-tests --extended --term"
