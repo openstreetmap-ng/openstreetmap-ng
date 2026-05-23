@@ -1,7 +1,6 @@
 import logging
 from asyncio import Queue, TaskGroup
 from contextlib import asynccontextmanager
-from sys import modules
 from typing import Any
 
 from fastapi import UploadFile
@@ -29,8 +28,7 @@ from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
 _RECOMPRESS_TG: TaskGroup
-_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey] | None]
-_TESTING = 'pytest' in modules
+_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey] | None] | None = None
 
 
 class TraceService:
@@ -39,11 +37,14 @@ class TraceService:
     async def context():
         """Context manager for background trace work."""
         global _RECOMPRESS_QUEUE, _RECOMPRESS_TG
-        _RECOMPRESS_QUEUE = Queue()
+        _RECOMPRESS_QUEUE = queue = Queue()
         async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
-            _RECOMPRESS_TG.create_task(_recompress_worker())
-            yield
-            await _RECOMPRESS_QUEUE.put(None)
+            _RECOMPRESS_TG.create_task(_recompress_worker(queue))
+            try:
+                yield
+            finally:
+                await queue.put(None)
+                _RECOMPRESS_QUEUE = None
 
     @staticmethod
     async def upload(
@@ -137,10 +138,7 @@ class TraceService:
             raise
 
         # Recompress after the fast upload path has committed the trace.
-        if _TESTING:
-            await _recompress_task(trace_id, trace_init['file_id'], file)
-        else:
-            _RECOMPRESS_QUEUE.put_nowait((trace_id, trace_init['file_id']))
+        _queue_recompress(trace_id, trace_init['file_id'])
         return trace_id
 
     @staticmethod
@@ -277,10 +275,21 @@ async def _recompress_stored_task(
         capture_exception()
 
 
-async def _recompress_worker():
+def _queue_recompress(trace_id: TraceId, old_file_id: StorageKey):
+    """Queue a trace for background recompression when the service context is active."""
+    if _RECOMPRESS_QUEUE is None:
+        logging.debug(
+            'Skipping trace recompression for trace %d because context is not active',
+            trace_id,
+        )
+        return
+    _RECOMPRESS_QUEUE.put_nowait((trace_id, old_file_id))
+
+
+async def _recompress_worker(queue: Queue[tuple[TraceId, StorageKey] | None]):
     """Recompress queued traces without growing upload-time work unboundedly."""
     while True:
-        item = await _RECOMPRESS_QUEUE.get()
+        item = await queue.get()
         if item is None:
             return
 
