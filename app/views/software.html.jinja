@@ -14,22 +14,68 @@
 
   <div class="content-body">
     <div class="container">
-      <div class="d-flex flex-wrap gap-2 mb-4">
-        <a
-          class="btn btn-sm {{ 'btn-primary' if not active_category else 'btn-outline-primary' }}"
-          href="/software"
-        >
-          All
-        </a>
-        {% for category in software_categories %}
-          <a
-            class="btn btn-sm {{ 'btn-primary' if active_category == category else 'btn-outline-primary' }}"
-            href="/software?category={{ category | urlencode }}"
-          >
-            {{ category }}
-          </a>
-        {% endfor %}
-      </div>
+      <form class="row g-2 align-items-end mb-4" method="get">
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="software-category">Category</label>
+          <select class="form-select" id="software-category" name="category">
+            <option value="">All categories</option>
+            {% for category in software_categories %}
+              <option
+                value="{{ category }}"
+                {{ 'selected' if active_filters.category == category else '' }}
+              >
+                {{ category }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="software-platform">Platform</label>
+          <select class="form-select" id="software-platform" name="platform">
+            <option value="">All platforms</option>
+            {% for platform in software_platforms %}
+              <option
+                value="{{ platform }}"
+                {{ 'selected' if active_filters.platform == platform else '' }}
+              >
+                {{ platform }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="software-license">License</label>
+          <select class="form-select" id="software-license" name="license">
+            <option value="">Any license</option>
+            {% for license in software_licenses %}
+              <option
+                value="{{ license }}"
+                {{ 'selected' if active_filters.license == license else '' }}
+              >
+                {{ license }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="software-status">Status</label>
+          <select class="form-select" id="software-status" name="status">
+            <option value="">Any status</option>
+            {% for status in software_statuses %}
+              <option
+                value="{{ status }}"
+                {{ 'selected' if active_filters.status == status else '' }}
+              >
+                {{ status }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-2">
+          <button class="btn btn-primary flex-fill" type="submit">Apply</button>
+          <a class="btn btn-outline-secondary" href="/software">Clear</a>
+        </div>
+      </form>
 
       <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
         {% for item in software_items %}
