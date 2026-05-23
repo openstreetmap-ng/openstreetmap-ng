@@ -24,6 +24,7 @@ from app.db import (
     db_lock,
     db_update,
 )
+from app.exceptions.api_error import APIError
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
@@ -38,15 +39,66 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
+
+
+async def _close_notes_tagged_by_changeset(
+    changeset_id: ChangesetId, tags: dict[str, str]
+):
+    note_comments = _changeset_note_close_comments(tags)
+    for note_id, comment in note_comments.items():
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except APIError as e:
+            # Closing a changeset must remain idempotent for notes that were
+            # already resolved or are no longer visible to this user.
+            if e.status_code not in {404, 409}:
+                raise
+            logging.debug(
+                'Skipping automatic note close from changeset %d for note %d',
+                changeset_id,
+                note_id,
+            )
+
+
+def _changeset_note_close_comments(tags: dict[str, str]) -> dict[NoteId, str]:
+    raw_note_ids = tags.get('closes:note')
+    if not raw_note_ids:
+        return {}
+
+    default_comment = tags.get('closes:note:comment')
+    if default_comment is None:
+        default_comment = tags.get('comment', '')
+
+    note_comments: dict[NoteId, str] = {}
+    for raw_note_id in raw_note_ids.split(';'):
+        raw_note_id = raw_note_id.strip()
+        if not raw_note_id.isdecimal():
+            continue
+
+        note_id = NoteId(int(raw_note_id))
+        if note_id in note_comments:
+            continue
+
+        comment = tags.get(f'closes:note:{note_id}:comment', default_comment)
+        note_comments[note_id] = comment
+
+    return note_comments
 
 
 class ChangesetService:
@@ -77,7 +129,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -89,7 +141,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +194,8 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_notes_tagged_by_changeset(changeset_id, tags)
 
     @staticmethod
     @asynccontextmanager
