@@ -165,7 +165,12 @@ async def help_():
 
 
 @router.get('/software')
-async def software(category: Annotated[str | None, Query()] = None):
+async def software(
+    category: Annotated[str | None, Query()] = None,
+    platform: Annotated[str | None, Query()] = None,
+    license: Annotated[str | None, Query()] = None,
+    status_: Annotated[str | None, Query(alias='status')] = None,
+):
     software_items = [
         {
             'name': 'iD',
@@ -219,12 +224,26 @@ async def software(category: Annotated[str | None, Query()] = None):
         },
     ]
     categories = sorted({item['category'] for item in software_items})
-    if category and category not in categories:
+    platforms = sorted(
+        {platform for item in software_items for platform in item['platforms']}
+    )
+    licenses = sorted({item['license'] for item in software_items})
+    statuses = sorted({item['status'] for item in software_items})
+    if (
+        (category and category not in categories)
+        or (platform and platform not in platforms)
+        or (license and license not in licenses)
+        or (status_ and status_ not in statuses)
+    ):
         return Response(None, status.HTTP_404_NOT_FOUND)
-    if category:
-        software_items = [
-            item for item in software_items if item['category'] == category
-        ]
+    software_items = [
+        item
+        for item in software_items
+        if (not category or item['category'] == category)
+        and (not platform or platform in item['platforms'])
+        and (not license or item['license'] == license)
+        and (not status_ or item['status'] == status_)
+    ]
 
     return await render_response(
         'software',
@@ -232,7 +251,15 @@ async def software(category: Annotated[str | None, Query()] = None):
             'title': 'OpenStreetMap software',
             'software_items': software_items,
             'software_categories': categories,
-            'active_category': category,
+            'software_platforms': platforms,
+            'software_licenses': licenses,
+            'software_statuses': statuses,
+            'active_filters': {
+                'category': category,
+                'platform': platform,
+                'license': license,
+                'status': status_,
+            },
         },
     )
 
