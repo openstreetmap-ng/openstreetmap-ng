@@ -11,6 +11,11 @@ args=(
   --randomly-seed="$EPOCHSECONDS"
 )
 
+if [[ ${COVERAGE_CORE:-} == sysmon ]] && find app -name "*.so" -print -quit | grep -q .; then
+  # Cython-compiled modules currently crash Python 3.14 during coverage/sysmon shutdown.
+  export COVERAGE_CORE=ctrace
+fi
+
 for arg in "$@"; do
   case "$arg" in
   --term)
