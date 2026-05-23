@@ -5,7 +5,6 @@ if [[ ! -S $PC_SOCKET_PATH ]]; then
 fi
 
 term_output=0
-coverage=1
 args=(
   --verbose
   --no-header
@@ -14,9 +13,6 @@ args=(
 
 for arg in "$@"; do
   case "$arg" in
-  --no-coverage)
-    coverage=0
-    ;;
   --term)
     term_output=1
     ;;
@@ -27,26 +23,17 @@ for arg in "$@"; do
 done
 
 set +e
-if [[ $coverage == 1 ]]; then
-  (
-    set -x
-    python -m coverage run -m pytest "${args[@]}"
-  )
-else
-  (
-    set -x
-    python -m pytest "${args[@]}"
-  )
-fi
+(
+  set -x
+  python -m coverage run -m pytest "${args[@]}"
+)
 result=$?
 set -e
 
-if [[ $coverage == 1 ]]; then
-  if [[ $term_output == 1 ]]; then
-    python -m coverage report --skip-covered
-  else
-    python -m coverage xml --quiet
-  fi
-  python -m coverage erase
+if [[ $term_output == 1 ]]; then
+  python -m coverage report --skip-covered
+else
+  python -m coverage xml --quiet
 fi
+python -m coverage erase
 exit "$result"
