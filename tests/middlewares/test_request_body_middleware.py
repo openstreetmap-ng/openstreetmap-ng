@@ -15,6 +15,7 @@ from starlette import status
 from app.config import REQUEST_BODY_MAX_SIZE
 from app.lib.io.xml_codec import XMLToDict
 from app.models.types import ChangesetId
+from app.services.note_service import with_note_app_hashtag
 from tests.utils.assert_model import assert_model
 
 # Lightweight compression levels for faster tests.
@@ -100,7 +101,7 @@ async def test_compressed_json(
         {
             'user': 'user1',
             'action': 'opened',
-            'text': text,
+            'text': with_note_app_hashtag(text),
         },
     )
 
@@ -188,7 +189,7 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
         {
             'user': 'user1',
             'action': 'opened',
-            'text': text,
+            'text': with_note_app_hashtag(text),
         },
     )
 
