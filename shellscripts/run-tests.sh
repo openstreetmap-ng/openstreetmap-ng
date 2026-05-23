@@ -5,19 +5,18 @@ if [[ ! -S $PC_SOCKET_PATH ]]; then
 fi
 
 term_output=0
+coverage=1
 args=(
   --verbose
   --no-header
   --randomly-seed="$EPOCHSECONDS"
 )
 
-if [[ ${COVERAGE_CORE:-} == sysmon ]] && find app -name "*.so" -print -quit | grep -q .; then
-  # Cython-compiled modules currently crash Python 3.14 during coverage/sysmon shutdown.
-  export COVERAGE_CORE=ctrace
-fi
-
 for arg in "$@"; do
   case "$arg" in
+  --no-coverage)
+    coverage=0
+    ;;
   --term)
     term_output=1
     ;;
@@ -28,17 +27,26 @@ for arg in "$@"; do
 done
 
 set +e
-(
-  set -x
-  python -m coverage run -m pytest "${args[@]}"
-)
+if [[ $coverage == 1 ]]; then
+  (
+    set -x
+    python -m coverage run -m pytest "${args[@]}"
+  )
+else
+  (
+    set -x
+    python -m pytest "${args[@]}"
+  )
+fi
 result=$?
 set -e
 
-if [[ $term_output == 1 ]]; then
-  python -m coverage report --skip-covered
-else
-  python -m coverage xml --quiet
+if [[ $coverage == 1 ]]; then
+  if [[ $term_output == 1 ]]; then
+    python -m coverage report --skip-covered
+  else
+    python -m coverage xml --quiet
+  fi
+  python -m coverage erase
 fi
-python -m coverage erase
 exit "$result"
