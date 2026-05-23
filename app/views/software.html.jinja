@@ -1,0 +1,77 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ title }} |{% endblock %}
+{% block body_class %}software-page{% endblock %}
+{% block body %}
+  <div class="content-header">
+    <div class="container">
+      <h1>{{ title }}</h1>
+      <p class="lead mb-0">
+        A curated starting point for tools that help people edit, inspect, and
+        use OpenStreetMap data.
+      </p>
+    </div>
+  </div>
+
+  <div class="content-body">
+    <div class="container">
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a
+          class="btn btn-sm {{ 'btn-primary' if not active_category else 'btn-outline-primary' }}"
+          href="/software"
+        >
+          All
+        </a>
+        {% for category in software_categories %}
+          <a
+            class="btn btn-sm {{ 'btn-primary' if active_category == category else 'btn-outline-primary' }}"
+            href="/software?category={{ category | urlencode }}"
+          >
+            {{ category }}
+          </a>
+        {% endfor %}
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+        {% for item in software_items %}
+          <div class="col">
+            <article class="card h-100">
+              <div class="card-body">
+                <div class="d-flex gap-3 align-items-start mb-3">
+                  <img
+                    class="rounded border p-2"
+                    src="{{ item.image }}"
+                    alt="{{ item.name }} logo"
+                    width="64"
+                    height="64"
+                    loading="lazy"
+                  />
+                  <div>
+                    <h2 class="h5 mb-1">
+                      <a
+                        class="stretched-link"
+                        href="{{ item.url }}"
+                        rel="noopener"
+                      >
+                        {{ item.name }}
+                      </a>
+                    </h2>
+                    <div class="text-body-secondary small">{{ item.category }}</div>
+                  </div>
+                </div>
+                <p>{{ item.description }}</p>
+                <dl class="row small mb-0 position-relative z-1">
+                  <dt class="col-4">Platform</dt>
+                  <dd class="col-8">{{ item.platforms | join(', ') }}</dd>
+                  <dt class="col-4">License</dt>
+                  <dd class="col-8">{{ item.license }}</dd>
+                  <dt class="col-4">Status</dt>
+                  <dd class="col-8">{{ item.status }}</dd>
+                </dl>
+              </div>
+            </article>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
