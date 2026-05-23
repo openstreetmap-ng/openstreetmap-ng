@@ -164,6 +164,79 @@ async def help_():
     return await render_proto_page(HelpPage(), title_prefix=t('layouts.help'))
 
 
+@router.get('/software')
+async def software(category: Annotated[str | None, Query()] = None):
+    software_items = [
+        {
+            'name': 'iD',
+            'category': 'Editor',
+            'platforms': ['Web'],
+            'license': 'Open source',
+            'status': 'Maintained',
+            'url': 'https://github.com/openstreetmap/iD',
+            'image': '/static/img/brand/id.svg',
+            'description': 'Browser-based editor for contributing directly from the map.',
+        },
+        {
+            'name': 'Rapid',
+            'category': 'Editor',
+            'platforms': ['Web'],
+            'license': 'Open source',
+            'status': 'Maintained',
+            'url': 'https://rapideditor.org',
+            'image': '/static/img/brand/rapid.svg',
+            'description': 'Web editor with assisted mapping workflows and modern imagery tools.',
+        },
+        {
+            'name': 'JOSM',
+            'category': 'Editor',
+            'platforms': ['Desktop'],
+            'license': 'Open source',
+            'status': 'Maintained',
+            'url': 'https://josm.openstreetmap.de',
+            'image': '/static/img/brand/josm.svg',
+            'description': 'Advanced desktop editor for detailed OpenStreetMap work.',
+        },
+        {
+            'name': 'Overpass Turbo',
+            'category': 'Data tools',
+            'platforms': ['Web'],
+            'license': 'Open source',
+            'status': 'Maintained',
+            'url': 'https://overpass-turbo.eu',
+            'image': '/static/img/brand/overpass.svg',
+            'description': 'Interactive query tool for exploring OpenStreetMap data.',
+        },
+        {
+            'name': 'Geofabrik Downloads',
+            'category': 'Data tools',
+            'platforms': ['Web'],
+            'license': 'Open data',
+            'status': 'Maintained',
+            'url': 'https://download.geofabrik.de',
+            'image': '/static/img/brand/geofabrik.webp',
+            'description': 'Regional OpenStreetMap extracts for analysis and application imports.',
+        },
+    ]
+    categories = sorted({item['category'] for item in software_items})
+    if category and category not in categories:
+        return Response(None, status.HTTP_404_NOT_FOUND)
+    if category:
+        software_items = [
+            item for item in software_items if item['category'] == category
+        ]
+
+    return await render_response(
+        'software',
+        {
+            'title': 'OpenStreetMap software',
+            'software_items': software_items,
+            'software_categories': categories,
+            'active_category': category,
+        },
+    )
+
+
 @router.get('/fixthemap')
 async def fixthemap():
     return await render_proto_page(FixthemapPage(), title_prefix=t('fixthemap.title'))
