@@ -129,7 +129,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at, tags
+                    SELECT user_id, closed_at
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -141,8 +141,7 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            tags: dict[str, str]
-            changeset_user_id, closed_at, tags = row
+            changeset_user_id, closed_at = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -165,7 +164,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -177,7 +176,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
