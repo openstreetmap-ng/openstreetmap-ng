@@ -371,6 +371,15 @@ def _decode_element_unsafe(
         and (lat := data.get('@lat')) is not None
         else None
     )
+    if (
+        type == 'node'
+        and data.get('@visible', True)
+        and point is not None
+        and point.x == 0
+        and point.y == 0
+    ):
+        raise ValueError('Nodes cannot be placed at null island')
+
     members = None
     members_roles = None
 
