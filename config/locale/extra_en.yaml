@@ -232,7 +232,7 @@ settings:
   new_password: New password
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
-  password_has_beeen_changed: Your password has been changed
+  password_has_been_changed: Your password has been changed
   enter_your_password_to_confirm: Enter your password to confirm
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
