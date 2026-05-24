@@ -232,7 +232,7 @@ settings:
   new_password: New password
   new_password_repeat: Repeat new password
   logout_from_browsers: Automatically logout from all other browsers
-  password_has_been_changed: Your password has been changed
+  password_has_beeen_changed: Your password has been changed
   enter_your_password_to_confirm: Enter your password to confirm
   active_sessions: Active sessions
   review_and_manage_your_active_login_sessions: Review and manage your active login sessions.
@@ -555,7 +555,7 @@ two_fa:
   recovery_codes_description: |-
     Recovery codes can be used to access your account if you lose access to your two-factor device.
   each_code_can_be_used_once: Each code can be used once.
-  generated_on_date: "Added on {{date}}"
+  generated_on_date: "Generated on {{date}}"
   save_recovery_codes_warning: |-
     Make sure to save these codes in a safe place. We will not show them again.
     If you lose access to your two-factor device and your recovery codes, you will lose access to your account.
@@ -646,7 +646,7 @@ action:
   updated: updated
   clear_markers: Clear markers
   show_more: Show more
-  show_less: Show_less
+  show_less: Show less
   remove_filter: Remove filter
   remove: Remove
   continue_reading: Continue reading
