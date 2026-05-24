@@ -9,6 +9,7 @@ import {
   type Map as MaplibreMap,
   Marker,
 } from "maplibre-gl"
+import { unwrapLongitude } from "../geometry"
 import { emptyFeatureCollection, type LayerId, layersConfig } from "../layers/layers"
 
 const LAYER_ID: LayerId = "location-filter" as LayerId
@@ -199,9 +200,14 @@ const createCornerElement = () => {
 }
 
 const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon> => {
-  // Normalize bounds
-  if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
+  // Normalize latitude only. Longitude order carries antimeridian intent:
+  // small inverted spans are normal handle inversions, while wider jumps should
+  // remain dateline crossings and render as two mask holes.
+  if (Math.abs(maxLon - minLon) < 180 && minLon > maxLon)
+    [minLon, maxLon] = [maxLon, minLon]
   if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
+
+  maxLon = unwrapLongitude(maxLon, minLon)
   minLon = wrapLongitude(minLon)
   maxLon = wrapLongitude(maxLon)
 
