@@ -1,3 +1,4 @@
+from asyncio import CancelledError
 from typing import NamedTuple
 
 import pytest
@@ -108,6 +109,30 @@ async def test_recompress_trace_file_discards_new_file_when_trace_changed(
 
     old_file_id = StorageKey('old.zst')
     await _recompress_trace_file(TraceId(1), old_file_id, b'hello')
+
+    new_file_id = storage.saved[0][0]
+    assert storage.deleted == [new_file_id]
+
+
+async def test_recompress_trace_file_cleans_up_new_file_on_cancellation(
+    monkeypatch,
+):
+    storage = _FakeTraceStorage()
+
+    async def fake_db_update(table, values, *, where, conn=None):
+        raise CancelledError
+
+    monkeypatch.setattr(trace_recompression_module, 'TRACE_STORAGE', storage)
+    monkeypatch.setattr(trace_recompression_module, 'db_update', fake_db_update)
+    monkeypatch.setattr(
+        trace_recompression_module,
+        '_compress_trace_file',
+        _fake_recompress,
+    )
+
+    old_file_id = StorageKey('old.zst')
+    with pytest.raises(CancelledError):
+        await _recompress_trace_file(TraceId(1), old_file_id, b'hello')
 
     new_file_id = storage.saved[0][0]
     assert storage.deleted == [new_file_id]
