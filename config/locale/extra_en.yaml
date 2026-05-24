@@ -497,7 +497,7 @@ alt:
   background_image: Background image
   service_image: Service image
   passkey_icon: Passkey icon
-  image_of_planet_earth: Image of Planet Earth
+  image_of_planet_earth: Image of planet Earth
   new_note_icon: New note icon
 internalization:
   get_started: |-
@@ -555,7 +555,7 @@ two_fa:
   recovery_codes_description: |-
     Recovery codes can be used to access your account if you lose access to your two-factor device.
   each_code_can_be_used_once: Each code can be used once.
-  generated_on_date: "Generated on {{date}}"
+  generated_on_date: "Added on {{date}}"
   save_recovery_codes_warning: |-
     Make sure to save these codes in a safe place. We will not show them again.
     If you lose access to your two-factor device and your recovery codes, you will lose access to your account.
@@ -590,10 +590,10 @@ validation:
   passwords_missmatch: The passwords do not match
   you_must_be_logged_in_to_perform_this_action: You must be logged in to perform this action
   reached_app_limit: You have reached the maximum number of applications
-  too_many_redirect_uris: Too many Redirect URIs
+  too_many_redirect_uris: Too many redirect URIs
   redirect_uri_too_long: Redirect URI is too long
-  invalid_redirect_uri: Invalid Redirect URI
-  insecure_redirect_uri: Insecure Redirect URI, use https:// for public endpoints
+  invalid_redirect_uri: Invalid redirect URI
+  insecure_redirect_uri: Insecure redirect URI, use https:// for public endpoints
   cant_send_message_to_self: You can't send a message to yourself
   user_not_found: User {{user}} not found
   you_can_send_message_to_at_most_count_recipients: "You can send a message to at most {{count}} recipients"
@@ -646,7 +646,7 @@ action:
   updated: updated
   clear_markers: Clear markers
   show_more: Show more
-  show_less: Show less
+  show_less: Show_less
   remove_filter: Remove filter
   remove: Remove
   continue_reading: Continue reading
