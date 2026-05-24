@@ -17,6 +17,7 @@ for arg in "$@"; do
   case "$arg" in
   --hard-exit)
     hard_exit=1
+    coverage=0
     ;;
   --no-coverage)
     coverage=0
