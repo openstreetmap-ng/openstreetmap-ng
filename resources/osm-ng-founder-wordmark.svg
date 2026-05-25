@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founder wordmark</title>
+  <desc id="desc">A light-background wordmark pairing the OSM-NG Founder badge with OpenStreetMap-NG Founder text.</desc>
+  <rect width="1600" height="420" rx="48" fill="#F7FAF1"/>
+  <g transform="translate(48 30) scale(0.3515625)">
+    <rect width="1024" height="1024" rx="208" fill="#F6FAF1"/>
+    <path d="M160 202L335 158L514 204L690 159L864 205V818L689 860L511 814L334 861L160 816V202Z" fill="#BFE6AE" stroke="#2F6F45" stroke-opacity="0.3" stroke-width="12" stroke-linejoin="round"/>
+    <path d="M335 158V861M514 204V814M690 159V860" stroke="#78B879" stroke-opacity="0.5" stroke-width="10"/>
+    <path d="M208 353C301 306 377 326 449 373C512 414 586 427 652 381C711 340 765 328 826 353" stroke="#6AA2DD" stroke-opacity="0.55" stroke-width="18" stroke-linecap="round"/>
+    <path d="M235 249L318 316L305 424L406 483L386 573L472 628L461 735M794 244L729 316L747 405L666 466L682 558L607 624L615 736" stroke="#C94E4B" stroke-opacity="0.66" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="512" y="565" fill="#FFFFFF" stroke="#111111" stroke-linejoin="round" stroke-width="18" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="266" font-weight="900" letter-spacing="-10" text-anchor="middle">NG</text>
+    <path d="M243 645H781C803.091 645 821 662.909 821 685V753C821 775.091 803.091 793 781 793H243C220.909 793 203 775.091 203 753V685C203 662.909 220.909 645 243 645Z" fill="#263D2C" stroke="#F3EFCF" stroke-width="8"/>
+    <text x="512" y="743" fill="#F5F0D5" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800" letter-spacing="10" text-anchor="middle">FOUNDER</text>
+  </g>
+  <text x="470" y="175" fill="#263D2C" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800">OpenStreetMap-NG</text>
+  <text x="470" y="274" fill="#5C7F55" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900" letter-spacing="6">Founder</text>
+  <path d="M475 318H1235" stroke="#D1B65D" stroke-width="18" stroke-linecap="round"/>
+</svg>

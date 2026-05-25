@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">OSM-NG Founder logo concept</title>
+  <desc id="desc">A folded map badge with route lines, bold NG lettering, and a founder banner.</desc>
+  <defs>
+    <linearGradient id="mapGradient" x1="172" y1="170" x2="852" y2="852" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E3F4C4"/>
+      <stop offset="0.48" stop-color="#BFE6AE"/>
+      <stop offset="1" stop-color="#8FCF95"/>
+    </linearGradient>
+    <linearGradient id="foldGradient" x1="284" y1="231" x2="762" y2="797" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBE9" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#6DBE7D" stop-opacity="0.42"/>
+    </linearGradient>
+    <filter id="shadow" x="83" y="88" width="858" height="844" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="22" flood-color="#143624" flood-opacity="0.22" stdDeviation="22"/>
+    </filter>
+    <filter id="letterShadow" x="122" y="238" width="780" height="428" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="11" flood-color="#0A1F15" flood-opacity="0.5" stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="208" fill="#F6FAF1"/>
+
+  <g filter="url(#shadow)">
+    <path d="M160 202L335 158L514 204L690 159L864 205V818L689 860L511 814L334 861L160 816V202Z" fill="url(#mapGradient)"/>
+    <path d="M335 158V861M514 204V814M690 159V860" stroke="#78B879" stroke-opacity="0.5" stroke-width="10"/>
+    <path d="M160 202L335 158L514 204L690 159L864 205V818L689 860L511 814L334 861L160 816V202Z" fill="url(#foldGradient)"/>
+    <path d="M160 202L335 158L514 204L690 159L864 205V818L689 860L511 814L334 861L160 816V202Z" stroke="#2F6F45" stroke-opacity="0.28" stroke-width="12" stroke-linejoin="round"/>
+  </g>
+
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M208 353C301 306 377 326 449 373C512 414 586 427 652 381C711 340 765 328 826 353" stroke="#6AA2DD" stroke-opacity="0.55" stroke-width="18"/>
+    <path d="M210 664C294 625 352 627 431 668C513 711 579 698 641 652C706 605 766 607 827 644" stroke="#6AA2DD" stroke-opacity="0.42" stroke-width="15"/>
+    <path d="M235 249L318 316L305 424L406 483L386 573L472 628L461 735" stroke="#C94E4B" stroke-opacity="0.72" stroke-width="16"/>
+    <path d="M794 244L729 316L747 405L666 466L682 558L607 624L615 736" stroke="#C94E4B" stroke-opacity="0.62" stroke-width="14"/>
+    <path d="M235 512C289 486 348 486 405 510M618 513C681 486 745 489 806 516" stroke="#5A914F" stroke-opacity="0.5" stroke-width="12"/>
+  </g>
+
+  <g fill="#2F6F45" opacity="0.35">
+    <circle cx="318" cy="316" r="18"/>
+    <circle cx="406" cy="483" r="15"/>
+    <circle cx="472" cy="628" r="16"/>
+    <circle cx="729" cy="316" r="17"/>
+    <circle cx="666" cy="466" r="14"/>
+    <circle cx="607" cy="624" r="15"/>
+  </g>
+
+  <g filter="url(#letterShadow)">
+    <text x="512" y="565" fill="#FFFFFF" stroke="#111111" stroke-linejoin="round" stroke-width="18" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="266" font-weight="900" letter-spacing="-10" text-anchor="middle">NG</text>
+  </g>
+
+  <g>
+    <path d="M243 645H781C803.091 645 821 662.909 821 685V753C821 775.091 803.091 793 781 793H243C220.909 793 203 775.091 203 753V685C203 662.909 220.909 645 243 645Z" fill="#263D2C"/>
+    <path d="M243 645H781C803.091 645 821 662.909 821 685V753C821 775.091 803.091 793 781 793H243C220.909 793 203 775.091 203 753V685C203 662.909 220.909 645 243 645Z" stroke="#F3EFCF" stroke-width="8"/>
+    <text x="512" y="743" fill="#F5F0D5" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="800" letter-spacing="10" text-anchor="middle">FOUNDER</text>
+  </g>
+</svg>
