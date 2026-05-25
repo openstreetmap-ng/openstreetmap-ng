@@ -17,9 +17,11 @@ for arg in "$@"; do
   --term)
     term_output=1
     ;;
-  --hard-exit)
+  --hard-exit | --no-coverage)
     coverage=0
-    args+=("$arg")
+    if [[ $arg == "--hard-exit" ]]; then
+      args+=("$arg")
+    fi
     ;;
   *)
     args+=("$arg")
