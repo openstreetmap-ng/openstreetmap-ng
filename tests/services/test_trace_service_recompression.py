@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import app.services.trace_service as trace_service
+from app.config import TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
 from app.models.types import StorageKey, TraceId
 
 
@@ -23,7 +24,7 @@ async def test_recompress_trace_file_swaps_current_file(monkeypatch):
 
     async def compress(file: bytes, *, level: int):
         assert file == b'<gpx />'
-        assert level == 22
+        assert level == TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
         return SimpleNamespace(
             data=b'heavily-compressed',
             suffix='.zst',
