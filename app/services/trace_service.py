@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import UploadFile
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import TRACE_FILE_RECOMPRESS_ZSTD_LEVEL, TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -25,8 +25,6 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
-
-_TRACE_FILE_RECOMPRESS_ZSTD_LEVEL = 22
 
 
 class TraceService:
@@ -208,7 +206,7 @@ async def _recompress_trace_file(
     new_file_id: StorageKey | None = None
     try:
         result = await TraceFile.compress(
-            file, level=_TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
+            file, level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
         )
         new_file_id = await TRACE_STORAGE.save(
             result.data, result.suffix, result.metadata
