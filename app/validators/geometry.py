@@ -27,6 +27,10 @@ def validate_geometry(value: dict[str, Any] | _T) -> BaseGeometry | _T:
     ):
         raise_for.bad_geometry_coordinates()
 
+    # Reject edits at null island (0,0) — always a bug in the editor
+    if np.any((coords[:, 0] == 0) & (coords[:, 1] == 0)):
+        raise_for.bad_null_island()
+
     # Optimized validation for points
     if isinstance(geom, Point):
         if coords.shape != (1, 2):
