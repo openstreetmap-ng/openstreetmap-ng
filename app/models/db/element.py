@@ -92,6 +92,12 @@ def _validate_node(element: ElementInit):
     element['members'] = None
     element['members_roles'] = None
 
+    # Reject edits at null island (0,0) — always a bug in the editor
+    point = element['point']
+    if point is not None and point.x == 0 and point.y == 0:
+        from app.exceptions.context import raise_for
+        raise_for.bad_null_island()
+
 
 @cython.cfunc
 def _validate_way(element: ElementInit):
