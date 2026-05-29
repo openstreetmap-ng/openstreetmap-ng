@@ -17,5 +17,5 @@ class OpenIDToken(TypedDict, total=False):
 
 
 def parse_openid_token_no_verify(token: str) -> OpenIDToken:
-    payload = token.split('.', 2)[1]
-    return orjson.loads(urlsafe_b64decode(payload + '=='))
+    payload = token.encode('ascii').split(b'.', 2)[1]
+    return orjson.loads(urlsafe_b64decode(payload + b'=='))

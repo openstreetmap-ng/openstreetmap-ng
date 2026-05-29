@@ -4,7 +4,6 @@ import cython
 import numpy as np
 from numpy.typing import NDArray
 from psycopg import IsolationLevel
-from psycopg.rows import dict_row
 from psycopg.sql import SQL
 from shapely import (
     MultiLineString,
@@ -163,7 +162,6 @@ class TraceQuery:
             if identifiable_trackable
             else ['public', 'private']
         )
-        offset_clause = t'OFFSET {legacy_offset}' if legacy_offset is not None else t''
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             chunks = await TimescaleDBQuery.get_chunks_ranges('trace', conn)
@@ -178,15 +176,18 @@ class TraceQuery:
                 for chunk_start, chunk_end in chunks
             ])
 
-            async with await conn.cursor(row_factory=dict_row).execute(t"""
-                /*+ BitmapScan(trace trace_segments_idx) */
-                {unions:q}
-                {offset_clause:q}
-                LIMIT {limit}
-            """) as r:
-                traces: list[Trace] = await r.fetchall()  # type: ignore
-                if not traces:
-                    return []
+            traces = await db_fetchall(
+                Trace,
+                t"""
+                    /*+ BitmapScan(trace trace_segments_idx) */
+                    {unions:q}
+                """,
+                limit=limit,
+                offset=legacy_offset,
+                conn=conn,
+            )
+            if not traces:
+                return []
 
         prepare(geometry)
         filtered_traces: list[Trace] = []

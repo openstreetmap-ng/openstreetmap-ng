@@ -208,12 +208,17 @@ def main():
         translation = orjson.dumps(
             translation_data,
             option=orjson.OPT_SORT_KEYS,
-        ).decode()
+        )
 
         # Transform to javascript
-        translation = f'if(!window.locales)window.locales={{}};window.locales["{locale}"]={{translation:{translation}}}'
+        buffer = b''.join((
+            b'if(!window.locales)window.locales={};window.locales["',
+            locale.encode(),
+            b'"]={translation:',
+            translation,
+            b'}',
+        ))
 
-        buffer = translation.encode()
         file_hash = sha256(buffer).hexdigest()[:16]
         file_name = f'{locale}-{file_hash}.js'
         target_path = _I18NEXT_DIR.joinpath(file_name)

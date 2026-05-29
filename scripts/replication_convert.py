@@ -253,7 +253,7 @@ def _process_user(header_only: bool):
 
 def main():
     choices = ['changeset', 'changeset_bounds', 'element', 'user']
-    parser = ArgumentParser()
+    parser = ArgumentParser(suggest_on_error=True)
     parser.add_argument('--header-only', action='store_true')
     parser.add_argument('mode', choices=choices)
     args = parser.parse_args()

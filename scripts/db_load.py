@@ -3,8 +3,8 @@ import logging
 from argparse import ArgumentParser
 from asyncio import Lock, Semaphore, TaskGroup, create_subprocess_shell
 from asyncio.subprocess import PIPE, Process
+from compression import zstd
 from contextlib import nullcontext
-from io import TextIOWrapper
 from itertools import starmap
 from pathlib import Path
 from shlex import quote
@@ -13,7 +13,6 @@ from typing import Literal, NamedTuple, get_args
 
 from psycopg.abc import Query
 from psycopg.sql import SQL, Identifier
-from zstandard import ZstdDecompressor
 
 from app.config import POSTGRES_URL, PRELOAD_DIR
 from app.db import (
@@ -79,12 +78,8 @@ def _get_csv_path(table: _Table):
 
 
 def _get_csv_header(path: Path):
-    with (
-        path.open('rb') as f,
-        ZstdDecompressor().stream_reader(f) as stream,
-        TextIOWrapper(stream) as reader,
-    ):
-        return reader.readline().strip()
+    with zstd.open(path, 'rb') as reader:
+        return reader.readline().strip().decode()
 
 
 async def _detect_settings():
@@ -157,7 +152,7 @@ async def _load_table(mode: _Mode, table: _Table):
     else:
         program = f'replication-convert {table}'
         proc = await create_subprocess_shell(f'{program} --header-only', stdout=PIPE)
-        header = (await proc.communicate())[0].decode().strip()
+        header = (await proc.communicate())[0].strip().decode()
 
     # Load the data
     columns = [f'"{c}"' for c in header.split(',')]
@@ -369,7 +364,7 @@ async def main(mode: _Mode):
 
 
 def main_cli():
-    parser = ArgumentParser()
+    parser = ArgumentParser(suggest_on_error=True)
     parser.add_argument(
         '-m',
         '--mode',

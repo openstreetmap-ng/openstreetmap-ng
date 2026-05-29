@@ -742,7 +742,7 @@ async def main():
     gc.disable()
 
     choices = ['changeset', 'planet', 'notes', 'user', 'spatial']
-    parser = ArgumentParser()
+    parser = ArgumentParser(suggest_on_error=True)
     parser.add_argument('modes', nargs='*', choices=choices)
     args = parser.parse_args()
     modes = set(args.modes) or set(choices).difference(('spatial',))
