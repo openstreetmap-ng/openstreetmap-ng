@@ -1,8 +1,9 @@
 import { RemoteEditButton } from "@index/remote-edit"
-import { routerRemoteEditTarget } from "@index/router"
+import { routerCtx, routerRemoteEditTarget } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
-import { useDisposeEffect } from "@utils/dispose-scope"
+import { isLoggedIn } from "@utils/config"
+import { useDisposeEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
 import { Dropdown, Tooltip } from "bootstrap"
@@ -16,6 +17,25 @@ const buildEditHref = (editor: Editor) => {
   const target = routerRemoteEditTarget.value
   if (target) params[target.type] = target.id.toString()
   return `/edit${qsEncode(params)}${currentHash.value}`
+}
+
+const isEditHelpActive = () =>
+  isLoggedIn && Boolean(routerCtx.value.queryParams.edit_help?.length)
+
+const removeEditHelpQuery = () => {
+  const params = new URLSearchParams(window.location.search)
+  if (!params.has("edit_help")) return
+
+  params.delete("edit_help")
+  const search = params.toString()
+  const href = `${window.location.pathname}${search ? `?${search}` : ""}${window.location.hash}`
+  window.history.replaceState(null, "", href)
+
+  try {
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  } catch {
+    window.dispatchEvent(new Event("popstate"))
+  }
 }
 
 const getEditorImage = (editor: Editor) => {
@@ -52,6 +72,7 @@ const EditorImg = ({
 
 const NavbarLeft = () => {
   const dropdownRootRef = useRef<HTMLDivElement>(null)
+  const defaultEditLinkRef = useRef<HTMLAnchorElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
   const tooltipRef = useRef<Tooltip>(null)
@@ -76,6 +97,34 @@ const NavbarLeft = () => {
     return () => tooltip.dispose()
   }, [])
 
+  // Effect: show the one-shot edit help tooltip requested by ?edit_help=1
+  useDisposeSignalEffect((scope) => {
+    if (!isEditHelpActive()) return
+
+    const tooltip = new Tooltip(defaultEditLinkRef.current!, {
+      title: t("javascripts.edit_help"),
+      placement: "bottom",
+      trigger: "manual",
+    })
+    let disposed = false
+
+    const disposeTooltip = () => {
+      if (disposed) return
+      disposed = true
+      tooltip.hide()
+      tooltip.dispose()
+    }
+
+    const finish = () => {
+      disposeTooltip()
+      removeEditHelpQuery()
+    }
+
+    tooltip.show()
+    scope.dom(document.body, "click", finish, { once: true })
+    scope.defer(disposeTooltip)
+  })
+
   // Effect: hide dropdown when edit is disabled
   useSignalEffect(() => {
     if (!editDisabled.value) return
@@ -98,7 +147,7 @@ const NavbarLeft = () => {
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (editDisabled.value && !isEditHelpActive()) {
       tooltip.enable()
     } else {
       tooltip.disable()
@@ -126,6 +175,7 @@ const NavbarLeft = () => {
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
+          ref={defaultEditLinkRef}
         >
           {t("layouts.edit")}
           <EditorImg
