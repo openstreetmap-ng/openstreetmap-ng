@@ -34,9 +34,10 @@ done
 
 echo "Found ${#files[@]} source files"
 
+# Python 3.14 can abort during shutdown when Cython profiling hooks are
+# compiled into the modules that pytest exercises under coverage.
 CFLAGS="$(python-config --cflags) $CFLAGS \
   -shared -fPIC \
-  -DCYTHON_PROFILE=1 \
   -DCYTHON_USE_SYS_MONITORING=0"
 export CFLAGS
 
@@ -62,7 +63,7 @@ process_file() {
     set -x
     cython -3 \
       --annotate \
-      --directive overflowcheck=True,embedsignature=True,profile=True \
+      --directive overflowcheck=True,embedsignature=True \
       --module-name "$module_name" \
       "$pyfile" -o "$c_file"
   )
