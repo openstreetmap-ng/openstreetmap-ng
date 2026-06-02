@@ -11,7 +11,7 @@ import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
+from PIL.Image import DecompressionBombError, DecompressionBombWarning, Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -242,8 +242,13 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', DecompressionBombWarning)
+            img = open_image(BytesIO(data))
+            ImageOps.exif_transpose(img, in_place=True)
+    except (DecompressionBombError, DecompressionBombWarning):
+        raise_for.image_too_big()
 
     # normalize shape ratio
     img_width: cython.size_t
