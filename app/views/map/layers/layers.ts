@@ -103,11 +103,13 @@ const aerialSource = {
   tileSize: 256,
 } satisfies SourceSpecification
 
-const hybridAerialStyle = {
-  ...libertyStyle,
+const typedLibertyStyle = libertyStyle as unknown as StyleSpecification
+
+const hybridAerialStyle: StyleSpecification = {
+  ...typedLibertyStyle,
   sources: {
     imagery: aerialSource,
-    openmaptiles: libertyStyle.sources.openmaptiles,
+    openmaptiles: typedLibertyStyle.sources.openmaptiles!,
   },
   layers: [
     {
@@ -115,8 +117,11 @@ const hybridAerialStyle = {
       type: "raster",
       source: "imagery",
     },
-    ...libertyStyle.layers.filter(
-      (layer) => layer.type === "line" || layer.type === "symbol",
+    ...typedLibertyStyle.layers.filter(
+      (layer) =>
+        layer.type === "line" ||
+        layer.type === "symbol" ||
+        layer.type === "circle",
     ),
   ],
 }
@@ -161,8 +166,7 @@ layersConfig.set(STANDARD_LAYER_ID, {
 
 layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
-  // @ts-expect-error
-  vectorStyle: libertyStyle,
+  vectorStyle: typedLibertyStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
 })
@@ -248,7 +252,6 @@ layersConfig.set(HYBRID_AERIAL_LAYER_ID, {
     type: "vector",
     attribution: `${copyright}. ${aerialEsriCredit}. ${terms}`,
   },
-  // @ts-expect-error derived from the imported Liberty style
   vectorStyle: hybridAerialStyle,
   isBaseLayer: true,
   layerCode: HYBRID_AERIAL_LAYER_CODE,
