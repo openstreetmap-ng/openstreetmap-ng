@@ -1,7 +1,9 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -111,7 +113,8 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
+            _schedule_trace_recompression(trace_id, trace_init['file_id'], file)
+            return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -191,3 +194,41 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+def _schedule_trace_recompression(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file_bytes: bytes,
+):
+    loop = get_running_loop()
+    loop.create_task(_recompress_trace_file(trace_id, old_file_id, file_bytes))  # noqa: RUF006
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file_bytes: bytes,
+):
+    try:
+        result = await TraceFile.recompress(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+
+        rowcount = await db_update(
+            'trace',
+            {'file_id': new_file_id},
+            where={'id': trace_id, 'file_id': old_file_id},
+        )
+        if not rowcount:
+            await TRACE_STORAGE.delete(new_file_id)
+            return
+
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.debug(
+            'Recompressed trace file %r -> %r for trace %d',
+            old_file_id,
+            new_file_id,
+            trace_id,
+        )
+    except Exception:
+        capture_exception()
