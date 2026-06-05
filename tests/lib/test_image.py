@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 from PIL import Image as PILImage
+from PIL.Image import DecompressionBombError
 
+import app.lib.io.image as image_module
 from app.config import IMAGE_MAX_FRAMES
 from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
@@ -48,15 +50,15 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
 
 
 async def test_normalize_avatar_maps_decompression_bomb_to_too_large(monkeypatch):
-    buffer = BytesIO()
-    PILImage.new('RGB', (2, 2)).save(buffer, format='PNG')
-    monkeypatch.setattr(PILImage, 'MAX_IMAGE_PIXELS', 3)
+    def raise_decompression_bomb(*_args, **_kwargs):
+        raise DecompressionBombError
 
     with (
         exceptions_context(Exceptions()),
         pytest.raises(APIError) as raised,
     ):
-        await Image.normalize_avatar(buffer.getvalue())
+        monkeypatch.setattr(image_module, 'open_image', raise_decompression_bomb)
+        await Image.normalize_avatar(b'image')
 
     assert raised.value.status_code == 413
     assert raised.value.detail == 'Image is too large'
