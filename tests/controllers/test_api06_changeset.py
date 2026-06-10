@@ -1,18 +1,22 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
-from annotated_types import Gt
+from annotated_types import Gt, Len
 from httpx import AsyncClient
 from starlette import status
 
 from app.config import (
+    CHANGESET_IDLE_TIMEOUT,
     LEGACY_HIGH_PRECISION_TIME,
     TAGS_KEY_MAX_LENGTH,
     TAGS_LIMIT,
     TAGS_MAX_SIZE,
 )
+from app.db import db_update
 from app.format import Format06
 from app.lib.io.xml_codec import XMLToDict
+from app.lib.time.date_utils import utcnow
+from app.services.changeset_service import ChangesetService
 from tests.utils.assert_model import assert_model
 
 
@@ -253,6 +257,151 @@ async def test_changeset_update_closed(client: AsyncClient):
         }),
     )
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
+
+
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    async def create_note(text: str) -> int:
+        r = await client.post(
+            '/api/0.6/notes.json',
+            json={'lon': 0, 'lat': 0, 'text': text},
+        )
+        assert r.is_success, r.text
+        return r.json()['properties']['id']
+
+    global_note_id = await create_note('global close note')
+    specific_note_id = await create_note('specific close note')
+    empty_note_id = await create_note('empty close note')
+    already_closed_note_id = await create_note('already closed note')
+
+    r = await client.post(
+        f'/api/0.6/notes/{already_closed_note_id}/close.json',
+        params={'text': 'already closed'},
+    )
+    assert r.is_success, r.text
+    already_closed_before = r.json()['properties']
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'changeset fallback'},
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_close_closes_tagged_notes.__name__,
+                        },
+                        {
+                            '@k': 'closes:note',
+                            '@v': (
+                                f'{global_note_id};invalid;0;{specific_note_id};'
+                                f'{specific_note_id};{empty_note_id};'
+                                f'{already_closed_note_id};999999999'
+                            ),
+                        },
+                        {'@k': 'closes:note:comment', '@v': 'global close message'},
+                        {
+                            '@k': f'closes:note:{specific_note_id}:comment',
+                            '@v': 'specific close message',
+                        },
+                        {'@k': f'closes:note:{empty_note_id}:comment', '@v': ''},
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    r = await client.get(f'/api/0.6/notes/{global_note_id}.json')
+    assert r.is_success, r.text
+    global_note = r.json()['properties']
+    assert_model(global_note, {'status': 'closed', 'comments': Len(2, 2)})
+    assert_model(
+        global_note['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'global close message'},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{specific_note_id}.json')
+    assert r.is_success, r.text
+    specific_note = r.json()['properties']
+    assert_model(specific_note, {'status': 'closed', 'comments': Len(2, 2)})
+    assert_model(
+        specific_note['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'specific close message'},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{empty_note_id}.json')
+    assert r.is_success, r.text
+    empty_note = r.json()['properties']
+    assert_model(empty_note, {'status': 'closed', 'comments': Len(2, 2)})
+    assert_model(
+        empty_note['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': ''},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{already_closed_note_id}.json')
+    assert r.is_success, r.text
+    already_closed_note = r.json()['properties']
+    assert already_closed_note['comments'] == already_closed_before['comments']
+
+
+async def test_inactive_changeset_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/api/0.6/notes.json',
+        json={
+            'lon': 0,
+            'lat': 0,
+            'text': test_inactive_changeset_closes_tagged_notes.__name__,
+        },
+    )
+    assert r.is_success, r.text
+    note_id = r.json()['properties']['id']
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_inactive_changeset_closes_tagged_notes.__name__,
+                        },
+                        {'@k': 'comment', '@v': 'inactive close message'},
+                        {'@k': 'closes:note', '@v': str(note_id)},
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    inactive_time = utcnow() - CHANGESET_IDLE_TIMEOUT - timedelta(seconds=1)
+    await db_update(
+        'changeset',
+        {'updated_at': inactive_time},
+        where={'id': changeset_id},
+    )
+
+    await ChangesetService.force_process()
+
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text
+    note = r.json()['properties']
+    assert_model(note, {'status': 'closed', 'comments': Len(2, 2)})
+    assert_model(
+        note['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'inactive close message'},
+    )
 
 
 async def test_changeset_upload_closed(client: AsyncClient):
