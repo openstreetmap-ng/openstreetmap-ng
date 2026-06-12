@@ -299,10 +299,11 @@ async def _close_inactive():
             conn=conn,
         )
 
-        for user_id, tags in rows:
-            await _close_tagged_notes(conn, user_id, tags)
-
     if rows:
+        async with db(True) as conn:
+            for user_id, tags in rows:
+                await _close_tagged_notes(conn, user_id, tags)
+
         logging.debug('Closed %d inactive changesets', len(rows))
 
 

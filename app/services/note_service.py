@@ -235,13 +235,12 @@ class NoteService:
             on_conflict=t'DO NOTHING',
             conn=conn,
         )
-        if text:
-            await audit(
-                'create_note_comment',
-                conn,
-                user_id=user_id,
-                extra={'id': comment_id, 'note': note_id},
-            )
+        await audit(
+            'create_note_comment',
+            conn,
+            user_id=user_id,
+            extra={'id': comment_id, 'note': note_id},
+        )
         await audit(
             'update_note_status',
             conn,

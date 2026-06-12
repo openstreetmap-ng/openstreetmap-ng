@@ -12,10 +12,9 @@ from app.config import (
     TAGS_LIMIT,
     TAGS_MAX_SIZE,
 )
-from app.db import db_update
+from app.db import db
 from app.format import Format06
 from app.lib.io.xml_codec import XMLToDict
-from app.lib.time.date_utils import utcnow
 from app.services.changeset_service import ChangesetService
 from tests.utils.assert_model import assert_model
 
@@ -385,12 +384,18 @@ async def test_inactive_changeset_closes_tagged_notes(client: AsyncClient):
     assert r.is_success, r.text
     changeset_id = int(r.text)
 
-    inactive_time = utcnow() - CHANGESET_IDLE_TIMEOUT - timedelta(seconds=1)
-    await db_update(
-        'changeset',
-        {'updated_at': inactive_time},
-        where={'id': changeset_id},
-    )
+    async with db(True) as conn:
+        await conn.execute(
+            """
+            UPDATE changeset
+            SET updated_at = statement_timestamp() - %(inactive_age)s
+            WHERE id = %(changeset_id)s
+            """,
+            {
+                'inactive_age': CHANGESET_IDLE_TIMEOUT + timedelta(seconds=1),
+                'changeset_id': changeset_id,
+            },
+        )
 
     await ChangesetService.force_process()
 
