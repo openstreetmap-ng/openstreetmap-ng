@@ -305,7 +305,6 @@ async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
                             '@k': f'closes:note:{specific_note_id}:comment',
                             '@v': 'specific close message',
                         },
-                        {'@k': f'closes:note:{empty_note_id}:comment', '@v': ''},
                     ]
                 }
             }
@@ -313,6 +312,21 @@ async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
+
+    # Empty OSM tag values are invalid at the API boundary, but existing
+    # database records may still contain them.
+    async with db(True) as conn:
+        await conn.execute(
+            """
+            UPDATE changeset
+            SET tags = tags || hstore(%(key)s, '')
+            WHERE id = %(changeset_id)s
+            """,
+            {
+                'key': f'closes:note:{empty_note_id}:comment',
+                'changeset_id': changeset_id,
+            },
+        )
 
     r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
     assert r.is_success, r.text
