@@ -165,6 +165,45 @@ async def test_changeset_upload(client: AsyncClient):
     )
 
 
+async def test_changeset_upload_rejects_multiple_null_island_nodes(
+    client: AsyncClient,
+):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_upload_rejects_multiple_null_island_nodes.__name__,
+                        }
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'create': [
+                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -2, '@lat': 0, '@lon': 0}),
+                ]
+            }
+        }),
+    )
+
+    assert r.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, r.text
+    assert 'null island' in r.json()['detail']
+
+
 @pytest.mark.parametrize('include', [True, False])
 async def test_changeset_with_discussion(client: AsyncClient, include):
     client.headers['Authorization'] = 'User user1'
