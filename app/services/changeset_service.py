@@ -19,6 +19,7 @@ from app.db import (
     db_delete,
     db_fetchcol,
     db_fetchrow,
+    db_fetchrows,
     db_fetchval,
     db_insert,
     db_lock,
@@ -26,7 +27,7 @@ from app.db import (
 )
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
-from app.lib.auth.context import auth_user
+from app.lib.auth.context import auth_context, auth_scopes, auth_user
 from app.lib.http.retry import retry
 from app.lib.telemetry.sentry import (
     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
@@ -38,11 +39,18 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -54,6 +62,7 @@ class ChangesetService:
     async def create(tags: dict[str, str]) -> ChangesetId:
         """Create a new changeset and return its id."""
         user_id = auth_user(required=True)['id']
+        _require_note_write_scope(tags)
 
         async with db(True) as conn:
             row = await db_insert(
@@ -95,6 +104,7 @@ class ChangesetService:
                 raise_for.changeset_access_denied()
             if closed_at is not None:
                 raise_for.changeset_already_closed(changeset_id, closed_at)
+            _require_note_write_scope(tags)
 
             await db_update(
                 'changeset',
@@ -108,11 +118,12 @@ class ChangesetService:
     async def close(changeset_id: ChangesetId):
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
+        tags: dict[str, str]
 
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,12 +135,13 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
             if closed_at is not None:
                 raise_for.changeset_already_closed(changeset_id, closed_at)
+            _require_note_write_scope(tags)
 
             await db_update(
                 'changeset',
@@ -141,6 +153,9 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        if _parse_closes_note_ids(tags):
+            await _close_tagged_notes(tags)
 
     @staticmethod
     @asynccontextmanager
@@ -272,18 +287,91 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
-                updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
+    async with db(True) as conn:
+        rows = await db_fetchrows(
+            t"""
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
+                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
+                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                )
+                RETURNING user_id, tags
+            """,
+            conn=conn,
+        )
 
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+        if rows:
+            logging.debug('Closed %d inactive changesets', len(rows))
+            await _close_inactive_tagged_notes(rows)
+
+
+async def _close_inactive_tagged_notes(
+    rows: list[tuple[UserId | None, dict[str, str]]],
+):
+    for user_id, tags in rows:
+        if user_id is None or not _parse_closes_note_ids(tags):
+            continue
+
+        user = await UserQuery.find_by_id(user_id)
+        if user is None:
+            continue
+
+        with auth_context(user, frozenset(('write_notes',))):
+            await _close_tagged_notes(tags)
+
+
+async def _close_tagged_notes(tags: dict[str, str]):
+    """Close notes referenced by the changeset's closes:note tags."""
+    for note_id in _parse_closes_note_ids(tags):
+        body = _get_note_close_body(note_id, tags)
+        await NoteService.comment(
+            note_id,
+            body,
+            'closed',
+            ignore_closed_or_missing=True,
+        )
+
+
+def _require_note_write_scope(tags: dict[str, str]):
+    if not tags.get('closes:note'):
+        return
+
+    scopes = auth_scopes()
+    if 'web_user' not in scopes and 'write_notes' not in scopes:
+        raise_for.insufficient_scopes(['write_notes'])
+
+
+def _parse_closes_note_ids(tags: dict[str, str]) -> list[NoteId]:
+    value = tags.get('closes:note')
+    if value is None:
+        return []
+
+    note_ids: list[NoteId] = []
+    seen: set[int] = set()
+    for item in value.split(';'):
+        item = item.strip()
+        if not item.isdecimal():
+            continue
+
+        note_id = int(item)
+        if note_id <= 0 or note_id in seen:
+            continue
+
+        seen.add(note_id)
+        note_ids.append(NoteId(note_id))
+
+    return note_ids
+
+
+def _get_note_close_body(note_id: NoteId, tags: dict[str, str]) -> str:
+    note_comment_key = f'closes:note:{int(note_id)}:comment'
+    if note_comment_key in tags:
+        return tags[note_comment_key]
+    if 'closes:note:comment' in tags:
+        return tags['closes:note:comment']
+    return tags.get('comment', '')
 
 
 async def _delete_empty():
