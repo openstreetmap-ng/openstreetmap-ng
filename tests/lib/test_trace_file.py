@@ -9,3 +9,12 @@ async def test_trace_file_compression():
         == b'hello'
     )
     assert TraceFile.decompress_if_needed(result.data, StorageKey('test')) != b'hello'
+
+
+async def test_trace_file_heavy_compression():
+    result = await TraceFile.compress_heavy(b'hello')
+    assert (
+        TraceFile.decompress_if_needed(result.data, StorageKey('test' + result.suffix))
+        == b'hello'
+    )
+    assert result.metadata == {'zstd_level': '22'}

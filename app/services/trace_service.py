@@ -1,7 +1,10 @@
 import logging
+from asyncio import Queue, QueueEmpty, QueueFull, Task, get_running_loop
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -20,9 +23,11 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+
+_TRACE_RECOMPRESSION_QUEUE: Queue[tuple[TraceId, bytes, StorageKey]] = Queue(maxsize=1)
+_trace_recompression_worker: Task[None] | None = None
 
 
 class TraceService:
@@ -85,6 +90,7 @@ class TraceService:
         )
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
+        trace_id: TraceId
         try:
             # Insert into database
             async with db(True) as conn:
@@ -111,12 +117,14 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        _schedule_trace_recompression(trace_id, file, trace_init['file_id'])
+        return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +199,97 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+def _schedule_trace_recompression(
+    trace_id: TraceId,
+    file_bytes: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    global _trace_recompression_worker
+
+    try:
+        _TRACE_RECOMPRESSION_QUEUE.put_nowait((trace_id, file_bytes, old_file_id))
+    except QueueFull:
+        logging.warning('Skipping trace recompression because the worker is busy')
+        return
+
+    if _trace_recompression_worker is None or _trace_recompression_worker.done():
+        _trace_recompression_worker = get_running_loop().create_task(
+            _recompress_trace_worker()
+        )
+
+
+async def _recompress_trace_worker() -> None:
+    global _trace_recompression_worker
+
+    try:
+        while True:
+            try:
+                trace_id, file_bytes, old_file_id = (
+                    _TRACE_RECOMPRESSION_QUEUE.get_nowait()
+                )
+            except QueueEmpty:
+                break
+
+            try:
+                await _recompress_trace_file(trace_id, file_bytes, old_file_id)
+            finally:
+                _TRACE_RECOMPRESSION_QUEUE.task_done()
+    finally:
+        _trace_recompression_worker = None
+        if not _TRACE_RECOMPRESSION_QUEUE.empty():
+            _trace_recompression_worker = get_running_loop().create_task(
+                _recompress_trace_worker()
+            )
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    file_bytes: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    new_file_id: StorageKey | None = None
+    trace_updated = False
+    try:
+        result = await TraceFile.compress_heavy(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(
+            result.data,
+            result.suffix,
+            result.metadata,
+        )
+
+        updated = False
+        async with db(True) as conn:
+            update_result = await conn.execute(
+                """
+                UPDATE trace
+                SET file_id = %s
+                WHERE id = %s AND file_id = %s
+                """,
+                (new_file_id, trace_id, old_file_id),
+            )
+            updated = bool(update_result.rowcount)
+
+        if updated:
+            trace_updated = True
+            await TRACE_STORAGE.delete(old_file_id)
+            logging.debug(
+                'Recompressed trace file %r from %r to %r',
+                trace_id,
+                old_file_id,
+                new_file_id,
+            )
+        else:
+            await TRACE_STORAGE.delete(new_file_id)
+
+    except Exception:
+        if new_file_id is not None and not trace_updated:
+            try:
+                await TRACE_STORAGE.delete(new_file_id)
+            except Exception:
+                logging.exception(
+                    'Failed to delete abandoned trace file %r', new_file_id
+                )
+        logging.exception('Failed to recompress trace file %r', trace_id)
+        capture_exception()
