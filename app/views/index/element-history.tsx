@@ -14,14 +14,45 @@ import {
 import { defineRoute } from "@index/router"
 import { focusObjects } from "@map/layers/focus-layer"
 import { convertRenderElementsData } from "@map/render-objects"
-import type { ReadonlySignal } from "@preact/signals"
+import { type ReadonlySignal, useSignal, useSignalEffect } from "@preact/signals"
 import { type DataValid, Service } from "@proto/element_pb"
 import { ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
 import { tagsDiffStorage } from "@utils/local-storage"
+import { queryParam } from "@utils/path-codecs"
+import {
+  currentUrlSignal,
+  readUrlQueryParam,
+  updateUrlQueryParam,
+} from "@utils/url-state"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { useEffect, useRef } from "preact/hooks"
+
+const DEFAULT_HISTORY_LIMIT = 10
+const HISTORY_LIMIT_MIN = 1
+const HISTORY_LIMIT_MAX = 100
+const HISTORY_LIMIT_QUERY = queryParam.positiveInt()
+
+const normalizeHistoryLimit = (value: number | undefined) => {
+  if (value === undefined) return
+  const limit = Math.min(
+    Math.max(Math.trunc(value), HISTORY_LIMIT_MIN),
+    HISTORY_LIMIT_MAX,
+  )
+  return limit === DEFAULT_HISTORY_LIMIT ? undefined : limit
+}
+
+const readHistoryLimit = (url?: URL) =>
+  normalizeHistoryLimit(readUrlQueryParam("limit", HISTORY_LIMIT_QUERY, url))
+
+const updateHistoryLimit = (value: number | undefined) =>
+  updateUrlQueryParam(
+    "limit",
+    HISTORY_LIMIT_QUERY,
+    normalizeHistoryLimit(value),
+    "replace",
+  )
 
 const getPageTitle = (type: ElementTypeSlug, id: string) => {
   switch (type) {
@@ -84,11 +115,16 @@ const ElementHistorySidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const title = getPageTitle(type.value, id.toString())
+  const limit = useSignal(readHistoryLimit())
 
   setPageTitle(title)
 
   // Effect: unfocus on unmount
   useEffect(() => () => focusObjects(map), [])
+  useSignalEffect(() => {
+    const value = readHistoryLimit(currentUrlSignal.value)
+    if (limit.peek() !== value) limit.value = value
+  })
 
   return (
     <div class="sidebar-content">
@@ -113,6 +149,23 @@ const ElementHistorySidebar = ({
               </BTooltip>
             </label>
           </div>
+          <label class="form-label small text-body-secondary mb-0 ms-1">
+            {t("element.versions_per_page", { defaultValue: "Versions per page" })}
+            <input
+              class="form-control form-control-sm mt-1"
+              type="number"
+              min={HISTORY_LIMIT_MIN}
+              max={HISTORY_LIMIT_MAX}
+              step={1}
+              value={limit.value ?? DEFAULT_HISTORY_LIMIT}
+              onChange={(e) => {
+                const value = e.currentTarget.valueAsNumber
+                const next = Number.isFinite(value) ? value : undefined
+                limit.value = normalizeHistoryLimit(next)
+                updateHistoryLimit(next)
+              }}
+            />
+          </label>
         </SidebarHeader>
       </div>
 
@@ -121,6 +174,7 @@ const ElementHistorySidebar = ({
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
+          ...(limit.value === undefined ? {} : { limit: limit.value }),
         }}
         urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}
