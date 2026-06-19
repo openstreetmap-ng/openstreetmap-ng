@@ -2,6 +2,7 @@ import { RemoteEditButton } from "@index/remote-edit"
 import { routerRemoteEditTarget } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
+import { isLoggedIn } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
@@ -16,6 +17,12 @@ const buildEditHref = (editor: Editor) => {
   const target = routerRemoteEditTarget.value
   if (target) params[target.type] = target.id.toString()
   return `/edit${qsEncode(params)}${currentHash.value}`
+}
+
+const clearEditHelpParam = () => {
+  const url = new URL(window.location.href)
+  url.searchParams.delete("edit_help")
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`)
 }
 
 const getEditorImage = (editor: Editor) => {
@@ -55,6 +62,7 @@ const NavbarLeft = () => {
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
   const tooltipRef = useRef<Tooltip>(null)
+  const editHelpActiveRef = useRef(false)
   const rememberChoiceRef = useRef<HTMLInputElement>(null)
 
   // Effect: initialize dropdown
@@ -74,6 +82,36 @@ const NavbarLeft = () => {
     tooltip.disable()
     tooltipRef.current = tooltip
     return () => tooltip.dispose()
+  }, [])
+
+  // Effect: show the edit-help tutorial from the start-mapping flow
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!isLoggedIn || params.get("edit_help") !== "1") return
+
+    const tooltip = tooltipRef.current!
+    const restoreTooltip = () => {
+      editHelpActiveRef.current = false
+      tooltip.hide()
+      clearEditHelpParam()
+
+      if (editDisabled.value) {
+        tooltip.setContent({
+          ".tooltip-inner": t("javascripts.site.edit_disabled_tooltip"),
+        })
+        tooltip.enable()
+      } else {
+        tooltip.disable()
+      }
+    }
+
+    editHelpActiveRef.current = true
+    tooltip.setContent({ ".tooltip-inner": t("javascripts.edit_help") })
+    tooltip.enable()
+    tooltip.show()
+
+    document.body.addEventListener("click", restoreTooltip, { once: true })
+    return () => document.body.removeEventListener("click", restoreTooltip)
   }, [])
 
   // Effect: hide dropdown when edit is disabled
@@ -97,8 +135,13 @@ const NavbarLeft = () => {
 
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
+    if (editHelpActiveRef.current) return
+
     const tooltip = tooltipRef.current!
     if (editDisabled.value) {
+      tooltip.setContent({
+        ".tooltip-inner": t("javascripts.site.edit_disabled_tooltip"),
+      })
       tooltip.enable()
     } else {
       tooltip.disable()
