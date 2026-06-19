@@ -23,17 +23,33 @@ for arg in "$@"; do
 done
 
 set +e
-(
-  set -x
-  python -m coverage run -m pytest "${args[@]}"
-)
+if [[ ${RUN_TESTS_SKIP_COVERAGE:-0} == 1 ]]; then
+  (
+    set -x
+    MATURIN_IMPORT_HOOK_ENABLED=0 python - "${args[@]}" <<'PY'
+import os
+import sys
+
+import pytest
+
+os._exit(pytest.main(sys.argv[1:]))
+PY
+  )
+else
+  (
+    set -x
+    python -m coverage run -m pytest "${args[@]}"
+  )
+fi
 result=$?
 set -e
 
-if [[ $term_output == 1 ]]; then
-  python -m coverage report --skip-covered
-else
-  python -m coverage xml --quiet
+if [[ ${RUN_TESTS_SKIP_COVERAGE:-0} != 1 ]]; then
+  if [[ $term_output == 1 ]]; then
+    python -m coverage report --skip-covered
+  else
+    python -m coverage xml --quiet
+  fi
+  python -m coverage erase
 fi
-python -m coverage erase
 exit "$result"
