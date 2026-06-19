@@ -30,6 +30,10 @@ const navLinks = [
     label: t("site.communities.title"),
   },
   {
+    href: "/software",
+    label: t("site.software.title"),
+  },
+  {
     href: "/copyright",
     label: t("layouts.copyright"),
     rel: "license",
