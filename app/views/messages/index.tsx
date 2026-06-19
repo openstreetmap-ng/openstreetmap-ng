@@ -12,13 +12,14 @@ import {
 } from "@proto/message_pb"
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
 import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
+import { unixToLocalDatetime } from "@utils/format"
 import { queryParam } from "@utils/path-codecs"
 import { mountProtoPage } from "@utils/proto-page"
 import { defineQueryContract } from "@utils/query-contract"
 import { type QueryContractSignal, usePathSuffixQueryState } from "@utils/query-signals"
 import { connectErrorToMessage, rpcUnary } from "@utils/rpc"
 import { t } from "i18next"
-import { useEffect, useRef } from "preact/hooks"
+import { useEffect, useId, useRef } from "preact/hooks"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
 
 type PreviewState =
@@ -26,16 +27,43 @@ type PreviewState =
   | { status: "ready"; message: GetResponseValid }
   | { status: "error"; error: string }
 
-const MESSAGE_QUERY = defineQueryContract({
-  show: queryParam.positive(),
-  page: queryParam.positiveInt(),
-})
+const MESSAGE_QUERY = defineQueryContract(
+  {
+    show: queryParam.positive(),
+    page: queryParam.positiveInt(),
+    search: queryParam.text(),
+    createdAfter: queryParam.timestamp(),
+    createdBefore: queryParam.timestamp(),
+  },
+  {
+    externalKeys: {
+      createdAfter: "created_after",
+      createdBefore: "created_before",
+    },
+  },
+)
 type MessageQuery = QueryContractSignal<typeof MESSAGE_QUERY>
+type MessageQueryValue = MessageQuery["value"]
 
 const getQueryWithoutShow = (query: MessageQuery) => {
-  const page = query.peek().page
-  return page === undefined ? {} : { page }
+  const { page, search, createdAfter, createdBefore } = query.peek()
+  return {
+    ...(page === undefined ? {} : { page }),
+    ...(search === undefined ? {} : { search }),
+    ...(createdAfter === undefined ? {} : { createdAfter }),
+    ...(createdBefore === undefined ? {} : { createdBefore }),
+  }
 }
+
+const messageFilters = ({
+  search,
+  createdAfter,
+  createdBefore,
+}: MessageQueryValue) => ({
+  ...(search === undefined ? {} : { search }),
+  ...(createdAfter === undefined ? {} : { createdAfter }),
+  ...(createdBefore === undefined ? {} : { createdBefore }),
+})
 
 const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid }) => {
   if (message.recipientsCount <= 1) {
@@ -61,11 +89,142 @@ const SummaryRecipients = ({ message }: { message: GetPageResponse_SummaryValid 
   )
 }
 
-const MessagesEmpty = () => (
+const MessagesEmpty = ({ hasFilters }: { hasFilters: boolean }) => (
   <li class="text-center text-muted py-5">
-    <h3>{t("traces.index.empty_title")}</h3>
+    <h3>
+      {hasFilters ? t("messages.search.no_results") : t("traces.index.empty_title")}
+    </h3>
   </li>
 )
+
+const MessagesSearchForm = ({
+  inbox,
+  query,
+}: {
+  inbox: boolean
+  query: MessageQuery
+}) => {
+  const searchValue = useSignal(query.value.search ?? "")
+  const createdAfterValue = useSignal(unixToLocalDatetime(query.value.createdAfter))
+  const createdBeforeValue = useSignal(unixToLocalDatetime(query.value.createdBefore))
+  const searchId = useId()
+  const createdAfterId = useId()
+  const createdBeforeId = useId()
+  const hasFilters = Object.keys(messageFilters(query.value)).length > 0
+
+  useEffect(() => {
+    searchValue.value = query.value.search ?? ""
+  }, [query.value.search])
+  useEffect(() => {
+    createdAfterValue.value = unixToLocalDatetime(query.value.createdAfter)
+  }, [query.value.createdAfter])
+  useEffect(() => {
+    createdBeforeValue.value = unixToLocalDatetime(query.value.createdBefore)
+  }, [query.value.createdBefore])
+
+  const submitSearch = (event: SubmitEvent & { currentTarget: HTMLFormElement }) => {
+    event.preventDefault()
+    query.value = messageFilters(
+      MESSAGE_QUERY.parseFormData(new FormData(event.currentTarget)),
+    )
+  }
+
+  const clearSearch = () => {
+    searchValue.value = ""
+    createdAfterValue.value = ""
+    createdBeforeValue.value = ""
+    query.value = {}
+  }
+
+  return (
+    <form
+      class="message-search mb-3"
+      onSubmit={submitSearch}
+    >
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg">
+          <label
+            class="visually-hidden"
+            htmlFor={searchId}
+          >
+            {t("messages.search.label")}
+          </label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-search" />
+            </span>
+            <input
+              id={searchId}
+              class="form-control"
+              type="search"
+              name="search"
+              value={searchValue.value}
+              placeholder={
+                inbox
+                  ? t("messages.search.inbox_placeholder")
+                  : t("messages.search.outbox_placeholder")
+              }
+              aria-label={t("messages.search.label")}
+              onInput={(event) => (searchValue.value = event.currentTarget.value)}
+            />
+          </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <label
+            class="form-label small mb-1"
+            htmlFor={createdAfterId}
+          >
+            {t("messages.search.created_after")}
+          </label>
+          <input
+            id={createdAfterId}
+            class="form-control"
+            type="datetime-local"
+            name="created_after"
+            value={createdAfterValue.value}
+            onInput={(event) => (createdAfterValue.value = event.currentTarget.value)}
+          />
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <label
+            class="form-label small mb-1"
+            htmlFor={createdBeforeId}
+          >
+            {t("messages.search.created_before")}
+          </label>
+          <input
+            id={createdBeforeId}
+            class="form-control"
+            type="datetime-local"
+            name="created_before"
+            value={createdBeforeValue.value}
+            onInput={(event) => (createdBeforeValue.value = event.currentTarget.value)}
+          />
+        </div>
+        <div class="col-auto">
+          <div class="btn-group">
+            {hasFilters && (
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                aria-label={t("messages.search.clear")}
+                onClick={clearSearch}
+              >
+                <i class="bi bi-x-lg" />
+              </button>
+            )}
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              {t("messages.search.submit")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  )
+}
 
 const MessagesListItem = ({
   message,
@@ -473,9 +632,13 @@ mountProtoPage(IndexPageSchema, () => {
         <div class="container">
           <div class="row flex-wrap-reverse">
             <div class="col-lg">
+              <MessagesSearchForm
+                inbox={inbox}
+                query={query}
+              />
               <StandardPagination
                 method={Service.method.getPage}
-                request={{ inbox }}
+                request={{ inbox, ...messageFilters(query.value) }}
                 urlKey="page"
                 onLoad={(data) => (messages.value = data.messages)}
               >
@@ -491,7 +654,9 @@ mountProtoPage(IndexPageSchema, () => {
                         />
                       ))
                     ) : (
-                      <MessagesEmpty />
+                      <MessagesEmpty
+                        hasFilters={Object.keys(messageFilters(query.value)).length > 0}
+                      />
                     )}
                   </ul>
                 )}
