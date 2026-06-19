@@ -1,9 +1,13 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import (
+    TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+    TRACE_FILE_UPLOAD_MAX_SIZE,
+)
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -83,6 +87,7 @@ class TraceService:
         trace_init['file_id'] = await TRACE_STORAGE.save(
             result.data, result.suffix, result.metadata
         )
+        compressed_size = len(result.data)
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
         try:
@@ -111,12 +116,18 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+        else:
+            get_running_loop().create_task(
+                _recompress_trace_file(
+                    trace_id, trace_init['file_id'], file, compressed_size
+                )
+            )
+            return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +202,55 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file: bytes,
+    compressed_size: int,
+) -> None:
+    """Recompress a trace in the background and swap storage keys if still current."""
+    try:
+        result = await TraceFile.compress(file, level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)
+        if len(result.data) >= compressed_size:
+            logging.debug(
+                'Skipped trace %d recompression because level %d was not smaller',
+                trace_id,
+                TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+            )
+            return
+
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+        try:
+            async with db(True) as conn:
+                update = await conn.execute(
+                    """
+                    UPDATE trace
+                    SET file_id = %s
+                    WHERE id = %s AND file_id = %s
+                    """,
+                    (new_file_id, trace_id, old_file_id),
+                )
+
+            if update.rowcount:
+                await TRACE_STORAGE.delete(old_file_id)
+                logging.debug(
+                    'Recompressed trace %d file %r to %r',
+                    trace_id,
+                    old_file_id,
+                    new_file_id,
+                )
+            else:
+                await TRACE_STORAGE.delete(new_file_id)
+                logging.debug(
+                    'Discarded trace %d recompression because file changed',
+                    trace_id,
+                )
+        except Exception:
+            await TRACE_STORAGE.delete(new_file_id)
+            raise
+    except Exception:
+        logging.exception('Trace %d background recompression failed', trace_id)
