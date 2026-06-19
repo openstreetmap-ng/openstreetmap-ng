@@ -43,7 +43,7 @@ const GROUP_EXAMPLES: readonly GroupExample[] = [
     title: "OpenStreetMap-NG Founders",
     description:
       "The OpenStreetMap-NG Founders is a group of early-stage contributors who helped shape the future of OpenStreetMap. We build the next generation of the OpenStreetMap project.",
-    banner: "/static/img/banner/example1.webp",
+    banner: "/static/img/banner/osmng-founder.webp",
     exclusive: true,
   },
   {
