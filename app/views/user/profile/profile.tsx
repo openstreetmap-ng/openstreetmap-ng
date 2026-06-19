@@ -243,6 +243,9 @@ const AvatarForm = ({
 }) => {
   const avatarPresetRef = useRef(UpdateAvatarRequest_Preset.default)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const clearAvatarInput = () => {
+    fileInputRef.current!.value = ""
+  }
 
   return (
     <StandardForm
@@ -266,7 +269,11 @@ const AvatarForm = ({
           },
         }
       }}
-      onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+      onSuccess={(resp) => {
+        clearAvatarInput()
+        avatarUrl.value = resp.avatarUrl
+      }}
+      onError={clearAvatarInput}
     >
       <input
         class="visually-hidden"
@@ -304,6 +311,7 @@ const AvatarForm = ({
                 class="dropdown-item"
                 type="button"
                 onClick={() => {
+                  clearAvatarInput()
                   fileInputRef.current!.click()
                 }}
               >
@@ -316,7 +324,7 @@ const AvatarForm = ({
                 type="button"
                 onClick={() => {
                   avatarPresetRef.current = UpdateAvatarRequest_Preset.gravatar
-                  fileInputRef.current!.value = ""
+                  clearAvatarInput()
                   fileInputRef.current!.form!.requestSubmit()
                 }}
               >
@@ -329,7 +337,7 @@ const AvatarForm = ({
                 type="button"
                 onClick={() => {
                   avatarPresetRef.current = UpdateAvatarRequest_Preset.default
-                  fileInputRef.current!.value = ""
+                  clearAvatarInput()
                   fileInputRef.current!.form!.requestSubmit()
                 }}
               >

@@ -3,7 +3,13 @@ from pathlib import Path
 
 import pytest
 from PIL import Image as PILImage
+from PIL.Image import DecompressionBombError
+from starlette import status
 
+from app.exceptions import Exceptions
+from app.exceptions.api_error import APIError
+from app.exceptions.context import exceptions_context
+from app.lib.io import image as image_module
 from app.config import IMAGE_MAX_FRAMES
 from app.lib.io.image import Image
 
@@ -42,3 +48,16 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
     assert len(normalized[0]) < len(animation)
     assert result.is_animated  # type: ignore
     assert 1 < result.n_frames <= IMAGE_MAX_FRAMES  # type: ignore
+
+
+async def test_normalize_avatar_rejects_decompression_bomb(monkeypatch: pytest.MonkeyPatch):
+    def bomb(*_args, **_kwargs):
+        raise DecompressionBombError("too many pixels")
+
+    monkeypatch.setattr(image_module, "open_image", bomb)
+
+    with exceptions_context(Exceptions()), pytest.raises(APIError) as exc_info:
+        await Image.normalize_avatar(b"not-an-image")
+
+    assert exc_info.value.status_code == status.HTTP_413_CONTENT_TOO_LARGE
+    assert exc_info.value.detail == "Image is too large"
