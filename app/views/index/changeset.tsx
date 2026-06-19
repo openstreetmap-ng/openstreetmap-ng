@@ -210,6 +210,7 @@ const ChangesetComment = ({
 
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
+  const achaviUrl = `https://overpass-api.de/achavi/?changeset=${changesetIdStr}`
   return (
     <div class="section text-center">
       {data.user && (
@@ -266,6 +267,19 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
         </span>
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}/download`}>
           {t("browse.changeset.osmchangexml")}
+        </a>
+        <span
+          class="mx-1"
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <a
+          href={achaviUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Achavi
         </a>
       </small>
     </div>
