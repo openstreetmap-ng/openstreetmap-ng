@@ -16,6 +16,17 @@ from app.lib.io.xml_codec import XMLToDict
 from tests.utils.assert_model import assert_model
 
 
+async def _create_changeset(client: AsyncClient, created_by: str) -> int:
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': created_by}]}}
+        }),
+    )
+    assert r.is_success, r.text
+    return int(r.text)
+
+
 async def test_changeset_crud(client: AsyncClient):
     assert LEGACY_HIGH_PRECISION_TIME
     client.headers['Authorization'] = 'User user1'
@@ -163,6 +174,30 @@ async def test_changeset_upload(client: AsyncClient):
             '@max_lon': 0.0,
         },
     )
+
+
+async def test_changeset_upload_rejects_multiple_null_island_nodes(
+    client: AsyncClient,
+):
+    client.headers['Authorization'] = 'User user1'
+    changeset_id = await _create_changeset(
+        client, test_changeset_upload_rejects_multiple_null_island_nodes.__name__
+    )
+
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'create': [
+                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -2, '@lat': 0, '@lon': 0}),
+                ]
+            }
+        }),
+    )
+
+    assert r.status_code == status.HTTP_412_PRECONDITION_FAILED, r.text
+    assert 'null island' in r.text
 
 
 @pytest.mark.parametrize('include', [True, False])

@@ -194,6 +194,13 @@ class Exceptions06(Exceptions):
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',
         )
 
+    @override
+    def diff_suspicious_null_island_edit(self):
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Changeset upload rejected: multiple nodes are located at null island (0,0).',
+        )
+
     # --- element ---
     @override
     def element_not_found(
