@@ -1,4 +1,9 @@
 import type { MessageInitShape } from "@bufbuild/protobuf"
+import {
+  AuthProviderIcon,
+  CONFIGURED_PROVIDERS,
+  getAuthProviderTitle,
+} from "@components/auth-provider"
 import { StandardForm } from "@components/standard-form"
 import { useSignal } from "@preact/signals"
 import {
@@ -8,7 +13,7 @@ import {
   type PasskeyAssertion,
   Service,
 } from "@proto/auth_pb"
-import { Action } from "@proto/auth_provider_pb"
+import { Action, Service as AuthProviderService } from "@proto/auth_provider_pb"
 import { PageSchema as LoginPageSchema } from "@proto/login_pb"
 import { memoize } from "@std/cache/memoize"
 import { ENV } from "@utils/config"
@@ -23,7 +28,6 @@ import { render } from "preact"
 import type { MutableRef } from "preact/hooks"
 import { useEffect, useId, useRef } from "preact/hooks"
 import { getAuthProviderReferer } from "./_auth-provider-referer"
-import { AuthSwitcher } from "./_auth-switcher"
 import { TestSiteReminder } from "./_test-site-reminder"
 
 const NON_DIGIT_RE = /\D/g
@@ -43,6 +47,58 @@ enum SubmitMode {
 }
 
 const TEST_LOGINS = ["user1", "user2", "moderator", "admin"] as const
+
+const ProviderShortcutButton = ({
+  provider,
+  referer,
+}: {
+  provider: (typeof CONFIGURED_PROVIDERS)[number]
+  referer: string | undefined
+}) => {
+  const title = getAuthProviderTitle(provider)
+  const label = t("login.sign_in_with_service", { service: title })
+
+  return (
+    <StandardForm
+      class="provider-shortcut-form"
+      method={AuthProviderService.method.startAuthorize}
+      buildRequest={() => ({
+        provider,
+        action: Action.login,
+        referer,
+      })}
+    >
+      <button
+        class="btn btn-soft provider-shortcut"
+        type="submit"
+        aria-label={label}
+        title={label}
+      >
+        <AuthProviderIcon
+          provider={provider}
+          decorative
+        />
+      </button>
+    </StandardForm>
+  )
+}
+
+const ProviderShortcutList = ({ referer }: { referer: string | undefined }) =>
+  CONFIGURED_PROVIDERS.length ? (
+    <div
+      class="provider-shortcuts"
+      role="group"
+      aria-label={t("login.or_continue_with")}
+    >
+      {CONFIGURED_PROVIDERS.map((provider) => (
+        <ProviderShortcutButton
+          key={provider}
+          provider={provider}
+          referer={referer}
+        />
+      ))}
+    </div>
+  ) : null
 
 const MethodButton = ({
   icon,
@@ -446,7 +502,6 @@ const LoginCard = ({
   const isModal = modalRef !== undefined
   const referrer = getAuthProviderReferer()
   const loginState = useSignal(LoginState.credentials)
-  const showAuthProviders = useSignal(false)
   const formRef = useRef<HTMLFormElement>(null)
   const displayNameInputRef = useRef<HTMLInputElement>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
@@ -482,7 +537,6 @@ const LoginCard = ({
     conditionalMediationAbortRef.current = undefined
     loginResponseRef.current = undefined
     loginState.value = LoginState.credentials
-    showAuthProviders.value = false
     credentialsRef.current = undefined
     submitModeRef.current = SubmitMode.none
     bypass2faRef.current = false
@@ -754,38 +808,33 @@ const LoginCard = ({
           </p>
         </div>
 
-        <AuthSwitcher
-          class="mb-2"
-          action={Action.login}
-          showProviders={showAuthProviders}
-          referer={referrer}
-        >
-          <>
-            {form}
+        {form}
 
-            <div class="divider my-3">
-              <span class="divider-text">{t("login.or_continue_with")}</span>
-            </div>
+        <div class="divider my-3">
+          <span class="divider-text">{t("login.or_continue_with")}</span>
+        </div>
 
-            <button
-              class="passkey-login btn btn-soft w-100"
-              type="button"
-              onClick={() => {
-                resetLoginState()
-                requestSubmitPasswordless()
-              }}
-            >
-              <img
-                class="dark-filter-invert me-1-5"
-                src="/static/img/brand/passkeys-black.webp"
-                alt={t("alt.passkey_icon")}
-                draggable={false}
-                loading="lazy"
-              />
-              {t("login.sign_in_with_a_passkey")}
-            </button>
-          </>
-        </AuthSwitcher>
+        <div class="quick-login-options">
+          <button
+            class="passkey-login btn btn-soft"
+            type="button"
+            onClick={() => {
+              resetLoginState()
+              requestSubmitPasswordless()
+            }}
+          >
+            <img
+              class="dark-filter-invert me-1-5"
+              src="/static/img/brand/passkeys-black.webp"
+              alt={t("alt.passkey_icon")}
+              draggable={false}
+              loading="lazy"
+            />
+            {t("login.sign_in_with_a_passkey")}
+          </button>
+
+          <ProviderShortcutList referer={referrer} />
+        </div>
       </div>
 
       {ENV !== "prod" && (
