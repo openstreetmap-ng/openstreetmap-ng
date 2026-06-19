@@ -45,6 +45,7 @@ message GetHistoryRequest {
   StandardPaginationRequest state = 1;
   ElementRef element = 2 [(buf.validate.field).required = true];
   bool tags_diff = 3;
+  uint32 page_size = 4;
 }
 
 message GetHistoryResponse {
