@@ -8,6 +8,7 @@ from time import monotonic
 
 import cython
 from sentry_sdk.api import start_transaction
+from starlette import status
 
 from app.config import (
     CHANGESET_EMPTY_DELETE_TIMEOUT,
@@ -24,9 +25,11 @@ from app.db import (
     db_lock,
     db_update,
 )
+from app.exceptions.api_error import APIError
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_user
+from app.lib.changeset_note_closures import parse_changeset_note_closures
 from app.lib.http.retry import retry
 from app.lib.telemetry.sentry import (
     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
@@ -38,11 +41,18 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -108,11 +118,12 @@ class ChangesetService:
     async def close(changeset_id: ChangesetId):
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
+        note_closures: dict[NoteId, str]
 
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,12 +135,15 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
             if closed_at is not None:
                 raise_for.changeset_already_closed(changeset_id, closed_at)
+
+            note_closures = parse_changeset_note_closures(tags)
 
             await db_update(
                 'changeset',
@@ -141,6 +155,8 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_changeset_notes(note_closures)
 
     @staticmethod
     @asynccontextmanager
@@ -162,6 +178,19 @@ class ChangesetService:
         _PROCESS_REQUEST_EVENT.set()
         _PROCESS_DONE_EVENT.clear()
         await _PROCESS_DONE_EVENT.wait()
+
+
+async def _close_changeset_notes(note_closures: dict[NoteId, str]):
+    for note_id, comment in note_closures.items():
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except APIError as e:
+            if e.status_code in (
+                status.HTTP_404_NOT_FOUND,
+                status.HTTP_409_CONFLICT,
+            ):
+                continue
+            raise
 
 
 # === Changeset Comments ===
