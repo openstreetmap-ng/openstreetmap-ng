@@ -23,6 +23,7 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+from app.services.trace_upload_compression import TraceUploadCompressionService
 
 
 class TraceService:
@@ -78,12 +79,10 @@ class TraceService:
         }
         trace_init = TraceInitValidator.validate_python(trace_init)
 
-        # Save the compressed file after validation to avoid unnecessary work
-        result = await TraceFile.compress(file)
-        trace_init['file_id'] = await TRACE_STORAGE.save(
-            result.data, result.suffix, result.metadata
-        )
-        logging.debug('Saved compressed trace file %r', trace_init['file_id'])
+        # Save the file after validation to avoid unnecessary work. Compression is
+        # scheduled after the trace row is created to keep uploads responsive.
+        trace_init['file_id'] = await TRACE_STORAGE.save(file, '')
+        logging.debug('Saved trace file %r', trace_init['file_id'])
 
         try:
             # Insert into database
@@ -110,6 +109,12 @@ class TraceService:
                         'tags': trace_init['tags'],
                         'visibility': trace_init['visibility'],
                     },
+                )
+
+                TraceUploadCompressionService.schedule(
+                    trace_id,
+                    trace_init['file_id'],
+                    file,
                 )
                 return trace_id
 
