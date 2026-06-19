@@ -1,5 +1,4 @@
 import logging
-import warnings
 from asyncio import Lock, to_thread
 from contextlib import asynccontextmanager
 from functools import partial
@@ -9,9 +8,10 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
+from PIL import Image as PILImageModule
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -180,9 +180,8 @@ async def _get_pipeline():
     if _PIPE is None:
         pipe_dir = AI_MODELS_DIR.joinpath('Freepik/nsfw_image_detector')
         if not pipe_dir.is_dir():
-            warnings.warn(
+            logging.warning(
                 'Skipping NSFW image detection: model not found (hint: `ai-models-download`)',
-                stacklevel=1,
             )
             yield None
             return
@@ -242,13 +241,22 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        img = open_image(BytesIO(data))
+    except DecompressionBombError:
+        raise_for.image_too_big()
 
     # normalize shape ratio
     img_width: cython.size_t
     img_height: cython.size_t
     img_width, img_height = img.size
+    if (
+        PILImageModule.MAX_IMAGE_PIXELS is not None
+        and img_width * img_height > PILImageModule.MAX_IMAGE_PIXELS
+    ):
+        raise_for.image_too_big()
+
+    ImageOps.exif_transpose(img, in_place=True)
 
     crop_box: tuple[int, int, int, int] | None = None
     resize_to: tuple[int, int] | None = None
