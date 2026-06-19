@@ -134,6 +134,25 @@ user:
     view_all: View full statistics
     less: Less
     more: More
+site:
+  software:
+    title: OpenStreetMap software
+    description: |-
+      Discover editors, mobile apps, navigation tools, analysis tools, and
+      quality assurance workflows built around OpenStreetMap.
+    no_results: No software matches these filters.
+    filters:
+      any: Any
+      category: Category
+      platform: Platform
+      license: License
+      status: Development status
+  help:
+    software:
+      title: OpenStreetMap software
+      description: |-
+        Find editors, mobile apps, navigation tools, and quality assurance
+        workflows.
 privacy:
   enable_activity_tracking:
     title: Enable activity tracking
@@ -581,6 +600,7 @@ validation:
   you_can_add_at_most_count_tags: "You can add at most {{count}} tags"
   incomplete_location_information: Incomplete location information
 action:
+  apply: Apply
   go_back: Go back
   authorize: Authorize
   block_user: Block user
