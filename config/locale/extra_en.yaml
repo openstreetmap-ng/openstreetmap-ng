@@ -563,6 +563,7 @@ time:
   never: Never
 validation:
   invalid_value: Invalid value
+  image_is_too_large: Image is too large
   display_name_is_taken: This display name is already taken
   new_email_is_current: The new email address is the same as the current one
   invalid_email_address: Invalid email address
