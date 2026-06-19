@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founders route shield badge</title>
+  <desc id="desc">A green folded-map shield with the NG mark, a gold route line, and a Founders ribbon.</desc>
+  <defs>
+    <linearGradient id="map" x1="96" x2="416" y1="80" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#dff4bd"/>
+      <stop offset="0.48" stop-color="#b9e69d"/>
+      <stop offset="1" stop-color="#8fd184"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="128" x2="384" y1="104" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff1a7"/>
+      <stop offset="0.5" stop-color="#d7a936"/>
+      <stop offset="1" stop-color="#93691b"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+    <clipPath id="shield-clip">
+      <path d="M256 34 424 101l-26 213c-11 87-69 137-142 165-73-28-131-78-142-165L88 101Z"/>
+    </clipPath>
+  </defs>
+
+  <path fill="#102016" d="M256 20 446 96l-29 224c-14 105-88 159-161 186-73-27-147-81-161-186L66 96Z" filter="url(#shadow)"/>
+  <path fill="url(#gold)" d="M256 31 430 101l-27 216c-12 91-75 143-147 170-72-27-135-79-147-170L82 101Z"/>
+  <path fill="#102016" d="M256 54 405 113l-24 196c-10 77-62 121-125 145-63-24-115-68-125-145l-24-196Z"/>
+
+  <g clip-path="url(#shield-clip)">
+    <path fill="url(#map)" d="M107 74h298l43 283-192 111L64 357Z"/>
+    <path fill="#cceea8" d="m91 121 126-40 67 73-53 72-122 7Z" opacity="0.85"/>
+    <path fill="#a6dc8b" d="m272 86 163 42-15 114-101-34-72 29-31-85Z" opacity="0.75"/>
+    <path fill="#d7f2b6" d="m82 263 149-37 76 69-23 145-159-64Z" opacity="0.72"/>
+    <path fill="#93ce82" d="m310 278 126-29 22 99-107 70-74-25Z" opacity="0.7"/>
+    <path fill="none" stroke="#86a66d" stroke-width="5" d="M86 180c54 12 84-42 140-18 45 20 63 65 115 44 35-14 58-1 91 22" opacity="0.42"/>
+    <path fill="none" stroke="#9e6b63" stroke-width="5" d="m101 251 84 36 30 78 74 18 39-57 93 13" opacity="0.5"/>
+    <path fill="none" stroke="#80a9d8" stroke-width="7" d="M77 350c70-20 126-74 196-70 66 4 107 61 179 50" opacity="0.5"/>
+  </g>
+
+  <path fill="none" stroke="#0b1a11" stroke-linecap="round" stroke-linejoin="round" stroke-width="18" d="m151 340 74-81 57 34 86-118"/>
+  <path fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" stroke-width="10" d="m151 340 74-81 57 34 86-118"/>
+  <g fill="#fff8d6" stroke="#0b1a11" stroke-width="7">
+    <circle cx="151" cy="340" r="16"/>
+    <circle cx="225" cy="259" r="14"/>
+    <circle cx="282" cy="293" r="14"/>
+    <circle cx="368" cy="175" r="16"/>
+  </g>
+  <path fill="url(#gold)" stroke="#0b1a11" stroke-width="8" stroke-linejoin="round" d="m368 118 14 32 35 3-27 23 8 34-30-18-30 18 8-34-27-23 35-3Z"/>
+
+  <text x="256" y="277" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="148" font-weight="900" fill="#fff" stroke="#0b0b0b" stroke-linejoin="round" stroke-width="12">NG</text>
+  <path fill="#0f2419" stroke="url(#gold)" stroke-width="7" d="M102 354h308l-25 70H127Z"/>
+  <text x="256" y="401" text-anchor="middle" font-family="Arial, sans-serif" font-size="39" font-weight="800" letter-spacing="3.2" fill="#fff7d7">FOUNDERS</text>
+</svg>
