@@ -22,6 +22,7 @@ import type { RefObject } from "preact"
 import { render } from "preact"
 import type { MutableRef } from "preact/hooks"
 import { useEffect, useId, useRef } from "preact/hooks"
+import { AuthCardHeader } from "./_auth-card-header"
 import { getAuthProviderReferer } from "./_auth-provider-referer"
 import { AuthSwitcher } from "./_auth-switcher"
 import { TestSiteReminder } from "./_test-site-reminder"
@@ -731,28 +732,21 @@ const LoginCard = ({
       </div>
 
       <div class="login-body modal-body px-4 pt-0">
-        <div class="text-center mb-4">
-          <img
-            class="brand-img mb-2"
-            src="/static/img/favicon/256.webp"
-            alt={t("alt.logo", { name: t("project_name") })}
-          />
-          <h4
-            id={titleId}
-            class="modal-title"
-          >
-            {t("login.welcome_back")}
-          </h4>
-          <p class="form-text mt-0">
-            {t("sessions.new.no account")}{" "}
-            <a
-              href="/signup"
-              class="link-primary"
-            >
-              {t("sessions.new.register now")}
-            </a>
-          </p>
-        </div>
+        <AuthCardHeader
+          title={t("login.welcome_back")}
+          titleId={titleId}
+          subtitle={
+            <>
+              {t("sessions.new.no account")}{" "}
+              <a
+                href="/signup"
+                class="link-primary"
+              >
+                {t("sessions.new.register now")}
+              </a>
+            </>
+          }
+        />
 
         <AuthSwitcher
           class="mb-2"
