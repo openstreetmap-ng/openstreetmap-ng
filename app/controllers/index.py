@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Path, Query
 from pydantic import SecretStr
 from starlette import status
+from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 from app.lib.auth import user_token
@@ -50,7 +51,13 @@ router = APIRouter()
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
 @router.get('/distance')
-async def index():
+async def index(
+    request: Request,
+    edit_help: Annotated[str | None, Query()] = None,
+):
+    if request.url.path == '/' and edit_help == '1' and auth_user() is not None:
+        return RedirectResponse('/edit#walkthrough=true', status.HTTP_303_SEE_OTHER)
+
     return await render_response('index/index')
 
 
