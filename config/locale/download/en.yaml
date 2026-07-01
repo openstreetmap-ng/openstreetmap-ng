@@ -372,6 +372,11 @@ en:
       comment_by_html: Comment from %{user} %{time_ago}
       changesetxml: Changeset XML
       osmchangexml: osmChange XML
+      diff:
+        title: Changeset diff
+        open: Open changeset diff
+        description: Visualize the created, modified, and deleted objects from this changeset using Achavi.
+        tooltip: Show an external visual diff for this changeset without leaving this page.
       feed:
         title: Changeset %{id}
         title_comment: Changeset %{id} - %{comment}
