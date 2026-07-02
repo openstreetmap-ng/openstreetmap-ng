@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import pytest
-from annotated_types import Gt
+from annotated_types import Gt, Len
 from httpx import AsyncClient
 from starlette import status
 
@@ -162,6 +162,91 @@ async def test_changeset_upload(client: AsyncClient):
             '@min_lon': 0.0,
             '@max_lon': 0.0,
         },
+    )
+
+
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    async def create_note(text: str) -> int:
+        r = await client.post(
+            '/api/0.6/notes.json',
+            json={'lon': 0, 'lat': 0, 'text': text},
+        )
+        assert r.is_success, r.text
+        return r.json()['properties']['id']
+
+    default_note_id = await create_note('close from changeset default')
+    override_note_id = await create_note('close from changeset override')
+    already_closed_note_id = await create_note('already closed before changeset')
+
+    r = await client.post(
+        f'/api/0.6/notes/{already_closed_note_id}/close.json',
+        params={'text': 'already done'},
+    )
+    assert r.is_success, r.text
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'Closing mapped notes'},
+                        {
+                            '@k': 'closes:note',
+                            '@v': (
+                                f'{default_note_id};'
+                                f'{override_note_id};'
+                                f'{already_closed_note_id}'
+                            ),
+                        },
+                        {
+                            '@k': f'closes:note:{override_note_id}:comment',
+                            '@v': 'Specific close reason',
+                        },
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    r = await client.get(f'/api/0.6/notes/{default_note_id}.json')
+    assert r.is_success, r.text
+    default_props = r.json()['properties']
+    assert_model(
+        default_props,
+        {'status': 'closed', 'comments': Len(2, 2), 'closed_at': str},
+    )
+    assert_model(
+        default_props['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'Closing mapped notes'},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{override_note_id}.json')
+    assert r.is_success, r.text
+    override_props = r.json()['properties']
+    assert_model(
+        override_props,
+        {'status': 'closed', 'comments': Len(2, 2), 'closed_at': str},
+    )
+    assert_model(
+        override_props['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'Specific close reason'},
+    )
+
+    r = await client.get(f'/api/0.6/notes/{already_closed_note_id}.json')
+    assert r.is_success, r.text
+    already_closed_props = r.json()['properties']
+    assert_model(already_closed_props, {'status': 'closed', 'comments': Len(2, 2)})
+    assert_model(
+        already_closed_props['comments'][-1],
+        {'user': 'user1', 'action': 'closed', 'text': 'already done'},
     )
 
 
