@@ -1,3 +1,4 @@
+import { BTooltip } from "@components/bootstrap-wrappers"
 import { Time } from "@components/datetime-inputs"
 import { ReportButton } from "@components/report"
 import { StandardForm } from "@components/standard-form"
@@ -208,6 +209,47 @@ const ChangesetComment = ({
   </li>
 )
 
+const getChangesetDiffUrl = (changesetId: bigint | string) =>
+  `https://overpass-api.de/achavi/?changeset=${changesetId.toString()}`
+
+const ChangesetDiffCard = ({
+  changesetId,
+  onClose,
+}: {
+  changesetId: bigint
+  onClose: () => void
+}) => {
+  const diffUrl = getChangesetDiffUrl(changesetId)
+  return (
+    <div class="alert alert-light border mb-3">
+      <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-bezier2 text-primary mt-1" />
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-start justify-content-between gap-2">
+            <h4 class="h6 mb-1">{t("browse.changeset.diff.title")}</h4>
+            <button
+              class="btn-close small"
+              type="button"
+              aria-label={t("javascripts.close")}
+              onClick={onClose}
+            />
+          </div>
+          <p class="small text-muted mb-2">{t("browse.changeset.diff.description")}</p>
+          <a
+            class="btn btn-sm btn-primary"
+            href={diffUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="bi bi-box-arrow-up-right me-1" />
+            {t("browse.changeset.diff.open")}
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
@@ -315,6 +357,7 @@ const ChangesetSidebar = ({
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
+  const showDiff = useSignal(false)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
@@ -377,6 +420,28 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+
+            <div class="d-flex align-items-center justify-content-end gap-2 mt-3">
+              <button
+                class={`btn btn-sm ${showDiff.value ? "btn-primary" : "btn-outline-primary"}`}
+                type="button"
+                aria-pressed={showDiff.value}
+                onClick={() => (showDiff.value = !showDiff.value)}
+              >
+                <i class="bi bi-bezier2 me-1" />
+                {t("browse.changeset.diff.open")}
+              </button>
+              <BTooltip title={t("browse.changeset.diff.tooltip")}>
+                <i class="bi bi-question-circle text-muted" />
+              </BTooltip>
+            </div>
+
+            {showDiff.value && (
+              <ChangesetDiffCard
+                changesetId={d.id}
+                onClose={() => (showDiff.value = false)}
+              />
+            )}
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
