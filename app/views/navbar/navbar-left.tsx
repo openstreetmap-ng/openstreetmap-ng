@@ -2,6 +2,7 @@ import { RemoteEditButton } from "@index/remote-edit"
 import { routerRemoteEditTarget } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
+import { isLoggedIn } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
@@ -105,6 +106,41 @@ const NavbarLeft = () => {
       tooltip.hide()
     }
   })
+
+  // Effect: show edit_help tooltip when edit_help=1 query param is present
+  useEffect(() => {
+    if (!isLoggedIn) return
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("edit_help") !== "1") return
+
+    const editLink = dropdownRootRef.current?.querySelector<HTMLElement>(".edit-link.default")
+    if (!editLink || editDisabled.value) return
+
+    const editHelpTooltip = new Tooltip(editLink, {
+      title: t("javascripts.site.edit_help"),
+      placement: "bottom",
+    })
+    editHelpTooltip.show()
+
+    const onClick = () => {
+      editHelpTooltip.hide()
+      editHelpTooltip.dispose()
+
+      // Remove edit_help from URL without page reload
+      params.delete("edit_help")
+      const newSearch = params.toString()
+      const newUrl = `${window.location.pathname}${newSearch ? "?" + newSearch : ""}${window.location.hash}`
+      window.history.replaceState(null, "", newUrl)
+    }
+
+    document.body.addEventListener("click", onClick, { once: true })
+
+    return () => {
+      document.body.removeEventListener("click", onClick)
+      editHelpTooltip.dispose()
+    }
+  }, [])
 
   const onSelectEditor = (editor: Editor) => {
     if (rememberChoiceRef.current!.checked) {

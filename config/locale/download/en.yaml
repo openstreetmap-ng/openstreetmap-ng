@@ -3267,10 +3267,12 @@ en:
       tracestrack: Tracestrack
       hotosm_credit: Tiles style by %{hotosm_link} hosted by %{osm_france_link}
       hotosm_name: Humanitarian OpenStreetMap Team
-    site:
-      edit_tooltip: Edit the map
-      edit_disabled_tooltip: Zoom in to edit the map
-      createnote_tooltip: Add a note to the map
+ site:
+ edit_tooltip: Edit the map
+ edit_disabled_tooltip: Zoom in to edit the map
+ edit_help: Move the map and zoom in on a location you want to edit, then click
+ here.
+ createnote_tooltip: Add a note to the map
       createnote_disabled_tooltip: Zoom in to add a note to the map
       map_notes_zoom_in_tooltip: Zoom in to see map notes
       map_data_zoom_in_tooltip: Zoom in to see map data
@@ -3282,11 +3284,9 @@ en:
         comment: Comment
         subscribe: Subscribe
         unsubscribe: Unsubscribe
-        hide_comment: hide
-        unhide_comment: unhide
-    edit_help: Move the map and zoom in on a location you want to edit, then click
-      here.
-    directions:
+ hide_comment: hide
+ unhide_comment: unhide
+ directions:
       ascend: Ascend
       engines:
         fossgis_osrm_bike: Bicycle (OSRM)
