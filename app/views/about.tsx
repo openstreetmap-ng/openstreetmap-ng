@@ -1,5 +1,4 @@
 import { PageSchema } from "@proto/about_pb"
-import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { primaryLanguage } from "@utils/config"
 import { i18nLocale } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
@@ -98,81 +97,6 @@ const AboutPage = () => {
             })}
           </p>
 
-          <h3>
-            <span class="icon-symbol section" />
-            {t("site.about.legal_title")}
-          </h3>
-          <p>
-            {tRich("site.about.legal_1_1_html", {
-              openstreetmap_foundation_link: (
-                <a href="https://osmfoundation.org">
-                  {t("site.about.legal_1_1_openstreetmap_foundation")}
-                </a>
-              ),
-              terms_of_use_link: (
-                <a
-                  href="https://osmfoundation.org/wiki/Terms_of_Use"
-                  rel="terms-of-service"
-                >
-                  {t("layouts.tou")}
-                </a>
-              ),
-              aup_link: (
-                <a href="https://wiki.openstreetmap.org/wiki/Acceptable_Use_Policy">
-                  {t("site.about.legal_1_1_aup")}
-                </a>
-              ),
-              privacy_policy_link: (
-                <a
-                  href="https://osmfoundation.org/wiki/Privacy_Policy"
-                  rel="privacy-policy"
-                >
-                  {toSentenceCase(t("users.new.privacy_policy"))}
-                </a>
-              ),
-            })}
-          </p>
-          <p>
-            {tRich("site.copyright.legal_babble.trademarks_1_1_html", {
-              trademark_policy_link: (
-                <a href="https://osmfoundation.org/wiki/Trademark_Policy">
-                  {t("site.copyright.legal_babble.trademarks_1_1_trademark_policy")}
-                </a>
-              ),
-            })}
-          </p>
-          <p>
-            {tRich("site.about.legal_2_1_html", {
-              contact_the_osmf_link: (
-                <a href="https://osmfoundation.org/wiki/Contact">
-                  {t("site.about.legal_2_1_contact_the_osmf")}
-                </a>
-              ),
-            })}
-          </p>
-
-          <h3>
-            <i class="bi bi-heart-fill" />
-            {t("site.about.partners_title")}
-          </h3>
-          <p class="mb-0">
-            {tRich("layouts.hosting_partners_html", {
-              ucl: <a href="https://www.ucl.ac.uk">{t("layouts.partners_ucl")}</a>,
-              fastly: (
-                <a href="https://www.fastly.com">{t("layouts.partners_fastly")}</a>
-              ),
-              bytemark: (
-                <a href="https://www.bytemark.co.uk">
-                  {t("layouts.partners_bytemark")}
-                </a>
-              ),
-              partners: (
-                <a href="https://hardware.openstreetmap.org/thanks/">
-                  {t("layouts.partners_partners")}
-                </a>
-              ),
-            })}
-          </p>
         </div>
       </div>
     </div>
