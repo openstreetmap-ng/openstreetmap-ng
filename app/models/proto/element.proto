@@ -59,6 +59,7 @@ message Data {
       repeated string roles = 2;
       optional string name = 3;
       optional ElementIcon icon = 4;
+      bool untagged = 5;
     }
 
     repeated Entry members = 1;

@@ -333,6 +333,8 @@ const ElementSidebar = ({
     >
       {(d) => {
         const { parents, members } = d.context
+        const taggedMembers = members.filter((member) => !member.untagged)
+        const untaggedNodeMembers = members.filter((member) => member.untagged)
         const hasRelations = parents.length > 0 || members.length > 0
 
         return (
@@ -364,14 +366,25 @@ const ElementSidebar = ({
                     keyFn={(el) =>
                       `${el.ref.type}-${el.ref.id}-${el.roles.join("\x1F")}`
                     }
-                    items={members}
+                    items={taggedMembers}
                     title={(count) =>
                       d.ref.type === ElementType.way
-                        ? t("browse.changeset.node", { count })
+                        ? t("element.tagged_nodes", { count })
                         : `${t("browse.relation.members")} (${count})`
                     }
                     renderRow={(el) => <ElementRow element={el} />}
                   />
+                  {d.ref.type === ElementType.way && (
+                    <ElementsSection
+                      keyFn={(el) =>
+                        `${el.ref.type}-${el.ref.id}-${el.roles.join("\x1F")}`
+                      }
+                      items={untaggedNodeMembers}
+                      title={(count) => t("element.untagged_nodes", { count })}
+                      renderRow={(el) => <ElementRow element={el} />}
+                      class="text-muted"
+                    />
+                  )}
                 </div>
               )}
             </div>
