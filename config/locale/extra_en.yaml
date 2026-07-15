@@ -49,6 +49,41 @@ changesets_history:
 element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
+software:
+  title: Software
+  description: Discover useful OpenStreetMap software, from editors and mobile apps to QA and developer tools.
+  visit_project: Visit project
+  empty: No software matches the selected filters.
+  filters:
+    category: Category
+    platform: Platform
+    license: License
+    status: Status
+  categories:
+    all: All categories
+    editors: Editors
+    mobile: Mobile mapping
+    qa: Quality assurance
+    maps: Maps and navigation
+    developer: Developer tools
+  platforms:
+    all: All platforms
+    web: Web
+    android: Android
+    ios: iOS
+    linux: Linux
+    macos: macOS
+    windows: Windows
+  licenses:
+    all: All licenses
+    foss: FOSS
+    mixed: Mixed
+    proprietary: Proprietary
+  statuses:
+    all: All statuses
+    active: Active
+    maintenance: Maintenance
+    experimental: Experimental
 note:
   title: Note
   count_one: "note"

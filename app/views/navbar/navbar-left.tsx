@@ -215,6 +215,13 @@ const NavbarLeft = () => {
       >
         {t("site.export.title")}
       </a>
+
+      <a
+        class="btn"
+        href="/software"
+      >
+        {t("software.title")}
+      </a>
     </>
   )
 }
