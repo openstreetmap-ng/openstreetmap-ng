@@ -19,9 +19,14 @@ import { type DataValid, Service } from "@proto/element_pb"
 import { ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
 import { tagsDiffStorage } from "@utils/local-storage"
+import { queryParam } from "@utils/path-codecs"
+import { readUrlQueryParam, updateUrlQueryParam } from "@utils/url-state"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
-import { useEffect, useRef } from "preact/hooks"
+import { useEffect, useRef, useState } from "preact/hooks"
+
+const HISTORY_LIMIT_QUERY = queryParam.positiveInt()
+const HISTORY_LIMIT_OPTIONS = [10, 25, 50, 100]
 
 const getPageTitle = (type: ElementTypeSlug, id: string) => {
   switch (type) {
@@ -84,6 +89,10 @@ const ElementHistorySidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const title = getPageTitle(type.value, id.toString())
+  const initialLimit = readUrlQueryParam("limit", HISTORY_LIMIT_QUERY)
+  const [limit, setLimit] = useState(
+    HISTORY_LIMIT_OPTIONS.includes(initialLimit ?? 0) ? initialLimit! : 10,
+  )
 
   setPageTitle(title)
 
@@ -95,7 +104,7 @@ const ElementHistorySidebar = ({
       <div class="section pb-1">
         <SidebarHeader class="mb-1">
           <h2 class="sidebar-title">{title}</h2>
-          <div class="form-check ms-1">
+          <div class="d-flex flex-column gap-2 ms-1">
             <label class="form-check-label">
               <input
                 class="form-check-input"
@@ -112,6 +121,29 @@ const ElementHistorySidebar = ({
                 <i class="bi bi-question-circle ms-1-5" />
               </BTooltip>
             </label>
+
+            <label class="form-label small text-muted mb-0">
+              {t("element.history_limit")}
+              <select
+                class="form-select form-select-sm mt-1"
+                value={limit}
+                onChange={(e) => {
+                  const nextLimit = Number(e.currentTarget.value)
+                  setLimit(nextLimit)
+                  updateUrlQueryParam("limit", HISTORY_LIMIT_QUERY, nextLimit, "replace")
+                  updateUrlQueryParam("page", queryParam.positiveInt(), undefined, "replace")
+                }}
+              >
+                {HISTORY_LIMIT_OPTIONS.map((option) => (
+                  <option
+                    key={option}
+                    value={option}
+                  >
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </SidebarHeader>
       </div>
@@ -121,6 +153,7 @@ const ElementHistorySidebar = ({
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
+          limit,
         }}
         urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}
