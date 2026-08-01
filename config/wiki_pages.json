@@ -26,6 +26,7 @@
   },
   "*:conditional": {
     "*": [
+      "",
       "Pl",
       "Uk"
     ]
@@ -147,6 +148,11 @@
     ]
   },
   "*:tyres": {
+    "*": [
+      ""
+    ]
+  },
+  "*:url": {
     "*": [
       ""
     ]
@@ -550,6 +556,11 @@
       "Pl",
       "RU",
       "Uk"
+    ]
+  },
+  "abandoned:aeroway": {
+    "aerodrome": [
+      ""
     ]
   },
   "abandoned:amenity": {
@@ -4726,6 +4737,9 @@
       "RU",
       "Uk"
     ],
+    "mobility_equipment_hire": [
+      ""
+    ],
     "mobility_hub": [
       "",
       "DE"
@@ -6482,6 +6496,9 @@
       "Pl",
       "Uk"
     ],
+    "prohibited": [
+      ""
+    ],
     "steps": [
       "",
       "RU",
@@ -7448,6 +7465,9 @@
       "Pl",
       "Pt",
       "RU"
+    ],
+    "collision_protection": [
+      ""
     ],
     "coupure": [
       "",
@@ -10466,7 +10486,8 @@
     ],
     "pagoda": [
       "",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "palace": [
       "",
@@ -11184,12 +11205,12 @@
       ""
     ]
   },
-  "building:levels:names": {
+  "building:levels:ref": {
     "*": [
       ""
     ]
   },
-  "building:levels:names:equivalent": {
+  "building:levels:ref:equivalent": {
     "*": [
       ""
     ]
@@ -11215,7 +11236,8 @@
       "JA",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hans"
     ]
   },
   "building:material:concrete": {
@@ -11779,6 +11801,11 @@
       "FR"
     ]
   },
+  "camera:features": {
+    "*": [
+      "RU"
+    ]
+  },
   "camera:mount": {
     "*": [
       "",
@@ -11904,6 +11931,18 @@
       "Cs",
       "DE"
     ],
+    "designated": [
+      ""
+    ],
+    "discouraged": [
+      ""
+    ],
+    "no": [
+      ""
+    ],
+    "permit": [
+      ""
+    ],
     "portage": [
       "",
       "DE"
@@ -11915,6 +11954,9 @@
       "RU"
     ],
     "unknown": [
+      ""
+    ],
+    "yes": [
       ""
     ]
   },
@@ -12514,6 +12556,11 @@
     ]
   },
   "changing_table:adult": {
+    "*": [
+      ""
+    ]
+  },
+  "changing_table:location": {
     "*": [
       ""
     ]
@@ -13965,6 +14012,11 @@
     ]
   },
   "contact:booking": {
+    "*": [
+      ""
+    ]
+  },
+  "contact:booking.com": {
     "*": [
       ""
     ]
@@ -26886,6 +26938,11 @@
       "RU"
     ]
   },
+  "initiative": {
+    "*": [
+      ""
+    ]
+  },
   "inlet": {
     "*": [
       "",
@@ -27400,6 +27457,9 @@
     "spui": [
       ""
     ],
+    "turning_loop": [
+      ""
+    ],
     "uncontrolled": [
       ""
     ],
@@ -27437,6 +27497,9 @@
       "",
       "JA",
       "RU"
+    ],
+    "yes": [
+      ""
     ]
   },
   "karst": {
@@ -28009,6 +28072,9 @@
       "JA",
       "Pl",
       "RU"
+    ],
+    "civic": [
+      ""
     ],
     "civic_admin": [
       "",
@@ -30013,6 +30079,12 @@
       ""
     ]
   },
+  "limited_service": {
+    "*": [
+      "",
+      "JA"
+    ]
+  },
   "line": {
     "*": [
       "",
@@ -31730,7 +31802,8 @@
       "JA",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hans"
     ],
     "trapping_pit": [
       "ES"
@@ -31782,7 +31855,8 @@
       "Pl",
       "Pt",
       "RU",
-      "Sv"
+      "Sv",
+      "Zh-hans"
     ],
     "water_tank": [
       "",
@@ -31837,7 +31911,8 @@
       "JA",
       "Pl",
       "Pt",
-      "RU"
+      "RU",
+      "Zh-hans"
     ],
     "watermill": [
       "",
@@ -32308,6 +32383,11 @@
       "JA",
       "Pl",
       "RU"
+    ]
+  },
+  "max_age:advisory": {
+    "*": [
+      ""
     ]
   },
   "max_level": {
@@ -33442,6 +33522,11 @@
       ""
     ]
   },
+  "min_age:advisory": {
+    "*": [
+      ""
+    ]
+  },
   "min_height": {
     "*": [
       "",
@@ -33612,6 +33697,11 @@
       "Pl"
     ]
   },
+  "monitoring:air_temperature": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:bicycle": {
     "*": [
       "",
@@ -33699,6 +33789,11 @@
       ""
     ]
   },
+  "monitoring:precipitation": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:radar": {
     "*": [
       ""
@@ -33714,11 +33809,26 @@
       "DE"
     ]
   },
+  "monitoring:rainfall": {
+    "*": [
+      ""
+    ]
+  },
   "monitoring:seismic_activity": {
     "*": [
       "",
       "Cs",
       "DE"
+    ]
+  },
+  "monitoring:snow_depth": {
+    "*": [
+      ""
+    ]
+  },
+  "monitoring:solar_radiation": {
+    "*": [
+      ""
     ]
   },
   "monitoring:tide_gauge": {
@@ -33735,6 +33845,11 @@
       "DE",
       "ES",
       "Pt"
+    ]
+  },
+  "monitoring:uv_radiation": {
+    "*": [
+      ""
     ]
   },
   "monitoring:water_level": {
@@ -33772,6 +33887,16 @@
   "monitoring:wind": {
     "*": [
       "FR"
+    ]
+  },
+  "monitoring:wind_direction": {
+    "*": [
+      ""
+    ]
+  },
+  "monitoring:wind_speed": {
+    "*": [
+      ""
     ]
   },
   "monorail": {
@@ -38085,8 +38210,14 @@
       "",
       "ES"
     ],
+    "EC:primaria": [
+      "ES"
+    ],
     "EC:provincial": [
       "",
+      "ES"
+    ],
+    "EC:secundaria": [
       "ES"
     ],
     "Flinkster": [
@@ -39714,7 +39845,8 @@
       "JA",
       "Pl",
       "RU",
-      "Uk"
+      "Uk",
+      "Zh-hans"
     ],
     "engineer": [
       "",
@@ -40208,7 +40340,8 @@
       "ES",
       "JA",
       "Pl",
-      "RU"
+      "RU",
+      "Zh-hans"
     ],
     "wedding_planner": [
       "",
@@ -40356,6 +40489,11 @@
       "RU",
       "Uk",
       "Zh-hans"
+    ]
+  },
+  "old_name:etymology:wikidata": {
+    "*": [
+      ""
     ]
   },
   "old_railway_operator": {
@@ -40739,6 +40877,12 @@
   "opening_hours:lifeguard": {
     "*": [
       ""
+    ]
+  },
+  "opening_hours:limited_service": {
+    "*": [
+      "",
+      "JA"
     ]
   },
   "opening_hours:office": {
@@ -43133,6 +43277,11 @@
       "Uk"
     ]
   },
+  "planned:name": {
+    "*": [
+      ""
+    ]
+  },
   "plant": {
     "*": [
       "",
@@ -43971,6 +44120,9 @@
     "roro": [
       "",
       "Sk"
+    ],
+    "seaplane": [
+      ""
     ]
   },
   "portable": {
@@ -43983,7 +44135,16 @@
     "*": [
       ""
     ],
+    "designated": [
+      ""
+    ],
+    "permissive": [
+      ""
+    ],
     "unknown": [
+      ""
+    ],
+    "yes": [
       ""
     ]
   },
@@ -46657,10 +46818,16 @@
   },
   "recycling:green_waste": {
     "*": [
-      ""
+      "",
+      "DE"
     ]
   },
   "recycling:mobile_phones": {
+    "*": [
+      ""
+    ]
+  },
+  "recycling:organic": {
     "*": [
       ""
     ]
@@ -46820,6 +46987,11 @@
     ]
   },
   "ref:AU-NSW:mooring": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:BG:eik": {
     "*": [
       ""
     ]
@@ -47377,6 +47549,11 @@
     ]
   },
   "ref:GB:nhs_ods": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:GB:nrw_nnr_code": {
     "*": [
       ""
     ]
@@ -48276,6 +48453,11 @@
     ]
   },
   "ref:kmr": {
+    "*": [
+      ""
+    ]
+  },
+  "ref:koda": {
     "*": [
       ""
     ]
@@ -53533,6 +53715,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -53546,6 +53729,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Gcf",
       "JA",
@@ -53705,6 +53889,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -53926,6 +54111,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Gcf",
       "IT",
@@ -54100,6 +54286,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Ko",
@@ -54234,6 +54421,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "JA",
       "Pl",
       "Pt",
@@ -54267,6 +54455,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "RU"
@@ -54275,6 +54464,7 @@
       "",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl"
@@ -54488,6 +54678,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -54781,6 +54972,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -54798,6 +54990,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "IT",
       "JA",
@@ -54848,6 +55041,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -54893,6 +55087,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Gcf",
       "IT",
@@ -55486,6 +55681,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "JA",
       "Pl",
@@ -55627,6 +55823,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "FR",
       "Gcf",
       "IT",
@@ -55963,6 +56160,7 @@
       "Cs",
       "DE",
       "ES",
+      "El",
       "JA",
       "Ko",
       "Pl",
@@ -57349,7 +57547,8 @@
       "RU",
       "Tr",
       "Uk",
-      "Zh-Hans"
+      "Zh-Hans",
+      "Zh-hans"
     ],
     "10pin": [
       "",
@@ -57435,7 +57634,8 @@
       "ES"
     ],
     "ball_hockey": [
-      ""
+      "",
+      "Cs"
     ],
     "balle_pelote": [
       "",
@@ -57626,7 +57826,8 @@
     "croquet": [
       "",
       "DE",
-      "ES"
+      "ES",
+      "Zh-hans"
     ],
     "crossfit": [
       "",
@@ -57692,7 +57893,8 @@
     ],
     "dragon_boat": [
       "",
-      "Sk"
+      "Sk",
+      "Zh-hans"
     ],
     "duckpin": [
       ""
@@ -58061,7 +58263,8 @@
     ],
     "pesäpallo": [
       "",
-      "ES"
+      "ES",
+      "Fi"
     ],
     "petanque": [
       ""
@@ -58703,7 +58906,8 @@
       "RU"
     ],
     "hunger_stone": [
-      ""
+      "",
+      "DE"
     ],
     "khachkar": [
       "",
@@ -59037,6 +59241,11 @@
       "ES",
       "FR"
     ],
+    "switching": [
+      "",
+      "RU",
+      "Vi"
+    ],
     "traction": [
       "",
       "DE",
@@ -59326,6 +59535,7 @@
       "DE",
       "ES",
       "El",
+      "FR",
       "Sk"
     ],
     "mud": [
@@ -61222,7 +61432,8 @@
       "Pl"
     ],
     "pagoda": [
-      ""
+      "",
+      "Zh-hans"
     ],
     "popinjay": [
       ""
@@ -62399,7 +62610,8 @@
   },
   "tree:ref": {
     "*": [
-      ""
+      "",
+      "RU"
     ]
   },
   "tree_form": {
@@ -65276,6 +65488,11 @@
       "",
       "ES",
       "FR"
+    ]
+  },
+  "website:builder": {
+    "*": [
+      ""
     ]
   },
   "website:catalogue": {
