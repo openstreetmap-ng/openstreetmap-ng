@@ -242,6 +242,12 @@ class Exceptions:
     def bad_geometry_coordinates(self) -> NoReturn:
         raise NotImplementedError
 
+    def bad_null_island_coordinates(self):
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Suspicious edits at coordinates 0,0 are not allowed.',
+        )
+
     def bad_bbox(self, bbox: str, condition: str | None = None) -> NoReturn:
         raise NotImplementedError
 
