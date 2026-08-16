@@ -135,6 +135,9 @@ class Exceptions:
     def diff_update_bad_version(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 
+    def diff_null_island(self, count: int) -> NoReturn:
+        raise NotImplementedError
+
     # --- element ---
     def element_not_found(
         self, element_ref: TypedElementId | tuple[TypedElementId, int]
@@ -218,6 +221,9 @@ class Exceptions:
         raise NotImplementedError
 
     def note_open(self, note_id: NoteId) -> NoReturn:
+        raise NotImplementedError
+
+    def note_null_island(self) -> NoReturn:
         raise NotImplementedError
 
     def notes_query_area_too_big(self) -> NoReturn:

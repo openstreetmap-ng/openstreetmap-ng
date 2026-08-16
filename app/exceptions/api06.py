@@ -194,6 +194,14 @@ class Exceptions06(Exceptions):
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',
         )
 
+    @override
+    def diff_null_island(self, count: int):
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Changeset contains {count} nodes at the null island (0, 0). '
+            'This is typically caused by a software bug in the editor.',
+        )
+
     # --- element ---
     @override
     def element_not_found(
@@ -350,6 +358,14 @@ class Exceptions06(Exceptions):
     def note_open(self, note_id: NoteId):
         raise APIError(
             status.HTTP_409_CONFLICT, detail=f'The note {note_id} is already open'
+        )
+
+    @override
+    def note_null_island(self):
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Creating notes at the null island (0, 0) is not allowed. '
+            'This is typically caused by a software bug.',
         )
 
     @override
