@@ -135,6 +135,9 @@ class Exceptions:
     def diff_update_bad_version(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 
+    def diff_multiple_null_island_nodes(self, count: int) -> NoReturn:
+        raise NotImplementedError
+
     # --- element ---
     def element_not_found(
         self, element_ref: TypedElementId | tuple[TypedElementId, int]
