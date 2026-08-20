@@ -242,6 +242,9 @@ class Exceptions:
     def bad_geometry_coordinates(self) -> NoReturn:
         raise NotImplementedError
 
+    def null_island_coordinates(self) -> NoReturn:
+        raise NotImplementedError
+
     def bad_bbox(self, bbox: str, condition: str | None = None) -> NoReturn:
         raise NotImplementedError
 
