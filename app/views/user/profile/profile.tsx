@@ -9,6 +9,11 @@ import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import {
+  AVATAR_MAX_PIXELS,
+  BACKGROUND_MAX_PIXELS,
+  validateImageUpload,
+} from "@utils/image-upload"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -168,9 +173,16 @@ const BackgroundForm = ({
     <StandardForm
       class="background-form"
       method={Service.method.updateBackground}
-      buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
-      })}
+      buildRequest={async ({ formData }) => {
+        await validateImageUpload(
+          formData,
+          "background_file",
+          BACKGROUND_MAX_PIXELS,
+        )
+        return {
+          backgroundFile: await formDataBytes(formData, "background_file"),
+        }
+      }}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
       <input
@@ -249,6 +261,7 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
+        await validateImageUpload(formData, "avatar_file", AVATAR_MAX_PIXELS)
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
           return {

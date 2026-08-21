@@ -15,6 +15,7 @@ import cython
 import orjson
 import pyarrow as pa
 import pyarrow.parquet as pq
+from app.models.proto.shared_types import ElementType
 from sentry_sdk import set_context, set_tag, start_transaction
 from starlette import status
 
@@ -29,7 +30,6 @@ from app.lib.telemetry.sentry import (
     SENTRY_REPLICATION_MONITOR_SLUG,
 )
 from app.models.element import TypedElementId
-from app.models.proto.shared_types import ElementType
 from speedup import typed_element_id
 
 _Dataset: TypeAlias = Literal['replication', 'redaction-period', 'cc-by-sa']
