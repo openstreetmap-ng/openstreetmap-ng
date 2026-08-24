@@ -27,7 +27,9 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
+from app.models.db.element import Element
 from app.models.db.user import user_proto
+from app.models.element import TypedElementId
 from app.models.proto.changeset_connect import (
     Service,
     ServiceASGIApplication,
@@ -38,12 +40,15 @@ from app.models.proto.changeset_pb2 import (
     Data,
     GetCommentsRequest,
     GetCommentsResponse,
+    GetDiffRequest,
+    GetDiffResponse,
     GetMapRequest,
     GetMapResponse,
     GetRequest,
     GetResponse,
 )
-from app.models.types import ChangesetId
+from app.models.proto.element_pb2 import RenderData
+from app.models.types import ChangesetId, SequenceId
 from app.queries.changeset_query import (
     ChangesetBoundsQuery,
     ChangesetCommentQuery,
@@ -145,6 +150,14 @@ class _Service(Service):
         return GetResponse(changeset=await _build_data(id))
 
     @override
+    async def get_diff(self, request: GetDiffRequest, ctx: RequestContext):
+        id = ChangesetId(request.id)
+        if await ChangesetQuery.find_by_id(id) is None:
+            raise_for.changeset_not_found(id)
+
+        return GetDiffResponse(render=await _build_diff_render(id))
+
+    @override
     async def get_comments(self, request: GetCommentsRequest, ctx: RequestContext):
         id = ChangesetId(request.id)
         if await ChangesetQuery.find_by_id(id) is None:
@@ -242,6 +255,69 @@ async def _build_data(changeset_id: ChangesetId):
     if next_changeset_id is not None:
         result.next_changeset_id = next_changeset_id
     return result
+
+
+async def _build_diff_render(changeset_id: ChangesetId):
+    changed = await ElementQuery.find_by_changeset(changeset_id, sort_by='sequence_id')
+    if not changed:
+        return RenderData()
+
+    previous_refs = [
+        (element['typed_id'], element['version'] - 1)
+        for element in changed
+        if not element['visible'] and element['version'] > 1
+    ]
+    previous_elements = {
+        element['typed_id']: element
+        for element in await ElementQuery.find_by_versioned_refs(
+            previous_refs,
+            limit=len(previous_refs),
+        )
+    }
+
+    render_candidates = [
+        element if element['visible'] else previous_elements.get(element['typed_id'])
+        for element in changed
+    ]
+    render_elements: list[Element] = [
+        element
+        for element in render_candidates
+        if element is not None and element['visible']
+    ]
+    if not render_elements:
+        return RenderData()
+
+    member_refs_by_sequence_id: dict[SequenceId, set[TypedElementId]] = {}
+    for element in render_elements:
+        if members := element.get('members'):
+            member_refs_by_sequence_id.setdefault(element['sequence_id'], set()).update(
+                members
+            )
+
+    if member_refs_by_sequence_id:
+        async with TaskGroup() as tg:
+            member_tasks = [
+                tg.create_task(
+                    ElementQuery.find_by_refs(
+                        list(members),
+                        at_sequence_id=sequence_id,
+                        sort_dir='asc',
+                    )
+                )
+                for sequence_id, members in member_refs_by_sequence_id.items()
+            ]
+
+        member_elements = [
+            element for task in member_tasks for element in task.result()
+        ]
+    else:
+        member_elements = []
+
+    return FormatRender.encode_elements(
+        [*render_elements, *member_elements],
+        detailed=True,
+        areas=True,
+    )
 
 
 async def _build_comments(

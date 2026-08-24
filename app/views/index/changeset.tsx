@@ -9,6 +9,7 @@ import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/el
 import { defineRoute } from "@index/router"
 import { makeBoundsMinimumSize } from "@map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
+import { convertRenderElementsData } from "@map/render-objects"
 import {
   type ReadonlySignal,
   type Signal,
@@ -37,7 +38,7 @@ import {
   isLoggedIn,
 } from "@utils/config"
 import { useDisposeSignalEffect } from "@utils/dispose-scope"
-import type { OSMChangeset } from "@utils/osm-objects"
+import type { OSMChangeset, OSMObject } from "@utils/osm-objects"
 import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -48,6 +49,17 @@ const focusPaint: FocusLayerPaint = {
   "line-color": "#f90",
   "line-opacity": 1,
   "line-width": 3,
+}
+
+const diffPaint: FocusLayerPaint = {
+  "fill-color": "#f97316",
+  "fill-opacity": 0.18,
+  "line-color": "#f97316",
+  "line-opacity": 0.95,
+  "line-width": 4,
+  "circle-color": "#f97316",
+  "circle-opacity": 0.95,
+  "circle-radius": 7,
 }
 
 export const ChangesetStats = ({
@@ -315,6 +327,9 @@ const ChangesetSidebar = ({
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
+  const diffMode = useSignal(false)
+  const diffLoading = useSignal(false)
+  const diffObjects = useSignal<OSMObject[] | null>(null)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
@@ -334,7 +349,20 @@ const ChangesetSidebar = ({
     }
   })
 
+  // Effect: Reset cached diff data when navigating between changesets.
+  useSignalEffect(() => {
+    id.value
+    diffMode.value = false
+    diffLoading.value = false
+    diffObjects.value = null
+  })
+
   const refocus = (initial = false) => {
+    if (diffMode.value) {
+      focusObjects(map, diffObjects.value ?? [], diffPaint, null, initial ? {} : false)
+      return
+    }
+
     const d = data.value
     if (!d?.bounds.length) return
     const object: OSMChangeset = {
@@ -349,12 +377,36 @@ const ChangesetSidebar = ({
 
   // Effect: Map focus
   useDisposeSignalEffect((scope) => {
-    if (!data.value?.bounds.length) return
+    if (!diffMode.value && !data.value?.bounds.length) return
 
     scope.defer(() => focusObjects(map))
     scope.map(map, "zoomend", () => refocus())
     refocus(true)
   })
+
+  const toggleDiffMode = async () => {
+    if (diffMode.value) {
+      diffMode.value = false
+      return
+    }
+
+    if (diffObjects.peek() === null) {
+      diffLoading.value = true
+      const requestId = id.value
+      try {
+        const result = await rpcUnary(Service.method.getDiff)({ id: requestId })
+        if (id.peek() !== requestId) return
+        diffObjects.value = convertRenderElementsData(result.render)
+      } catch (error) {
+        alert(connectErrorToMessage(error))
+        return
+      } finally {
+        diffLoading.value = false
+      }
+    }
+
+    diffMode.value = true
+  }
 
   return (
     <SidebarContent
@@ -376,6 +428,19 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
+            <button
+              class={`btn btn-sm w-100 mb-2 ${diffMode.value ? "btn-primary" : "btn-soft"}`}
+              type="button"
+              disabled={diffLoading.value}
+              onClick={toggleDiffMode}
+            >
+              <i class={`bi ${diffMode.value ? "bi-eye-slash" : "bi-map"} me-2`} />
+              {diffMode.value
+                ? t("changeset.hide_diff")
+                : diffLoading.value
+                  ? t("changeset.loading_diff")
+                  : t("changeset.show_diff")}
+            </button>
             <Tags tags={d.tags} />
 
             {/* Report button */}
