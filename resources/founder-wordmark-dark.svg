@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="320" viewBox="0 0 1024 320" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founder wordmark dark</title>
+  <desc id="desc">A dark-background OpenStreetMap-NG Founder wordmark using the compact founder badge and high-contrast text.</desc>
+  <defs>
+    <linearGradient id="founderGold" x1="52" y1="36" x2="268" y2="284" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff0b0"/>
+      <stop offset="0.42" stop-color="#d6a938"/>
+      <stop offset="1" stop-color="#8d5d12"/>
+    </linearGradient>
+    <linearGradient id="mapPaper" x1="48" y1="50" x2="274" y2="274" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#def4c4"/>
+      <stop offset="0.48" stop-color="#bce7a6"/>
+      <stop offset="1" stop-color="#8ecf83"/>
+    </linearGradient>
+    <linearGradient id="labelFill" x1="74" y1="224" x2="246" y2="268" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1f6f4e"/>
+      <stop offset="1" stop-color="#123f36"/>
+    </linearGradient>
+    <clipPath id="mapClip">
+      <path d="M62 58c34 9 61-10 97-2 37 8 65-12 106-1l17 102-16 113c-41-11-73 10-112 1-35-8-62 10-98 1L40 170z"/>
+    </clipPath>
+    <filter id="softShadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="320" rx="32" fill="#10241d"/>
+
+  <g filter="url(#softShadow)">
+    <circle cx="160" cy="160" r="139" fill="url(#founderGold)"/>
+    <circle cx="160" cy="160" r="127" fill="#f8fff3"/>
+    <g clip-path="url(#mapClip)">
+      <path d="M62 58c34 9 61-10 97-2 37 8 65-12 106-1l17 102-16 113c-41-11-73 10-112 1-35-8-62 10-98 1L40 170z" fill="url(#mapPaper)"/>
+      <path d="M48 100c40 13 66-13 108-1 44 13 70-9 110 3" fill="none" stroke="#6baa69" stroke-width="5" stroke-linecap="round" opacity="0.32"/>
+      <path d="M48 172c42-11 68 10 111-2 43-12 68 10 109-3" fill="none" stroke="#4f8b5b" stroke-width="4" stroke-linecap="round" opacity="0.36"/>
+      <path d="M94 60c12 51-6 86 5 137 6 24 5 44-3 75" fill="none" stroke="#77aa6f" stroke-width="4" opacity="0.34"/>
+      <path d="M191 54c-7 39 11 73 6 112-4 42 9 69 17 102" fill="none" stroke="#77aa6f" stroke-width="4" opacity="0.32"/>
+      <path d="M73 87l48 19 24 42 43 11 24 43 47 23" fill="none" stroke="#bd5454" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.68"/>
+      <path d="M50 211c44-31 80-34 107-21 29 13 57 13 110-23" fill="none" stroke="#739ad8" stroke-width="7" stroke-linecap="round" opacity="0.62"/>
+    </g>
+    <path d="M62 58c34 9 61-10 97-2 37 8 65-12 106-1l17 102-16 113c-41-11-73 10-112 1-35-8-62 10-98 1L40 170z" fill="none" stroke="#1b3327" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M58 151a102 102 0 0 1 204 0" fill="none" stroke="url(#founderGold)" stroke-width="11" stroke-linecap="round"/>
+    <g font-family="Arial Black, Arial, sans-serif" font-weight="900" text-anchor="middle">
+      <text x="160" y="169" font-size="88" fill="#101714" stroke="#101714" stroke-width="11" stroke-linejoin="round">NG</text>
+      <text x="160" y="169" font-size="88" fill="#ffffff">NG</text>
+    </g>
+    <rect x="70" y="222" width="180" height="45" rx="14" fill="url(#labelFill)" stroke="#0f3027" stroke-width="4"/>
+    <text x="160" y="254" font-family="Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="2" fill="#fff2bf" text-anchor="middle">FOUNDER</text>
+  </g>
+
+  <g font-family="Arial, sans-serif">
+    <text x="320" y="126" font-size="44" font-weight="800" fill="#f1fff5">OpenStreetMap-NG</text>
+    <text x="320" y="198" font-size="72" font-weight="900" fill="#c9edca">Founder</text>
+    <path d="M323 226h430" stroke="url(#founderGold)" stroke-width="8" stroke-linecap="round"/>
+    <text x="320" y="268" font-size="27" font-weight="700" fill="#bbd0c1">Contributor recognition badge</text>
+  </g>
+</svg>
