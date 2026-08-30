@@ -31,6 +31,7 @@ export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
 export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
+export const HYBRID_AERIAL_LAYER_ID = "hybrid-aerial" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
@@ -38,6 +39,7 @@ const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
 const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
 const HOT_LAYER_CODE = "H" as LayerCode
+const HYBRID_AERIAL_LAYER_CODE = "I" as LayerCode
 
 export const AERIAL_LAYER_ID = "aerial" as LayerId
 export const NOTES_LAYER_ID = "notes" as LayerId
@@ -92,6 +94,37 @@ const hotosmCredit = t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit =
   "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+const aerialSource = {
+  type: "raster",
+  maxzoom: 23,
+  tiles: [
+    "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  ],
+  tileSize: 256,
+} satisfies SourceSpecification
+
+const typedLibertyStyle = libertyStyle as unknown as StyleSpecification
+
+const hybridAerialStyle: StyleSpecification = {
+  ...typedLibertyStyle,
+  sources: {
+    imagery: aerialSource,
+    openmaptiles: typedLibertyStyle.sources.openmaptiles!,
+  },
+  layers: [
+    {
+      id: "imagery",
+      type: "raster",
+      source: "imagery",
+    },
+    ...typedLibertyStyle.layers.filter(
+      (layer) =>
+        layer.type === "line" ||
+        layer.type === "symbol" ||
+        layer.type === "circle",
+    ),
+  ],
+}
 
 export const emptyFeatureCollection: FeatureCollection = {
   type: "FeatureCollection",
@@ -133,8 +166,7 @@ layersConfig.set(STANDARD_LAYER_ID, {
 
 layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
-  // @ts-expect-error
-  vectorStyle: libertyStyle,
+  vectorStyle: typedLibertyStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
 })
@@ -215,15 +247,20 @@ layersConfig.set(HOT_LAYER_ID, {
   layerCode: HOT_LAYER_CODE,
 })
 
+layersConfig.set(HYBRID_AERIAL_LAYER_ID, {
+  specification: {
+    type: "vector",
+    attribution: `${copyright}. ${aerialEsriCredit}. ${terms}`,
+  },
+  vectorStyle: hybridAerialStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_AERIAL_LAYER_CODE,
+})
+
 // Overlay layers
 layersConfig.set(AERIAL_LAYER_ID, {
   specification: {
-    type: "raster",
-    maxzoom: 23,
-    tiles: [
-      "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    ],
-    tileSize: 256,
+    ...aerialSource,
     attribution: aerialEsriCredit,
   },
   layerOptions: {
@@ -309,10 +346,11 @@ export const addMapLayerSources = (
           !(source.tiles || source.url)
         )
           continue
-        if (source.attribution || config.specification.attribution)
+        const sourceSpec = { ...source }
+        if (sourceSpec.attribution || config.specification.attribution)
           // @ts-expect-error override source attribution
-          source.attribution = config.specification.attribution
-        map.addSource(getExtendedLayerId(layerId, sourceId as LayerType), source)
+          sourceSpec.attribution = config.specification.attribution
+        map.addSource(getExtendedLayerId(layerId, sourceId as LayerType), sourceSpec)
       }
     }
   }
