@@ -34,6 +34,11 @@ const SHARE_FORMATS = [
   { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
 ] as const
 
+const DEFAULT_SHARE_FORMAT = SHARE_FORMATS[0]
+
+const getShareFormat = (mimeType: string) =>
+  SHARE_FORMATS.find((f) => f.mimeType === mimeType) ?? DEFAULT_SHARE_FORMAT
+
 let urlMarker: Marker | null = null
 
 const ensureUrlMarker = (
@@ -84,8 +89,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   const shareMarkerLngLat = useSignal<LngLat | null>(null)
 
   const shareExportFileSuffix = useComputed(
-    () =>
-      SHARE_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!.suffix,
+    () => getShareFormat(shareExportFormatStorage.value).suffix,
   )
 
   const shareMapState = useComputed(() => {
@@ -186,7 +190,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
         : null
 
       const blob = await exportMapImage(
-        shareExportFormatStorage.value,
+        getShareFormat(shareExportFormatStorage.value).mimeType,
         map,
         filterBounds,
         shareMarkerLngLat.peek(),
@@ -291,7 +295,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
           {t("action.save_as")}
           <select
             class="form-select format-select mt-2"
-            value={shareExportFormatStorage.value}
+            value={getShareFormat(shareExportFormatStorage.value).mimeType}
             onChange={(e) => (shareExportFormatStorage.value = e.currentTarget.value)}
           >
             {SHARE_FORMATS.map(({ mimeType, label }) => (
