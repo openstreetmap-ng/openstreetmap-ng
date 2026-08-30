@@ -32,6 +32,9 @@ const SHARE_FORMATS = [
   { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
   { mimeType: "image/png", suffix: ".png", label: "PNG" },
   { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
+  // TODO: Re-enable SVG/PDF once export no longer depends on
+  // Canvas.toBlob(), which only produces raster image output here.
+  // render.openstreetmap.org can be used as the server-side/vector renderer.
 ] as const
 
 let urlMarker: Marker | null = null
