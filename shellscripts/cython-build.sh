@@ -35,9 +35,7 @@ done
 echo "Found ${#files[@]} source files"
 
 CFLAGS="$(python-config --cflags) $CFLAGS \
-  -shared -fPIC \
-  -DCYTHON_PROFILE=1 \
-  -DCYTHON_USE_SYS_MONITORING=0"
+  -shared -fPIC"
 export CFLAGS
 
 LDFLAGS="$(python-config --ldflags) $LDFLAGS"
@@ -62,7 +60,7 @@ process_file() {
     set -x
     cython -3 \
       --annotate \
-      --directive overflowcheck=True,embedsignature=True,profile=True \
+      --directive overflowcheck=True,embedsignature=True \
       --module-name "$module_name" \
       "$pyfile" -o "$c_file"
   )
