@@ -1,9 +1,11 @@
 import logging
+from asyncio import TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import ENV, TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -24,8 +26,20 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_TRACE_RECOMPRESS_ZSTD_LEVEL = 22
+_RECOMPRESSION_TG: TaskGroup
+
 
 class TraceService:
+    @asynccontextmanager
+    @staticmethod
+    async def context():
+        global _RECOMPRESSION_TG
+        async with (_RECOMPRESSION_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+            for t in _RECOMPRESSION_TG._tasks:  # noqa: SLF001
+                t.cancel()
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +125,18 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+        else:
+            task = _recompress_trace_file(trace_id, file, trace_init['file_id'])
+            if ENV == 'test':
+                await task
+            else:
+                _RECOMPRESSION_TG.create_task(task)
+            return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +211,54 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    file: bytes,
+    old_file_id: StorageKey,
+):
+    """Recompress a trace file in the background and swap it in if still current."""
+    new_file_id: StorageKey | None = None
+    swapped = False
+
+    try:
+        result = await TraceFile.compress(file, level=_TRACE_RECOMPRESS_ZSTD_LEVEL)
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+
+        rowcount = await db_update(
+            'trace',
+            {'file_id': new_file_id},
+            where={'id': trace_id, 'file_id': old_file_id},
+        )
+
+        if not rowcount:
+            await TRACE_STORAGE.delete(new_file_id)
+            logging.debug(
+                'Skipped trace %r recompression swap; file_id changed from %r',
+                trace_id,
+                old_file_id,
+            )
+            return
+
+        swapped = True
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.debug(
+            'Recompressed trace %r file %r to %r',
+            trace_id,
+            old_file_id,
+            new_file_id,
+        )
+
+    except Exception:
+        if new_file_id is not None and not swapped:
+            try:
+                await TRACE_STORAGE.delete(new_file_id)
+            except Exception:
+                logging.exception(
+                    'Failed to clean up recompressed trace file %r', new_file_id
+                )
+
+        logging.exception('Trace %r background recompression failed', trace_id)
