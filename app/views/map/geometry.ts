@@ -1,6 +1,18 @@
 import { clamp } from "@std/math/clamp"
 import { Point } from "maplibre-gl"
 
+const WORLD_WIDTH_DEGREES = 360
+
+/**
+ * Return the copy of a longitude closest to a reference longitude.
+ *
+ * MapLibre accepts unwrapped longitude values. Keeping neighboring vertices in
+ * the same world copy prevents globe mode from rendering short antimeridian
+ * segments as lines that wrap around the earth.
+ */
+export const unwrapLongitude = (lon: number, referenceLon: number) =>
+  lon + Math.round((referenceLon - lon) / WORLD_WIDTH_DEGREES) * WORLD_WIDTH_DEGREES
+
 /** Get the closest point on a segment */
 export const closestPointOnSegment = (test: Point, start: Point, end: Point) => {
   const dx = end.x - start.x
