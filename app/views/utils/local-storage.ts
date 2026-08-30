@@ -5,6 +5,10 @@ import type { GetRequest_Engine } from "@proto/routing_pb"
 import type { Theme } from "@runtime/theme"
 import { memoize } from "@std/cache/memoize"
 import { isLatitude, isLongitude, isZoom } from "@utils/coords"
+import {
+  DEFAULT_SHARE_IMAGE_MIME_TYPE,
+  isShareImageMimeType,
+} from "@utils/share-image-formats"
 
 type StorageConfig<T> = {
   defaultValue?: T
@@ -172,7 +176,8 @@ export const overlayOpacityStorage = createScopedStorageSignal<number>(
 export const shareExportFormatStorage = createStorageSignal<string>(
   "shareExportFormat",
   {
-    defaultValue: "image/jpeg",
+    defaultValue: DEFAULT_SHARE_IMAGE_MIME_TYPE,
+    validate: isShareImageMimeType,
   },
 )
 
