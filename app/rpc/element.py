@@ -13,6 +13,7 @@ from app.config import (
 from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.format.element_list import FormatElementList
+from app.lib.element_history import history_page_size
 from app.lib.geo.parse import parse_bbox
 from app.lib.render.rich_text import process_rich_text_plain
 from app.lib.standard.pagination import sp_num_pages, sp_paginate_query
@@ -116,6 +117,7 @@ class _Service(Service):
         element_type = ElementType.Name(request.element.type)
         id = ElementId(request.element.id)
         tid = typed_element_id(element_type, id)
+        page_size = history_page_size(request.page_size)
 
         elements, state = await sp_paginate_query(
             Element,
@@ -125,7 +127,7 @@ class _Service(Service):
             where=t'typed_id = {tid}',
             cursor_key='sequence_id',
             id_key='version',
-            page_size=ELEMENT_HISTORY_PAGE_SIZE,
+            page_size=page_size,
             cursor_kind='id',
             order_dir='desc',
         )
@@ -138,7 +140,7 @@ class _Service(Service):
         num_items = state.snapshot_max_id
         state.known_total.num_items = num_items
         state.known_total.num_pages = sp_num_pages(
-            num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
+            num_items=num_items, page_size=page_size
         )
 
         if not elements:
