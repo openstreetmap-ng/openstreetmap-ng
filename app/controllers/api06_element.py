@@ -47,6 +47,14 @@ async def create_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
+    # Reject null island (0,0) coordinates — always a bug in the editor (refs openstreetmap-website#5279)
+    for element in elements:
+        point = element.get('point')
+        if point is not None:
+            from shapely import get_coordinates
+            coords = get_coordinates(point)
+            if coords[0, 0] == 0 and coords[0, 1] == 0:
+                raise_for.bad_geometry()
     assigned_ref_map = await OptimisticDiff.run(elements)
     assigned_id = element_id(next(iter(assigned_ref_map.values()))[0])
     return Response(str(assigned_id), media_type='text/plain')
@@ -70,6 +78,15 @@ async def update_element(
         elements = Format06.decode_elements(data)
     except Exception as e:
         raise_for.bad_xml(type, str(e))
+
+    # Reject null island (0,0) coordinates — always a bug in the editor
+    for element in elements:
+        point = element.get('point')
+        if point is not None:
+            from shapely import get_coordinates
+            coords = get_coordinates(point)
+            if coords[0, 0] == 0 and coords[0, 1] == 0:
+                raise_for.bad_geometry()
 
     await OptimisticDiff.run(elements)
     return Response(str(elements[-1]['version']), media_type='text/plain')
