@@ -35,11 +35,49 @@
   }
 
   .passkey-login {
+    width: 100%;
+
     img {
       position: relative;
       top: -1px;
       width: 0.875em;
       height: 0.875em;
+    }
+  }
+
+  .quick-login-options {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: stretch;
+
+    @include media-breakpoint-down(sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .provider-shortcuts {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .provider-shortcut-form {
+    display: contents;
+  }
+
+  .provider-shortcut {
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 100%;
+    min-height: 2.5rem;
+    padding: 0;
+
+    .auth-provider-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      font-size: 1.25rem;
+      line-height: 1;
+      object-fit: contain;
     }
   }
 
