@@ -25,6 +25,8 @@ type NoteSummary = PageValid["notes"][number]
 type TraceSummary = PageValid["traces"][number]
 type DiarySummary = PageValid["diaries"][number]
 
+const AVATAR_UPLOAD_MAX_BYTES = 16 * 1024 * 1024
+
 type GroupExample = {
   type: string
   members: string
@@ -249,6 +251,12 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
+        const file = formData.get("avatar_file") as File | null
+        if (file?.size && file.size > AVATAR_UPLOAD_MAX_BYTES) {
+          fileInputRef.current!.value = ""
+          throw new Error("Image is too large")
+        }
+
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
           return {
