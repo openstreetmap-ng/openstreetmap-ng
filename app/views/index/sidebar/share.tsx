@@ -29,10 +29,17 @@ import type { SubmitEventHandler } from "preact"
 import { useRef } from "preact/hooks"
 
 const SHARE_FORMATS = [
+  // Canvas export is raster-only; keep PDF/SVG hidden until a true vector
+  // or print export pipeline is available.
+  // TODO: Add PDF/SVG formats after that pipeline exists.
   { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
   { mimeType: "image/png", suffix: ".png", label: "PNG" },
   { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
 ] as const
+const DEFAULT_SHARE_FORMAT = SHARE_FORMATS[0]
+const getShareFormat = (mimeType: string) =>
+  SHARE_FORMATS.find((format) => format.mimeType === mimeType) ??
+  DEFAULT_SHARE_FORMAT
 
 let urlMarker: Marker | null = null
 
@@ -83,10 +90,10 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   // payload, avoiding a redundant boolean shadow.
   const shareMarkerLngLat = useSignal<LngLat | null>(null)
 
-  const shareExportFileSuffix = useComputed(
-    () =>
-      SHARE_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!.suffix,
+  const shareExportFormat = useComputed(() =>
+    getShareFormat(shareExportFormatStorage.value),
   )
+  const shareExportFileSuffix = useComputed(() => shareExportFormat.value.suffix)
 
   const shareMapState = useComputed(() => {
     const view = shareView.value
@@ -186,7 +193,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
         : null
 
       const blob = await exportMapImage(
-        shareExportFormatStorage.value,
+        shareExportFormat.value.mimeType,
         map,
         filterBounds,
         shareMarkerLngLat.peek(),
@@ -291,7 +298,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
           {t("action.save_as")}
           <select
             class="form-select format-select mt-2"
-            value={shareExportFormatStorage.value}
+            value={shareExportFormat.value.mimeType}
             onChange={(e) => (shareExportFormatStorage.value = e.currentTarget.value)}
           >
             {SHARE_FORMATS.map(({ mimeType, label }) => (
