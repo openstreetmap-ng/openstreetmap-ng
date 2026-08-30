@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from buf.validate import validate_pb2
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
 from google.protobuf.message import Message
@@ -36,7 +37,6 @@ from app.models.proto import (
     settings_security_pb2,
     trace_pb2,
 )
-from buf.validate import validate_pb2
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -314,6 +314,7 @@ TRACE_FILE_ARCHIVE_MAX_FILES = 10
 TRACE_FILE_MAX_LAYERS = 2
 TRACE_FILE_COMPRESS_ZSTD_THREADS = 4
 TRACE_FILE_COMPRESS_ZSTD_LEVEL = 6
+TRACE_FILE_RECOMPRESS_ZSTD_LEVEL = 22
 TRACE_POINT_QUERY_AREA_MAX_SIZE = 0.25  # in square degrees
 TRACE_POINT_QUERY_DEFAULT_LIMIT = 5_000
 TRACE_POINT_QUERY_MAX_LIMIT = 5_000
