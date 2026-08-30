@@ -372,6 +372,13 @@ class Exceptions06(Exceptions):
         )
 
     @override
+    def bad_null_island(self):
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Edits at coordinates (0, 0) are not permitted. This is likely a bug in the editor and is known as the "null island".',
+        )
+
+    @override
     def bad_bbox(self, bbox: str, condition: str | None = None):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
