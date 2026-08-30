@@ -8,7 +8,11 @@ import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
-import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import {
+  AVATAR_MAX_FILE_SIZE,
+  config,
+  USER_RECENT_ACTIVITY_ENTRIES,
+} from "@utils/config"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -65,6 +69,8 @@ const GROUP_EXAMPLES: readonly GroupExample[] = [
     banner: "/static/img/banner/example1.webp",
   },
 ]
+
+const AVATAR_MAX_FILE_SIZE_LABEL = `${Math.round(AVATAR_MAX_FILE_SIZE / 1024)} KiB`
 
 const CommentCountBadge = ({ count }: { count: number }) =>
   count > 0 ? (
@@ -251,6 +257,13 @@ const AvatarForm = ({
       buildRequest={async ({ formData }) => {
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
+          const file = fileInputRef.current?.files?.[0]
+          if (file && file.size > AVATAR_MAX_FILE_SIZE) {
+            throw new Error(
+              `Avatar image is too large. Please choose a file smaller than ${AVATAR_MAX_FILE_SIZE_LABEL}.`,
+            )
+          }
+
           return {
             avatar: {
               case: "avatarFile" as const,
