@@ -20,6 +20,7 @@ from app.models.proto.copyright_pb2 import Page as CopyrightPage
 from app.models.proto.fixthemap_pb2 import Page as FixthemapPage
 from app.models.proto.help_pb2 import Page as HelpPage
 from app.models.proto.login_pb2 import Page as LoginPage
+from app.models.proto.software_pb2 import Page as SoftwarePage
 from app.models.proto.welcome_pb2 import Page as WelcomePage
 from app.models.types import ChangesetId, LocaleCode, NoteId, UserSubscriptionTargetId
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -128,6 +129,14 @@ async def communities():
     return await render_proto_page(
         CommunitiesPage(),
         title_prefix=t('layouts.communities'),
+    )
+
+
+@router.get('/software')
+async def software():
+    return await render_proto_page(
+        SoftwarePage(),
+        title_prefix=t('site.software.title'),
     )
 
 
