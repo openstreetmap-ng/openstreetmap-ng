@@ -71,10 +71,14 @@ const MessagesListItem = ({
   message,
   inbox,
   query,
+  selected,
+  onSelectedChange,
 }: {
   message: GetPageResponse_SummaryValid
   inbox: boolean
   query: MessageQuery
+  selected: boolean
+  onSelectedChange: (selected: boolean) => void
 }) => {
   const messageId = message.id
   const isUnread = inbox && message.unread
@@ -93,22 +97,48 @@ const MessagesListItem = ({
         isActive ? "active" : ""
       }`}
     >
-      <p class="header text-muted d-flex justify-content-between">
+      <p class="header text-muted d-flex justify-content-between gap-2">
         {inbox ? (
-          <span>
-            <UserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
-            <Time
-              unix={message.createdAt}
-              relativeStyle="long"
+          <span class="d-flex align-items-start gap-2">
+            <input
+              class="form-check-input flex-shrink-0 position-relative"
+              style={{ zIndex: 2 }}
+              type="checkbox"
+              checked={selected}
+              aria-label={t("messages.select_message", {
+                subject: message.subject,
+              })}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => onSelectedChange(event.currentTarget.checked)}
             />
+            <span>
+              <UserLink user={message.sender!} /> {t("messages.action_sent")}{" "}
+              <Time
+                unix={message.createdAt}
+                relativeStyle="long"
+              />
+            </span>
           </span>
         ) : (
-          <span>
-            <SummaryRecipients message={message} /> {t("messages.action_delivered")}{" "}
-            <Time
-              unix={message.createdAt}
-              relativeStyle="long"
+          <span class="d-flex align-items-start gap-2">
+            <input
+              class="form-check-input flex-shrink-0 position-relative"
+              style={{ zIndex: 2 }}
+              type="checkbox"
+              checked={selected}
+              aria-label={t("messages.select_message", {
+                subject: message.subject,
+              })}
+              onClick={(event) => event.stopPropagation()}
+              onChange={(event) => onSelectedChange(event.currentTarget.checked)}
             />
+            <span>
+              <SummaryRecipients message={message} /> {t("messages.action_delivered")}{" "}
+              <Time
+                unix={message.createdAt}
+                relativeStyle="long"
+              />
+            </span>
           </span>
         )}
         <span>
@@ -341,6 +371,7 @@ mountProtoPage(IndexPageSchema, () => {
   const inbox = route.value === "inbox"
   const query = route.query
   const messages = useSignal<GetPageResponse_SummaryValid[]>([])
+  const selectedIds = useSignal(new Set<bigint>())
   const previewState = useSignal<PreviewState>({ status: "loading" })
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) =>
@@ -350,8 +381,42 @@ mountProtoPage(IndexPageSchema, () => {
         : message,
     ))
 
-  const removeMessage = (messageId: bigint) =>
-    (messages.value = messages.value.filter((message) => message.id !== messageId))
+  const updateMessagesUnread = (messageIds: Set<bigint>, unread: boolean) =>
+    (messages.value = messages.value.map((message) =>
+      messageIds.has(message.id) && message.unread !== unread
+        ? ((message.unread = unread), message)
+        : message,
+    ))
+
+  const setMessageSelected = (messageId: bigint, selected: boolean) => {
+    const next = new Set(selectedIds.peek())
+    if (selected) {
+      next.add(messageId)
+    } else {
+      next.delete(messageId)
+    }
+    selectedIds.value = next
+  }
+
+  const removeSelectedMessages = (messageIds: Set<bigint>) => {
+    const next = new Set(selectedIds.peek())
+    for (const messageId of messageIds) next.delete(messageId)
+    selectedIds.value = next
+  }
+
+  const removeMessage = (messageId: bigint) => {
+    messages.value = messages.value.filter((message) => message.id !== messageId)
+    removeSelectedMessages(new Set([messageId]))
+  }
+
+  const removeMessages = (messageIds: Set<bigint>) => {
+    messages.value = messages.value.filter((message) => !messageIds.has(message.id))
+    removeSelectedMessages(messageIds)
+  }
+
+  useEffect(() => {
+    selectedIds.value = new Set()
+  }, [inbox])
 
   const markMessageUnread = async () => {
     const messageId = query.value.show
@@ -395,6 +460,55 @@ mountProtoPage(IndexPageSchema, () => {
     }
   }
 
+  const updateSelectedReadState = async (read: boolean) => {
+    if (!inbox) return
+
+    const ids = [...selectedIds.peek()]
+    if (!ids.length) return
+
+    try {
+      const response = await rpcUnary(Service.method.batchUpdateReadState)({
+        id: ids,
+        read,
+      })
+      const selected = new Set(ids)
+
+      batch(() => {
+        updateMessagesUnread(selected, !read)
+        selectedIds.value = new Set()
+        if (response.updatedCount) {
+          changeUnreadMessagesBadge(
+            read ? -response.updatedCount : response.updatedCount,
+          )
+        }
+      })
+    } catch (error) {
+      console.error("Messages: Failed to update selected read state", ids, error)
+      alert(connectErrorToMessage(ConnectError.from(error)))
+    }
+  }
+
+  const deleteSelectedMessages = async () => {
+    const ids = [...selectedIds.peek()]
+    if (!ids.length) return
+    if (!confirm(t("messages.bulk_delete_confirmation", { count: ids.length }))) return
+
+    try {
+      await rpcUnary(Service.method.batchDelete)({ id: ids })
+      const selected = new Set(ids)
+
+      batch(() => {
+        removeMessages(selected)
+        if (query.value.show && selected.has(query.value.show)) {
+          query.value = getQueryWithoutShow(query)
+        }
+      })
+    } catch (error) {
+      console.error("Messages: Failed to delete selected messages", ids, error)
+      alert(connectErrorToMessage(ConnectError.from(error)))
+    }
+  }
+
   // Effect: Fetch open message details
   useDisposeSignalEffect((scope) => {
     const messageId = query.value.show
@@ -427,6 +541,22 @@ mountProtoPage(IndexPageSchema, () => {
     }
     void fetchMessage()
   })
+
+  const visibleMessageIds = messages.value.map((message) => message.id)
+  const selectedCount = selectedIds.value.size
+  const allVisibleSelected =
+    visibleMessageIds.length > 0 &&
+    visibleMessageIds.every((messageId) => selectedIds.value.has(messageId))
+
+  const toggleVisibleSelection = () => {
+    const next = new Set(selectedIds.peek())
+    if (allVisibleSelected) {
+      for (const messageId of visibleMessageIds) next.delete(messageId)
+    } else {
+      for (const messageId of visibleMessageIds) next.add(messageId)
+    }
+    selectedIds.value = next
+  }
 
   return (
     <>
@@ -473,6 +603,55 @@ mountProtoPage(IndexPageSchema, () => {
         <div class="container">
           <div class="row flex-wrap-reverse">
             <div class="col-lg">
+              {messages.value.length > 0 && (
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                  <label class="form-check d-flex align-items-center gap-2 mb-0">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleVisibleSelection}
+                    />
+                    <span>{t("messages.select_visible")}</span>
+                  </label>
+                  <span class="small text-muted">
+                    {t("messages.selected_count", { count: selectedCount })}
+                  </span>
+                  <fieldset
+                    class="btn-group btn-group-sm ms-auto"
+                    disabled={selectedCount === 0}
+                  >
+                    {inbox && (
+                      <>
+                        <button
+                          class="btn btn-soft"
+                          type="button"
+                          onClick={() => void updateSelectedReadState(true)}
+                        >
+                          <i class="bi bi-envelope-open me-2" />
+                          {t("messages.mark_read")}
+                        </button>
+                        <button
+                          class="btn btn-soft"
+                          type="button"
+                          onClick={() => void updateSelectedReadState(false)}
+                        >
+                          <i class="bi bi-envelope me-2" />
+                          {t("messages.mark_unread")}
+                        </button>
+                      </>
+                    )}
+                    <button
+                      class="btn btn-soft"
+                      type="button"
+                      onClick={() => void deleteSelectedMessages()}
+                    >
+                      <i class="bi bi-trash me-2" />
+                      {t("messages.message_summary.destroy_button")}
+                    </button>
+                  </fieldset>
+                </div>
+              )}
               <StandardPagination
                 method={Service.method.getPage}
                 request={{ inbox }}
@@ -488,6 +667,10 @@ mountProtoPage(IndexPageSchema, () => {
                           message={message}
                           inbox={inbox}
                           query={query}
+                          selected={selectedIds.value.has(message.id)}
+                          onSelectedChange={(selected) =>
+                            setMessageSelected(message.id, selected)
+                          }
                         />
                       ))
                     ) : (
