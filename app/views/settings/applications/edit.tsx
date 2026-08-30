@@ -4,7 +4,7 @@ import { formDataBytes, StandardForm } from "@components/standard-form"
 import { useSignal } from "@preact/signals"
 import { EditPageSchema, Service } from "@proto/settings_applications_pb"
 import { Scope } from "@proto/shared_pb"
-import { OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
+import { AVATAR_MAX_FILE_SIZE, OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
 import { throwAbortError } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -247,10 +247,17 @@ mountProtoPage(
                         class="avatar-form"
                         formRef={avatarFormRef}
                         method={Service.method.updateAvatar}
-                        buildRequest={async ({ formData }) => ({
-                          id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
-                        })}
+                        buildRequest={async ({ formData }) => {
+                          const avatarFile = formData.get("avatar_file") as File
+                          if (avatarFile.size > AVATAR_MAX_FILE_SIZE) {
+                            throw new Error(t("validation.image_is_too_large"))
+                          }
+
+                          return {
+                            id,
+                            avatarFile: await formDataBytes(formData, "avatar_file"),
+                          }
+                        }}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
                         <input
