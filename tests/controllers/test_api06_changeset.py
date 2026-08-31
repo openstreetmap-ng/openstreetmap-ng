@@ -358,7 +358,13 @@ async def test_changeset_tagged_notes_require_write_notes(
 
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse({'osm': {'changeset': {}}}),
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'created_by', '@v': 'tests'}],
+                }
+            }
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
@@ -617,7 +623,13 @@ async def test_inactive_legacy_changeset_does_not_close_tagged_note(
 
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse({'osm': {'changeset': {}}}),
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'created_by', '@v': 'tests'}],
+                }
+            }
+        }),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
