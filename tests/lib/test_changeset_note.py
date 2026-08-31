@@ -19,6 +19,21 @@ def test_parse_note_close_actions_comment_precedence():
     ]
 
 
+def test_parse_note_close_actions_sorts_note_ids():
+    actions = parse_note_close_actions({
+        'closes:note': '20;3;10',
+        'closes:note:20:comment': 'twenty',
+        'closes:note:3:comment': 'three',
+        'closes:note:10:comment': 'ten',
+    })
+
+    assert actions == [
+        (3, 'three'),
+        (10, 'ten'),
+        (20, 'twenty'),
+    ]
+
+
 @pytest.mark.parametrize(
     ('tags', 'expected'),
     [

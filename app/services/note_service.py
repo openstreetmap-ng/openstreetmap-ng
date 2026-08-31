@@ -1,4 +1,6 @@
+import logging
 from asyncio import TaskGroup
+from collections.abc import Awaitable
 from datetime import datetime
 from typing import Any, TypeAlias
 
@@ -97,6 +99,10 @@ class NoteService:
     ) -> bool:
         """Comment on a note."""
         own_transaction = conn is None
+        if own_transaction and deferred_side_effects is not None:
+            raise ValueError(
+                'connection is required when deferring comment side effects'
+            )
         if not own_transaction and deferred_side_effects is None:
             raise ValueError(
                 'deferred_side_effects is required when using an existing connection'
@@ -218,21 +224,49 @@ class NoteService:
     @staticmethod
     async def run_comment_side_effects(
         side_effects: list[NoteCommentSideEffect],
+        *,
+        best_effort: bool = False,
     ):
         """Run email and subscription work after the database transaction commits."""
+        runner = (
+            _run_comment_side_effect_best_effort
+            if best_effort
+            else _run_comment_side_effect
+        )
         async with TaskGroup() as tg:
             for side_effect in side_effects:
-                tg.create_task(_run_comment_side_effect(side_effect))
+                tg.create_task(runner(side_effect))
 
 
-async def _run_comment_side_effect(side_effect: NoteCommentSideEffect):
+async def _run_comment_side_effect_best_effort(
+    side_effect: NoteCommentSideEffect,
+):
+    try:
+        await _run_comment_side_effect(side_effect, best_effort=True)
+    except Exception:
+        logging.exception('Failed to run note comment side effect')
+
+
+async def _run_comment_side_effect(
+    side_effect: NoteCommentSideEffect,
+    *,
+    best_effort: bool = False,
+):
     user, scopes, note, comment, send_activity_email = side_effect
+
+    async def run(operation: Awaitable[Any]):
+        try:
+            await operation
+        except Exception:
+            if not best_effort:
+                raise
+            logging.exception('Failed to run note comment side effect operation')
 
     with auth_context(user, scopes):
         async with TaskGroup() as tg:
             if send_activity_email:
-                tg.create_task(_send_activity_email(note, comment))
-            tg.create_task(UserSubscriptionService.subscribe('note', note['id']))
+                tg.create_task(run(_send_activity_email(note, comment)))
+            tg.create_task(run(UserSubscriptionService.subscribe('note', note['id'])))
 
 
 async def _send_activity_email(note: Note, comment: NoteComment):

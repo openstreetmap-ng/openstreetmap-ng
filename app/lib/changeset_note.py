@@ -25,4 +25,5 @@ def parse_note_close_actions(tags: dict[str, str]) -> list[tuple[int, str]]:
         comment = tags.get(comment_key, default_comment)
         actions.append((note_id, comment))
 
+    actions.sort(key=lambda action: action[0])
     return actions

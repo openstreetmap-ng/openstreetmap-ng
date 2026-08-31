@@ -12,6 +12,7 @@ from app.db import db
 from app.lib.time.date_utils import utcnow
 from app.models.types import ChangesetId
 from app.queries.changeset_query import ChangesetQuery
+from app.services import changeset_service
 from app.services.changeset_service import ChangesetService
 
 
@@ -34,6 +35,34 @@ async def test_changeset_inactive_close():
     assert changeset['closed_at'] is not None, (
         'Changeset must be closed after processing'
     )
+
+
+async def test_changeset_inactive_close_is_batched(monkeypatch):
+    monkeypatch.setattr(
+        'app.services.changeset_service._INACTIVE_CHANGESET_BATCH_SIZE',
+        2,
+    )
+    inactive_time = utcnow() - CHANGESET_IDLE_TIMEOUT - timedelta(seconds=1)
+    changeset_ids = [
+        await _create_changeset(updated_at=inactive_time) for _ in range(3)
+    ]
+    batch_calls = 0
+    original_db_fetchrows = changeset_service.db_fetchrows
+
+    async def tracked_db_fetchrows(*args: Any, **kwargs: Any):
+        nonlocal batch_calls
+        batch_calls += 1
+        return await original_db_fetchrows(*args, **kwargs)
+
+    monkeypatch.setattr(changeset_service, 'db_fetchrows', tracked_db_fetchrows)
+
+    await ChangesetService.force_process()
+
+    changesets = [
+        await ChangesetQuery.find_by_id(changeset_id) for changeset_id in changeset_ids
+    ]
+    assert all(c is not None and c['closed_at'] is not None for c in changesets)
+    assert batch_calls >= 2
 
 
 async def test_changeset_inactive_open():

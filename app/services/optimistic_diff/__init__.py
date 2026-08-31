@@ -45,6 +45,9 @@ class OptimisticDiff:
                     if prep.apply_elements and 'size_limit_reached' in prep.changeset:
                         await ChangesetService.close_tagged_notes(
                             prep.changeset['tags'],
+                            note_close_authorized=prep.changeset[
+                                'note_close_authorized'
+                            ],
                             conn=conn,
                             deferred_side_effects=side_effects,
                         )
@@ -76,5 +79,8 @@ class OptimisticDiff:
                 sleep = uniform(sleep * 1.5, sleep * 2.5)
                 sleep = min(sleep, sleep_limit)
             else:
-                await NoteService.run_comment_side_effects(side_effects)
+                await NoteService.run_comment_side_effects(
+                    side_effects,
+                    best_effort=True,
+                )
                 return result

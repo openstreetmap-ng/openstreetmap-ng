@@ -355,6 +355,14 @@ async def test_changeset_tagged_notes_require_write_notes(
     client: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ):
     client.headers['Authorization'] = 'User user1'
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({'osm': {'changeset': {}}}),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
     monkeypatch.setattr(
         'app.services.changeset_service.auth_scopes',
         lambda: frozenset({'write_api'}),
@@ -375,6 +383,30 @@ async def test_changeset_tagged_notes_require_write_notes(
     assert (
         'The request requires higher privileges than authorized (write_notes)' in r.text
     )
+
+    r = await client.put(
+        f'/api/0.6/changeset/{changeset_id}',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [{'@k': 'closes:note', '@v': '1'}],
+                }
+            }
+        }),
+    )
+    assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
+
+    async with db(True) as conn:
+        await conn.execute(
+            t"""
+                UPDATE changeset
+                SET tags = {'closes:note=>1'}::hstore
+                WHERE id = {changeset_id}
+            """
+        )
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.status_code == status.HTTP_403_FORBIDDEN, r.text
 
 
 async def test_changeset_note_closes_are_atomic(
@@ -498,7 +530,78 @@ async def test_changeset_size_limit_closes_tagged_note(
     )
 
 
-async def test_inactive_changeset_closes_tagged_note(client: AsyncClient):
+async def test_inactive_changeset_closes_tagged_note(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    client.headers['Authorization'] = 'User user1'
+
+    note_ids: list[int] = []
+    for index in range(2):
+        r = await client.post(
+            '/api/0.6/notes.json',
+            json={
+                'lon': index,
+                'lat': 0,
+                'text': f'{test_inactive_changeset_closes_tagged_note.__name__} {index}',
+            },
+        )
+        assert r.is_success, r.text
+        note_ids.append(r.json()['properties']['id'])
+
+    changeset_ids: list[int] = []
+    for note_id in reversed(note_ids):
+        r = await client.put(
+            '/api/0.6/changeset/create',
+            content=XMLToDict.unparse({
+                'osm': {
+                    'changeset': {
+                        'tag': [
+                            {'@k': 'comment', '@v': f'close note {note_id}'},
+                            {'@k': 'closes:note', '@v': str(note_id)},
+                        ]
+                    }
+                }
+            }),
+        )
+        assert r.is_success, r.text
+        changeset_ids.append(int(r.text))
+
+    async with db(True) as conn:
+        await conn.execute(
+            t"""
+                UPDATE changeset
+                SET updated_at = statement_timestamp() - {CHANGESET_IDLE_TIMEOUT + timedelta(seconds=1)}
+                WHERE id = ANY({changeset_ids})
+            """
+        )
+
+    original_comment = NoteService.comment
+    closed_note_ids: list[int] = []
+
+    async def track_note_close(note_id, *args, **kwargs):
+        closed_note_ids.append(note_id)
+        return await original_comment(note_id, *args, **kwargs)
+
+    monkeypatch.setattr(NoteService, 'comment', staticmethod(track_note_close))
+
+    await ChangesetService.force_process()
+
+    assert closed_note_ids == note_ids
+    for note_id in note_ids:
+        r = await client.get(f'/api/0.6/notes/{note_id}.json')
+        assert r.is_success, r.text
+        note = r.json()['properties']
+        assert_model(note, {'status': 'closed', 'comments': Len(2, 2)})
+        assert_model(
+            note['comments'][-1],
+            {'user': 'user1', 'action': 'closed', 'text': f'close note {note_id}'},
+        )
+
+
+async def test_inactive_legacy_changeset_does_not_close_tagged_note(
+    client: AsyncClient,
+):
     client.headers['Authorization'] = 'User user1'
 
     r = await client.post(
@@ -506,7 +609,7 @@ async def test_inactive_changeset_closes_tagged_note(client: AsyncClient):
         json={
             'lon': 0,
             'lat': 0,
-            'text': test_inactive_changeset_closes_tagged_note.__name__,
+            'text': test_inactive_legacy_changeset_does_not_close_tagged_note.__name__,
         },
     )
     assert r.is_success, r.text
@@ -514,40 +617,31 @@ async def test_inactive_changeset_closes_tagged_note(client: AsyncClient):
 
     r = await client.put(
         '/api/0.6/changeset/create',
-        content=XMLToDict.unparse({
-            'osm': {
-                'changeset': {
-                    'tag': [
-                        {'@k': 'comment', '@v': 'inactive close message'},
-                        {'@k': 'closes:note', '@v': str(note_id)},
-                    ]
-                }
-            }
-        }),
+        content=XMLToDict.unparse({'osm': {'changeset': {}}}),
     )
     assert r.is_success, r.text
     changeset_id = int(r.text)
 
     async with db(True) as conn:
-        assert conn is not None
         await conn.execute(
             t"""
                 UPDATE changeset
-                SET updated_at = statement_timestamp() - {CHANGESET_IDLE_TIMEOUT + timedelta(seconds=1)}
+                SET
+                    tags = {f'closes:note=>{note_id}'}::hstore,
+                    updated_at = statement_timestamp() - {CHANGESET_IDLE_TIMEOUT + timedelta(seconds=1)}
                 WHERE id = {changeset_id}
             """
         )
 
     await ChangesetService.force_process()
 
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}.json')
+    assert r.is_success, r.text
+    assert r.json()['changesets'][0]['open'] is False
+
     r = await client.get(f'/api/0.6/notes/{note_id}.json')
     assert r.is_success, r.text
-    note = r.json()['properties']
-    assert_model(note, {'status': 'closed', 'comments': Len(2, 2)})
-    assert_model(
-        note['comments'][-1],
-        {'user': 'user1', 'action': 'closed', 'text': 'inactive close message'},
-    )
+    assert_model(r.json()['properties'], {'status': 'open', 'comments': Len(1, 1)})
 
 
 async def test_changeset_upload_closed(client: AsyncClient):

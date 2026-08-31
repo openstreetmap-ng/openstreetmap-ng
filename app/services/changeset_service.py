@@ -41,6 +41,7 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
+from app.models.db.user import User
 from app.models.types import (
     ChangesetCommentId,
     ChangesetId,
@@ -57,6 +58,7 @@ from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
 _PROCESS_DONE_EVENT = Event()
+_INACTIVE_CHANGESET_BATCH_SIZE = 100
 
 
 class ChangesetService:
@@ -64,12 +66,16 @@ class ChangesetService:
     async def create(tags: dict[str, str]) -> ChangesetId:
         """Create a new changeset and return its id."""
         user_id = auth_user(required=True)['id']
-        _require_note_write_scope(tags)
+        note_close_authorized = _require_note_write_scope(tags)
 
         async with db(True) as conn:
             row = await db_insert(
                 'changeset',
-                {'user_id': user_id, 'tags': tags},
+                {
+                    'user_id': user_id,
+                    'tags': tags,
+                    'note_close_authorized': note_close_authorized,
+                },
                 returning='id',
                 conn=conn,
             )
@@ -106,11 +112,14 @@ class ChangesetService:
                 raise_for.changeset_access_denied()
             if closed_at is not None:
                 raise_for.changeset_already_closed(changeset_id, closed_at)
-            _require_note_write_scope(tags)
-
+            note_close_authorized = _require_note_write_scope(tags)
             await db_update(
                 'changeset',
-                {'tags': tags, 'updated_at': t'DEFAULT'},
+                {
+                    'tags': tags,
+                    'note_close_authorized': note_close_authorized,
+                    'updated_at': t'DEFAULT',
+                },
                 where={'id': changeset_id},
                 conn=conn,
             )
@@ -163,17 +172,19 @@ class ChangesetService:
                 deferred_side_effects=side_effects,
             )
 
-        await NoteService.run_comment_side_effects(side_effects)
+        await NoteService.run_comment_side_effects(side_effects, best_effort=True)
 
     @staticmethod
     async def close_tagged_notes(
         tags: dict[str, str],
         *,
+        note_close_authorized: bool,
         conn: AsyncConnection,
         deferred_side_effects: list[NoteCommentSideEffect],
     ):
         """Close notes referenced by tags inside an existing transaction."""
-        _require_note_write_scope(tags)
+        if not note_close_authorized:
+            return
         await _close_tagged_notes(
             tags,
             conn=conn,
@@ -309,61 +320,103 @@ async def _process_task():
 
 
 async def _close_inactive():
-    """Close all inactive changesets."""
+    """Close inactive changesets in bounded transactions."""
+    total = 0
+    while True:
+        count = await _close_inactive_batch()
+        total += count
+        if count < _INACTIVE_CHANGESET_BATCH_SIZE:
+            break
+        await asyncio.sleep(0)
+
+    if total:
+        logging.debug('Closed %d inactive changesets', total)
+
+
+async def _close_inactive_batch() -> int:
+    """Close one bounded batch of inactive changesets."""
     side_effects: list[NoteCommentSideEffect] = []
 
     async with db(True) as conn:
-        rows: list[tuple[UserId | None, dict[str, str]]] = await db_fetchrows(
+        rows: list[
+            tuple[ChangesetId, UserId | None, dict[str, str], bool]
+        ] = await db_fetchrows(
             t"""
-                UPDATE changeset
-                SET closed_at = statement_timestamp(), updated_at = DEFAULT
-                WHERE closed_at IS NULL AND (
-                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                WITH inactive AS (
+                    SELECT id
+                    FROM changeset
+                    WHERE closed_at IS NULL AND (
+                        updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                        (
+                            updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT}
+                            AND created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT}
+                        )
+                    )
+                    ORDER BY id
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT {_INACTIVE_CHANGESET_BATCH_SIZE}
                 )
-                RETURNING user_id, tags
+                UPDATE changeset AS c
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                FROM inactive
+                WHERE c.id = inactive.id
+                RETURNING c.id, c.user_id, c.tags, c.note_close_authorized
             """,
             conn=conn,
         )
 
         if not rows:
-            return
+            return 0
 
         tagged_rows = [
-            (user_id, tags)
-            for user_id, tags in rows
-            if user_id is not None and parse_note_close_actions(tags)
-        ]
-        users = {
-            user['id']: user
-            for user in await UserQuery.find_by_ids(
-                list({user_id for user_id, _ in tagged_rows})
+            (changeset_id, user_id, tags)
+            for changeset_id, user_id, tags, note_close_authorized in rows
+            if (
+                note_close_authorized
+                and user_id is not None
+                and parse_note_close_actions(tags)
             )
-        }
-        for user_id, tags in tagged_rows:
-            user = users.get(user_id)
-            if user is None:
-                continue
-            with auth_context(user):
-                await _close_tagged_notes(
-                    tags,
-                    conn=conn,
-                    deferred_side_effects=side_effects,
+        ]
+        if tagged_rows:
+            users = {
+                user['id']: user
+                for user in await UserQuery.find_by_ids(
+                    list({user_id for _, user_id, _ in tagged_rows})
+                )
+            }
+            note_actions: list[tuple[int, ChangesetId, User, str]] = []
+            for changeset_id, user_id, tags in tagged_rows:
+                user = users.get(user_id)
+                if user is None:
+                    continue
+                note_actions.extend(
+                    (note_id, changeset_id, user, comment)
+                    for note_id, comment in parse_note_close_actions(tags)
                 )
 
-    logging.debug('Closed %d inactive changesets', len(rows))
-    await NoteService.run_comment_side_effects(side_effects)
+            note_actions.sort(key=lambda action: (action[0], action[1]))
+            for note_id, _, user, comment in note_actions:
+                with auth_context(user):
+                    await _close_tagged_note(
+                        note_id,
+                        comment,
+                        conn=conn,
+                        deferred_side_effects=side_effects,
+                    )
+
+    await NoteService.run_comment_side_effects(side_effects, best_effort=True)
+    return len(rows)
 
 
-def _require_note_write_scope(tags: dict[str, str]):
+def _require_note_write_scope(tags: dict[str, str]) -> bool:
     """Require note-write authorization when tags contain valid close actions."""
     if not parse_note_close_actions(tags):
-        return
+        return False
 
     scopes = auth_scopes()
     if 'web_user' not in scopes and 'write_notes' not in scopes:
         raise_for.insufficient_scopes(['write_notes'])
+    return True
 
 
 async def _close_tagged_notes(
@@ -374,14 +427,29 @@ async def _close_tagged_notes(
 ):
     """Close notes referenced by a changeset within the caller's transaction."""
     for raw_note_id, comment in parse_note_close_actions(tags):
-        await NoteService.comment(
-            NoteId(raw_note_id),
+        await _close_tagged_note(
+            raw_note_id,
             comment,
-            'closed',
-            ignore_closed_or_missing=True,
             conn=conn,
             deferred_side_effects=deferred_side_effects,
         )
+
+
+async def _close_tagged_note(
+    raw_note_id: int,
+    comment: str,
+    *,
+    conn: AsyncConnection,
+    deferred_side_effects: list[NoteCommentSideEffect],
+):
+    await NoteService.comment(
+        NoteId(raw_note_id),
+        comment,
+        'closed',
+        ignore_closed_or_missing=True,
+        conn=conn,
+        deferred_side_effects=deferred_side_effects,
+    )
 
 
 async def _delete_empty():
