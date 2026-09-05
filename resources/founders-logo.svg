@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="320" viewBox="0 0 960 320" role="img" aria-labelledby="title desc">
+  <title id="title">OpenStreetMap-NG Founders logo</title>
+  <desc id="desc">A full founders logo with a map-inspired NG mark, gold founders badge treatment, and OpenStreetMap-NG Founders wordmark.</desc>
+  <defs>
+    <linearGradient id="mapGrad" x1="46" y1="46" x2="270" y2="274" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#dff5c3"/>
+      <stop offset="0.48" stop-color="#b8e8a1"/>
+      <stop offset="1" stop-color="#8fd083"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="50" y1="48" x2="270" y2="272" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff1a8"/>
+      <stop offset="0.46" stop-color="#d7ad3c"/>
+      <stop offset="1" stop-color="#9b6b16"/>
+    </linearGradient>
+    <linearGradient id="ribbonGrad" x1="63" y1="214" x2="257" y2="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#216a4a"/>
+      <stop offset="1" stop-color="#123d35"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#163022" flood-opacity="0.22"/>
+    </filter>
+    <clipPath id="mapClip">
+      <path d="M62 48c35 9 62-10 99-3 38 8 68-12 110-2l17 104-17 124c-42-10-74 11-114 3-36-8-64 10-101 1L39 168z"/>
+    </clipPath>
+  </defs>
+
+  <rect width="960" height="320" rx="36" fill="#ffffff"/>
+
+  <g filter="url(#shadow)">
+    <circle cx="160" cy="160" r="137" fill="url(#goldGrad)"/>
+    <circle cx="160" cy="160" r="126" fill="#f8fff2"/>
+    <g clip-path="url(#mapClip)">
+      <path d="M62 48c35 9 62-10 99-3 38 8 68-12 110-2l17 104-17 124c-42-10-74 11-114 3-36-8-64 10-101 1L39 168z" fill="url(#mapGrad)"/>
+      <path d="M50 108c42 14 69-13 114 0 45 13 70-9 114 3" fill="none" stroke="#6aad6c" stroke-width="5" stroke-linecap="round" opacity="0.32"/>
+      <path d="M48 177c44-12 71 12 115-1 45-12 72 10 115-3" fill="none" stroke="#5d9a5f" stroke-width="4" stroke-linecap="round" opacity="0.38"/>
+      <path d="M95 55c13 54-6 91 5 144 6 26 6 46-2 79" fill="none" stroke="#6dad70" stroke-width="4" opacity="0.38"/>
+      <path d="M191 43c-8 42 11 78 7 119-4 45 10 74 18 108" fill="none" stroke="#6dad70" stroke-width="4" opacity="0.36"/>
+      <path d="M74 79l48 20 26 44 43 12 24 45 45 22" fill="none" stroke="#c25858" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <path d="M48 212c45-33 82-36 110-23 28 13 58 14 111-24" fill="none" stroke="#6f99d8" stroke-width="7" stroke-linecap="round" opacity="0.62"/>
+      <path d="M146 49c23 18 50 23 81 8 22-11 37-6 52 5v50c-32-2-53 9-72 24-29 21-55 13-84-8-22-16-46-17-71-2V62c29-7 59-3 94-13z" fill="#e7f8d6" opacity="0.44"/>
+    </g>
+    <path d="M62 48c35 9 62-10 99-3 38 8 68-12 110-2l17 104-17 124c-42-10-74 11-114 3-36-8-64 10-101 1L39 168z" fill="none" stroke="#2c4f36" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M49 156a111 111 0 0 1 222 0" fill="none" stroke="url(#goldGrad)" stroke-width="12" stroke-linecap="round"/>
+    <g font-family="Arial Black, Arial, sans-serif" font-weight="900" text-anchor="middle">
+      <text x="160" y="176" font-size="88" fill="#101714" stroke="#101714" stroke-width="12" stroke-linejoin="round">NG</text>
+      <text x="160" y="176" font-size="88" fill="#ffffff">NG</text>
+    </g>
+    <path d="M56 218h208l-18 25 18 25H56l18-25z" fill="url(#ribbonGrad)" stroke="#0f2f28" stroke-width="4" stroke-linejoin="round"/>
+    <text x="160" y="253" font-family="Arial, sans-serif" font-size="25" font-weight="800" fill="#fff4c0" text-anchor="middle">FOUNDERS</text>
+  </g>
+
+  <g font-family="Arial, sans-serif">
+    <text x="350" y="126" font-size="54" font-weight="800" fill="#1d2d24">OpenStreetMap-NG</text>
+    <text x="350" y="194" font-size="80" font-weight="900" fill="#16513d">Founders</text>
+    <path d="M352 221h438" stroke="#d7ad3c" stroke-width="8" stroke-linecap="round"/>
+    <text x="350" y="266" font-size="27" font-weight="700" fill="#5a6d61">Contributor recognition badge</text>
+  </g>
+</svg>
