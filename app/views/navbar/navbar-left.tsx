@@ -2,9 +2,11 @@ import { RemoteEditButton } from "@index/remote-edit"
 import { routerRemoteEditTarget } from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
+import { isLoggedIn } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
+import { updateUrl } from "@utils/url-state"
 import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
@@ -51,6 +53,7 @@ const EditorImg = ({
 }
 
 const NavbarLeft = () => {
+  const editLinkRef = useRef<HTMLAnchorElement>(null)
   const dropdownRootRef = useRef<HTMLDivElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
@@ -74,6 +77,32 @@ const NavbarLeft = () => {
     tooltip.disable()
     tooltipRef.current = tooltip
     return () => tooltip.dispose()
+  }, [])
+
+  // Effect: show the edit help tooltip requested by the edit_help query parameter
+  useEffect(() => {
+    if (!isLoggedIn) return
+
+    const searchParams = new URLSearchParams(window.location.search)
+    if (searchParams.get("edit_help") !== "1") return
+
+    const tooltip = new Tooltip(editLinkRef.current!, {
+      title: t("javascripts.edit_help"),
+      placement: "bottom",
+      trigger: "manual",
+    })
+    tooltip.show()
+
+    const dismiss = () => {
+      tooltip.hide()
+      updateUrl((url) => url.searchParams.delete("edit_help"), "replace")
+    }
+
+    window.addEventListener("click", dismiss, { once: true })
+    return () => {
+      window.removeEventListener("click", dismiss)
+      tooltip.dispose()
+    }
   }, [])
 
   // Effect: hide dropdown when edit is disabled
@@ -126,6 +155,7 @@ const NavbarLeft = () => {
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
+          ref={editLinkRef}
         >
           {t("layouts.edit")}
           <EditorImg
