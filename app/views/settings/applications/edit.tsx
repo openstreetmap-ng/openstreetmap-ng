@@ -1,11 +1,12 @@
 import { CopyButton } from "@components/copy-group"
 import { formDataScopes, SCOPE_LABEL, SCOPES_NO_WEB_USER } from "@components/scope"
-import { formDataBytes, StandardForm } from "@components/standard-form"
+import { StandardForm } from "@components/standard-form"
 import { useSignal } from "@preact/signals"
 import { EditPageSchema, Service } from "@proto/settings_applications_pb"
 import { Scope } from "@proto/shared_pb"
 import { OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
 import { throwAbortError } from "@utils/dom-helpers"
+import { formDataImage } from "@utils/image-upload"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
@@ -249,7 +250,7 @@ mountProtoPage(
                         method={Service.method.updateAvatar}
                         buildRequest={async ({ formData }) => ({
                           id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
+                          avatarFile: await formDataImage(formData, "avatar_file"),
                         })}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >

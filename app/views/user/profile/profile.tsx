@@ -2,7 +2,7 @@ import { BTooltip } from "@components/bootstrap-wrappers"
 import { Time } from "@components/datetime-inputs"
 import { FollowToggleForm } from "@components/follow-toggle-form"
 import { ReportButton } from "@components/report"
-import { formDataBytes, StandardForm } from "@components/standard-form"
+import { StandardForm } from "@components/standard-form"
 import type { Signal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
@@ -10,6 +10,7 @@ import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
 import { tRich } from "@utils/i18n"
+import { formDataImage } from "@utils/image-upload"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
@@ -169,7 +170,7 @@ const BackgroundForm = ({
       class="background-form"
       method={Service.method.updateBackground}
       buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
+        backgroundFile: await formDataImage(formData, "background_file"),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
     >
@@ -249,7 +250,7 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await formDataImage(formData, "avatar_file")
         if (avatarFile.length) {
           return {
             avatar: {
