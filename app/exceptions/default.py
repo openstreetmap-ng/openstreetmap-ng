@@ -126,6 +126,12 @@ class Exceptions:
     def diff_multiple_changesets(self) -> NoReturn:
         raise NotImplementedError
 
+    def diff_null_island(self) -> NoReturn:
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Changeset would contain multiple nodes at (0, 0). Check your editor coordinates.',
+        )
+
     def diff_unsupported_action(self, action: str) -> NoReturn:
         raise NotImplementedError
 
