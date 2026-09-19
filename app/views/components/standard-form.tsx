@@ -7,6 +7,7 @@ import {
 } from "@proto/shared_pb"
 import { assertExists, assertFalse, unreachable } from "@std/assert"
 import { parseMediaType } from "@std/media-types/parse-media-type"
+import { REQUEST_BODY_MAX_SIZE } from "@utils/config.macro"
 import {
   createDisposeScope,
   type DisposeScope,
@@ -78,8 +79,13 @@ const createSuccessController = (): StandardFormSuccessController => {
   }
 }
 
-export const formDataBytes = async (formData: FormData, name: string) =>
-  new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
+export const formDataBytes = async (formData: FormData, name: string) => {
+  const file = formData.get(name) as Blob
+  if (file.size > REQUEST_BODY_MAX_SIZE) {
+    throw new Error(t("validation.file_too_large"))
+  }
+  return new Uint8Array(await file.arrayBuffer())
+}
 
 const removeEmptyData = (formData: FormData) => {
   const keysToDelete = []
