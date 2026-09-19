@@ -69,7 +69,7 @@ Top-level contributor-relevant locations:
 - `app/views/data` - generated static data (e.g. timezone bboxes)
 - `app/services` - write paths and workflows
 - `app/queries` - read paths
-- `app/migrations` - database schema migrations (currently baseline in `app/migrations/0.sql`)
+- `app/migrations` - database schema migrations (`0.sql` baseline; `1.sql` note tag snapshots)
 - `scripts` - Python/bash operational pipelines
 - `shellscripts` - command definitions exposed through Nix shell
 - `config` - runtime configs (locale, socials, process-compose, postgres, Caddy)
@@ -579,6 +579,11 @@ GitHub workflows:
 - deploy script (worktree-based): `scripts/deploy.sh`
 
 Replication and preload pipelines are script-driven (`scripts/replication_*`, `scripts/db_load.py`) and integrated with shell commands (`replication-*`, `_db-load`, etc).
+
+Legacy note hashtags can be backfilled through the `backfill_note_hashtags` admin task.
+It defaults to a dry run and processes one resumable batch. Follow
+`docs/note-hashtag-backfill.md`: capture the legacy comment boundary before deployment
+and pause note writers until all batches finish. It is not an automatic startup migration.
 
 ## 15. Practical Implementation Rules
 

@@ -15,6 +15,8 @@ import { queryParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import { type LngLat, type Map as MaplibreMap, Marker } from "maplibre-gl"
 import { useId, useRef } from "preact/hooks"
+import { buildNoteBody } from "./_note-hashtag-helpers"
+import { NoteHashtagInput } from "./_note-hashtag-input"
 
 export const NEW_NOTE_MIN_ZOOM = 12
 
@@ -131,7 +133,10 @@ const NewNoteSidebar = ({
         method={Service.method.create}
         buildRequest={({ formData }) => ({
           location: at.peek()!,
-          body: formData.get("body") as string,
+          body: buildNoteBody(
+            formData.get("body") as string,
+            formData.getAll("hashtags") as string[],
+          ),
         })}
         onSuccess={(resp) => {
           console.debug("NewNote: Created", resp.id)
@@ -163,6 +168,8 @@ const NewNoteSidebar = ({
         >
           {t("notes.new.advice")}
         </div>
+
+        <NoteHashtagInput />
 
         <button
           class="btn btn-primary w-100"

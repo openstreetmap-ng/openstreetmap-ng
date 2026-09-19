@@ -3,6 +3,7 @@ from math import ceil
 from typing import assert_never, override
 
 from connectrpc.request import RequestContext
+from pydantic import ValidationError
 from shapely import get_coordinates
 
 from app.config import (
@@ -17,13 +18,19 @@ from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.lib.auth.context import require_web_user
 from app.lib.geo.parse import parse_bbox
+from app.lib.standard.feedback import StandardFeedback
 from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_table,
 )
+from app.lib.text.translation import t
 from app.lib.time.date_utils import utcnow
 from app.models.db.note import Note, note_status
-from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
+from app.models.db.note_comment import (
+    NoteComment,
+    note_comment_text,
+    note_comments_resolve_rich_text,
+)
 from app.models.db.user import user_proto
 from app.models.proto.note_connect import Service as NoteServiceConnect
 from app.models.proto.note_connect import ServiceASGIApplication
@@ -47,6 +54,7 @@ from app.queries.note_query import NoteCommentQuery, NoteQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.note_service import NoteService
+from app.validators.tags import TagsValidator
 
 
 class _Service(NoteServiceConnect):
@@ -134,7 +142,7 @@ class _Service(NoteServiceConnect):
             summary.created_at = int(header['created_at'].timestamp())
             if (created_by := user_proto(header.get('user'))) is not None:
                 summary.created_by.CopyFrom(created_by)
-            summary.body = header.get('body') or ''
+            summary.body = note_comment_text(header)
             summary.updated_at = int(note['updated_at'].timestamp())
             summary.num_comments = note.get('num_comments') or 0
 
@@ -153,7 +161,13 @@ class _Service(NoteServiceConnect):
 
         id = NoteId(request.id)
         event = GetCommentsResponse.Comment.Event.Name(request.event)
-        await NoteService.comment(id, request.body, event)
+        tags = None
+        if request.HasField('tag_update'):
+            try:
+                tags = TagsValidator.validate_python(dict(request.tag_update.tags))
+            except ValidationError as e:
+                StandardFeedback.raise_error(None, t('note.tags_invalid'), exc=e)
+        await NoteService.comment(id, request.body, event, tags=tags)
 
         async with TaskGroup() as tg:
             note_t = tg.create_task(_build_data(id))
@@ -202,10 +216,11 @@ async def _build_data(note_id: NoteId):
         header=Data.Header(
             user=user_proto(header_user),
             created_at=int(header['created_at'].timestamp()),
-            body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
+            body_rich=header['body_rich'],  # type: ignore
         ),
         is_subscribed=is_subscribed_t.result(),
         disappear_days=disappear_days,
+        tags=note['tags'],
     )
 
 
@@ -235,4 +250,8 @@ async def _build_comments(
         comment.event = c['event']
         comment.created_at = int(c['created_at'].timestamp())
         comment.body_rich = c.get('body_rich', '')
+        if (tags := c['tags']) is not None:
+            comment.tag_snapshot.CopyFrom(
+                GetCommentsResponse.Comment.TagSnapshot(tags=tags)
+            )
     return page

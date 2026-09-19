@@ -50,7 +50,17 @@ element:
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
 note:
+  edit_hashtags: Edit hashtags with this comment
+  tags_invalid: Tags contain invalid keys or values.
   title: Note
+  tags: Tags
+  tag_snapshot: Tags after this comment
+  no_tags: No tags
+  hashtags_optional: Hashtags (optional)
+  hashtags_help: Separate hashtags with spaces, commas or semicolons. Press Enter to add them, or Backspace in the empty field to edit the last one.
+  hashtags_invalid: Hashtags must contain a letter or number and may only include letters, numbers, combining marks, underscores and hyphens.
+  hashtags_too_long: The combined hashtags in the description and hashtag field must fit within 255 characters.
+  description_and_hashtags_too_long: The description and hashtags together exceed the note length limit. Please shorten them.
   count_one: "note"
   count_other: "notes"
   user:
