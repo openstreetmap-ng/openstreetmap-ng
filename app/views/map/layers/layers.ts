@@ -3,7 +3,7 @@ import { batch, effect, signal } from "@preact/signals"
 import { effectiveTheme } from "@runtime/theme"
 import { memoize } from "@std/cache/memoize"
 import { filterKeys } from "@std/collections/filter-keys"
-import { overlayOpacityStorage } from "@utils/local-storage"
+import { globeProjectionStorage, overlayOpacityStorage } from "@utils/local-storage"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
 import {
@@ -389,6 +389,47 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+const getPriorityBeforeId = (
+  map: MaplibreMap,
+  layerId: LayerId,
+): string | undefined => {
+  const priority = layersConfig.get(layerId)?.priority ?? 0
+  return map
+    .getLayersOrder()
+    .find(
+      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
+    )
+}
+
+const getFirstSymbolLayerId = (
+  map: MaplibreMap,
+  layerId: LayerId,
+): string | undefined =>
+  map.getLayersOrder().find((id) => {
+    if (resolveExtendedLayerId(id) !== layerId) return false
+    return map.getLayer(id)?.type === "symbol"
+  })
+
+export const syncAerialLayerOrder = (map: MaplibreMap) => {
+  if (!map.getLayer(AERIAL_LAYER_ID)) return
+
+  const activeBaseLayer = activeBaseLayerId.peek()
+  const symbolBeforeId =
+    globeProjectionStorage.peek() && activeBaseLayer
+      ? getFirstSymbolLayerId(map, activeBaseLayer)
+      : undefined
+  const beforeId = symbolBeforeId ?? getPriorityBeforeId(map, AERIAL_LAYER_ID)
+
+  const order = map.getLayersOrder()
+  const aerialIndex = order.indexOf(AERIAL_LAYER_ID)
+  const beforeIndex = beforeId ? order.indexOf(beforeId) : order.length
+  if (aerialIndex === -1 || beforeIndex === -1) return
+  if (aerialIndex === beforeIndex - 1) return
+
+  console.debug("Layers: Moving", AERIAL_LAYER_ID, "before", beforeId)
+  map.moveLayer(AERIAL_LAYER_ID, beforeId)
+}
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -507,6 +548,10 @@ export const addMapLayer = (
         handler(true, layerId, config)
       }
     })
+  }
+
+  if (triggerEvent && (layerId === AERIAL_LAYER_ID || config.isBaseLayer)) {
+    syncAerialLayerOrder(map)
   }
 }
 
