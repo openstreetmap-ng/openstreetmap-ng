@@ -184,10 +184,14 @@ const CredentialsPane = ({
   displayNameInputRef,
   passwordInputRef,
   rememberInputRef,
+  showPassword,
+  onShowPasswordChange,
 }: {
   displayNameInputRef: RefObject<HTMLInputElement>
   passwordInputRef: RefObject<HTMLInputElement>
   rememberInputRef: RefObject<HTMLInputElement>
+  showPassword: boolean
+  onShowPasswordChange: (show: boolean) => void
 }) => (
   <>
     <label class="form-label d-block mb-2">
@@ -210,13 +214,26 @@ const CredentialsPane = ({
       {t("sessions.new.password")}
       <input
         ref={passwordInputRef}
-        type="password"
+        type={showPassword ? "text" : "password"}
         class="form-control mt-2"
         name="password"
         autocomplete="current-password"
         required
       />
     </label>
+
+    <div class="form-check mx-1 mb-3">
+      <label class="form-check-label">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          checked={showPassword}
+          autocomplete="off"
+          onChange={(e) => onShowPasswordChange(e.currentTarget.checked)}
+        />
+        {t("login.show_password")}
+      </label>
+    </div>
 
     <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
       <div class="form-check">
@@ -447,6 +464,7 @@ const LoginCard = ({
   const referrer = getAuthProviderReferer()
   const loginState = useSignal(LoginState.credentials)
   const showAuthProviders = useSignal(false)
+  const showPassword = useSignal(false)
   const formRef = useRef<HTMLFormElement>(null)
   const displayNameInputRef = useRef<HTMLInputElement>(null)
   const passwordInputRef = useRef<HTMLInputElement>(null)
@@ -483,6 +501,7 @@ const LoginCard = ({
     loginResponseRef.current = undefined
     loginState.value = LoginState.credentials
     showAuthProviders.value = false
+    showPassword.value = false
     credentialsRef.current = undefined
     submitModeRef.current = SubmitMode.none
     bypass2faRef.current = false
@@ -491,6 +510,7 @@ const LoginCard = ({
   }
 
   const setLoginState = (state: LoginState) => {
+    showPassword.value = false
     loginState.value = state
     if (state === LoginState.totp) {
       queueMicrotask(() => {
@@ -530,9 +550,7 @@ const LoginCard = ({
   const initConditionalMediation = async () => {
     resetLoginState()
     conditionalMediationAbortRef.current = new AbortController()
-    const assertion = await startConditionalMediation(
-      conditionalMediationAbortRef.current.signal,
-    )
+    const assertion = await startConditionalMediation(conditionalMediationAbortRef.current.signal)
     if (!assertion) return
     passkeyAssertionRef.current = assertion
     requestSubmitPasswordless()
@@ -614,10 +632,7 @@ const LoginCard = ({
 
           const result =
             passkey ??
-            (await getPasskeyAssertion(
-              credentials,
-              isPasswordless ? "required" : "discouraged",
-            ))
+            (await getPasskeyAssertion(credentials, isPasswordless ? "required" : "discouraged"))
           passkeyAssertionRef.current = undefined
 
           if (!result) {
@@ -677,6 +692,8 @@ const LoginCard = ({
           displayNameInputRef={displayNameInputRef}
           passwordInputRef={passwordInputRef}
           rememberInputRef={rememberInputRef}
+          showPassword={showPassword.value}
+          onShowPasswordChange={(show) => (showPassword.value = show)}
         />
       </div>
       <div hidden={loginState.value !== LoginState.passkey}>
@@ -842,9 +859,7 @@ const getLoginModal = memoize(() => {
 
 export const showLoginModal = () => {
   if (document.body.classList.contains(LoginPageSchema.typeName)) {
-    const input = document.querySelector(
-      '[data-page-root] input[name="display_name_or_email"]',
-    )!
+    const input = document.querySelector('[data-page-root] input[name="display_name_or_email"]')!
     input.focus()
     input.select()
     return
