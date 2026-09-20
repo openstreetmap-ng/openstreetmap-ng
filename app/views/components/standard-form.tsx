@@ -78,8 +78,16 @@ const createSuccessController = (): StandardFormSuccessController => {
   }
 }
 
-export const formDataBytes = async (formData: FormData, name: string) =>
-  new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
+export const formDataBytes = async (
+  formData: FormData,
+  name: string,
+  maxBytes?: number,
+) => {
+  const file = formData.get(name) as Blob
+  if (maxBytes !== undefined && file.size > maxBytes)
+    throw new Error(t("validation.file_too_large", { size: maxBytes / 1024 / 1024 }))
+  return new Uint8Array(await file.arrayBuffer())
+}
 
 const removeEmptyData = (formData: FormData) => {
   const keysToDelete = []
