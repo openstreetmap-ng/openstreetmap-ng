@@ -685,3 +685,10 @@ theme:
   light: Light
   dark: Dark
   auto: Auto
+
+tag_editor:
+  tags: Tags
+  edit: Edit text
+  comment: Changeset comment
+  discard: Discard
+  submit: Submit
