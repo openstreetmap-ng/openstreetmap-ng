@@ -685,3 +685,31 @@ theme:
   light: Light
   dark: Dark
   auto: Auto
+
+mailbox_tools:
+  older_than: Messages older than
+  age_count: Number of units
+  age_unit: Time unit
+  age_days: Days
+  age_weeks: Weeks
+  age_months: Months
+  age_years: Years
+  review_old: Review old messages
+  review_old_help: Replaces the current filters. Select messages from the results, then use Delete selected. Nothing is deleted until you confirm. Calendar periods use UTC.
+  sender: Sender name contains
+  recipient: Recipient name contains
+  subject: Subject contains
+  from_date: Sent from (local time, inclusive)
+  to_date: Sent until (local time, inclusive)
+  apply_filters: Search messages
+  reset_filters: Reset filters
+  select_message: "Select: {{subject}}"
+  select_visible: Select all messages on this page
+  selected_one: "{{count}} message selected"
+  selected_other: "{{count}} messages selected"
+  mark_read: Mark selected as read
+  mark_unread: Mark selected as unread
+  delete_selected: Delete selected messages
+  delete_confirmation_one: "Delete {{count}} selected message from your inbox?"
+  delete_confirmation_other: "Delete {{count}} selected messages from your inbox, including selections on other pages?"
+  clear: Clear selection
