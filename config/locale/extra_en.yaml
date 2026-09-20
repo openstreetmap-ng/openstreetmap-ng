@@ -685,3 +685,12 @@ theme:
   light: Light
   dark: Dark
   auto: Auto
+
+note_tags:
+  tags: Tags
+  current_tags: Current tags
+  hashtags: Hashtags
+  empty: No tags
+  placeholder: "#survey, #osm-ng"
+  limit: "Add up to {{count}} hashtags."
+  invalid: "Use hashtags containing letters, numbers, underscores or hyphens, separated by semicolons."

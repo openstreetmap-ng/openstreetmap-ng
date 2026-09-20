@@ -17,10 +17,13 @@ from app.exceptions.context import raise_for
 from app.format import FormatRender
 from app.lib.auth.context import require_web_user
 from app.lib.geo.parse import parse_bbox
+from app.lib.standard.feedback import StandardFeedback
 from app.lib.standard.pagination import (
     StandardPaginationRequestLike,
     sp_paginate_table,
 )
+from app.lib.text.note_tags import append_note_hashtags, valid_note_hashtags
+from app.lib.text.translation import t
 from app.lib.time.date_utils import utcnow
 from app.models.db.note import Note, note_status
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
@@ -40,6 +43,7 @@ from app.models.proto.note_pb2 import (
     GetResponse,
     GetUserPageRequest,
     GetUserPageResponse,
+    Tags,
 )
 from app.models.proto.shared_pb2 import LonLat
 from app.models.types import NoteId, UserId
@@ -134,7 +138,7 @@ class _Service(NoteServiceConnect):
             summary.created_at = int(header['created_at'].timestamp())
             if (created_by := user_proto(header.get('user'))) is not None:
                 summary.created_by.CopyFrom(created_by)
-            summary.body = header.get('body') or ''
+            summary.body = append_note_hashtags(header['body'], header['tags'])
             summary.updated_at = int(note['updated_at'].timestamp())
             summary.num_comments = note.get('num_comments') or 0
 
@@ -143,7 +147,10 @@ class _Service(NoteServiceConnect):
     @override
     async def create(self, request: CreateRequest, ctx: RequestContext):
         note_id = await NoteService.create(
-            request.location.lon, request.location.lat, request.body
+            request.location.lon,
+            request.location.lat,
+            request.body,
+            tags=_parse_tags(request.tags) if request.HasField('tags') else None,
         )
         return CreateResponse(id=note_id)
 
@@ -153,7 +160,12 @@ class _Service(NoteServiceConnect):
 
         id = NoteId(request.id)
         event = GetCommentsResponse.Comment.Event.Name(request.event)
-        await NoteService.comment(id, request.body, event)
+        await NoteService.comment(
+            id,
+            request.body,
+            event,
+            tags=_parse_tags(request.tags) if request.HasField('tags') else None,
+        )
 
         async with TaskGroup() as tg:
             note_t = tg.create_task(_build_data(id))
@@ -203,9 +215,11 @@ async def _build_data(note_id: NoteId):
             user=user_proto(header_user),
             created_at=int(header['created_at'].timestamp()),
             body_rich=header['body_rich'] if header['body'] else '',  # type: ignore
+            tags=Tags(values=header['tags']) if header['tags'] is not None else None,
         ),
         is_subscribed=is_subscribed_t.result(),
         disappear_days=disappear_days,
+        tags=note['tags'],
     )
 
 
@@ -235,4 +249,13 @@ async def _build_comments(
         comment.event = c['event']
         comment.created_at = int(c['created_at'].timestamp())
         comment.body_rich = c.get('body_rich', '')
+        if c['tags'] is not None:
+            comment.tags.CopyFrom(Tags(values=c['tags']))
     return page
+
+
+def _parse_tags(value: Tags):
+    tags = dict(value.values)
+    if not valid_note_hashtags(tags.get('hashtags', '')):
+        StandardFeedback.raise_error('hashtags', t('note_tags.invalid'))
+    return tags

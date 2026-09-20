@@ -18,6 +18,8 @@ from app.format import Format06, FormatRSS06
 from app.lib.auth.context import api_user
 from app.lib.geo.parse import parse_bbox
 from app.lib.render import format_style
+from app.lib.render.rich_text import process_rich_text_plain
+from app.lib.text.note_tags import append_note_hashtags, extract_note_hashtags
 from app.lib.text.translation import t
 from app.models.db.note import Note
 from app.models.db.note_comment import NoteComment, note_comments_resolve_rich_text
@@ -43,7 +45,8 @@ async def create_note1(
     lat: Annotated[Latitude, Query()],
     text: Annotated[str, Query(min_length=1)],
 ):
-    note_id = await NoteService.create(lon, lat, text)
+    text, tags = extract_note_hashtags(text)
+    note_id = await NoteService.create(lon, lat, text, tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -57,7 +60,8 @@ class _CreateNote(BaseModel):
 
 @router.post('/notes.json')
 async def create_note2(body: _CreateNote):
-    note_id = await NoteService.create(body.lon, body.lat, body.text)
+    text, tags = extract_note_hashtags(body.text)
+    note_id = await NoteService.create(body.lon, body.lat, text, tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -72,7 +76,8 @@ async def create_note_comment(
     text: Annotated[str, Query(min_length=1)],
     _: Annotated[User, api_user('write_notes')],
 ):
-    await NoteService.comment(note_id, text, 'commented')
+    text, tags = extract_note_hashtags(text)
+    await NoteService.comment(note_id, text, 'commented', tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -114,7 +119,8 @@ async def close_note(
     note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
-    await NoteService.comment(note_id, text, 'closed')
+    text, tags = extract_note_hashtags(text)
+    await NoteService.comment(note_id, text, 'closed', tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -129,7 +135,8 @@ async def reopen_note(
     note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
-    await NoteService.comment(note_id, text, 'reopened')
+    text, tags = extract_note_hashtags(text)
+    await NoteService.comment(note_id, text, 'reopened', tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -144,7 +151,8 @@ async def hide_note(
     note_id: NoteId,
     text: Annotated[str, Query()] = '',
 ):
-    await NoteService.comment(note_id, text, 'hidden')
+    text, tags = extract_note_hashtags(text)
+    await NoteService.comment(note_id, text, 'hidden', tags=tags)
     notes = await NoteQuery.find(note_ids=[note_id], limit=1)
     await _resolve_comments_full(notes)
     return Format06.encode_note(notes[0])
@@ -337,3 +345,11 @@ async def _resolve_comments_full(
     async with TaskGroup() as tg:
         tg.create_task(UserQuery.resolve_users(comments))  # TODO: user is optional
         tg.create_task(note_comments_resolve_rich_text(comments))
+
+    # This is response-only text. Do not persist its rich-text cache hash over
+    # the structured comment's stored body/hash, which the web UI also uses.
+    for comment in comments:
+        text = append_note_hashtags(comment['body'], comment['tags'])
+        if text != comment['body']:
+            comment['body'] = text
+            comment['body_rich'] = process_rich_text_plain(text)

@@ -176,7 +176,7 @@ async def resolve_rich_text(
     if rows:
         async with db(True, autocommit=True) as conn:
             values_sql = SQL(',').join([
-                t'({row_id}, {old_hash}, {new_hash})'
+                t'({row_id}, {old_hash}::bytea, {new_hash}::bytea)'
                 for row_id, old_hash, new_hash in rows
             ])
             await conn.execute(t"""
