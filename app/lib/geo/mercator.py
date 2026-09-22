@@ -2,11 +2,6 @@ import cython
 import numpy as np
 from numpy.typing import NDArray
 
-if cython.compiled:
-    from cython.cimports.libc.math import pi
-else:
-    from math import pi  # type: ignore
-
 
 def mercator(
     coords: NDArray[np.floating],
@@ -49,4 +44,5 @@ def mercator(
 
 @cython.cfunc
 def _y_sheet(arr: NDArray[np.floating]):
-    return np.degrees(np.log(np.tan((np.radians(arr) / 2) + (pi / 4))))
+    # Avoid cancellation in pi/4 + latitude/2 at the South Pole.
+    return np.degrees(np.arcsinh(np.tan(np.radians(arr))))
