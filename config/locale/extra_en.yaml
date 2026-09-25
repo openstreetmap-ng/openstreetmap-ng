@@ -43,6 +43,12 @@ changeset:
   count_one: "changeset"
   count_other: "changesets"
   viewing_edits_from_date: Viewing edits from {{date}}
+  open_diff: Open changeset diff
+  hide_diff: Hide changeset diff
+  diff_title: Changeset diff
+  diff_description: View changed objects without leaving this page.
+  diff_open_full: Open full Achavi view
+  diff_close: Close diff
 changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below
