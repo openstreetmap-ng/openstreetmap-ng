@@ -267,6 +267,11 @@ const AvatarForm = ({
         }
       }}
       onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+      onError={() => {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+        }
+      }}
     >
       <input
         class="visually-hidden"
