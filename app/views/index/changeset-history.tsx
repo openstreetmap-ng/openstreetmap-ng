@@ -226,6 +226,18 @@ const ChangesetHistorySidebar = ({
     return { html: title, plain: title }
   })
 
+  const noMoreMessage = useComputed(() => {
+    if (displayName.value) return t("changesets.index.no_more_user")
+    if (scope.value) return t("changesets.index.no_more")
+    return t("changesets.index.no_more_area")
+  })
+
+  const emptyMessage = useComputed(() => {
+    if (displayName.value) return t("changesets.index.empty_user")
+    if (scope.value) return t("changesets.index.empty")
+    return t("changesets.index.empty_area")
+  })
+
   setPageTitle(sidebarTitle.value.plain)
 
   const loadMoreSentinel = useRef<HTMLDivElement>(null)
@@ -792,6 +804,16 @@ const ChangesetHistorySidebar = ({
         <div ref={loadMoreSentinel} />
 
         {fetchAbort.pending.value && <LoadingSpinner />}
+
+        {changesets.value.length === 0 &&
+          !fetchAbort.pending.value &&
+          noMoreChangesets.value && (
+            <p class="text-muted text-center my-3">{emptyMessage.value}</p>
+          )}
+
+        {changesets.value.length > 0 && noMoreChangesets.value && (
+          <p class="text-muted text-center my-3">{noMoreMessage.value}</p>
+        )}
 
         <ScrollIndicator
           position="bottom"
