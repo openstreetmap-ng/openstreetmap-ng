@@ -38,7 +38,6 @@ _ZSTD_OPTIONS: dict[int, int] = {
     zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
 }
 
-
 class TraceFile:
     @staticmethod
     def extract(buffer: bytes):
