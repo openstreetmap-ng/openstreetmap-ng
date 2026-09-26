@@ -240,7 +240,7 @@ layersConfig.set(GPS_LAYER_ID, {
   specification: {
     type: "raster",
     // This layer has no zoom limits
-    tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
+    tiles: ["/gps/lines/{z}/{x}/{y}.png"],
     tileSize: 256,
   },
   layerCode: GPS_LAYER_CODE,

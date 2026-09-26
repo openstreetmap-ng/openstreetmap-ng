@@ -1,12 +1,27 @@
 from datetime import UTC, datetime
+from io import BytesIO
 from math import isclose
 
 import pytest
 from httpx import AsyncClient
+from PIL import Image
 from starlette import status
 
 from app.lib.io.xml_codec import XMLToDict
 from tests.utils.assert_model import assert_model
+
+
+def _move_gpx_trackpoints(gpx: dict, *, lat: float, lon: float):
+    trackpoints = (
+        trkpt
+        for trk in gpx['gpx']['trk']
+        for trkseg in trk['trkseg']
+        for trkpt in trkseg['trkpt']
+    )
+    for i, trkpt in enumerate(trackpoints):
+        offset = i * 0.000001
+        trkpt['@lat'] = lat + offset
+        trkpt['@lon'] = lon + offset
 
 
 @pytest.mark.parametrize('has_z', [True, False])
@@ -307,3 +322,74 @@ async def test_trackpoints_visibility(client: AsyncClient, gpx: dict):
         },
     )
     assert isclose(trkpt['ele'], 190.8, abs_tol=0.01)
+
+
+async def test_gps_tile_server_renders_trace_lines(client: AsyncClient, gpx: dict):
+    client.headers['Authorization'] = 'User user1'
+
+    test_filename = test_gps_tile_server_renders_trace_lines.__qualname__ + '.gpx'
+    file = XMLToDict.unparse(gpx, binary=True)
+
+    r = await client.post(
+        '/api/0.6/gpx/create',
+        data={
+            'visibility': 'public',
+            'description': test_gps_tile_server_renders_trace_lines.__qualname__,
+        },
+        files={
+            'file': (test_filename, file),
+        },
+    )
+    assert r.is_success, r.text
+
+    client.headers.pop('Authorization')
+
+    r = await client.get('/gps/lines/14/9141/5422.png')
+    assert r.is_success, r.text
+    assert r.headers['Content-Type'] == 'image/png'
+
+    image = Image.open(BytesIO(r.content))
+    assert image.size == (256, 256)
+    assert image.mode == 'RGBA'
+    assert image.getchannel('A').getextrema()[1] > 0
+
+    r = await client.get('/gps/lines/14/9141/5422')
+    assert r.is_success, r.text
+    assert r.headers['Content-Type'] == 'image/png'
+
+
+async def test_gps_tile_server_rejects_invalid_tile(client: AsyncClient):
+    r = await client.get('/gps/lines/2/4/0.png')
+    assert r.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_gps_tile_server_excludes_private_traces(client: AsyncClient, gpx: dict):
+    client.headers['Authorization'] = 'User user1'
+
+    _move_gpx_trackpoints(gpx, lat=0.01, lon=0.01)
+    file = XMLToDict.unparse(gpx, binary=True)
+
+    r = await client.post(
+        '/api/0.6/gpx/create',
+        data={
+            'visibility': 'private',
+            'description': test_gps_tile_server_excludes_private_traces.__qualname__,
+        },
+        files={
+            'file': (
+                test_gps_tile_server_excludes_private_traces.__qualname__ + '.gpx',
+                file,
+            ),
+        },
+    )
+    assert r.is_success, r.text
+
+    client.headers.pop('Authorization')
+
+    r = await client.get('/gps/lines/14/8192/8191.png')
+    assert r.is_success, r.text
+
+    image = Image.open(BytesIO(r.content))
+    assert image.size == (256, 256)
+    assert image.mode == 'RGBA'
+    assert image.getchannel('A').getextrema()[1] == 0
