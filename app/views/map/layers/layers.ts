@@ -31,6 +31,7 @@ export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
 export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
@@ -38,6 +39,7 @@ const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
 const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
 const HOT_LAYER_CODE = "H" as LayerCode
+const HYBRID_LAYER_CODE = "I" as LayerCode
 
 export const AERIAL_LAYER_ID = "aerial" as LayerId
 export const NOTES_LAYER_ID = "notes" as LayerId
@@ -92,6 +94,34 @@ const hotosmCredit = t("javascripts.map.hotosm_credit", {
 // https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/0
 const aerialEsriCredit =
   "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+
+const hybridVisibleLayerTypes = new Set(["line", "symbol", "circle"])
+
+const hybridLibertyStyle = {
+  ...libertyStyle,
+  sources: {
+    aerial: {
+      type: "raster",
+      maxzoom: 23,
+      tiles: [
+        "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      ],
+      tileSize: 256,
+      attribution: aerialEsriCredit,
+    },
+    ...libertyStyle.sources,
+  },
+  layers: [
+    {
+      id: "aerial",
+      type: "raster",
+      source: "aerial",
+    },
+    ...libertyStyle.layers.filter((layer) =>
+      hybridVisibleLayerTypes.has(layer.type),
+    ),
+  ],
+} as StyleSpecification
 
 export const emptyFeatureCollection: FeatureCollection = {
   type: "FeatureCollection",
@@ -213,6 +243,13 @@ layersConfig.set(HOT_LAYER_ID, {
   },
   isBaseLayer: true,
   layerCode: HOT_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: { type: "vector" },
+  vectorStyle: hybridLibertyStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_LAYER_CODE,
 })
 
 // Overlay layers
