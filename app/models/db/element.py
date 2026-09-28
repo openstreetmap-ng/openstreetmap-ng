@@ -92,6 +92,15 @@ def _validate_node(element: ElementInit):
     element['members'] = None
     element['members_roles'] = None
 
+    # Reject nodes at null island (0, 0) - almost certainly an editor bug
+    point = element.get('point')
+    if point is not None:
+        from shapely import get_coordinates as _get_coords
+        coords = _get_coords(point)
+        if coords[0, 0] == 0 and coords[0, 1] == 0:
+            from app.exceptions.context import raise_for
+            raise_for.null_island_coordinates()
+
 
 @cython.cfunc
 def _validate_way(element: ElementInit):
