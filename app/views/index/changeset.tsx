@@ -208,6 +208,9 @@ const ChangesetComment = ({
   </li>
 )
 
+const getAchaviChangesetUrl = (changesetId: bigint) =>
+  `https://overpass-api.de/achavi/?changeset=${changesetId.toString()}`
+
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
@@ -377,6 +380,18 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+
+            <div class="d-grid mt-3">
+              <a
+                class="btn btn-sm btn-soft"
+                href={getAchaviChangesetUrl(d.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="bi bi-box-arrow-up-right me-1" />
+                {t("browse.changeset.open_changeset_diff")}
+              </a>
+            </div>
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
