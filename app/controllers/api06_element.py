@@ -1,6 +1,7 @@
 from asyncio import TaskGroup
 from typing import Annotated, assert_never
 
+from app.models.proto.shared_types import ElementType
 from fastapi import APIRouter, Path, Query, Response, status
 
 from app.exceptions.context import raise_for
@@ -10,7 +11,6 @@ from app.lib.io.xml_body import xml_body
 from app.models.db.element import Element
 from app.models.db.user import User
 from app.models.element import ElementId, TypedElementId
-from app.models.proto.shared_types import ElementType
 from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from app.services.optimistic_diff import OptimisticDiff
@@ -47,7 +47,7 @@ async def create_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run(elements, reject_null_island=True)
     assigned_id = element_id(next(iter(assigned_ref_map.values()))[0])
     return Response(str(assigned_id), media_type='text/plain')
 
@@ -71,7 +71,7 @@ async def update_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run(elements)
+    await OptimisticDiff.run(elements, reject_null_island=True)
     return Response(str(elements[-1]['version']), media_type='text/plain')
 
 
@@ -96,7 +96,7 @@ async def delete_element(
     except Exception as e:
         raise_for.bad_xml(type, str(e))
 
-    await OptimisticDiff.run(elements)
+    await OptimisticDiff.run(elements, reject_null_island=True)
     return Response(str(elements[-1]['version']), media_type='text/plain')
 
 
