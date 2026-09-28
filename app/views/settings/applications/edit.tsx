@@ -34,6 +34,9 @@ mountProtoPage(
     const avatarFormRef = useRef<HTMLFormElement>(null)
     const avatarFileInputRef = useRef<HTMLInputElement>(null)
     const resetSecretFormRef = useRef<HTMLFormElement>(null)
+    const clearAvatarFileInput = () => {
+      avatarFileInputRef.current!.value = ""
+    }
 
     return (
       <>
@@ -251,7 +254,11 @@ mountProtoPage(
                           id,
                           avatarFile: await formDataBytes(formData, "avatar_file"),
                         })}
-                        onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+                        onSuccess={(resp) => {
+                          clearAvatarFileInput()
+                          avatarUrl.value = resp.avatarUrl
+                        }}
+                        onError={clearAvatarFileInput}
                       >
                         <input
                           class="visually-hidden"
@@ -285,7 +292,10 @@ mountProtoPage(
                               <button
                                 class="dropdown-item"
                                 type="button"
-                                onClick={() => avatarFileInputRef.current!.click()}
+                                onClick={() => {
+                                  clearAvatarFileInput()
+                                  avatarFileInputRef.current!.click()
+                                }}
                               >
                                 {t("action.upload_image")}...
                               </button>
@@ -295,7 +305,7 @@ mountProtoPage(
                                 class="dropdown-item"
                                 type="button"
                                 onClick={() => {
-                                  avatarFileInputRef.current!.value = ""
+                                  clearAvatarFileInput()
                                   avatarFormRef.current!.requestSubmit()
                                 }}
                               >

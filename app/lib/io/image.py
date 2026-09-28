@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
 from PIL.Image import open as open_image
@@ -242,74 +243,77 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    try:
+        img = open_image(BytesIO(data))
+        ImageOps.exif_transpose(img, in_place=True)
 
-    # normalize shape ratio
-    img_width: cython.size_t
-    img_height: cython.size_t
-    img_width, img_height = img.size
+        # normalize shape ratio
+        img_width: cython.size_t
+        img_height: cython.size_t
+        img_width, img_height = img.size
 
-    crop_box: tuple[int, int, int, int] | None = None
-    resize_to: tuple[int, int] | None = None
+        crop_box: tuple[int, int, int, int] | None = None
+        resize_to: tuple[int, int] | None = None
 
-    # the image is too wide
-    if max_ratio is not None and (img_width / img_height) > max_ratio:
-        logging.debug('Image is too wide (%dx%d)', img_width, img_height)
-        new_width: cython.size_t = int(img_height * max_ratio)
-        x1 = (img_width - new_width) // 2
-        x2 = (img_width + new_width) // 2
-        crop_box = (x1, 0, x2, img_height)
-        img_width = new_width
+        # the image is too wide
+        if max_ratio is not None and (img_width / img_height) > max_ratio:
+            logging.debug('Image is too wide (%dx%d)', img_width, img_height)
+            new_width: cython.size_t = int(img_height * max_ratio)
+            x1 = (img_width - new_width) // 2
+            x2 = (img_width + new_width) // 2
+            crop_box = (x1, 0, x2, img_height)
+            img_width = new_width
 
-    # the image is too tall
-    elif min_ratio is not None and (img_width / img_height) < min_ratio:
-        logging.debug('Image is too tall (%dx%d)', img_width, img_height)
-        new_height: cython.size_t = int(img_width / min_ratio)
-        y1 = (img_height - new_height) // 2
-        y2 = (img_height + new_height) // 2
-        crop_box = (0, y1, img_width, y2)
-        img_height = new_height
+        # the image is too tall
+        elif min_ratio is not None and (img_width / img_height) < min_ratio:
+            logging.debug('Image is too tall (%dx%d)', img_width, img_height)
+            new_height: cython.size_t = int(img_width / min_ratio)
+            y1 = (img_height - new_height) // 2
+            y2 = (img_height + new_height) // 2
+            crop_box = (0, y1, img_width, y2)
+            img_height = new_height
 
-    # limit dimensions
-    if max_side is not None:
-        side_ratio: cython.double = max(img_width, img_height) / max_side
-        if side_ratio > 1:
-            logging.debug('Image is too big (%dx%d)', img_width, img_height)
-            img_width = max(1, int(img_width / side_ratio))
-            img_height = max(1, int(img_height / side_ratio))
-            resize_to = (img_width, img_height)
+        # limit dimensions
+        if max_side is not None:
+            side_ratio: cython.double = max(img_width, img_height) / max_side
+            if side_ratio > 1:
+                logging.debug('Image is too big (%dx%d)', img_width, img_height)
+                img_width = max(1, int(img_width / side_ratio))
+                img_height = max(1, int(img_height / side_ratio))
+                resize_to = (img_width, img_height)
 
-    # limit megapixels
-    if max_megapixels is not None:
-        mp_ratio: cython.double = (img_width * img_height) / max_megapixels
-        if mp_ratio > 1:
-            logging.debug('Image is too big (%dx%d)', img_width, img_height)
-            mp_ratio = sqrt(mp_ratio)
-            img_width = max(1, int(img_width / mp_ratio))
-            img_height = max(1, int(img_height / mp_ratio))
-            resize_to = (img_width, img_height)
+        # limit megapixels
+        if max_megapixels is not None:
+            mp_ratio: cython.double = (img_width * img_height) / max_megapixels
+            if mp_ratio > 1:
+                logging.debug('Image is too big (%dx%d)', img_width, img_height)
+                mp_ratio = sqrt(mp_ratio)
+                img_width = max(1, int(img_width / mp_ratio))
+                img_height = max(1, int(img_height / mp_ratio))
+                resize_to = (img_width, img_height)
 
-    animation = _extract_animation(img)
+        animation = _extract_animation(img)
 
-    if resize_to is None and crop_box is None:
-        pass
-    elif animation is not None:
-        frames: list[PILImage] = []
+        if resize_to is None and crop_box is None:
+            pass
+        elif animation is not None:
+            frames: list[PILImage] = []
 
-        for frame in animation.frames:
-            if resize_to is not None:
-                frame = frame.resize(resize_to, Resampling.BOX, crop_box)
-            elif crop_box is not None:
-                frame = frame.crop(crop_box)
-            frames.append(frame)
+            for frame in animation.frames:
+                if resize_to is not None:
+                    frame = frame.resize(resize_to, Resampling.BOX, crop_box)
+                elif crop_box is not None:
+                    frame = frame.crop(crop_box)
+                frames.append(frame)
 
-        img = frames[0]
-        animation = animation._replace(frames=frames)
-    elif resize_to is not None:
-        img = img.resize(resize_to, Resampling.BOX, crop_box)
-    elif crop_box is not None:
-        img = img.crop(crop_box)
+            img = frames[0]
+            animation = animation._replace(frames=frames)
+        elif resize_to is not None:
+            img = img.resize(resize_to, Resampling.BOX, crop_box)
+        elif crop_box is not None:
+            img = img.crop(crop_box)
+    except DecompressionBombError:
+        raise_for.image_too_big()
 
     async with _get_pipeline() as pipe:
         if pipe is not None:
