@@ -132,7 +132,7 @@ async def test_changeset_upload(client: AsyncClient):
         content=XMLToDict.unparse({
             'osmChange': {
                 'create': [
-                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -1, '@lat': 1.0, '@lon': 2.0}),
                     ('way', {'@id': -1, 'nd': [{'@ref': -1}]}),
                 ]
             }
@@ -157,12 +157,55 @@ async def test_changeset_upload(client: AsyncClient):
             '@updated_at': datetime,
             '@closed_at': datetime,
             '@changes_count': 2,
-            '@min_lat': 0.0,
-            '@max_lat': 0.0,
-            '@min_lon': 0.0,
-            '@max_lon': 0.0,
+            '@min_lat': 1.0,
+            '@max_lat': 1.0,
+            '@min_lon': 2.0,
+            '@max_lon': 2.0,
         },
     )
+
+
+async def test_changeset_upload_null_island(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    # Create a changeset
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_upload_null_island.__name__,
+                        }
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    # Attempt to upload a node at null island (0, 0) — must be rejected
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}
+        }),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+
+    # Also reject a modify action placing a node at null island
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'modify': [('node', {'@id': 1, '@version': 1, '@lat': 0, '@lon': 0})]
+            }
+        }),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
 
 
 @pytest.mark.parametrize('include', [True, False])
@@ -285,7 +328,7 @@ async def test_changeset_upload_closed(client: AsyncClient):
     r = await client.post(
         f'/api/0.6/changeset/{changeset_id}/upload',
         content=XMLToDict.unparse({
-            'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}
+            'osmChange': {'create': [('node', {'@id': -1, '@lat': 1.0, '@lon': 2.0})]}
         }),
     )
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
