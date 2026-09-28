@@ -255,6 +255,87 @@ async def test_changeset_update_closed(client: AsyncClient):
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
 
 
+async def test_changeset_close_auto_closes_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    async def create_note(text: str) -> int:
+        r = await client.post(
+            '/api/0.6/notes.json',
+            json={'lon': 0, 'lat': 0, 'text': text},
+        )
+        assert r.is_success, r.text
+        return r.json()['properties']['id']
+
+    note1_id = await create_note('changeset-close-note-1')
+    note2_id = await create_note('changeset-close-note-2')
+    note3_id = await create_note('changeset-close-note-3')
+
+    r = await client.post(
+        f'/api/0.6/notes/{note3_id}/close.json',
+        params={'text': 'already closed'},
+    )
+    assert r.is_success, r.text
+    note3_before = r.json()['properties']
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'changeset fallback'},
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_close_auto_closes_notes.__name__,
+                        },
+                        {'@k': 'closes:note', '@v': f'{note1_id};{note2_id};{note3_id}'},
+                        {
+                            '@k': f'closes:note:{note2_id}:comment',
+                            '@v': 'specific close message',
+                        },
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    r = await client.get(f'/api/0.6/notes/{note1_id}.json')
+    assert r.is_success, r.text
+    note1 = r.json()['properties']
+    assert_model(note1, {'status': 'closed'})
+    assert_model(
+        note1['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'changeset fallback',
+        },
+    )
+
+    r = await client.get(f'/api/0.6/notes/{note2_id}.json')
+    assert r.is_success, r.text
+    note2 = r.json()['properties']
+    assert_model(note2, {'status': 'closed'})
+    assert_model(
+        note2['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': 'specific close message',
+        },
+    )
+
+    r = await client.get(f'/api/0.6/notes/{note3_id}.json')
+    assert r.is_success, r.text
+    note3 = r.json()['properties']
+    assert note3['comments'] == note3_before['comments']
+
+
 async def test_changeset_upload_closed(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 
