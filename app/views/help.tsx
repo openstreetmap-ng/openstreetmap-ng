@@ -58,6 +58,12 @@ mountProtoPage(PageSchema, () => (
             {t("site.help.beginners_guide.description")}
           </HelpCard>
           <HelpCard
+            href="/software"
+            title={t("site.help.software.title")}
+          >
+            {t("site.help.software.description")}
+          </HelpCard>
+          <HelpCard
             href="https://wiki.openstreetmap.org"
             title={t("site.help.wiki.title")}
           >
