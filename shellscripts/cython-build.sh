@@ -9,6 +9,12 @@ BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
 # https://github.com/cython/cython/issues/6880
 BLACKLIST["app/lib/settings_integration.py"]=1
 
+# Reason: PIL image handling aborts during Python runtime finalization under Cython
+BLACKLIST["app/lib/io/image.py"]=1
+
+# Reason: Async context managers abort during Python runtime finalization under Cython
+BLACKLIST["app/db.py"]=1
+
 DIRS=(
   "app/exceptions" "app/format" "app/lib"
   "app/middlewares" "app/responses" "app/services"
