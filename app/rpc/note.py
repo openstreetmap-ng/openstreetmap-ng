@@ -48,6 +48,14 @@ from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.note_service import NoteService
 
+_OSM_NG_HASHTAG = '#osm-ng'
+
+
+def _with_osm_ng_hashtag(body: str) -> str:
+    if any(part.lower() == _OSM_NG_HASHTAG for part in body.split()):
+        return body
+    return f'{body.rstrip()}\n{_OSM_NG_HASHTAG}'
+
 
 class _Service(NoteServiceConnect):
     @override
@@ -143,7 +151,9 @@ class _Service(NoteServiceConnect):
     @override
     async def create(self, request: CreateRequest, ctx: RequestContext):
         note_id = await NoteService.create(
-            request.location.lon, request.location.lat, request.body
+            request.location.lon,
+            request.location.lat,
+            _with_osm_ng_hashtag(request.body),
         )
         return CreateResponse(id=note_id)
 
