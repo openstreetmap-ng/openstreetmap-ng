@@ -188,66 +188,84 @@ const CredentialsPane = ({
   displayNameInputRef: RefObject<HTMLInputElement>
   passwordInputRef: RefObject<HTMLInputElement>
   rememberInputRef: RefObject<HTMLInputElement>
-}) => (
-  <>
-    <label class="form-label d-block mb-2">
-      {t("sessions.new.email or username")}
-      <TestSiteReminder>
-        <input
-          ref={displayNameInputRef}
-          type="text"
-          class="form-control mt-2"
-          name="display_name_or_email"
-          // oxlint-disable-next-line jsx_a11y/autocomplete-valid
-          autocomplete="username webauthn"
-          autocapitalize="none"
-          required
-        />
-      </TestSiteReminder>
-    </label>
+}) => {
+  const showPassword = useSignal(false)
+  const passwordToggleLabel = () =>
+    showPassword.value ? t("login.hide_password") : t("login.show_password")
 
-    <label class="form-label d-block mb-3">
-      {t("sessions.new.password")}
-      <input
-        ref={passwordInputRef}
-        type="password"
-        class="form-control mt-2"
-        name="password"
-        autocomplete="current-password"
-        required
-      />
-    </label>
-
-    <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
-      <div class="form-check">
-        <label class="form-check-label">
+  return (
+    <>
+      <label class="form-label d-block mb-2">
+        {t("sessions.new.email or username")}
+        <TestSiteReminder>
           <input
-            ref={rememberInputRef}
-            class="form-check-input"
-            type="checkbox"
-            name="remember"
-            value="True"
-            autocomplete="off"
+            ref={displayNameInputRef}
+            type="text"
+            class="form-control mt-2"
+            name="display_name_or_email"
+            // oxlint-disable-next-line jsx_a11y/autocomplete-valid
+            autocomplete="username webauthn"
+            autocapitalize="none"
+            required
           />
-          {t("sessions.new.remember")}
-        </label>
-      </div>
-      <a
-        class="link-primary small"
-        href="/reset-password"
-      >
-        {t("sessions.new.lost password link")}
-      </a>
-    </div>
+        </TestSiteReminder>
+      </label>
 
-    <button
-      class="btn btn-primary w-100 fw-medium"
-      type="submit"
-    >
-      {t("login.sign_in")}
-    </button>
-  </>
-)
+      <label class="form-label d-block mb-3">
+        {t("sessions.new.password")}
+        <div class="input-group mt-2">
+          <input
+            ref={passwordInputRef}
+            type={showPassword.value ? "text" : "password"}
+            class="form-control"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            aria-label={passwordToggleLabel()}
+            aria-pressed={showPassword.value}
+            title={passwordToggleLabel()}
+            onClick={() => (showPassword.value = !showPassword.value)}
+          >
+            <i class={`bi ${showPassword.value ? "bi-eye-slash" : "bi-eye"}`} />
+          </button>
+        </div>
+      </label>
+
+      <div class="d-flex justify-content-between align-items-center mx-1 mb-3">
+        <div class="form-check">
+          <label class="form-check-label">
+            <input
+              ref={rememberInputRef}
+              class="form-check-input"
+              type="checkbox"
+              name="remember"
+              value="True"
+              autocomplete="off"
+            />
+            {t("sessions.new.remember")}
+          </label>
+        </div>
+        <a
+          class="link-primary small"
+          href="/reset-password"
+        >
+          {t("sessions.new.lost password link")}
+        </a>
+      </div>
+
+      <button
+        class="btn btn-primary w-100 fw-medium"
+        type="submit"
+      >
+        {t("login.sign_in")}
+      </button>
+    </>
+  )
+}
 
 const PasskeyPane = ({
   onRetry,
