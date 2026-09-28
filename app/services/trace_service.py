@@ -1,9 +1,15 @@
 import logging
+from asyncio import TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import (
+    TRACE_FILE_COMPRESS_ZSTD_LEVEL_MAX,
+    TRACE_FILE_UPLOAD_MAX_SIZE,
+)
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -24,8 +30,17 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_TG: TaskGroup
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        global _TG
+        async with (_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +126,15 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Schedule heavier background recompression without delaying the response
+        _TG.create_task(_recompress_trace(trace_id, trace_init['file_id'], file))
+        return trace_id
 
     @staticmethod
     async def update(
@@ -170,24 +188,83 @@ class TraceService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            file_id = await db_fetchval(
-                StorageKey,
-                t'SELECT file_id FROM trace WHERE id = {trace_id}',
-                conn=conn,
-            )
-            if file_id is None:
-                raise_for.trace_not_found(trace_id)
-
-            rowcount = await db_delete(
+            deleted = await db_delete(
                 'trace',
                 where={'id': trace_id, 'user_id': user_id},
+                returning='file_id',
+                assert_returning=False,
                 conn=conn,
             )
 
-            if not rowcount:
+            if deleted is None:
+                # Distinguish a missing trace from one owned by another user
+                exists = await db_fetchval(
+                    StorageKey,
+                    t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                    conn=conn,
+                )
+                if exists is None:
+                    raise_for.trace_not_found(trace_id)
                 raise_for.trace_access_denied(trace_id)
 
             await audit('delete_trace', conn, extra={'id': trace_id})
 
-        # After successful delete, also remove the file
+        # Remove the file the row actually referenced at deletion time; this
+        # guards against a concurrent background recompression that may have
+        # swapped file_id between read and delete.
+        file_id: StorageKey = deleted[0]
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file: bytes,
+):
+    """
+    Recompress a freshly uploaded trace file with a heavier zstd level.
+
+    Runs in the background so it does not delay the upload response. On success
+    the trace's file_id is swapped to the smaller file and the old file removed.
+    The DB swap is conditioned on the old file_id, so it is a no-op if the trace
+    was deleted or already updated meanwhile.
+    """
+    try:
+        result = await TraceFile.compress(
+            file, level=TRACE_FILE_COMPRESS_ZSTD_LEVEL_MAX
+        )
+    except Exception:
+        capture_exception()
+        return
+
+    new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+
+    try:
+        async with db(True) as conn:
+            rowcount = await db_update(
+                'trace',
+                {'file_id': new_file_id},
+                where={'id': trace_id, 'file_id': old_file_id},
+                conn=conn,
+            )
+    except Exception:
+        # Swap not committed: drop the unreferenced new file
+        capture_exception()
+        await _safe_delete(new_file_id)
+        return
+
+    if not rowcount:
+        # Trace deleted or its file changed meanwhile: new file is unreferenced
+        await _safe_delete(new_file_id)
+        return
+
+    logging.debug('Recompressed trace %d file', trace_id)
+    # Swap committed: the old file is now unreferenced
+    await _safe_delete(old_file_id)
+
+
+async def _safe_delete(file_id: StorageKey):
+    try:
+        await TRACE_STORAGE.delete(file_id)
+    except Exception:
+        capture_exception()
