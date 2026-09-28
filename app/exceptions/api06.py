@@ -194,6 +194,13 @@ class Exceptions06(Exceptions):
             detail=f'Update action requires version >= 1, got {element["version"] - 1}',
         )
 
+    @override
+    def diff_null_island_elements(self):
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Changeset uploads with multiple elements at 0,0 are not allowed.',
+        )
+
     # --- element ---
     @override
     def element_not_found(
@@ -357,6 +364,13 @@ class Exceptions06(Exceptions):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,
             detail=f'The maximum bbox size is {NOTE_QUERY_AREA_MAX_SIZE}, and your request was too large. Please request a smaller area.',
+        )
+
+    @override
+    def note_null_island(self):
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Creating notes at 0,0 is not allowed.',
         )
 
     # --- request ---
