@@ -43,6 +43,9 @@ changeset:
   count_one: "changeset"
   count_other: "changesets"
   viewing_edits_from_date: Viewing edits from {{date}}
+  show_diff: Show changeset diff
+  hide_diff: Hide changeset diff
+  loading_diff: Loading diff...
 changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below
