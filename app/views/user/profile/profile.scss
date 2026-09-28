@@ -105,6 +105,18 @@
       opacity: 0.5;
     }
 
+    .avatar-feedback {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      z-index: 2;
+      width: min(20rem, calc(100vw - 2rem));
+
+      .form-feedback {
+        margin-bottom: 0;
+      }
+    }
+
     .dropdown {
       position: absolute;
       bottom: 1.125rem;
