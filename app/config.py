@@ -285,6 +285,9 @@ OPTIMISTIC_DIFF_RETRY_TIMEOUT = timedelta(seconds=30)
 
 # Notes
 NOTE_FRESHLY_CLOSED_TIMEOUT = timedelta(days=7)
+# Hashtag appended to notes opened through the OSM-NG web frontend, identifying
+# the creating application (similar to how editors tag their notes).
+NOTE_CREATED_BY_HASHTAG = '#osm-ng'
 NOTE_QUERY_AREA_MAX_SIZE = 25.0  # in square degrees
 NOTE_QUERY_DEFAULT_LIMIT = 100
 NOTE_QUERY_DEFAULT_CLOSED = 7.0  # open + max 7 days closed
