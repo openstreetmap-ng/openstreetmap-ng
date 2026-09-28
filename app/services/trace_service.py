@@ -1,9 +1,15 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
+from zstandard import ZstdCompressor
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import (
+    TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+    TRACE_FILE_UPLOAD_MAX_SIZE,
+)
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -23,6 +29,56 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+
+_RECOMPRESS_ZSTD_METADATA: dict[str, str] = {
+    'zstd_level': str(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)
+}
+
+
+async def _recompress_trace_background(
+    trace_id: TraceId,
+    file_bytes: bytes,
+    old_file_id: StorageKey,
+) -> None:
+    """Background task: recompress trace file at maximum zstd level.
+
+    After the initial upload (compressed at level 6 for fast response),
+    this task recompresses the file at level 22 for optimal storage size.
+    On success, updates the database record and deletes the old file.
+    """
+    try:
+        loop = get_running_loop()
+        recompressed: bytes = await loop.run_in_executor(
+            None,
+            ZstdCompressor(
+                level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+                threads=TRACE_FILE_COMPRESS_ZSTD_THREADS,
+            ).compress,
+            file_bytes,
+        )
+        new_file_id = await TRACE_STORAGE.save(
+            recompressed, '.zst', _RECOMPRESS_ZSTD_METADATA
+        )
+        logging.debug(
+            'Trace %d recompressed: %d -> %d bytes',
+            trace_id,
+            len(file_bytes),
+            len(recompressed),
+        )
+
+        # Update the database record with the new file_id
+        await db_update(
+            'trace',
+            {'file_id': new_file_id},
+            where={'id': trace_id},
+        )
+
+        # Delete the old (less compressed) file
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.info('Trace %d background recompression complete', trace_id)
+
+    except Exception:
+        logging.exception('Trace %d background recompression failed', trace_id)
 
 
 class TraceService:
@@ -111,7 +167,16 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
+
+            # Schedule background recompression at higher zstd level
+            loop = get_running_loop()
+            loop.create_task(
+                _recompress_trace_background(
+                    trace_id, file, trace_init['file_id']
+                )
+            )
+
+            return trace_id
 
         except Exception:
             # Clean up trace file on error
@@ -191,3 +256,4 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
