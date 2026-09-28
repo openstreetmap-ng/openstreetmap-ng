@@ -8,12 +8,41 @@ import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar"
 import { MapAlertPanel, MapAlerts, pushMapAlert } from "@map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@map/main-map"
+import { preferredEditorStorage } from "@utils/local-storage"
 import { useDisposeLayoutEffect } from "@utils/dispose-scope"
-import { qsParseAll } from "@utils/query-string"
+import { qsEncode, qsParseAll } from "@utils/query-string"
+import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 import { collapseNavbar } from "../navbar/navbar"
-import { updateNavbarAndHash } from "../navbar/navbar-left-state"
+import { currentHash, editDisabled, updateNavbarAndHash } from "../navbar/navbar-left-state"
+
+const buildEditHelpHref = () =>
+  `/edit${qsEncode({ editor: preferredEditorStorage.value })}${currentHash.value}`
+
+const EditHelpAlert = ({ onDismiss }: { onDismiss: () => void }) => (
+  <MapAlertPanel variant="info">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <div>
+        <p class="mb-3">{t("javascripts.site.edit_help")}</p>
+        <a
+          class={`btn btn-primary ${editDisabled.value ? "disabled" : ""}`}
+          href={editDisabled.value ? undefined : buildEditHelpHref()}
+          aria-disabled={editDisabled.value}
+          tabIndex={editDisabled.value ? -1 : undefined}
+        >
+          {t("layouts.edit")}
+        </a>
+      </div>
+      <button
+        class="btn-close flex-shrink-0"
+        type="button"
+        aria-label={t("javascripts.close")}
+        onClick={onDismiss}
+      />
+    </div>
+  </MapAlertPanel>
+)
 
 const IndexPage = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
@@ -47,6 +76,11 @@ const IndexPage = () => {
     const map = mainMap.value
     if (!map) return
 
+    const showEditHelp = searchParams.edit_help?.at(-1) === "1"
+    const removeEditHelpAlert = showEditHelp
+      ? pushMapAlert(<EditHelpAlert onDismiss={() => removeEditHelpAlert()} />)
+      : null
+
     if (remoteEdit) {
       const { lng, lat } = map.getCenter().wrap()
       const zoom = map.getZoom()
@@ -54,6 +88,10 @@ const IndexPage = () => {
         state: { lon: lng, lat, zoom },
         target: remoteEditTarget,
       })
+    }
+
+    return () => {
+      removeEditHelpAlert?.()
     }
   }, [])
 
