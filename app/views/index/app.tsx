@@ -8,6 +8,7 @@ import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar"
 import { MapAlertPanel, MapAlerts, pushMapAlert } from "@map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@map/main-map"
+import { isLoggedIn } from "@utils/config"
 import { useDisposeLayoutEffect } from "@utils/dispose-scope"
 import { qsParseAll } from "@utils/query-string"
 import { render } from "preact"
@@ -21,6 +22,12 @@ const IndexPage = () => {
 
   useEffect(() => {
     const searchParams = qsParseAll(location.search)
+
+    if (isLoggedIn && searchParams.edit_help?.at(-1) === "1") {
+      window.location.replace("/edit#walkthrough=true")
+      return
+    }
+
     const remoteEdit =
       location.pathname === "/edit" && searchParams.editor?.at(-1) === "remote"
     const remoteEditTarget = remoteEdit
