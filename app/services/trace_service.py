@@ -1,8 +1,8 @@
 import logging
-from asyncio import Task, create_task
+from asyncio import TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
-from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
 from sentry_sdk import capture_exception
 
@@ -23,13 +23,23 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
+from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
-_RECOMPRESSION_TASKS: set[Task] = set()
+_RECOMPRESSION_TG: TaskGroup
 
 
 class TraceService:
+    @asynccontextmanager
+    @staticmethod
+    async def context():
+        global _RECOMPRESSION_TG
+        async with (_RECOMPRESSION_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+            for task in _RECOMPRESSION_TG._tasks:  # noqa: SLF001
+                task.cancel()
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -121,11 +131,11 @@ class TraceService:
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
 
-        # Schedule only after the insert transaction commits. Retain the task until
-        # it finishes, without making the upload wait for high-level compression.
-        task = create_task(_recompress(trace_id, trace_init['file_id'], file))
-        _RECOMPRESSION_TASKS.add(task)
-        task.add_done_callback(_RECOMPRESSION_TASKS.discard)
+        # Schedule only after the insert transaction commits. The lifespan-owned
+        # task group keeps recompression non-blocking and joins it on shutdown.
+        _RECOMPRESSION_TG.create_task(
+            _recompress(trace_id, trace_init['file_id'], file)
+        )
         return trace_id
 
     @staticmethod
