@@ -1,8 +1,8 @@
 import { Time } from "@components/datetime-inputs"
 import { PageOrder, StandardPaginationNav } from "@components/standard-pagination"
-import { Tags } from "@components/tags"
 import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
+import { ElementTags } from "@index/_element-tags"
 import { defineRoute } from "@index/router"
 import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
 import { convertRenderElementsData } from "@map/render-objects"
@@ -20,7 +20,7 @@ import {
 } from "@proto/element_pb"
 import { type ElementIconValid, ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
-import { API_URL } from "@utils/config"
+import { API_URL, isLoggedIn } from "@utils/config"
 import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -348,7 +348,11 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <ElementTags
+                key={`${d.ref.type}-${d.ref.id}-${d.ref.version}`}
+                tags={d.tags}
+                editable={isLoggedIn && d.visible && !d.nextVersion}
+              />
 
               {hasRelations && (
                 <div class="elements mt-3">
