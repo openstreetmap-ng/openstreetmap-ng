@@ -49,6 +49,8 @@ from app.queries.element_query import ElementQuery
 from app.queries.user_query import UserQuery
 from speedup import split_typed_element_id, typed_element_id
 
+_ELEMENT_HISTORY_PAGE_SIZE_MAX = 100
+
 
 class _Service(Service):
     @override
@@ -116,6 +118,10 @@ class _Service(Service):
         element_type = ElementType.Name(request.element.type)
         id = ElementId(request.element.id)
         tid = typed_element_id(element_type, id)
+        page_size = min(
+            max(request.limit or ELEMENT_HISTORY_PAGE_SIZE, 1),
+            _ELEMENT_HISTORY_PAGE_SIZE_MAX,
+        )
 
         elements, state = await sp_paginate_query(
             Element,
@@ -125,7 +131,7 @@ class _Service(Service):
             where=t'typed_id = {tid}',
             cursor_key='sequence_id',
             id_key='version',
-            page_size=ELEMENT_HISTORY_PAGE_SIZE,
+            page_size=page_size,
             cursor_kind='id',
             order_dir='desc',
         )
@@ -138,7 +144,7 @@ class _Service(Service):
         num_items = state.snapshot_max_id
         state.known_total.num_items = num_items
         state.known_total.num_pages = sp_num_pages(
-            num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
+            num_items=num_items, page_size=page_size
         )
 
         if not elements:
