@@ -1,6 +1,6 @@
 # ruff: noqa: SLF001
 
-from asyncio import CancelledError, Event, gather
+from asyncio import CancelledError, Event
 from contextlib import asynccontextmanager
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
@@ -73,6 +73,25 @@ async def test_recompression_cancellation_discards_uncommitted_copy(state):
     state.storage.delete.assert_awaited_once_with('new.zst')
 
 
+async def test_context_cancels_pending_recompression():
+    started = Event()
+    cancelled = Event()
+    release = Event()
+
+    async def pending():
+        started.set()
+        try:
+            await release.wait()
+        finally:
+            cancelled.set()
+
+    async with service.TraceService.context():
+        service._RECOMPRESSION_TG.create_task(pending())
+        await started.wait()
+
+    assert cancelled.is_set()
+
+
 async def test_upload_returns_before_recompression_and_after_commit(state, monkeypatch):
     entered = Event()
     release = Event()
@@ -107,7 +126,7 @@ async def test_upload_returns_before_recompression_and_after_commit(state, monke
     )
     monkeypatch.setattr(service, 'db_insert', AsyncMock(return_value=(1,)))
     monkeypatch.setattr(service, 'audit', AsyncMock())
-    try:
+    async with service.TraceService.context():
         trace_id = await service.TraceService.upload(
             b'<gpx/>', name='test.gpx', description='', tags=[], visibility='private'
         )
@@ -115,9 +134,7 @@ async def test_upload_returns_before_recompression_and_after_commit(state, monke
         assert state.events == ['begin', 'commit']
         await entered.wait()
         assert state.storage.save.call_args.args[2] == {'zstd_level': '6'}
-    finally:
         release.set()
-        await gather(*service._RECOMPRESSION_TASKS)
 
 
 async def test_failed_upload_does_not_schedule_recompression(state, monkeypatch):
@@ -146,10 +163,11 @@ async def test_failed_upload_does_not_schedule_recompression(state, monkeypatch)
     monkeypatch.setattr(
         service, 'db_insert', AsyncMock(side_effect=RuntimeError('insert failed'))
     )
-    monkeypatch.setattr(service, 'create_task', Mock())
+    task_group = SimpleNamespace(create_task=Mock())
+    monkeypatch.setattr(service, '_RECOMPRESSION_TG', task_group)
     with pytest.raises(RuntimeError, match='insert failed'):
         await service.TraceService.upload(
             b'<gpx/>', name='test.gpx', description='', tags=[], visibility='private'
         )
-    service.create_task.assert_not_called()
+    task_group.create_task.assert_not_called()
     state.storage.delete.assert_awaited_once_with('new.zst')
