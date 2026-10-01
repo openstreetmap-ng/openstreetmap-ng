@@ -9,6 +9,7 @@ import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
+import { useEditHelp } from "./_edit-help"
 import { currentHash, currentMapState, editDisabled } from "./navbar-left-state"
 
 const buildEditHref = (editor: Editor) => {
@@ -51,11 +52,14 @@ const EditorImg = ({
 }
 
 const NavbarLeft = () => {
+  const editAnchorRef = useRef<HTMLAnchorElement>(null)
   const dropdownRootRef = useRef<HTMLDivElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
   const tooltipRef = useRef<Tooltip>(null)
   const rememberChoiceRef = useRef<HTMLInputElement>(null)
+  const editHelpActive = useEditHelp(editAnchorRef)
+  const disabled = editDisabled.value
 
   // Effect: initialize dropdown
   useEffect(() => {
@@ -96,15 +100,15 @@ const NavbarLeft = () => {
   }, [])
 
   // Effect: toggle tooltip based when edit is disabled/enabled
-  useSignalEffect(() => {
+  useEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (disabled && !editHelpActive) {
       tooltip.enable()
     } else {
       tooltip.disable()
       tooltip.hide()
     }
-  })
+  }, [disabled, editHelpActive])
 
   const onSelectEditor = (editor: Editor) => {
     if (rememberChoiceRef.current!.checked) {
@@ -113,7 +117,6 @@ const NavbarLeft = () => {
     dropdownRef.current!.hide()
   }
 
-  const disabled = editDisabled.value
   return (
     <>
       <div
@@ -126,6 +129,7 @@ const NavbarLeft = () => {
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
+          ref={editAnchorRef}
         >
           {t("layouts.edit")}
           <EditorImg

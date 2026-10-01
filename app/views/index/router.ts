@@ -8,7 +8,7 @@ import { trimEndBy } from "@std/text/unstable-trim-by"
 import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
 import { getPathParamSpecificity, type QuerySchema } from "@utils/path-codecs"
 import { defineQueryContract, type QueryContract } from "@utils/query-contract"
-import { qsParseAll } from "@utils/query-string"
+import { qsEncode, qsParseAll } from "@utils/query-string"
 import { unquotePlus } from "@utils/url-helpers"
 import { z } from "@zod/zod/mini"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -513,6 +513,20 @@ export function routerReplace<R extends CompiledRouteDef<any, any>>(
   assert(setPath("replace", path), `No route found for path: ${path}`)
 }
 
+/** Remove a transient query parameter without adding a navigation entry. */
+export const routerRemoveQueryParam = (key: string) => {
+  const queryParams = qsParseAll(location.search)
+  if (!(key in queryParams)) return
+  const search = qsEncode({ ...queryParams, [key]: undefined })
+  history.replaceState(history.state, "", location.pathname + search + location.hash)
+  loadReason = "sync"
+  const path = getCurrentPath()
+  currentPath.value = path
+
+  // The shared navbar also mounts on pages without an index router.
+  if (!activeRoute.peek()) activeCtx.value = parseContext(path, loadReason)
+}
+
 export const configureRouter = (routeDefs: AnyRouteDef[]) => {
   compiledRouteVariants = routeDefs.flatMap((route, registrationIndex) =>
     route._pathVariants.map(({ tokens }, variantIndex) => ({
@@ -626,7 +640,11 @@ export const configureRouter = (routeDefs: AnyRouteDef[]) => {
     }
 
     const pathname = route._buildPathname(params)
-    const desired = pathname + route._queryContract.encode(queryObj)
+    const encodedQuery = route._queryContract.encodeParams(queryObj)
+    // The navbar tutorial is global, outside each route's filter contract.
+    const editHelp = activeCtx.peek().queryParams.edit_help
+    if (editHelp?.at(-1) === "1") encodedQuery.edit_help = editHelp
+    const desired = pathname + qsEncode(encodedQuery)
     if (desired === currentPath.peek()) return
     assert(
       setPath("replace", desired, { reason: "sync" }),
