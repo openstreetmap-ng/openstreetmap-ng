@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="320" viewBox="0 0 960 320" role="img" aria-labelledby="title desc">
+  <title id="title">OSM-NG Founder waypoint wordmark</title>
+  <desc id="desc">Light-background OpenStreetMap-NG Founder wordmark with a folded-map waypoint badge.</desc>
+  <defs>
+    <linearGradient id="mapGreen" x1="70" y1="68" x2="210" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d9f4b7"/>
+      <stop offset="1" stop-color="#7fc15d"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="320" rx="40" fill="#ffffff"/>
+  <g transform="translate(42 40)">
+    <rect x="0" y="0" width="240" height="240" rx="38" fill="#f8fbf3" stroke="#253136" stroke-width="12"/>
+    <path d="M62 61l42 10 37-15 44 11 3 105-41 16-45-12-39 15-3-130z" fill="url(#mapGreen)" stroke="#253136" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M104 71v105M141 56l7 132" fill="none" stroke="#253136" stroke-width="5" stroke-linecap="round" opacity=".58"/>
+    <path d="M120 42c-37 0-66 29-66 66 0 49 66 112 66 112s66-63 66-112c0-37-29-66-66-66z" fill="#253136"/>
+    <circle cx="120" cy="108" r="34" fill="#f4ce51"/>
+    <path d="M98 118V82h12l19 21V82h14v36h-12l-19-21v21H98z" fill="#253136"/>
+  </g>
+  <g transform="translate(318 84)">
+    <text x="0" y="58" font-family="Inter, Arial, sans-serif" font-size="46" font-weight="850" letter-spacing="0" fill="#253136">OpenStreetMap-NG</text>
+    <text x="2" y="125" font-family="Inter, Arial, sans-serif" font-size="56" font-weight="850" letter-spacing="8" fill="#7fc15d">FOUNDER</text>
+    <path d="M2 152h402" stroke="#f4ce51" stroke-width="14" stroke-linecap="round"/>
+    <path d="M2 183h301" stroke="#253136" stroke-width="8" stroke-linecap="round" opacity=".2"/>
+  </g>
+</svg>
