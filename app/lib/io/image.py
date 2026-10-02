@@ -249,9 +249,9 @@ async def _normalize_image(
             ImageOps.exif_transpose(img, in_place=True)
             img_width, img_height = img.size
             animation = _extract_animation(img)
-    except DecompressionBombError, DecompressionBombWarning:
+    except (DecompressionBombError, DecompressionBombWarning):  # fmt: skip
         raise_for.image_too_big()
-    except OSError, SyntaxError:
+    except (OSError, SyntaxError):  # fmt: skip
         raise_for.image_not_readable()
 
     # normalize shape ratio
