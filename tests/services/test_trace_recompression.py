@@ -92,6 +92,17 @@ async def test_context_cancels_pending_recompression():
     assert cancelled.is_set()
 
 
+async def test_context_restores_parent_task_group():
+    async with service.TraceService.context():
+        parent = service._RECOMPRESSION_TG
+        async with service.TraceService.context():
+            assert service._RECOMPRESSION_TG is not parent
+        assert service._RECOMPRESSION_TG is parent
+
+
+
+
+
 async def test_upload_returns_before_recompression_and_after_commit(state, monkeypatch):
     entered = Event()
     release = Event()
