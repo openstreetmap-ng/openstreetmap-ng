@@ -12,6 +12,9 @@ import { useRef } from "preact/hooks"
 import { Nav } from "../nav"
 import { ApplicationsNav } from "./_nav"
 
+const AVATAR_MAX_FILE_SIZE = 80 * 1024
+const AVATAR_TOO_BIG_MESSAGE = "Image is too large"
+
 mountProtoPage(
   EditPageSchema,
   ({
@@ -247,10 +250,20 @@ mountProtoPage(
                         class="avatar-form"
                         formRef={avatarFormRef}
                         method={Service.method.updateAvatar}
-                        buildRequest={async ({ formData }) => ({
-                          id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
-                        })}
+                        buildRequest={async ({ formData }) => {
+                          const avatarFileEntry = formData.get("avatar_file")
+                          if (
+                            avatarFileEntry instanceof Blob &&
+                            avatarFileEntry.size > AVATAR_MAX_FILE_SIZE
+                          ) {
+                            throw new Error(AVATAR_TOO_BIG_MESSAGE)
+                          }
+
+                          return {
+                            id,
+                            avatarFile: await formDataBytes(formData, "avatar_file"),
+                          }
+                        }}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
                         <input
