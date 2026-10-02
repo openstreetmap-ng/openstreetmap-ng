@@ -35,10 +35,19 @@ class TraceService:
     @staticmethod
     async def context():
         global _RECOMPRESSION_TG
-        async with (_RECOMPRESSION_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
-            yield
-            for task in _RECOMPRESSION_TG._tasks:  # noqa: SLF001
-                task.cancel()
+        previous = globals().get('_RECOMPRESSION_TG')
+        task_group = TaskGroup()
+        _RECOMPRESSION_TG = task_group
+        try:
+            async with task_group:
+                yield
+                for task in task_group._tasks:  # noqa: SLF001
+                    task.cancel()
+        finally:
+            if previous is None:
+                del _RECOMPRESSION_TG
+            else:
+                _RECOMPRESSION_TG = previous
 
     @staticmethod
     async def upload(
