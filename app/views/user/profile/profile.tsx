@@ -172,6 +172,7 @@ const BackgroundForm = ({
         backgroundFile: await formDataBytes(formData, "background_file"),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
+      onError={() => (fileInputRef.current!.value = "")}
     >
       <input
         class="visually-hidden"
@@ -267,6 +268,7 @@ const AvatarForm = ({
         }
       }}
       onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+      onError={() => (fileInputRef.current!.value = "")}
     >
       <input
         class="visually-hidden"
