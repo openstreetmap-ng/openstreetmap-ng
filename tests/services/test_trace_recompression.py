@@ -100,9 +100,6 @@ async def test_context_restores_parent_task_group():
         assert service._RECOMPRESSION_TG is parent
 
 
-
-
-
 async def test_upload_returns_before_recompression_and_after_commit(state, monkeypatch):
     entered = Event()
     release = Event()
