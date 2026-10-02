@@ -7,6 +7,7 @@ from uuid import UUID
 import cbor2
 import cython
 import orjson
+from app.models.proto.auth_pb2 import PasskeyAssertion
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.ec import (
@@ -20,7 +21,6 @@ from starlette.exceptions import HTTPException
 
 from app.config import APP_URL
 from app.models.db.user_passkey import AAGUIDInfo, UserPasskey
-from app.models.proto.auth_pb2 import PasskeyAssertion
 
 _ClientDataType: TypeAlias = Literal['webauthn.create', 'webauthn.get']
 

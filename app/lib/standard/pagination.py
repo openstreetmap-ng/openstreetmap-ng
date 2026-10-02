@@ -14,6 +14,10 @@ from typing import (
 )
 
 import cython
+from app.models.proto.shared_pb2 import (
+    StandardPaginationRequest,
+    StandardPaginationState,
+)
 from fastapi import Body
 from protovalidate import collect_violations
 from psycopg import AsyncConnection
@@ -27,10 +31,6 @@ from app.config import (
 )
 from app.db import db, db_fetchall
 from app.lib.render.response import render_response
-from app.models.proto.shared_pb2 import (
-    StandardPaginationRequest,
-    StandardPaginationState,
-)
 
 
 class _SpCursorCodec(NamedTuple):
