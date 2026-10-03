@@ -20,6 +20,7 @@ service Service {
   rpc Get(GetRequest) returns (GetResponse) {}
   rpc UpdateReadState(UpdateReadStateRequest) returns (UpdateReadStateResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc DeleteOlderThan(DeleteOlderThanRequest) returns (DeleteOlderThanResponse) {}
   rpc Send(SendRequest) returns (SendResponse) {}
 }
 
@@ -72,6 +73,26 @@ message DeleteRequest {
 }
 
 message DeleteResponse {}
+
+message DeleteOlderThanRequest {
+  enum TimeUnit {
+    days = 0;
+    weeks = 1;
+    months = 2;
+    years = 3;
+  }
+
+  bool inbox = 1;
+  uint32 count = 2 [(buf.validate.field).uint32 = {
+    gt: 0
+    lte: 999
+  }];
+  TimeUnit unit = 3 [(buf.validate.field).enum.defined_only = true];
+}
+
+message DeleteOlderThanResponse {
+  uint32 deleted_count = 1;
+}
 
 message SendRequest {
   string subject = 1 [(buf.validate.field).string = {
