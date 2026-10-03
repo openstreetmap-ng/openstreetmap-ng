@@ -27,7 +27,9 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
+from app.models.db.element import Element
 from app.models.db.user import user_proto
+from app.models.element import TypedElementId
 from app.models.proto.changeset_connect import (
     Service,
     ServiceASGIApplication,
@@ -38,12 +40,15 @@ from app.models.proto.changeset_pb2 import (
     Data,
     GetCommentsRequest,
     GetCommentsResponse,
+    GetDiffRequest,
+    GetDiffResponse,
     GetMapRequest,
     GetMapResponse,
     GetRequest,
     GetResponse,
 )
-from app.models.types import ChangesetId
+from app.models.proto.element_pb2 import RenderData
+from app.models.types import ChangesetId, SequenceId
 from app.queries.changeset_query import (
     ChangesetBoundsQuery,
     ChangesetCommentQuery,
@@ -55,6 +60,10 @@ from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.changeset_service import ChangesetCommentService
 from app.validators.unicode import normalize_display_name
+from speedup import element_type
+
+_CHANGESET_DIFF_ELEMENTS_LIMIT = 120
+_CHANGESET_DIFF_CONTEXT_LIMIT = 50_000
 
 
 class _Service(Service):
@@ -143,6 +152,13 @@ class _Service(Service):
     async def get(self, request: GetRequest, ctx: RequestContext):
         id = ChangesetId(request.id)
         return GetResponse(changeset=await _build_data(id))
+
+    @override
+    async def get_diff(self, request: GetDiffRequest, ctx: RequestContext):
+        id = ChangesetId(request.id)
+        if await ChangesetQuery.find_by_id(id) is None:
+            raise_for.changeset_not_found(id)
+        return await _build_diff(id)
 
     @override
     async def get_comments(self, request: GetCommentsRequest, ctx: RequestContext):
@@ -242,6 +258,169 @@ async def _build_data(changeset_id: ChangesetId):
     if next_changeset_id is not None:
         result.next_changeset_id = next_changeset_id
     return result
+
+
+async def _build_diff(changeset_id: ChangesetId):
+    """Compare this changeset's first/last versions, not interleaved edits."""
+    refs = await ElementQuery.find_changeset_diff_refs(
+        changeset_id, limit=_CHANGESET_DIFF_ELEMENTS_LIMIT
+    )
+    if not refs:
+        return GetDiffResponse(before=RenderData(), after=RenderData())
+
+    num_elements = refs[0][-1]
+    before_refs = [
+        (typed_id, first_version - 1)
+        for typed_id, first_version, *_ in refs
+        if first_version > 1
+    ]
+    after_refs = [(typed_id, last_version) for typed_id, _, last_version, *_ in refs]
+    before_cutoffs = {
+        typed_id: SequenceId(first_sequence_id - 1)
+        for typed_id, _, _, first_sequence_id, _, _ in refs
+    }
+    after_cutoffs = {
+        typed_id: last_sequence_id for typed_id, _, _, _, last_sequence_id, _ in refs
+    }
+
+    async with TaskGroup() as tg:
+        before_roots_t = tg.create_task(
+            ElementQuery.find_by_versioned_refs(before_refs)
+        )
+        after_roots_t = tg.create_task(ElementQuery.find_by_versioned_refs(after_refs))
+
+    # Resolve each root's context at its own edit boundary. A shared changeset
+    # cutoff would include unrelated edits or miss members created mid-changeset.
+    # Directly changed roots override context to retain this changeset's net edit.
+    async with TaskGroup() as tg:
+        before_t = tg.create_task(
+            _build_diff_render(before_roots_t.result(), before_cutoffs)
+        )
+        after_t = tg.create_task(
+            _build_diff_render(after_roots_t.result(), after_cutoffs)
+        )
+
+    before, before_context_truncated = before_t.result()
+    after, after_context_truncated = after_t.result()
+    return GetDiffResponse(
+        before=before,
+        after=after,
+        num_elements=len(refs),
+        num_truncated=num_elements - len(refs),
+        context_truncated=before_context_truncated or after_context_truncated,
+    )
+
+
+async def _build_diff_render(
+    roots: list[Element], cutoffs: dict[TypedElementId, SequenceId]
+) -> tuple[RenderData, bool]:
+    """Render independently timed roots using at most two batched context reads."""
+    roots.sort(key=lambda element: element['typed_id'])
+    root_map = {root['typed_id']: root for root in roots}
+    context_refs: dict[tuple[TypedElementId, SequenceId], None] = {}
+    context_truncated = False
+    # Insertion order is stable by root ID and member order. Cap the collection
+    # itself; relation member lists must not create an unbounded temporary set.
+    for root in roots:
+        if not root['visible']:
+            continue
+        cutoff = cutoffs[root['typed_id']]
+        for member in root['members'] or ():
+            # Direct ways already render at their own boundary. Re-expanding one
+            # through a relation would mix its version with the relation's nodes.
+            if member in cutoffs and element_type(member) == 'way':
+                continue
+            context_refs[member, cutoff] = None
+            if len(context_refs) > _CHANGESET_DIFF_CONTEXT_LIMIT:
+                context_refs.popitem()
+                context_truncated = True
+                break
+        if context_truncated:
+            break
+
+    direct_refs = list(context_refs)
+    members = await ElementQuery.find_by_snapshot_refs([
+        ref for ref in direct_refs if ref[0] not in cutoffs
+    ])
+    snapshots = {(element['typed_id'], cutoff): element for cutoff, element in members}
+
+    node_refs: list[tuple[TypedElementId, SequenceId]] = []
+    for typed_id, cutoff in direct_refs:
+        member = (
+            root_map.get(typed_id)
+            if typed_id in cutoffs
+            else snapshots.get((typed_id, cutoff))
+        )
+        if member is None or element_type(typed_id) != 'way':
+            continue
+        for node_id in member['members'] or ():
+            ref = (node_id, cutoff)
+            if ref in context_refs:
+                continue
+            if len(context_refs) >= _CHANGESET_DIFF_CONTEXT_LIMIT:
+                context_truncated = True
+                break
+            context_refs[ref] = None
+            node_refs.append(ref)
+        if context_truncated and len(context_refs) >= _CHANGESET_DIFF_CONTEXT_LIMIT:
+            break
+
+    snapshots.update(
+        ((element['typed_id'], cutoff), element)
+        for cutoff, element in await ElementQuery.find_by_snapshot_refs([
+            ref for ref in node_refs if ref[0] not in cutoffs
+        ])
+    )
+
+    render = RenderData()
+    rendered_nodes: set[tuple[int, float, float]] = set()
+    rendered_ways: set[tuple[int, str]] = set()
+    for root in roots:
+        if not root['visible']:
+            continue
+        cutoff = cutoffs[root['typed_id']]
+        element_map = {root['typed_id']: root}
+        for typed_id in root['members'] or ():
+            ref = (typed_id, cutoff)
+            if ref not in context_refs:
+                continue
+            member = (
+                root_map.get(typed_id) if typed_id in cutoffs else snapshots.get(ref)
+            )
+            if member is None:
+                continue
+            element_map[typed_id] = member
+            if element_type(typed_id) != 'way':
+                continue
+            for node_id in member['members'] or ():
+                node_ref = (node_id, cutoff)
+                if node_ref not in context_refs:
+                    continue
+                node = (
+                    root_map.get(node_id)
+                    if node_id in cutoffs
+                    else snapshots.get(node_ref)
+                )
+                if node is not None:
+                    element_map[node_id] = node
+
+        # Render per root so identical member IDs at different historical cutoffs
+        # do not overwrite each other. Standalone changed nodes remain visible.
+        part = FormatRender.encode_elements(
+            list(element_map.values()), detailed=True, areas=False
+        )
+        for node in part.nodes:
+            key = (node.id, node.location.lon, node.location.lat)
+            if key not in rendered_nodes:
+                rendered_nodes.add(key)
+                render.nodes.add().CopyFrom(node)
+        for way in part.ways:
+            key = (way.id, way.line)
+            if key not in rendered_ways:
+                rendered_ways.add(key)
+                render.ways.add().CopyFrom(way)
+
+    return render, context_truncated
 
 
 async def _build_comments(

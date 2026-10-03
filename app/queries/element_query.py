@@ -31,6 +31,10 @@ from app.models.types import ChangesetId, SequenceId
 from speedup import element_id
 
 
+class _SnapshotElement(Element):
+    snapshot_sequence_id: SequenceId
+
+
 class ElementQuery:
     @staticmethod
     async def get_current_sequence_id(
@@ -508,6 +512,62 @@ class ElementQuery:
                 ORDER BY {sort_by:i}
             """,
         )
+
+    @staticmethod
+    async def find_changeset_diff_refs(
+        changeset_id: ChangesetId, *, limit: int
+    ) -> list[tuple[TypedElementId, int, int, SequenceId, SequenceId, int]]:
+        """Get capped root versions with their sequence bounds and total root count.
+
+        Rows contain typed_id, first/last version, root first/last sequence,
+        and total distinct roots. Group before limiting so repeated revisions do
+        not consume the display limit; do not load unselected tags or members.
+        """
+        return await db_fetchrows(t"""
+            WITH roots AS (
+                SELECT typed_id,
+                    MIN(version) AS first_version,
+                    MAX(version) AS last_version,
+                    MIN(sequence_id) AS first_sequence_id,
+                    MAX(sequence_id) AS last_sequence_id
+                FROM element
+                WHERE changeset_id = {changeset_id}
+                GROUP BY typed_id
+            )
+            SELECT typed_id, first_version, last_version,
+                first_sequence_id, last_sequence_id,
+                COUNT(*) OVER ()
+            FROM roots
+            ORDER BY typed_id
+            LIMIT {limit}
+        """)
+
+    @staticmethod
+    async def find_by_snapshot_refs(
+        refs: list[tuple[TypedElementId, SequenceId]],
+    ) -> list[tuple[SequenceId, Element]]:
+        """Resolve independently bounded historical refs in one database query."""
+        if not refs:
+            return []
+
+        typed_ids = [typed_id for typed_id, _ in refs]
+        sequence_ids = [sequence_id for _, sequence_id in refs]
+        elements = await db_fetchall(
+            _SnapshotElement,
+            t"""
+                SELECT e.*, ref.sequence_id AS snapshot_sequence_id
+                FROM UNNEST({typed_ids}::bigint[], {sequence_ids}::bigint[])
+                    AS ref(typed_id, sequence_id)
+                CROSS JOIN LATERAL (
+                    SELECT * FROM element
+                    WHERE typed_id = ref.typed_id
+                        AND sequence_id <= ref.sequence_id
+                    ORDER BY sequence_id DESC
+                    LIMIT 1
+                ) e
+            """,
+        )
+        return [(element['snapshot_sequence_id'], element) for element in elements]
 
     @staticmethod
     async def find_by_geom(
