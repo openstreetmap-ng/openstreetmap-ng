@@ -8,6 +8,8 @@ import { SearchForm } from "@index/search-form"
 import { RightSidebarOutlet } from "@index/sidebar"
 import { MapAlertPanel, MapAlerts, pushMapAlert } from "@map/alerts"
 import { initMainMap, mainMap, rightSidebar } from "@map/main-map"
+import { resizeMapForSidebar } from "@map/resize"
+import { isBreakpointUp } from "@utils/config"
 import { useDisposeLayoutEffect } from "@utils/dispose-scope"
 import { qsParseAll } from "@utils/query-string"
 import { render } from "preact"
@@ -18,6 +20,7 @@ import { updateNavbarAndHash } from "../navbar/navbar-left-state"
 const IndexPage = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const mapBoundsRef = useRef<DOMRect | null>(null)
 
   useEffect(() => {
     const searchParams = qsParseAll(location.search)
@@ -61,9 +64,18 @@ const IndexPage = () => {
   const route = routerRoute.value
   const sidebarKind = rightSidebar.value
 
+  useDisposeLayoutEffect((scope) => {
+    if (!map) return
+    const updateBounds = () => {
+      mapBoundsRef.current = map.getContainer().getBoundingClientRect()
+    }
+    updateBounds()
+    scope.map(map, "resize", updateBounds)
+  }, [map])
+
   useDisposeLayoutEffect(() => {
     collapseNavbar()
-    map?.resize()
+    if (map) resizeMapForSidebar(map, mapBoundsRef.current!, !isBreakpointUp("md"))
   }, [map, route, sidebarKind])
 
   const sidebarOverlay = Boolean(route?.sidebarOverlay)
