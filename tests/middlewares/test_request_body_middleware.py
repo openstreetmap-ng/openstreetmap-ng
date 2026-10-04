@@ -78,7 +78,7 @@ async def test_compressed_json(
 
     # Setup test data
     text = f'{test_compressed_json.__qualname__}: {encoding}'
-    content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
+    content = orjson.dumps({'lon': 1, 'lat': 1, 'text': text})
 
     # Execute request with compressed JSON
     r = await client.post(
@@ -166,7 +166,7 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
 
     # Setup test data
     text = 'unknown compression'
-    content = orjson.dumps({'lon': 0, 'lat': 0, 'text': text})
+    content = orjson.dumps({'lon': 1, 'lat': 1, 'text': text})
 
     # Execute request with unsupported compression header
     r = await client.post(
