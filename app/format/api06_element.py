@@ -181,7 +181,7 @@ class Element06Mixin:
             else:
                 raise_for.diff_unsupported_action(action)
 
-        return result
+        return validate_elements(result)
 
 
 @cython.cfunc

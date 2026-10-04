@@ -92,6 +92,10 @@ def _validate_node(element: ElementInit):
     element['members'] = None
     element['members_roles'] = None
 
+    point = element['point']
+    if element['visible'] and point is not None and point.x == 0 and point.y == 0:
+        raise ValueError('Nodes cannot be placed at 0,0')
+
 
 @cython.cfunc
 def _validate_way(element: ElementInit):
