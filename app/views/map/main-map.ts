@@ -27,9 +27,11 @@ import { NewNoteControl } from "./controls/new-note"
 import { QueryFeaturesControl } from "./controls/query-features"
 import { CustomZoomControl } from "./controls/zoom"
 import { configureDefaultMapBehavior } from "./defaults"
-import { configureDataLayer } from "./layers/data-layer"
-import { addLayerEventHandler, addMapLayerSources } from "./layers/layers"
-import { configureNotesLayer } from "./layers/notes-layer"
+import {
+  addLayerEventHandler,
+  addMapLayerSources,
+  syncAerialLayerOrder,
+} from "./layers/layers"
 import type { MapState } from "./state"
 import { applyMapState, getInitialMapState, getMapState, parseMapState } from "./state"
 
@@ -73,6 +75,7 @@ const createMainMap = (
     globeWasEnabled = enabled
 
     map.setProjection({ type: enabled ? "globe" : "mercator" })
+    syncAerialLayerOrder(map)
 
     // Workaround a bug where after switching back to mercator,
     // the map is not fit to the screen (there is grey padding).
