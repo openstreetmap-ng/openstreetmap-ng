@@ -22,17 +22,12 @@ import { format as formatDate } from "@std/datetime/format"
 import { tryParseLonLat } from "@utils/coords"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { shareExportFormatStorage } from "@utils/local-storage"
+import { getShareImageFormat, SHARE_IMAGE_FORMATS } from "@utils/share-image-formats"
 import { t } from "i18next"
 import type { LngLat, LngLatBounds, Map as MaplibreMap } from "maplibre-gl"
 import { Marker } from "maplibre-gl"
 import type { SubmitEventHandler } from "preact"
 import { useRef } from "preact/hooks"
-
-const SHARE_FORMATS = [
-  { mimeType: "image/jpeg", suffix: ".jpg", label: "JPEG" },
-  { mimeType: "image/png", suffix: ".png", label: "PNG" },
-  { mimeType: "image/webp", suffix: ".webp", label: "WebP" },
-] as const
 
 let urlMarker: Marker | null = null
 
@@ -84,8 +79,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
   const shareMarkerLngLat = useSignal<LngLat | null>(null)
 
   const shareExportFileSuffix = useComputed(
-    () =>
-      SHARE_FORMATS.find((f) => f.mimeType === shareExportFormatStorage.value)!.suffix,
+    () => getShareImageFormat(shareExportFormatStorage.value).suffix,
   )
 
   const shareMapState = useComputed(() => {
@@ -294,7 +288,7 @@ export const ShareSidebar = ({ close }: { close: () => void }) => {
             value={shareExportFormatStorage.value}
             onChange={(e) => (shareExportFormatStorage.value = e.currentTarget.value)}
           >
-            {SHARE_FORMATS.map(({ mimeType, label }) => (
+            {SHARE_IMAGE_FORMATS.map(({ mimeType, label }) => (
               <option
                 key={mimeType}
                 value={mimeType}
