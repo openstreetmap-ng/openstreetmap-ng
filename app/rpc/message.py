@@ -5,8 +5,10 @@ import cython
 from connectrpc.request import RequestContext
 
 from app.config import MESSAGES_INBOX_PAGE_SIZE
+from app.db import t_and
 from app.lib.auth.context import require_web_user
 from app.lib.standard.pagination import sp_paginate_table
+from app.lib.time.date_utils import unix_datetime
 from app.models.db.message import Message, messages_resolve_rich_text
 from app.models.db.user import user_proto
 from app.models.proto.message_connect import (
@@ -38,12 +40,28 @@ class _Service(MessageServiceConnect):
         user_id = require_web_user()['id']
 
         inbox = request.inbox
+        filters = MessageQuery.mailbox_filters(
+            inbox=inbox,
+            search_user=request.search_user
+            if request.HasField('search_user')
+            else None,
+            search_subject=request.search_subject
+            if request.HasField('search_subject')
+            else None,
+            created_after=unix_datetime(request.created_after)
+            if request.HasField('created_after')
+            else None,
+            created_before=unix_datetime(request.created_before)
+            if request.HasField('created_before')
+            else None,
+        )
         if inbox:
             messages, state = await sp_paginate_table(
                 Message,
                 request.state,
                 table='message',
-                where=t"""
+                where=t_and(
+                    t"""
                     EXISTS (
                         SELECT 1 FROM message_recipient
                         WHERE message_id = id
@@ -51,6 +69,8 @@ class _Service(MessageServiceConnect):
                           AND NOT hidden
                     )
                 """,
+                    filters,
+                ),
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',
@@ -70,7 +90,9 @@ class _Service(MessageServiceConnect):
                 Message,
                 request.state,
                 table='message',
-                where=t'from_user_id = {user_id} AND NOT from_user_hidden',
+                where=t_and(
+                    t'from_user_id = {user_id} AND NOT from_user_hidden', filters
+                ),
                 page_size=MESSAGES_INBOX_PAGE_SIZE,
                 cursor_column='id',
                 cursor_kind='id',
@@ -142,8 +164,8 @@ class _Service(MessageServiceConnect):
     @override
     async def delete(self, request: DeleteRequest, ctx: RequestContext):
         require_web_user()
-        await MessageService.delete_message(MessageId(request.id))
-        return DeleteResponse()
+        removed_unread = await MessageService.delete_message(MessageId(request.id))
+        return DeleteResponse(removed_unread=removed_unread)
 
     @override
     async def send(self, request: SendRequest, ctx: RequestContext):
