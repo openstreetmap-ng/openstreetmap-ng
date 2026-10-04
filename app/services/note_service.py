@@ -5,6 +5,7 @@ from typing import Any
 import cython
 from shapely import Point, get_coordinates
 
+from app.config import NOTE_CREATED_BY_HASHTAG
 from app.db import db, db_fetchone, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
@@ -30,8 +31,15 @@ from app.validators.geometry import validate_geometry
 
 class NoteService:
     @staticmethod
-    async def create(lon: float, lat: float, text: str) -> NoteId:
-        """Create a note and return its id."""
+    async def create(
+        lon: float, lat: float, text: str, *, append_app_hashtag: bool = False
+    ) -> NoteId:
+        """
+        Create a note and return its id.
+
+        When ``append_app_hashtag`` is set, the application hashtag is appended to
+        the opening comment, identifying notes created through the OSM-NG frontend.
+        """
         point = validate_geometry(Point(lon, lat))
 
         user = auth_user()
@@ -45,6 +53,15 @@ class NoteService:
         else:
             user_id = None
             user_ip = get_request_ip()
+
+        if append_app_hashtag and NOTE_CREATED_BY_HASHTAG not in text:
+            body = (
+                f'{text}\n{NOTE_CREATED_BY_HASHTAG}'
+                if text
+                else NOTE_CREATED_BY_HASHTAG
+            )
+        else:
+            body = text
 
         async with db(True) as conn:
             note_id: NoteId
@@ -63,7 +80,7 @@ class NoteService:
                     'user_ip': user_ip,
                     'note_id': note_id,
                     'event': 'opened',
-                    'body': text,
+                    'body': body,
                     'created_at': note_created_at,
                 },
                 conn=conn,
