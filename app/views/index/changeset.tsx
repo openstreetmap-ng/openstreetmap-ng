@@ -208,6 +208,9 @@ const ChangesetComment = ({
   </li>
 )
 
+const getAchaviChangesetDiffUrl = (changesetId: string) =>
+  `https://overpass-api.de/achavi/?changeset=${encodeURIComponent(changesetId)}`
+
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
@@ -266,6 +269,21 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
         </span>
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}/download`}>
           {t("browse.changeset.osmchangexml")}
+        </a>
+        <span
+          class="mx-1"
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <a
+          href={getAchaviChangesetDiffUrl(changesetIdStr)}
+          target="_blank"
+          rel="noopener noreferrer external"
+          aria-label={`Open changeset ${changesetIdStr} diff visualization in Achavi`}
+          title="Open changeset diff visualization in Achavi"
+        >
+          Achavi diff <i class="bi bi-box-arrow-up-right" aria-hidden="true" />
         </a>
       </small>
     </div>
