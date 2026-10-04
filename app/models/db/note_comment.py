@@ -17,6 +17,7 @@ class NoteComment(TypedDict):
     event: GetCommentsResponse_Comment_Event
     body: str  # TODO: validate size
     body_rich_hash: bytes | None
+    tags: dict[str, str] | None
     created_at: datetime
 
     # runtime
