@@ -27,6 +27,204 @@ from app.services.user_token_unsubscribe_service import UserTokenUnsubscribeServ
 
 router = APIRouter()
 
+_SOFTWARE_FILTERS = {
+    'category': (
+        {'value': 'editor', 'label': 'Editors'},
+        {'value': 'mobile_editor', 'label': 'Mobile editors'},
+        {'value': 'navigation', 'label': 'Navigation'},
+        {'value': 'analysis', 'label': 'Analysis'},
+        {'value': 'qa', 'label': 'Quality assurance'},
+        {'value': 'visualization', 'label': 'Visualization'},
+        {'value': 'imagery', 'label': 'Imagery'},
+    ),
+    'platform': (
+        {'value': 'web', 'label': 'Web'},
+        {'value': 'desktop', 'label': 'Desktop'},
+        {'value': 'android', 'label': 'Android'},
+        {'value': 'ios', 'label': 'iOS'},
+    ),
+    'license': (
+        {'value': 'open_source', 'label': 'Open source'},
+        {'value': 'proprietary', 'label': 'Proprietary'},
+    ),
+    'status': (
+        {'value': 'active', 'label': 'Active development'},
+        {'value': 'mature', 'label': 'Mature'},
+    ),
+}
+
+_SOFTWARE_FILTER_LABELS = {
+    key: {option['value']: option['label'] for option in options}
+    for key, options in _SOFTWARE_FILTERS.items()
+}
+
+_SOFTWARE_ITEMS = (
+    {
+        'name': 'iD',
+        'url': 'https://ideditor.com/',
+        'image': '/static/img/brand/id.webp',
+        'description': 'The default in-browser editor for quick OpenStreetMap edits.',
+        'category': 'editor',
+        'platforms': ('web',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'Rapid',
+        'url': 'https://rapideditor.org/',
+        'image': '/static/img/brand/rapid.webp',
+        'description': 'A web editor with assisted mapping tools and modern workflows.',
+        'category': 'editor',
+        'platforms': ('web',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'JOSM',
+        'url': 'https://josm.openstreetmap.de/',
+        'image': '/static/img/brand/josm.webp',
+        'description': 'A powerful desktop editor for advanced mapping and validation.',
+        'category': 'editor',
+        'platforms': ('desktop',),
+        'license': 'open_source',
+        'status': 'mature',
+    },
+    {
+        'name': 'Vespucci',
+        'url': 'https://vespucci.io/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'A full-featured OpenStreetMap editor for Android devices.',
+        'category': 'mobile_editor',
+        'platforms': ('android',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'Go Map!!',
+        'url': 'https://gomaposm.com/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'An iOS editor for surveying and editing OpenStreetMap outdoors.',
+        'category': 'mobile_editor',
+        'platforms': ('ios',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'StreetComplete',
+        'url': 'https://streetcomplete.app/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'A quest-based mobile editor for adding missing street details.',
+        'category': 'mobile_editor',
+        'platforms': ('android',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'Every Door',
+        'url': 'https://every-door.app/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'A mobile editor focused on shops, amenities, entrances, and POIs.',
+        'category': 'mobile_editor',
+        'platforms': ('android', 'ios'),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'OsmAnd',
+        'url': 'https://osmand.net/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Offline maps and navigation powered by OpenStreetMap data.',
+        'category': 'navigation',
+        'platforms': ('android', 'ios'),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'Organic Maps',
+        'url': 'https://organicmaps.app/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Offline maps and routing for travelers, hikers, and cyclists.',
+        'category': 'navigation',
+        'platforms': ('android', 'ios'),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'QGIS',
+        'url': 'https://qgis.org/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Desktop GIS software for analyzing and styling OpenStreetMap data.',
+        'category': 'analysis',
+        'platforms': ('desktop',),
+        'license': 'open_source',
+        'status': 'mature',
+    },
+    {
+        'name': 'Overpass Turbo',
+        'url': 'https://overpass-turbo.eu/',
+        'image': '/static/img/brand/overpass.webp',
+        'description': 'A web tool for querying and exploring OpenStreetMap data.',
+        'category': 'analysis',
+        'platforms': ('web',),
+        'license': 'open_source',
+        'status': 'mature',
+    },
+    {
+        'name': 'MapRoulette',
+        'url': 'https://maproulette.org/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Task-based quality assurance and micro-mapping challenges.',
+        'category': 'qa',
+        'platforms': ('web',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'uMap',
+        'url': 'https://umap.openstreetmap.fr/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Create and share custom maps using OpenStreetMap backgrounds.',
+        'category': 'visualization',
+        'platforms': ('web',),
+        'license': 'open_source',
+        'status': 'active',
+    },
+    {
+        'name': 'Mapillary',
+        'url': 'https://www.mapillary.com/',
+        'image': '/static/img/favicon/256.webp',
+        'description': 'Street-level imagery collection and browsing for map improvement.',
+        'category': 'imagery',
+        'platforms': ('web', 'android', 'ios'),
+        'license': 'proprietary',
+        'status': 'active',
+    },
+)
+
+
+def _valid_software_filter(filter_name: str, value: str | None):
+    if value is None:
+        return ''
+    allowed = _SOFTWARE_FILTER_LABELS[filter_name]
+    return value if value in allowed else ''
+
+
+def _software_matches_filters(item: dict, selected: dict[str, str]):
+    category = selected['category']
+    if category and item['category'] != category:
+        return False
+
+    platform = selected['platform']
+    if platform and platform not in item['platforms']:
+        return False
+
+    license_ = selected['license']
+    if license_ and item['license'] != license_:
+        return False
+
+    status_ = selected['status']
+    return not status_ or item['status'] == status_
+
 
 @router.get('/')
 @router.get('/export')
@@ -162,6 +360,34 @@ async def about():
 @router.get('/help')
 async def help_():
     return await render_proto_page(HelpPage(), title_prefix=t('layouts.help'))
+
+
+@router.get('/software')
+async def software(
+    category: Annotated[str | None, Query()] = None,
+    platform: Annotated[str | None, Query()] = None,
+    license_: Annotated[str | None, Query(alias='license')] = None,
+    status_: Annotated[str | None, Query(alias='status')] = None,
+):
+    selected = {
+        'category': _valid_software_filter('category', category),
+        'platform': _valid_software_filter('platform', platform),
+        'license': _valid_software_filter('license', license_),
+        'status': _valid_software_filter('status', status_),
+    }
+    software_items = [
+        item for item in _SOFTWARE_ITEMS if _software_matches_filters(item, selected)
+    ]
+
+    return await render_response(
+        'software',
+        {
+            'SOFTWARE_FILTERS': _SOFTWARE_FILTERS,
+            'SOFTWARE_FILTER_LABELS': _SOFTWARE_FILTER_LABELS,
+            'SOFTWARE_ITEMS': software_items,
+            'SELECTED_FILTERS': selected,
+        },
+    )
 
 
 @router.get('/fixthemap')
