@@ -272,6 +272,21 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
   )
 }
 
+const getChangesetDiffUrl = (changesetId: bigint) =>
+  `https://overpass-api.de/achavi/?changeset=${changesetId}`
+
+const ChangesetDiffButton = ({ changesetId }: { changesetId: bigint }) => (
+  <a
+    class="btn btn-sm btn-outline-primary"
+    href={getChangesetDiffUrl(changesetId)}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <i class="bi bi-map me-1" />
+    {t("changeset.open_diff")}
+  </a>
+)
+
 const ChangesetElementRow = ({
   element,
   type,
@@ -377,6 +392,9 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+            <div class="mt-3">
+              <ChangesetDiffButton changesetId={d.id} />
+            </div>
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
