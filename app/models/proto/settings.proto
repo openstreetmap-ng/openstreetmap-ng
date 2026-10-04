@@ -35,7 +35,10 @@ message UpdateAvatarRequest {
   oneof avatar {
     option (buf.validate.oneof).required = true;
     Preset preset = 1 [(buf.validate.field).enum.defined_only = true];
-    bytes avatar_file = 2 [(buf.validate.field).bytes.min_len = 1];
+    bytes avatar_file = 2 [(buf.validate.field).bytes = {
+      min_len: 1
+      max_len: 10485760
+    }];
   }
 }
 

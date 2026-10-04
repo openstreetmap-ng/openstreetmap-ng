@@ -3,6 +3,7 @@ import { Time } from "@components/datetime-inputs"
 import { FollowToggleForm } from "@components/follow-toggle-form"
 import { ReportButton } from "@components/report"
 import { formDataBytes, StandardForm } from "@components/standard-form"
+import { AVATAR_UPLOAD_MAX_SIZE } from "@utils/config"
 import type { Signal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
@@ -249,7 +250,11 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await formDataBytes(
+          formData,
+          "avatar_file",
+          AVATAR_UPLOAD_MAX_SIZE,
+        )
         if (avatarFile.length) {
           return {
             avatar: {
