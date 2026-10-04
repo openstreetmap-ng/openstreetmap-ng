@@ -15,6 +15,7 @@ import { ThemeSwitcher } from "./_theme-switcher"
 import { messagesCountUnread } from "./navbar-right-state"
 
 const navLinks = [
+  { href: "/software", label: t("software.title") },
   {
     href: "/traces",
     label: t("layouts.gps_traces"),
