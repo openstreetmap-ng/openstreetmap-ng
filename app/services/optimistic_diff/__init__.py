@@ -11,6 +11,8 @@ from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
+from app.services.changeset_service import ChangesetService
+from app.services.note_service import NoteCommentSideEffect, NoteService
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
@@ -33,11 +35,22 @@ class OptimisticDiff:
         attempt: cython.size_t = 0
 
         while True:
+            side_effects: list[NoteCommentSideEffect] = []
             try:
                 async with db(True) as conn:
                     prep = OptimisticDiffPrepare(conn, elements)
                     await prep.prepare()
-                    return await OptimisticDiffApply.apply(prep)
+                    result = await OptimisticDiffApply.apply(prep)
+
+                    if prep.apply_elements and 'size_limit_reached' in prep.changeset:
+                        await ChangesetService.close_tagged_notes(
+                            prep.changeset['tags'],
+                            note_close_authorized=prep.changeset[
+                                'note_close_authorized'
+                            ],
+                            conn=conn,
+                            deferred_side_effects=side_effects,
+                        )
             except* (OptimisticDiffError, OperationalError) as e:
                 attempt += 1
 
@@ -65,3 +78,9 @@ class OptimisticDiff:
                 await asyncio.sleep(sleep)
                 sleep = uniform(sleep * 1.5, sleep * 2.5)
                 sleep = min(sleep, sleep_limit)
+            else:
+                await NoteService.run_comment_side_effects(
+                    side_effects,
+                    best_effort=True,
+                )
+                return result
