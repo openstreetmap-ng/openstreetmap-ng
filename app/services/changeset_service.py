@@ -38,11 +38,14 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
+from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, NoteId, UserId
 from app.queries.changeset_query import ChangesetQuery
+from app.queries.note_query import NoteQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -108,11 +111,12 @@ class ChangesetService:
     async def close(changeset_id: ChangesetId):
         """Close a changeset."""
         user_id = auth_user(required=True)['id']
+        note_closures: list[tuple[NoteId, str]] = []
 
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +128,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +146,14 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+            note_closures = await _get_note_closures_from_changeset_tags(tags)
+
+        for note_id, text in note_closures:
+            await NoteService.comment(
+                note_id,
+                text,
+                GetCommentsResponse_Comment_Event.Value('closed'),
+            )
 
     @staticmethod
     @asynccontextmanager
@@ -284,6 +297,53 @@ async def _close_inactive():
 
     if rowcount:
         logging.debug('Closed %d inactive changesets', rowcount)
+
+
+async def _get_note_closures_from_changeset_tags(
+    tags: dict[str, str],
+) -> list[tuple[NoteId, str]]:
+    raw_ids = tags.get('closes:note')
+    if not raw_ids:
+        return []
+
+    default_comment = tags.get('closes:note:comment') or tags.get('comment') or ''
+    per_note_comments: dict[NoteId, str] = {}
+    note_ids: list[NoteId] = []
+    seen = set[NoteId]()
+
+    for key, value in tags.items():
+        if not (key.startswith('closes:note:') and key.endswith(':comment')):
+            continue
+        raw_note_id = key[len('closes:note:') : -len(':comment')]
+        if raw_note_id == 'comment' or not raw_note_id.isdigit():
+            continue
+        per_note_comments[NoteId(int(raw_note_id))] = value
+
+    for raw_note_id in raw_ids.split(';'):
+        raw_note_id = raw_note_id.strip()
+        if not raw_note_id or not raw_note_id.isdigit():
+            continue
+        note_id = NoteId(int(raw_note_id))
+        if note_id in seen:
+            continue
+        seen.add(note_id)
+        note_ids.append(note_id)
+
+    if not note_ids:
+        return []
+
+    notes = await NoteQuery.find(note_ids=note_ids, limit=len(note_ids))
+    available = {
+        note['id']
+        for note in notes
+        if note['closed_at'] is None and note['hidden_at'] is None
+    }
+
+    return [
+        (note_id, per_note_comments.get(note_id, default_comment))
+        for note_id in note_ids
+        if note_id in available
+    ]
 
 
 async def _delete_empty():
