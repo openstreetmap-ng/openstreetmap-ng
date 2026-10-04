@@ -396,6 +396,21 @@ service:
     title: YouTube
   other:
     title: Other
+site:
+  software:
+    title: Software
+    lede: Explore maintained OpenStreetMap tools by category, platform, license, and project status.
+    visit: Visit
+    result_count_one: "{{count}} software project"
+    result_count_other: "{{count}} software projects"
+    empty: No software projects match these filters.
+    filters:
+      search: Search
+      category: Category
+      platform: Platform
+      license: License
+      status: Status
+      all: All
 socials:
   move_up: Move up
   move_down: Move down
