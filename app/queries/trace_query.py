@@ -151,17 +151,22 @@ class TraceQuery:
     async def find_by_geom(
         geometry: Polygon | MultiPolygon,
         *,
-        identifiable_trackable: cython.bint,
+        identifiable_trackable: cython.bint = False,
+        visibility: list[str] | None = None,
         limit: int,
         legacy_offset: int | None = None,
+        preserve_trace_details: bool | None = None,
     ) -> list[Trace]:
         """Find traces by geometry. Returns traces with segments intersecting the provided geometry."""
         h3_cells = polygon_to_h3(geometry, max_resolution=11)
-        visibility = (
-            ['identifiable', 'trackable']
-            if identifiable_trackable
-            else ['public', 'private']
-        )
+        if visibility is None:
+            visibility = (
+                ['identifiable', 'trackable']
+                if identifiable_trackable
+                else ['public', 'private']
+            )
+        if preserve_trace_details is None:
+            preserve_trace_details = identifiable_trackable
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             chunks = await TimescaleDBQuery.get_chunks_ranges('trace', conn)
@@ -213,9 +218,9 @@ class TraceQuery:
             segments = np.split(new_points, split_indices)
             trace['segments'] = MultiLineString(segments)
 
-            if identifiable_trackable:
+            if preserve_trace_details:
                 # Reconstruct capture_times to match new segments
-                # Public/private visibility discards elevations and capture_times
+                # Simplified visibility groups discard elevations and capture_times.
                 elevations = trace['elevations']
                 if elevations is not None:
                     elevations_arr = np.array(elevations, np.object_)
@@ -227,10 +232,10 @@ class TraceQuery:
                     trace['capture_times'] = capture_times_arr[intersect_mask].tolist()
 
         traces = filtered_traces
-        if not traces or identifiable_trackable:
+        if not traces or preserve_trace_details:
             return traces
 
-        # For public/private, return a simplified representation
+        # For anonymized display surfaces, return a simplified representation.
         segments = MultiLineString([
             line  #
             for trace in traces
