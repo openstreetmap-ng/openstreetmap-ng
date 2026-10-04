@@ -1,9 +1,12 @@
 import logging
+from asyncio import TaskGroup, get_running_loop
+from contextlib import asynccontextmanager
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
 
-from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
+from app.config import TRACE_FILE_RECOMPRESS_ZSTD_LEVEL, TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.format.gpx import FormatGPX
@@ -20,12 +23,21 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_TG: TaskGroup | None = None
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        global _TG
+        async with (_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+        _TG = None
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -85,6 +97,7 @@ class TraceService:
         )
         logging.debug('Saved compressed trace file %r', trace_init['file_id'])
 
+        file_id = trace_init['file_id']
         try:
             # Insert into database
             async with db(True) as conn:
@@ -111,12 +124,14 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
-            await TRACE_STORAGE.delete(trace_init['file_id'])
+            await TRACE_STORAGE.delete(file_id)
             raise
+
+        _schedule_trace_file_recompression(trace_id, file_id, file)
+        return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +206,49 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+def _schedule_trace_file_recompression(
+    trace_id: TraceId, file_id: StorageKey, file_bytes: bytes
+):
+    task = _recompress_trace_file_safely(trace_id, file_id, file_bytes)
+    if _TG is not None:
+        _TG.create_task(task)
+    else:
+        get_running_loop().create_task(task)
+
+
+async def _recompress_trace_file_safely(
+    trace_id: TraceId, file_id: StorageKey, file_bytes: bytes
+):
+    try:
+        await _recompress_trace_file(trace_id, file_id, file_bytes)
+    except Exception:
+        logging.exception('Failed to recompress trace file %r', file_id)
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId, file_id: StorageKey, file_bytes: bytes
+):
+    result = await TraceFile.compress(
+        file_bytes,
+        level=TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
+    )
+    new_file_id = await TRACE_STORAGE.save(result.data, result.suffix, result.metadata)
+
+    try:
+        rowcount = await db_update(
+            'trace',
+            {'file_id': new_file_id},
+            where={'id': trace_id, 'file_id': file_id},
+        )
+    except Exception:
+        await TRACE_STORAGE.delete(new_file_id)
+        raise
+
+    if rowcount:
+        await TRACE_STORAGE.delete(file_id)
+        logging.debug('Recompressed trace file %r as %r', file_id, new_file_id)
+    else:
+        # The trace was deleted or its file changed while recompression was running.
+        await TRACE_STORAGE.delete(new_file_id)
