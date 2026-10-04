@@ -7,6 +7,7 @@ from random import uniform
 from time import monotonic
 
 import cython
+from psycopg import AsyncConnection
 from sentry_sdk.api import start_transaction
 
 from app.config import (
@@ -19,6 +20,7 @@ from app.db import (
     db_delete,
     db_fetchcol,
     db_fetchrow,
+    db_fetchrows,
     db_fetchval,
     db_insert,
     db_lock,
@@ -38,11 +40,18 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -112,7 +121,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +133,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +151,7 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+            await _close_tagged_notes(conn, changeset_user_id, tags)
 
     @staticmethod
     @asynccontextmanager
@@ -272,18 +283,67 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
-                updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
+    async with db(True) as conn:
+        rows = await db_fetchrows(
+            t"""
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
+                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
+                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                )
+                RETURNING user_id, tags
+            """,
+            conn=conn,
+        )
+        if rows:
+            for user_id, tags in rows:
+                await _close_tagged_notes(conn, user_id, tags)
+            logging.debug('Closed %d inactive changesets', len(rows))
 
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+
+def _parse_note_closure_tags(tags: dict[str, str] | None) -> dict[NoteId, str]:
+    """
+    Parse ``closes:note`` changeset tags into a {note_id: comment} mapping.
+
+    Tag format:
+        closes:note = "1;2;3"             # semicolon-separated note ids
+        closes:note:comment = "global"    # optional default comment for all notes
+        closes:note:ID:comment = "text"   # optional per-note comment override
+
+    The changeset's own ``comment`` tag is used as the default comment when
+    ``closes:note:comment`` is absent. Invalid ids (non-numeric, zero, or
+    duplicates) are silently skipped.
+    """
+    if not tags:
+        return {}
+
+    raw = tags.get('closes:note')
+    if not raw:
+        return {}
+
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+    result: dict[NoteId, str] = {}
+    for part in raw.split(';'):
+        part = part.strip()
+        if not part.isdecimal():
+            continue
+        note_id = NoteId(int(part))
+        if note_id == 0 or note_id in result:
+            continue
+        result[note_id] = tags.get(f'closes:note:{note_id}:comment', default_comment)
+    return result
+
+
+async def _close_tagged_notes(
+    conn: AsyncConnection,
+    user_id: UserId | None,
+    tags: dict[str, str] | None,
+) -> None:
+    """Close all notes referenced by ``closes:note`` changeset tags."""
+    for note_id, comment in _parse_note_closure_tags(tags).items():
+        await NoteService.close_if_open(note_id, comment, user_id, conn=conn)
 
 
 async def _delete_empty():
