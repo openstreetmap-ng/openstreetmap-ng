@@ -10,7 +10,7 @@ async def test_note_comments_resolve_rich_text():
     user = await UserQuery.find_by_display_name(DisplayName('user1'))
     with auth_context(user, frozenset(('web_user',))):
         note_id = await NoteService.create(
-            0, 0, test_note_comments_resolve_rich_text.__qualname__
+            1, 1, test_note_comments_resolve_rich_text.__qualname__
         )
         header = await NoteCommentQuery.find_header(note_id)
         assert header is not None
