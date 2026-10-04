@@ -43,6 +43,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -112,7 +113,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +125,7 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +142,10 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+            notifications = await NoteService.close_from_changeset(conn, user_id, tags)
+
+        await NoteService.notify_changeset_closures(notifications)
 
     @staticmethod
     @asynccontextmanager
@@ -272,18 +277,25 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
+    async with db(True) as conn:
+        async with await conn.execute(t"""
+            UPDATE changeset
+            SET closed_at = statement_timestamp(), updated_at = DEFAULT
+            WHERE closed_at IS NULL AND (
                 updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
-
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT}
+            )
+            RETURNING user_id, tags
+        """) as cursor:
+            rows = await cursor.fetchall()
+        notifications = []
+        for user_id, tags in rows:
+            notifications.extend(
+                await NoteService.close_from_changeset(conn, user_id, tags)
+            )
+    await NoteService.notify_changeset_closures(notifications)
+    if rows:
+        logging.debug('Closed %d inactive changesets', len(rows))
 
 
 async def _delete_empty():
