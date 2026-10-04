@@ -9,6 +9,7 @@ import {
   type Map as MaplibreMap,
   Marker,
 } from "maplibre-gl"
+import { unwrapLongitude } from "../geometry"
 import { emptyFeatureCollection, type LayerId, layersConfig } from "../layers/layers"
 
 const LAYER_ID: LayerId = "location-filter" as LayerId
@@ -97,10 +98,7 @@ export class LocationFilterControl implements IControl {
   }
 
   public getBounds() {
-    let [minLon, minLat, maxLon, maxLat] = this._bounds
-    if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
-    if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
-    return new LngLatBounds([minLon, minLat, maxLon, maxLat])
+    return new LngLatBounds(normalizeFilterBounds(this._bounds))
   }
 
   private _processMarkerUpdate(i: number) {
@@ -198,10 +196,21 @@ const createCornerElement = () => {
   return container
 }
 
-const getMaskData = ([minLon, minLat, maxLon, maxLat]: Bounds): Feature<Polygon> => {
-  // Normalize bounds
-  if (minLon > maxLon) [minLon, maxLon] = [maxLon, minLon]
+const normalizeFilterBounds = ([minLon, minLat, maxLon, maxLat]: Bounds): Bounds => {
+  // Normalize latitude only. Longitude order carries antimeridian intent:
+  // small inverted spans are normal handle inversions, while wider jumps should
+  // remain dateline crossings and render as two mask holes.
+  if (Math.abs(maxLon - minLon) < 180 && minLon > maxLon)
+    [minLon, maxLon] = [maxLon, minLon]
   if (minLat > maxLat) [minLat, maxLat] = [maxLat, minLat]
+
+  maxLon = unwrapLongitude(maxLon, minLon)
+  return [minLon, minLat, maxLon, maxLat]
+}
+
+const getMaskData = (bounds: Bounds): Feature<Polygon> => {
+  let [minLon, minLat, maxLon, maxLat] = normalizeFilterBounds(bounds)
+
   minLon = wrapLongitude(minLon)
   maxLon = wrapLongitude(maxLon)
 
