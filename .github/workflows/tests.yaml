@@ -36,4 +36,8 @@ jobs:
 
       - name: Run tests
         run: |
-          nix-shell --pure --run "run-tests --extended --term"
+          if [[ "${{ matrix.implementation }}" == "cython" ]]; then
+            nix-shell --pure --run "RUN_TESTS_SKIP_COVERAGE=1 run-tests --extended --term"
+          else
+            nix-shell --pure --run "run-tests --extended --term"
+          fi
