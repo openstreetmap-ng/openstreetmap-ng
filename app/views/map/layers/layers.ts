@@ -389,6 +389,59 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+export const syncAerialOverlayLabelOrder = (map: MaplibreMap) => {
+  let baseLayerId: LayerId | null = null
+  for (const extendedLayerId of map.getLayersOrder()) {
+    const layerId = resolveExtendedLayerId(extendedLayerId)
+    if (layersConfig.get(layerId)?.isBaseLayer) baseLayerId = layerId
+  }
+  if (baseLayerId === null) return
+
+  const vectorStyle = layersConfig.get(baseLayerId)?.vectorStyle
+  if (!vectorStyle) return
+
+  const placeLayerIds = vectorStyle.layers
+    .filter((layer) => layer.type === "symbol" && layer["source-layer"] === "place")
+    .map((layer) => getExtendedLayerId(baseLayerId, layer.id as LayerType))
+  if (placeLayerIds.length === 0) return
+
+  const layerOrder = map.getLayersOrder()
+  const getLayerPriority = (extendedLayerId: string) =>
+    layersConfig.get(resolveExtendedLayerId(extendedLayerId))?.priority ?? 0
+
+  if (map.getProjection().type === "globe" && map.getLayer(AERIAL_LAYER_ID)) {
+    const aerialPriority = layersConfig.get(AERIAL_LAYER_ID)?.priority ?? 0
+    const beforeId = layerOrder.find(
+      (extendedLayerId) => getLayerPriority(extendedLayerId) > aerialPriority,
+    )
+    for (const placeLayerId of placeLayerIds) {
+      if (map.getLayer(placeLayerId)) map.moveLayer(placeLayerId, beforeId)
+    }
+    return
+  }
+
+  // Restore the vector style's own order when the globe overlay is not active.
+  for (let index = vectorStyle.layers.length - 1; index >= 0; index--) {
+    const layer = vectorStyle.layers[index]!
+    if (layer.type !== "symbol" || layer["source-layer"] !== "place") continue
+
+    const layerId = getExtendedLayerId(baseLayerId, layer.id as LayerType)
+    if (!map.getLayer(layerId)) continue
+
+    const nextStyleLayer = vectorStyle.layers.slice(index + 1).find((nextLayer) => {
+      const nextLayerId = getExtendedLayerId(baseLayerId, nextLayer.id as LayerType)
+      return Boolean(map.getLayer(nextLayerId))
+    })
+    const basePriority = layersConfig.get(baseLayerId)?.priority ?? 0
+    const beforeId = nextStyleLayer
+      ? getExtendedLayerId(baseLayerId, nextStyleLayer.id as LayerType)
+      : layerOrder.find(
+          (extendedLayerId) => getLayerPriority(extendedLayerId) > basePriority,
+        )
+    map.moveLayer(layerId, beforeId)
+  }
+}
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -508,6 +561,10 @@ export const addMapLayer = (
       }
     })
   }
+
+  if (config.isBaseLayer || layerId === AERIAL_LAYER_ID) {
+    syncAerialOverlayLabelOrder(map)
+  }
 }
 
 export const removeMapLayer = (
@@ -548,6 +605,10 @@ export const removeMapLayer = (
           handler(false, layerId, config)
         }
       })
+    }
+
+    if (config.isBaseLayer || layerId === AERIAL_LAYER_ID) {
+      syncAerialOverlayLabelOrder(map)
     }
   } else {
     console.debug("Layers: Nothing to remove", layerId)
