@@ -1,6 +1,10 @@
 import logging
+from asyncio import CancelledError, TaskGroup
+from contextlib import asynccontextmanager
+from contextvars import Context
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
@@ -20,12 +24,26 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_RECOMPRESS_TASKS: TaskGroup | None = None
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        """Drain trace recompression tasks before the database pool closes."""
+        global _RECOMPRESS_TASKS
+        previous_tasks = _RECOMPRESS_TASKS
+        try:
+            async with TaskGroup() as tasks:
+                _RECOMPRESS_TASKS = tasks
+                yield
+        finally:
+            _RECOMPRESS_TASKS = previous_tasks
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +129,21 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # The task must see the committed trace, without retaining request context.
+        if _RECOMPRESS_TASKS is not None:
+            coroutine = _recompress(trace_id, trace_init['file_id'], file)
+            try:
+                _RECOMPRESS_TASKS.create_task(coroutine, context=Context())
+            except Exception:
+                coroutine.close()
+                logging.exception('Unable to schedule trace %d recompression', trace_id)
+        return trace_id
 
     @staticmethod
     async def update(
@@ -173,6 +200,7 @@ class TraceService:
             file_id = await db_fetchval(
                 StorageKey,
                 t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                for_update=True,
                 conn=conn,
             )
             if file_id is None:
@@ -191,3 +219,58 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress(trace_id: TraceId, original_id: StorageKey, file: bytes):
+    """Replace a trace's initial compressed file without delaying its upload."""
+    replacement_id: StorageKey | None = None
+    try:
+        result = await TraceFile.compress(file, level=22)
+        replacement_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+        async with db(True) as conn:
+            replaced = await db_update(
+                'trace',
+                {'file_id': replacement_id},
+                where={'id': trace_id, 'file_id': original_id},
+                conn=conn,
+            )
+    except (Exception, CancelledError) as e:
+        logging.exception('Unable to recompress trace %d', trace_id)
+        if replacement_id is not None:
+            # A failed commit can have applied: never delete a referenced file.
+            await _cleanup_recompression(trace_id, original_id, replacement_id)
+        if isinstance(e, CancelledError):
+            raise
+        return
+
+    obsolete_id = original_id if replaced else replacement_id
+    try:
+        await TRACE_STORAGE.delete(obsolete_id)
+    except Exception:
+        logging.exception('Unable to remove obsolete trace file %r', obsolete_id)
+
+
+async def _cleanup_recompression(
+    trace_id: TraceId, original_id: StorageKey, replacement_id: StorageKey
+):
+    """Resolve an uncertain transaction before removing unreferenced files."""
+    try:
+        async with db(True) as conn:
+            current_id = await db_fetchval(
+                StorageKey,
+                t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                for_update=True,
+                conn=conn,
+            )
+    except Exception:
+        logging.exception('Unable to reconcile trace %d; retaining files', trace_id)
+        return
+
+    for file_id in (original_id, replacement_id):
+        if file_id != current_id:
+            try:
+                await TRACE_STORAGE.delete(file_id)
+            except Exception:
+                logging.exception('Unable to remove obsolete trace file %r', file_id)
