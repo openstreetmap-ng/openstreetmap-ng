@@ -102,7 +102,8 @@ class NoteQuery:
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
-                    AND to_tsvector('simple', body) @@ phraseto_tsquery({phrase})
+                    AND to_tsvector('simple', body || E'\\n' || COALESCE(tags -> 'hashtags', ''))
+                        @@ phraseto_tsquery({phrase})
                 )
             """
             if phrase is not None
@@ -198,7 +199,7 @@ class NoteCommentQuery:
         return await db_fetchall(
             NoteComment,
             t"""
-                SELECT * FROM note_comment
+                SELECT note_comment.* FROM note_comment
                 JOIN note ON note_id = note.id
                 WHERE {where:q}
                 ORDER BY id DESC

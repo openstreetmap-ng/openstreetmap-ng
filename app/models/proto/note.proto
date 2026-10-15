@@ -115,10 +115,16 @@ message GetCommentsResponse {
       hidden = 4;
     }
 
+    message TagSnapshot {
+      map<string, string> tags = 1;
+    }
+
     optional User user = 1;
     Event event = 2;
     uint64 created_at = 3;
     string body_rich = 4;
+    // Present only when this comment changed the note's tags, including clears.
+    optional TagSnapshot tag_snapshot = 5;
   }
 
   StandardPaginationState state = 1 [(buf.validate.field).required = true];
@@ -126,12 +132,23 @@ message GetCommentsResponse {
 }
 
 message AddCommentRequest {
+  message TagUpdate {
+    map<string, string> tags = 1 [(buf.validate.field).map = {
+      max_pairs: 600
+      keys: {string: {min_len: 1, max_len: 63}}
+      values: {string: {min_len: 1, max_len: 255}}
+    }];
+  }
+
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
   GetCommentsResponse.Comment.Event event = 2 [(buf.validate.field).enum = {
     defined_only: true
     not_in: [0]
   }];
   string body = 3 [(buf.validate.field).string.max_len = 2000];
+  // Absent uses legacy text extraction; present replaces all current tags.
+  // An empty map explicitly clears tags.
+  optional TagUpdate tag_update = 4;
 }
 
 message AddCommentResponse {
@@ -152,4 +169,5 @@ message Data {
   Header header = 4 [(buf.validate.field).required = true];
   bool is_subscribed = 5;
   optional uint32 disappear_days = 6;
+  map<string, string> tags = 7;
 }

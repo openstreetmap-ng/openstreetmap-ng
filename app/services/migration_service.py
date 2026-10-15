@@ -16,8 +16,10 @@ from app.db import (
     db_fetchrows,
     db_fetchval,
     db_insert,
+    db_update,
 )
 from app.lib.auth.crypto import hash_bytes
+from app.lib.text.note_hashtags import extract_note_hashtags
 from app.models.types import ChangesetId
 from app.services.admin_task_service import register_admin_task
 from app.utils import calc_num_workers
@@ -33,6 +35,104 @@ _MIGRATIONS_DIR = Path('app/migrations')
 
 
 class MigrationService:
+    @staticmethod
+    @register_admin_task
+    async def backfill_note_hashtags(
+        *,
+        before_comment_id: int,
+        start_note_id: int = 1,
+        batch_size: int = 100,
+        dry_run: bool = True,
+    ):
+        """Migrate one batch of legacy comments; see docs/note-hashtag-backfill.md.
+
+        before_comment_id is inclusive and must be captured before deploying the
+        structured-tag schema. Pause note writes throughout the migration.
+        """
+        if before_comment_id < 0 or start_note_id < 1 or batch_size < 1:
+            raise ValueError('Invalid note hashtag migration bounds')
+
+        changed_comments = 0
+        changed_notes = 0
+        async with db(True) as conn:
+            rows = await db_fetchrows(
+                t"""
+                    SELECT id FROM note
+                    WHERE id >= {start_note_id}
+                    AND EXISTS (
+                        SELECT 1 FROM note_comment
+                        WHERE note_id = note.id AND id <= {before_comment_id}
+                    )
+                    ORDER BY id
+                    LIMIT {batch_size}
+                """,
+                conn=conn,
+            )
+            for (note_id,) in rows:
+                note = await db_fetchrow(
+                    t'SELECT tags FROM note WHERE id = {note_id} FOR UPDATE',
+                    conn=conn,
+                )
+                if note is None:
+                    continue
+                comments = await db_fetchrows(
+                    t"""
+                        SELECT id, body, tags FROM note_comment
+                        WHERE note_id = {note_id}
+                        ORDER BY id
+                    """,
+                    conn=conn,
+                )
+                current_tags: dict[str, str] = {}
+                for comment_id, body, tags in comments:
+                    if tags is not None:
+                        # Previously migrated and newer explicit snapshots win,
+                        # including an empty dictionary that cleared all tags.
+                        current_tags = tags
+                        continue
+                    if comment_id > before_comment_id:
+                        continue
+                    clean_body, extracted = extract_note_hashtags(body)
+                    if extracted is None:
+                        continue
+                    snapshot = {**current_tags, **extracted}
+                    if snapshot == current_tags:
+                        # Match the live write path: repeated hashtags stay text.
+                        continue
+                    current_tags = snapshot
+                    changed_comments += 1
+                    if not dry_run:
+                        await db_update(
+                            'note_comment',
+                            {
+                                'body': clean_body,
+                                'tags': snapshot,
+                                'body_rich_hash': None,
+                            },
+                            where={'id': comment_id},
+                            conn=conn,
+                        )
+                if current_tags != note[0]:
+                    changed_notes += 1
+                    if not dry_run:
+                        await db_update(
+                            'note',
+                            {'tags': current_tags},
+                            where={'id': note_id},
+                            conn=conn,
+                        )
+
+        next_note_id = rows[-1][0] + 1 if len(rows) == batch_size else None
+        result = {
+            'notes_scanned': len(rows),
+            'changed_notes': changed_notes,
+            'changed_comments': changed_comments,
+            'next_note_id': next_note_id,
+            'dry_run': dry_run,
+        }
+        logging.info('Note hashtag backfill batch: %s', result)
+        return result
+
     @staticmethod
     async def fix_sequence_counters():
         """Fix the sequence counters."""

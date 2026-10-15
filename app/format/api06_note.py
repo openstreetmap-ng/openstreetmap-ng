@@ -6,7 +6,7 @@ from app.lib.render import format_style
 from app.lib.render.jinja import render_jinja
 from app.lib.time.date_utils import format_sql_date, legacy_date
 from app.models.db.note import Note, note_status
-from app.models.db.note_comment import NoteComment
+from app.models.db.note_comment import NoteComment, note_comment_text
 from speedup import CDATA
 
 
@@ -74,7 +74,7 @@ def _encode_note_comment(comment: NoteComment):
             else {}
         ),
         'action': comment['event'],
-        'text': comment['body'],
+        'text': note_comment_text(comment),
         'html': comment['body_rich'],  # pyright: ignore [reportTypedDictNotRequiredAccess]
     }
 

@@ -42,7 +42,11 @@ import {
 import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
+import { useId } from "preact/hooks"
 import { showLoginModal } from "../user/login"
+import { buildNoteTagUpdate } from "./_note-hashtag-helpers"
+import { NoteHashtagInput } from "./_note-hashtag-input"
+import { NoteTags } from "./_note-tags"
 
 const THEME_COLOR = "#f60"
 const focusPaint: FocusLayerPaint = {
@@ -93,6 +97,12 @@ const NoteComment = ({ comment }: { comment: GetCommentsResponse_CommentValid })
       />
     ) : (
       <div class="mb-2" />
+    )}
+    {comment.tagSnapshot && (
+      <NoteTags
+        tags={comment.tagSnapshot.tags}
+        snapshot
+      />
     )}
   </li>
 )
@@ -154,13 +164,17 @@ type CommentResult = {
 const CommentForm = ({
   noteId,
   status,
+  tags,
   onSuccess,
 }: {
   noteId: bigint
   status: Status
+  tags: Record<string, string>
   onSuccess: (result: CommentResult) => void
 }) => {
   const commentText = useSignal("")
+  const editTags = useSignal(false)
+  const editTagsId = useId()
 
   const hasText = commentText.value.length > 0
 
@@ -168,6 +182,16 @@ const CommentForm = ({
     id: noteId,
     event: Event[formData.get("event") as keyof typeof Event],
     body: (formData.get("body") ?? "") as string,
+    ...(editTags.value
+      ? {
+          tagUpdate: {
+            tags: buildNoteTagUpdate(
+              tags,
+              formData.getAll("hashtags") as string[],
+            ),
+          },
+        }
+      : {}),
   })
 
   if (status === Status.open) {
@@ -178,6 +202,7 @@ const CommentForm = ({
         resetOnSuccess
         onSuccess={(result, ctx) => {
           commentText.value = ""
+          editTags.value = false
           onSuccess({
             result,
             reloadnoteslayer: ctx.request.event !== Event.commented,
@@ -191,6 +216,24 @@ const CommentForm = ({
           maxLength={NOTE_COMMENT_BODY_MAX_LENGTH}
           onInput={(e) => (commentText.value = e.currentTarget.value.trim())}
         />
+        <div class="form-check mb-3">
+          <input
+            id={editTagsId}
+            type="checkbox"
+            class="form-check-input"
+            checked={editTags.value}
+            onChange={(e) => (editTags.value = e.currentTarget.checked)}
+          />
+          <label
+            class="form-check-label"
+            for={editTagsId}
+          >
+            {t("note.edit_hashtags")}
+          </label>
+        </div>
+        {editTags.value && (
+          <NoteHashtagInput initialValues={(tags.hashtags ?? "").split(";")} />
+        )}
         <div class="row g-1">
           <div class="col">
             {isModerator && (
@@ -218,7 +261,7 @@ const CommentForm = ({
               type="submit"
               name="event"
               value="commented"
-              disabled={!hasText}
+              disabled={!hasText && !editTags.value}
             >
               {t("action.comment")}
             </button>
@@ -406,6 +449,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
           </SidebarHeader>
 
           <NoteHeader data={d} />
+          <NoteTags tags={d.tags} />
 
           {/* Location */}
           <p class="location-container mb-0">
@@ -506,6 +550,7 @@ const NoteSidebar = ({ map, id }: { map: MaplibreMap; id: ReadonlySignal<bigint>
             <CommentForm
               noteId={d.id}
               status={d.status}
+              tags={d.tags}
               onSuccess={({ result, reloadnoteslayer }) => {
                 resource.value = { tag: "ready", data: result.note }
                 preloadedComments.value = result.comments
