@@ -252,6 +252,7 @@ mountProtoPage(
                           avatarFile: await formDataBytes(formData, "avatar_file"),
                         })}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+                        onError={() => (avatarFileInputRef.current!.value = "")}
                       >
                         <input
                           class="visually-hidden"
