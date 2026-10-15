@@ -17,6 +17,7 @@ from app.config import (
 from app.db import (
     db,
     db_delete,
+    db_fetchall,
     db_fetchcol,
     db_fetchrow,
     db_fetchval,
@@ -26,7 +27,7 @@ from app.db import (
 )
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
-from app.lib.auth.context import auth_user
+from app.lib.auth.context import auth_context, auth_user
 from app.lib.http.retry import retry
 from app.lib.telemetry.sentry import (
     SENTRY_CHANGESET_MANAGEMENT_MONITOR,
@@ -34,6 +35,7 @@ from app.lib.telemetry.sentry import (
 )
 from app.lib.telemetry.testmethod import testmethod
 from app.lib.text.translation import t, translation_context
+from app.models.db.changeset import Changeset
 from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
@@ -43,6 +45,7 @@ from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
+from app.services.note_service import NoteService
 from app.services.user_subscription_service import UserSubscriptionService
 
 _PROCESS_REQUEST_EVENT = Event()
@@ -112,7 +115,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +127,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +145,10 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+            note_comments = await NoteService.close_for_changeset(tags, conn)
+
+        await NoteService.notify_comments(note_comments)
 
     @staticmethod
     @asynccontextmanager
@@ -271,19 +279,44 @@ async def _process_task():
 
 
 async def _close_inactive():
-    """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
-                updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
+    """Close inactive changesets and their tagged notes in one transaction."""
+    notifications = []
+    async with db(True) as conn:
+        changesets = await db_fetchall(
+            Changeset,
+            t"""
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
+                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
+                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                )
+                RETURNING *
+            """,
+            conn=conn,
+        )
+        for changeset in changesets:
+            if not changeset['tags'].get('closes:note'):
+                continue
+            user_id = changeset['user_id']
+            if user_id is None:
+                continue
+            user = await UserQuery.find_by_id(user_id)
+            if user is None:
+                continue
+            with auth_context(user):
+                comments = await NoteService.close_for_changeset(
+                    changeset['tags'], conn
+                )
+            notifications.append((user, comments))
 
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+    for user, comments in notifications:
+        with auth_context(user):
+            await NoteService.notify_comments(comments)
+
+    if changesets:
+        logging.debug('Closed %d inactive changesets', len(changesets))
 
 
 async def _delete_empty():
