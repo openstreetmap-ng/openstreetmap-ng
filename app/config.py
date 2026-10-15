@@ -603,6 +603,9 @@ REQUEST_BODY_MAX_SIZE = max(TRACE_FILE_UPLOAD_MAX_SIZE, XML_PARSE_MAX_SIZE) + _B
     '8 KiB'
 )
 
+# Leave room for the protobuf envelope within the existing request-body limit.
+IMAGE_UPLOAD_MAX_SIZE = REQUEST_BODY_MAX_SIZE - _ByteSize('8 KiB')
+
 # -------------------- Logging configuration --------------------
 
 dictConfig({
