@@ -208,6 +208,114 @@ const ChangesetComment = ({
   </li>
 )
 
+const getChangesetDiffUrl = (changesetId: bigint) =>
+  `https://overpass-api.de/achavi/?changeset=${changesetId}`
+
+const getOsmChaUrl = (changesetId: bigint) =>
+  `https://osmcha.org/changesets/${changesetId}`
+
+const ChangesetDiffPanel = ({
+  changesetId,
+  onClose,
+}: {
+  changesetId: bigint
+  onClose: () => void
+}) => {
+  const diffUrl = getChangesetDiffUrl(changesetId)
+  const osmchaUrl = getOsmChaUrl(changesetId)
+  return (
+    <section class="changeset-diff-panel mt-3 mb-3">
+      <div class="d-flex align-items-center justify-content-between gap-2 p-2 border-bottom">
+        <div>
+          <h4 class="h6 mb-0">{t("changeset.diff_title")}</h4>
+          <p class="small text-muted mb-0">
+            {t("changeset.diff_description")}
+          </p>
+        </div>
+        <button
+          class="btn-close"
+          type="button"
+          aria-label={t("javascripts.close")}
+          onClick={onClose}
+        />
+      </div>
+      <iframe
+        src={diffUrl}
+        title={t("changeset.diff_title")}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
+      />
+      <div class="p-2 d-flex align-items-center justify-content-between gap-2">
+        <div class="d-flex gap-2">
+          <a
+            class="btn btn-sm btn-outline-primary"
+            href={diffUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="bi bi-box-arrow-up-right me-1" />
+            {t("changeset.diff_open_full")}
+          </a>
+          <a
+            class="btn btn-sm btn-outline-secondary"
+            href={osmchaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="bi bi-box-arrow-up-right me-1" />
+            OSMCha
+          </a>
+        </div>
+        <button
+          class="btn btn-sm btn-secondary"
+          type="button"
+          onClick={onClose}
+        >
+          {t("changeset.diff_close")}
+        </button>
+      </div>
+    </section>
+  )
+}
+
+const ChangesetDiffToggle = ({
+  changesetId,
+  isDiffOpen,
+}: {
+  changesetId: bigint
+  isDiffOpen: Signal<boolean>
+}) => {
+  const isOpen = isDiffOpen.value
+
+  return (
+    <>
+      <div class="d-grid mt-3">
+        <button
+          class={`btn btn-sm ${isOpen ? "btn-primary" : "btn-outline-primary"}`}
+          type="button"
+          aria-expanded={isOpen}
+          onClick={() => {
+            isDiffOpen.value = !isOpen
+          }}
+        >
+          <i class="bi bi-bezier2 me-1" />
+          {isOpen ? t("changeset.hide_diff") : t("changeset.open_diff")}
+        </button>
+      </div>
+
+      {isOpen && (
+        <ChangesetDiffPanel
+          changesetId={changesetId}
+          onClose={() => {
+            isDiffOpen.value = false
+          }}
+        />
+      )}
+    </>
+  )
+}
+
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
@@ -267,6 +375,32 @@ const ChangesetFooter = ({ data }: { data: DataValid }) => {
         <a href={`${API_URL}/api/0.6/changeset/${changesetIdStr}/download`}>
           {t("browse.changeset.osmchangexml")}
         </a>
+        <span
+          class="mx-1"
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <a
+          href={getChangesetDiffUrl(data.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Achavi
+        </a>
+        <span
+          class="mx-1"
+          aria-hidden="true"
+        >
+          ·
+        </span>
+        <a
+          href={getOsmChaUrl(data.id)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          OSMCha
+        </a>
       </small>
     </div>
   )
@@ -315,6 +449,7 @@ const ChangesetSidebar = ({
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
+  const isDiffOpen = useSignal(false)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
@@ -377,6 +512,11 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+
+            <ChangesetDiffToggle
+              changesetId={d.id}
+              isDiffOpen={isDiffOpen}
+            />
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
