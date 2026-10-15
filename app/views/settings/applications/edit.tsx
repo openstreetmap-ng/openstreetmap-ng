@@ -4,7 +4,7 @@ import { formDataBytes, StandardForm } from "@components/standard-form"
 import { useSignal } from "@preact/signals"
 import { EditPageSchema, Service } from "@proto/settings_applications_pb"
 import { Scope } from "@proto/shared_pb"
-import { OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
+import { OAUTH_APP_NAME_MAX_LENGTH, REQUEST_BODY_MAX_SIZE } from "@utils/config"
 import { throwAbortError } from "@utils/dom-helpers"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -249,7 +249,9 @@ mountProtoPage(
                         method={Service.method.updateAvatar}
                         buildRequest={async ({ formData }) => ({
                           id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
+                          avatarFile: await formDataBytes(formData, "avatar_file", {
+                            maxSize: REQUEST_BODY_MAX_SIZE,
+                          }),
                         })}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
