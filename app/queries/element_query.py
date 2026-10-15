@@ -510,6 +510,28 @@ class ElementQuery:
         )
 
     @staticmethod
+    async def find_changeset_null_island_nodes(
+        changeset_id: ChangesetId,
+        *,
+        exclude: list[TypedElementId],
+        conn: AsyncConnection,
+    ) -> list[TypedElementId]:
+        """Find a current null-island node from earlier uploads."""
+        return await db_fetchcol(
+            TypedElementId,
+            t"""
+                SELECT typed_id FROM element
+                WHERE changeset_id = {changeset_id}
+                  AND latest AND visible
+                  AND typed_id <= {TYPED_ELEMENT_ID_NODE_MAX}
+                  AND NOT (typed_id = ANY({exclude}))
+                  AND ST_X(point) = 0 AND ST_Y(point) = 0
+                LIMIT 1
+            """,
+            conn=conn,
+        )
+
+    @staticmethod
     async def find_by_geom(
         geometry: BaseGeometry,
         *,
