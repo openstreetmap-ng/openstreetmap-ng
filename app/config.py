@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from buf.validate import validate_pb2
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
 from google.protobuf.message import Message
+from PIL import Image as _PILImage
 from pydantic import (
     AliasChoices,
     BaseModel,
@@ -36,7 +38,6 @@ from app.models.proto import (
     settings_security_pb2,
     trace_pb2,
 )
-from buf.validate import validate_pb2
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -165,6 +166,9 @@ USER_PENDING_EXPIRE = timedelta(days=365)  # 1 year
 USER_SCHEDULED_DELETE_DELAY = timedelta(days=7)
 
 # Profile
+IMAGE_DECODE_MAX_PIXELS = (
+    2 * _PILImage.MAX_IMAGE_PIXELS if _PILImage.MAX_IMAGE_PIXELS is not None else None
+)
 AVATAR_MAX_FILE_SIZE = _ByteSize('80 KiB')
 AVATAR_MAX_MEGAPIXELS = 384 * 384  # (resolution)
 AVATAR_MAX_RATIO = 2.0

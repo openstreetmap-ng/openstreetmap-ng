@@ -23,6 +23,7 @@ export const {
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
+  IMAGE_DECODE_MAX_PIXELS,
   LOCAL_CHAPTERS,
   MAP_QUERY_AREA_MAX_SIZE,
   MESSAGE_BODY_MAX_LENGTH,
@@ -35,6 +36,7 @@ export const {
   PASSKEY_LIMIT,
   PASSWORD_MIN_LENGTH,
   REPORT_COMMENT_BODY_MAX_LENGTH,
+  REQUEST_BODY_MAX_SIZE,
   SEARCH_QUERY_MAX_LENGTH,
   SENTRY_DSN,
   SENTRY_TRACES_SAMPLE_RATE,
@@ -61,6 +63,7 @@ export const {
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
+  IMAGE_DECODE_MAX_PIXELS: number | null
   LOCAL_CHAPTERS: { id: string; url: string }[]
   MAP_QUERY_AREA_MAX_SIZE: number
   MESSAGE_BODY_MAX_LENGTH: number
@@ -73,6 +76,7 @@ export const {
   PASSKEY_LIMIT: number
   PASSWORD_MIN_LENGTH: number
   REPORT_COMMENT_BODY_MAX_LENGTH: number
+  REQUEST_BODY_MAX_SIZE: number
   SEARCH_QUERY_MAX_LENGTH: number
   SENTRY_DSN: string
   SENTRY_TRACES_SAMPLE_RATE: number
@@ -112,6 +116,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
+        "IMAGE_DECODE_MAX_PIXELS",
         "LOCAL_CHAPTERS",
         "MAP_QUERY_AREA_MAX_SIZE",
         "MESSAGE_BODY_MAX_LENGTH",
@@ -124,6 +129,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "PASSKEY_LIMIT",
         "PASSWORD_MIN_LENGTH",
         "REPORT_COMMENT_BODY_MAX_LENGTH",
+        "REQUEST_BODY_MAX_SIZE",
         "SEARCH_QUERY_MAX_LENGTH",
         "SENTRY_DSN",
         "SENTRY_TRACES_SAMPLE_RATE",
