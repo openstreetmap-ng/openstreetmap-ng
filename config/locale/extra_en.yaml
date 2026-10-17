@@ -580,6 +580,8 @@ validation:
   you_can_send_message_to_at_most_count_recipients: "You can send a message to at most {{count}} recipients"
   you_can_add_at_most_count_tags: "You can add at most {{count}} tags"
   incomplete_location_information: Incomplete location information
+  image_not_readable: The selected image file could not be read
+  image_too_large: The selected image is too large
 action:
   go_back: Go back
   authorize: Authorize
