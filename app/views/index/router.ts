@@ -513,6 +513,17 @@ export function routerReplace<R extends CompiledRouteDef<any, any>>(
   assert(setPath("replace", path), `No route found for path: ${path}`)
 }
 
+/** Remove a transient query parameter while preserving the current map URL. */
+export const routerRemoveQueryParam = (key: string) => {
+  const url = new URL(location.href)
+  url.searchParams.delete(key)
+  const path = removeTrailingSlash(url.pathname) + url.search
+  assert(matchRoute(path), `No route found for path: ${path}`)
+  history.replaceState(history.state, "", url)
+  loadReason = "sync"
+  currentPath.value = path
+}
+
 export const configureRouter = (routeDefs: AnyRouteDef[]) => {
   compiledRouteVariants = routeDefs.flatMap((route, registrationIndex) =>
     route._pathVariants.map(({ tokens }, variantIndex) => ({

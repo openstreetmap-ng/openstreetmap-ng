@@ -1,8 +1,14 @@
 import { RemoteEditButton } from "@index/remote-edit"
-import { routerRemoteEditTarget } from "@index/router"
+import {
+  routerCtx,
+  routerRemoteEditTarget,
+  routerRemoveQueryParam,
+  routerRoute,
+} from "@index/router"
 import { useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
-import { useDisposeEffect } from "@utils/dispose-scope"
+import { isLoggedIn } from "@utils/config"
+import { useDisposeEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
 import { Dropdown, Tooltip } from "bootstrap"
@@ -51,6 +57,7 @@ const EditorImg = ({
 }
 
 const NavbarLeft = () => {
+  const editLinkRef = useRef<HTMLAnchorElement>(null)
   const dropdownRootRef = useRef<HTMLDivElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
@@ -85,6 +92,37 @@ const NavbarLeft = () => {
     if (prevDisabled) toggle.disabled = false
     dropdownRef.current!.hide()
     if (prevDisabled) toggle.disabled = true
+  })
+
+  // Effect: show the welcome tutorial until the next body click
+  useDisposeSignalEffect((scope) => {
+    if (
+      !isLoggedIn ||
+      !routerRoute.value ||
+      routerCtx.value.queryParams.edit_help?.at(-1) !== "1"
+    )
+      return
+
+    const tooltip = new Tooltip(editLinkRef.current!, {
+      title: t("javascripts.edit_help"),
+      placement: "bottom",
+      trigger: "manual",
+      animation: false,
+    })
+    scope.defer(() => {
+      tooltip.hide()
+      tooltip.dispose()
+    })
+    tooltip.show()
+    scope.dom(
+      document.body,
+      "click",
+      () => {
+        scope.dispose()
+        routerRemoveQueryParam("edit_help")
+      },
+      { once: true },
+    )
   })
 
   // Effect: uncheck "remember my choice" when dropdown closes
@@ -126,6 +164,7 @@ const NavbarLeft = () => {
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : undefined}
+          ref={editLinkRef}
         >
           {t("layouts.edit")}
           <EditorImg
