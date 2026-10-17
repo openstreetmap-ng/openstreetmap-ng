@@ -6,6 +6,7 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
@@ -21,7 +22,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetBoundsQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
