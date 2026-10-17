@@ -140,7 +140,8 @@ export const exportMapImage = async (
     ctx.fillText(attributionText, xPos + padding, yPos + padding, textWidth)
   }
 
-  // Export the canvas to an image
+  // Canvas.toBlob() exports raster images from the map canvas. SVG/PDF support
+  // should use a vector/server renderer such as https://render.openstreetmap.org/.
   return new Promise<Blob>((resolve, reject) => {
     exportCanvas.toBlob(
       (blob) => {
