@@ -6,6 +6,7 @@ import { Tags } from "@components/tags"
 import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { ElementsListRow, ElementsSection, getElementTypeLabel } from "@index/element"
+import { ChangesetDiff } from "@index/changeset-diff"
 import { defineRoute } from "@index/router"
 import { makeBoundsMinimumSize } from "@map/bounds"
 import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
@@ -74,8 +75,15 @@ const getChangesetElementsTitle = (type: ElementType) => {
   return (count: string) => t("browse.changeset.relation", { count })
 }
 
-const ChangesetHeader = ({ data }: { data: DataValid }) => {
+const ChangesetHeader = ({
+  data,
+  diffMode,
+}: {
+  data: DataValid
+  diffMode: Signal<boolean>
+}) => {
   const isOpen = !data.closedAt
+  const hasElements = data.nodes.length + data.ways.length + data.relations.length > 0
   return (
     <div class="changesets-list social-list mb-3">
       <div class="social-entry">
@@ -116,6 +124,21 @@ const ChangesetHeader = ({ data }: { data: DataValid }) => {
             numModify={data.numModify}
             numDelete={data.numDelete}
           />
+          <div class="text-end mt-2">
+            <button
+              class={`btn btn-sm ${diffMode.value ? "btn-primary" : "btn-soft"}`}
+              type="button"
+              disabled={!hasElements}
+              aria-pressed={diffMode.value}
+              onClick={() => (diffMode.value = !diffMode.value)}
+            >
+              <i
+                class="bi bi-intersect me-1"
+                aria-hidden="true"
+              />
+              {diffMode.value ? t("changeset.hide_diff") : t("changeset.view_diff")}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -314,6 +337,7 @@ const ChangesetSidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
+  const diffMode = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebar(
@@ -335,6 +359,7 @@ const ChangesetSidebar = ({
   })
 
   const refocus = (initial = false) => {
+    if (diffMode.peek()) return
     const d = data.value
     if (!d?.bounds.length) return
     const object: OSMChangeset = {
@@ -346,6 +371,19 @@ const ChangesetSidebar = ({
     }
     focusObjects(map, [object], focusPaint, null, initial ? {} : false)
   }
+
+  // Reset the local mode when the router reuses this sidebar for another ID.
+  useSignalEffect(() => {
+    if (id.value > 0n) diffMode.value = false
+  })
+
+  // Effect: keep the changeset outline and diff overlay mutually exclusive
+  useSignalEffect(() => {
+    const isDiffMode = diffMode.value
+    if (!data.value?.bounds.length) return
+    if (isDiffMode) focusObjects(map)
+    else refocus()
+  })
 
   // Effect: Map focus
   useDisposeSignalEffect((scope) => {
@@ -375,7 +413,16 @@ const ChangesetSidebar = ({
               </h2>
             </SidebarHeader>
 
-            <ChangesetHeader data={d} />
+            <ChangesetHeader
+              data={d}
+              diffMode={diffMode}
+            />
+            {diffMode.value && (
+              <ChangesetDiff
+                map={map}
+                data={d}
+              />
+            )}
             <Tags tags={d.tags} />
 
             {/* Report button */}
