@@ -126,6 +126,9 @@ class Exceptions:
     def diff_multiple_changesets(self) -> NoReturn:
         raise NotImplementedError
 
+    def diff_null_island(self) -> NoReturn:
+        raise NotImplementedError
+
     def diff_unsupported_action(self, action: str) -> NoReturn:
         raise NotImplementedError
 
