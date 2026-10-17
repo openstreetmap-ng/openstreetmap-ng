@@ -35,6 +35,9 @@ type GroupExample = {
   exclusive?: boolean
 }
 
+const AVATAR_MAX_FILE_SIZE = 80 * 1024
+const AVATAR_TOO_BIG_MESSAGE = "Image is too large"
+
 const GROUP_EXAMPLES: readonly GroupExample[] = [
   {
     type: "Invite-only",
@@ -249,6 +252,14 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
+        const avatarFileEntry = formData.get("avatar_file")
+        if (
+          avatarFileEntry instanceof Blob &&
+          avatarFileEntry.size > AVATAR_MAX_FILE_SIZE
+        ) {
+          throw new Error(AVATAR_TOO_BIG_MESSAGE)
+        }
+
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
           return {
