@@ -78,8 +78,19 @@ class TraceQuery:
         Raises if the trace is not visible to the current user.
         Returns the file bytes.
         """
-        trace = await TraceQuery.get_by_id(trace_id)
-        file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        # Keep the file pointer stable until storage has finished reading it.
+        # Recompression and deletion must wait before removing this file.
+        async with db(True) as conn:
+            trace = await db_fetchone(
+                Trace,
+                t'SELECT * FROM trace WHERE id = {trace_id} FOR SHARE',
+                conn=conn,
+            )
+            if trace is None:
+                raise_for.trace_not_found(trace_id)
+            if not trace_is_visible(trace):
+                raise_for.trace_access_denied(trace_id)
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
 
