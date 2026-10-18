@@ -1,7 +1,7 @@
 # These tests exercise the background worker independently of the upload endpoint.
 # ruff: noqa: SLF001
 
-from asyncio import CancelledError, Event, Semaphore, TaskGroup, wait_for
+from asyncio import CancelledError, Event, Semaphore, TaskGroup, gather, wait_for
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from types import SimpleNamespace
@@ -19,7 +19,10 @@ _ORIGINAL = b'original upload, including any archive wrapper'
 
 
 @pytest.fixture
-def recompression(monkeypatch):
+async def recompression(monkeypatch):
+    # Endpoint tests share this event loop and may leave real recompressions running.
+    # Let those finish before replacing the worker's storage and database functions.
+    await gather(*tuple(service._RECOMPRESS_TASKS))
     events = []
 
     @asynccontextmanager
