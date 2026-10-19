@@ -389,6 +389,20 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+const getLayerPriority = (layerId: LayerId, extendedLayerId: string) => {
+  const config = layersConfig.get(layerId)
+  const priority = config?.priority ?? 0
+  if (!config?.isBaseLayer || config.specification.type !== "vector") return priority
+  const styleLayer = config.vectorStyle!.layers.find(
+    (layer) => getExtendedLayerId(layerId, layer.id as LayerType) === extendedLayerId,
+  )
+  // Keep text labels above aerial imagery without lifting road-direction icons.
+  return styleLayer?.type === "symbol" &&
+    styleLayer.layout?.["text-field"] !== undefined
+    ? Math.max(priority, 55)
+    : priority
+}
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -411,15 +425,15 @@ export const addMapLayer = (
     return
   }
 
-  const priority = config.priority ?? 0
-  const beforeId: string | undefined = map
-    .getLayersOrder()
-    .find(
-      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
-    )
+  const getBeforeId = (extendedLayerId: string) => {
+    const priority = getLayerPriority(layerId, extendedLayerId)
+    return map
+      .getLayersOrder()
+      .find((id) => priority < getLayerPriority(resolveExtendedLayerId(id), id))
+  }
 
   if (specType === "vector") {
-    console.debug("Layers: Adding vector", layerId, "before", beforeId)
+    console.debug("Layers: Adding vector", layerId)
     const vectorStyle = config.vectorStyle!
 
     // Add glyphs
@@ -450,10 +464,10 @@ export const addMapLayer = (
           // @ts-expect-error
           layer.source as LayerType,
         )
-      map.addLayer(layerObject, beforeId)
+      map.addLayer(layerObject, getBeforeId(layerObject.id))
     }
   } else {
-    console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
+    console.debug("Layers: Adding", layerId, layerTypes)
     const layerOptions = config.layerOptions ?? {}
 
     // Override opacity from storage for overlay layers
@@ -497,7 +511,7 @@ export const addMapLayer = (
       const filter = LAYER_TYPE_FILTERS[type]
       // @ts-expect-error
       if (filter) layerObject.filter = filter
-      map.addLayer(layerObject, beforeId)
+      map.addLayer(layerObject, getBeforeId(layerObject.id))
     }
   }
 
