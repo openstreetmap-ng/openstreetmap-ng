@@ -1,11 +1,12 @@
 import { RemoteEditButton } from "@index/remote-edit"
-import { routerRemoteEditTarget } from "@index/router"
-import { useSignalEffect } from "@preact/signals"
+import { routerCtx, routerRemoteEditTarget, routerSyncLocation } from "@index/router"
+import { useSignal, useSignalEffect } from "@preact/signals"
 import { assertNever } from "@std/assert/unstable-never"
-import { useDisposeEffect } from "@utils/dispose-scope"
+import { isLoggedIn } from "@utils/config"
+import { useDisposeEffect, useDisposeSignalEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
 import { qsEncode } from "@utils/query-string"
-import { Dropdown, Tooltip } from "bootstrap"
+import { Collapse, Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
@@ -55,6 +56,7 @@ const NavbarLeft = () => {
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
   const tooltipRef = useRef<Tooltip>(null)
+  const editHelpActive = useSignal(false)
   const rememberChoiceRef = useRef<HTMLInputElement>(null)
 
   // Effect: initialize dropdown
@@ -98,11 +100,48 @@ const NavbarLeft = () => {
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (editDisabled.value && !editHelpActive.value) {
       tooltip.enable()
     } else {
       tooltip.disable()
       tooltip.hide()
+    }
+  })
+
+  useDisposeSignalEffect((scope) => {
+    const search = routerCtx.value.search
+    if (!isLoggedIn || new URLSearchParams(search).get("edit_help") !== "1") return
+
+    const root = dropdownRootRef.current!
+    const anchor = root.querySelector<HTMLAnchorElement>(".edit-link.default")!
+    const tooltip = new Tooltip(anchor, {
+      title: t("javascripts.edit_help"),
+      placement: "bottom",
+      trigger: "manual",
+      animation: false,
+    })
+    editHelpActive.value = true
+    scope.defer(() => {
+      tooltip.dispose()
+      editHelpActive.value = false
+    })
+    const dismiss = () => {
+      const url = new URL(window.location.href)
+      url.searchParams.delete("edit_help")
+      window.history.replaceState(window.history.state, "", url)
+      scope.dispose()
+      routerSyncLocation()
+    }
+    const show = () => {
+      tooltip.show()
+      scope.dom(document.body, "click", dismiss, { once: true, capture: true })
+    }
+    const collapse = root.closest<HTMLElement>(".navbar-collapse")
+    if (collapse && !anchor.getClientRects().length) {
+      scope.dom(collapse, "shown.bs.collapse", show, { once: true })
+      Collapse.getOrCreateInstance(collapse, { toggle: false }).show()
+    } else {
+      show()
     }
   })
 
