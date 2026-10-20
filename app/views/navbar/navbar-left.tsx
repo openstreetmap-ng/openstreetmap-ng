@@ -10,6 +10,7 @@ import { Dropdown, Tooltip } from "bootstrap"
 import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
+import { showEditHelpTooltip } from "./_edit-help-tooltip"
 import { currentHash, currentMapState, editDisabled } from "./navbar-left-state"
 
 const buildEditHref = (editor: Editor) => {
@@ -101,26 +102,16 @@ const NavbarLeft = () => {
   useDisposeSignalEffect((scope) => {
     if (!isEditHelpActive()) return
 
-    const tooltip = new Tooltip(defaultEditLinkRef.current!, {
-      title: t("javascripts.edit_help"),
-      placement: "bottom",
-      trigger: "manual",
-    })
-    let disposed = false
-
-    const disposeTooltip = () => {
-      if (disposed) return
-      disposed = true
-      tooltip.hide()
-      tooltip.dispose()
-    }
+    const disposeTooltip = showEditHelpTooltip(
+      defaultEditLinkRef.current!,
+      t("javascripts.edit_help"),
+    )
 
     const finish = () => {
       disposeTooltip()
       removeEditHelpQuery()
     }
 
-    tooltip.show()
     scope.dom(document.body, "click", finish, { once: true })
     scope.defer(disposeTooltip)
   })
