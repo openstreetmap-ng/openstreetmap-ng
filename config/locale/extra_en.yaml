@@ -9,6 +9,7 @@ map:
   zoom_out_to_see_the_world_in_3d: Zoom out to see the world in 3D
   layers:
     esri_world_imagery: Esri World Imagery
+    hybrid_aerial: Hybrid aerial
     liberty: Liberty
     vector: Vector
   overlays:
