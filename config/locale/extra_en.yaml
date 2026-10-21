@@ -10,6 +10,7 @@ map:
   layers:
     esri_world_imagery: Esri World Imagery
     liberty: Liberty
+    hybrid: Hybrid
     vector: Vector
   overlays:
     title: Map overlays
