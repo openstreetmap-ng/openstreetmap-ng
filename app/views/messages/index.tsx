@@ -5,7 +5,9 @@ import { UserLink } from "@components/user-link"
 import { ConnectError } from "@connectrpc/connect"
 import { batch, type ReadonlySignal, useSignal } from "@preact/signals"
 import {
+  DeleteOlderThanRequest_TimeUnit,
   type GetPageResponse_SummaryValid,
+  type GetPageResponseValid,
   type GetResponseValid,
   IndexPageSchema,
   Service,
@@ -66,6 +68,147 @@ const MessagesEmpty = () => (
     <h3>{t("traces.index.empty_title")}</h3>
   </li>
 )
+
+const retentionUnitLabel = (unit: DeleteOlderThanRequest_TimeUnit, count: number) => {
+  switch (unit) {
+    case DeleteOlderThanRequest_TimeUnit.days:
+      return t("messages.retention.unit_days", { count })
+    case DeleteOlderThanRequest_TimeUnit.weeks:
+      return t("messages.retention.unit_weeks", { count })
+    case DeleteOlderThanRequest_TimeUnit.months:
+      return t("messages.retention.unit_months", { count })
+    case DeleteOlderThanRequest_TimeUnit.years:
+      return t("messages.retention.unit_years", { count })
+  }
+}
+
+const DeleteOlderMessagesForm = ({
+  inbox,
+  onDeleted,
+}: {
+  inbox: boolean
+  onDeleted: (page: GetPageResponseValid) => void
+}) => {
+  const count = useSignal(3)
+  const unit = useSignal(DeleteOlderThanRequest_TimeUnit.weeks)
+  const deleting = useSignal(false)
+
+  const submitDelete = async (event: SubmitEvent) => {
+    event.preventDefault()
+
+    const nextCount = Number.isFinite(count.value)
+      ? Math.min(999, Math.max(1, Math.trunc(count.value)))
+      : 3
+    count.value = nextCount
+
+    const mailbox = t(
+      inbox ? "messages.retention.mailbox_inbox" : "messages.retention.mailbox_outbox",
+    )
+    if (
+      !confirm(
+        t("messages.retention.confirmation", {
+          count: nextCount,
+          unit: retentionUnitLabel(unit.value, nextCount),
+          mailbox,
+        }),
+      )
+    ) {
+      return
+    }
+
+    deleting.value = true
+    try {
+      const response = await rpcUnary(Service.method.deleteOlderThan)({
+        inbox,
+        count: nextCount,
+        unit: unit.value,
+      })
+      const page = await rpcUnary(Service.method.getPage)({ inbox })
+      onDeleted(page)
+      alert(t("messages.retention.deleted_count", { count: response.deletedCount }))
+    } catch (error) {
+      console.error("Messages: Failed to delete old messages", error)
+      alert(connectErrorToMessage(ConnectError.from(error)))
+    } finally {
+      deleting.value = false
+    }
+  }
+
+  return (
+    <form
+      class="input-group input-group-sm mb-3"
+      onSubmit={submitDelete}
+    >
+      <span class="input-group-text">
+        <i class="bi bi-trash" />
+      </span>
+      <label
+        class="visually-hidden"
+        for="message-retention-count"
+      >
+        {t("messages.retention.count_label")}
+      </label>
+      <input
+        id="message-retention-count"
+        class="form-control"
+        type="number"
+        min="1"
+        max="999"
+        step="1"
+        value={count.value}
+        disabled={deleting.value}
+        onInput={(event) => (count.value = event.currentTarget.valueAsNumber)}
+      />
+      <label
+        class="visually-hidden"
+        for="message-retention-unit"
+      >
+        {t("messages.retention.unit_label")}
+      </label>
+      <select
+        id="message-retention-unit"
+        class="form-select"
+        value={unit.value}
+        disabled={deleting.value}
+        onChange={(event) =>
+          (unit.value = Number(
+            event.currentTarget.value,
+          ) as DeleteOlderThanRequest_TimeUnit)
+        }
+      >
+        <option value={DeleteOlderThanRequest_TimeUnit.days}>
+          {retentionUnitLabel(DeleteOlderThanRequest_TimeUnit.days, count.value)}
+        </option>
+        <option value={DeleteOlderThanRequest_TimeUnit.weeks}>
+          {retentionUnitLabel(DeleteOlderThanRequest_TimeUnit.weeks, count.value)}
+        </option>
+        <option value={DeleteOlderThanRequest_TimeUnit.months}>
+          {retentionUnitLabel(DeleteOlderThanRequest_TimeUnit.months, count.value)}
+        </option>
+        <option value={DeleteOlderThanRequest_TimeUnit.years}>
+          {retentionUnitLabel(DeleteOlderThanRequest_TimeUnit.years, count.value)}
+        </option>
+      </select>
+      <button
+        class="btn btn-outline-danger"
+        type="submit"
+        disabled={deleting.value}
+      >
+        {deleting.value ? (
+          <span
+            class="spinner-border spinner-border-sm"
+            aria-hidden="true"
+          />
+        ) : (
+          <>
+            <i class="bi bi-trash me-2" />
+            {t("messages.retention.submit")}
+          </>
+        )}
+      </button>
+    </form>
+  )
+}
 
 const MessagesListItem = ({
   message,
@@ -341,7 +484,15 @@ mountProtoPage(IndexPageSchema, () => {
   const inbox = route.value === "inbox"
   const query = route.query
   const messages = useSignal<GetPageResponse_SummaryValid[]>([])
+  const pageResponse = useSignal<GetPageResponseValid | null>(null)
   const previewState = useSignal<PreviewState>({ status: "loading" })
+
+  const handleOlderMessagesDeleted = (page: GetPageResponseValid) => {
+    batch(() => {
+      query.value = getQueryWithoutShow(query)
+      pageResponse.value = page
+    })
+  }
 
   const updateMessageUnread = (messageId: bigint, unread: boolean) =>
     (messages.value = messages.value.map((message) =>
@@ -473,10 +624,15 @@ mountProtoPage(IndexPageSchema, () => {
         <div class="container">
           <div class="row flex-wrap-reverse">
             <div class="col-lg">
+              <DeleteOlderMessagesForm
+                inbox={inbox}
+                onDeleted={handleOlderMessagesDeleted}
+              />
               <StandardPagination
                 method={Service.method.getPage}
                 request={{ inbox }}
                 urlKey="page"
+                responseSignal={pageResponse}
                 onLoad={(data) => (messages.value = data.messages)}
               >
                 {() => (
