@@ -1,14 +1,20 @@
+from datetime import timedelta
+
 import pytest
 from httpx import AsyncClient
 from pydantic import PositiveInt
 from starlette import status
 
+from app.db import db
 from app.exceptions import Exceptions
 from app.exceptions.api_error import APIError
 from app.exceptions.context import exceptions_context
 from app.lib.auth.context import auth_context
+from app.lib.time.date_utils import utcnow
 from app.models.proto.message_pb2 import (
     DeleteRequest,
+    GetPageRequest,
+    GetPageResponse,
     GetRequest,
     GetResponse,
     SendRequest,
@@ -150,3 +156,161 @@ async def test_message_crud(client: AsyncClient):
 
         with pytest.raises(APIError, match='Message not found'):
             await MessageQuery.get_by_id(message_id)
+
+
+async def test_message_page_search(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/rpc/message.Service/Send',
+        headers={'Content-Type': 'application/proto'},
+        content=SendRequest(
+            subject='Bridge survey follow-up',
+            body='Please review the bridge notes.',
+            recipient=['user2'],
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    bridge_id = MessageId(int(SendResponse.FromString(r.content).id))
+
+    client.headers['Authorization'] = 'User user2'
+
+    r = await client.post(
+        '/rpc/message.Service/Send',
+        headers={'Content-Type': 'application/proto'},
+        content=SendRequest(
+            subject='Park cleanup',
+            body='Thanks for helping with the park.',
+            recipient=['user1'],
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    park_id = MessageId(int(SendResponse.FromString(r.content).id))
+
+    now = utcnow().replace(microsecond=0)
+    old_created_at = now - timedelta(days=10)
+    recent_created_at = now - timedelta(days=1)
+    cutoff = int((now - timedelta(days=5)).timestamp())
+    async with db(True) as conn:
+        await conn.execute(
+            'UPDATE message SET created_at = %s WHERE id = %s',
+            (old_created_at, bridge_id),
+        )
+        await conn.execute(
+            'UPDATE message SET created_at = %s WHERE id = %s',
+            (recent_created_at, park_id),
+        )
+
+    client.headers['Authorization'] = 'User user1'
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='bridge',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    outbox_subjects = {m.subject for m in outbox.messages}
+    assert 'Bridge survey follow-up' in outbox_subjects
+    assert 'Park cleanup' not in outbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='user2',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    outbox_subjects = {m.subject for m in outbox.messages}
+    assert 'Bridge survey follow-up' in outbox_subjects
+    assert 'Park cleanup' not in outbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='park',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    inbox_subjects = {m.subject for m in inbox.messages}
+    assert 'Park cleanup' in inbox_subjects
+    assert 'Bridge survey follow-up' not in inbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='bridge',
+            created_before=cutoff,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    outbox_subjects = {m.subject for m in outbox.messages}
+    assert 'Bridge survey follow-up' in outbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=False,
+            search='bridge',
+            created_after=cutoff,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    outbox = GetPageResponse.FromString(r.content)
+    outbox_subjects = {m.subject for m in outbox.messages}
+    assert 'Bridge survey follow-up' not in outbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='park',
+            created_after=cutoff,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    inbox_subjects = {m.subject for m in inbox.messages}
+    assert 'Park cleanup' in inbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='park',
+            created_before=cutoff,
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    inbox_subjects = {m.subject for m in inbox.messages}
+    assert 'Park cleanup' not in inbox_subjects
+
+    r = await client.post(
+        '/rpc/message.Service/GetPage',
+        headers={'Content-Type': 'application/proto'},
+        content=GetPageRequest(
+            inbox=True,
+            search='user2',
+        ).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    inbox = GetPageResponse.FromString(r.content)
+    inbox_subjects = {m.subject for m in inbox.messages}
+    assert 'Park cleanup' in inbox_subjects
+    assert 'Bridge survey follow-up' not in inbox_subjects
