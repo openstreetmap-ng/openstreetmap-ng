@@ -1,8 +1,15 @@
 import { Time } from "@components/datetime-inputs"
-import { PageOrder, StandardPaginationNav } from "@components/standard-pagination"
+import {
+  PageOrder,
+  StandardPaginationNav,
+} from "@components/standard-pagination"
 import { Tags } from "@components/tags"
 import { UserLink } from "@components/user-link"
-import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
+import {
+  SidebarContent,
+  SidebarHeader,
+  useSidebar,
+} from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { type FocusLayerPaint, focusObjects } from "@map/layers/focus-layer"
 import { convertRenderElementsData } from "@map/render-objects"
@@ -20,11 +27,12 @@ import {
 } from "@proto/element_pb"
 import { type ElementIconValid, ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
-import { API_URL } from "@utils/config"
+import { API_URL, isLoggedIn } from "@utils/config"
 import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { type ComponentChildren, Fragment } from "preact"
+import { useRef } from "preact/hooks"
 
 const THEME_COLOR = "#f60"
 export const elementFocusPaint: FocusLayerPaint = {
@@ -67,7 +75,9 @@ export const ElementsSection = <T,>({
 
   return (
     <div class={extraClass}>
-      <h4 class="mt-3">{title(getPaginationCountLabel(page.value, items.length))}</h4>
+      <h4 class="mt-3">
+        {title(getPaginationCountLabel(page.value, items.length))}
+      </h4>
       <div class="elements-list mb-2">
         <table class="table table-sm align-middle mb-0">
           <tbody>
@@ -105,10 +115,31 @@ const ElementVersionParam = pathParam.positive()
 const formatElementLocation = ({ lon, lat }: LonLat) =>
   `${lat.toFixed(7)}, ${lon.toFixed(7)}`
 
+const formatTagsText = (tags: Record<string, string>) =>
+  Object.entries(tags)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n")
+
+const parseTagsAttribute = (value: string | undefined) => {
+  if (!value) return null
+
+  try {
+    const tags = JSON.parse(value)
+    return tags && typeof tags === "object" && !Array.isArray(tags)
+      ? (tags as Record<string, string>)
+      : null
+  } catch {
+    return null
+  }
+}
+
 const getElementTitleText = (data: DataValid) => {
   const { type, id } = data.ref
   const typeLabel = getElementTypeLabel(type)
-  return data.name ? `${typeLabel}: ${data.name} (${id})` : `${typeLabel}: ${id}`
+  return data.name
+    ? `${typeLabel}: ${data.name} (${id})`
+    : `${typeLabel}: ${id}`
 }
 
 const ElementHeader = ({ data }: { data: DataValid }) => {
@@ -208,6 +239,93 @@ export const ElementLocation = ({
     </button>
   </p>
 )
+
+const ElementTagsEditor = ({ data }: { data: DataValid }) => {
+  const editing = useSignal(false)
+  const tagsText = useSignal("")
+  const tagsContainerRef = useRef<HTMLDivElement>(null)
+  const canEdit =
+    isLoggedIn && !data.nextVersion && Object.keys(data.tags).length > 0
+
+  if (!canEdit) return <Tags tags={data.tags} />
+
+  const { type, id } = data.ref
+  const typeText = getElementTypeSlug(type)
+
+  const startEditing = () => {
+    const tagsElement =
+      tagsContainerRef.current?.querySelector<HTMLElement>(".tags")
+    const tags = parseTagsAttribute(tagsElement?.dataset.tags) ?? data.tags
+    tagsText.value = formatTagsText(tags)
+    editing.value = true
+  }
+
+  return (
+    <div class="element-tags-editor">
+      {!editing.value ? (
+        <>
+          <div class="d-flex align-items-baseline justify-content-between gap-2">
+            <h4 class="mb-1">{t("browse.tag_details.tags")}</h4>
+            <button
+              class="btn btn-link btn-sm p-0"
+              type="button"
+              onClick={startEditing}
+            >
+              Edit text
+            </button>
+          </div>
+          <div ref={tagsContainerRef}>
+            <Tags tags={data.tags} />
+          </div>
+        </>
+      ) : (
+        <form
+          action={`/api/0.7/${typeText}/${id}/tags`}
+          method="post"
+        >
+          <div class="mb-2">
+            <textarea
+              class="form-control font-monospace"
+              name="tags"
+              rows={Math.min(Math.max(Object.keys(data.tags).length, 4), 12)}
+              value={tagsText.value}
+              onInput={(e) => {
+                tagsText.value = e.currentTarget.value
+              }}
+              required
+            />
+          </div>
+          <div class="mb-2">
+            <input
+              class="form-control"
+              name="comment"
+              type="text"
+              placeholder={t("action.comment")}
+              required
+            />
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              onClick={() => {
+                editing.value = false
+              }}
+            >
+              Discard
+            </button>
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              {t("action.submit")}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
 
 const ElementHistoryLinks = ({ data }: { data: DataValid }) => {
   const { type, id, version } = data.ref
@@ -323,7 +441,9 @@ const ElementSidebar = ({
     <SidebarContent
       resource={resource}
       notFound={() => {
-        const typeLabel = getElementTypeLabel(ElementType[type.value]).toLowerCase()
+        const typeLabel = getElementTypeLabel(
+          ElementType[type.value],
+        ).toLowerCase()
         const versionValue = version.value
         const idLabel = versionValue
           ? `${id.value} ${t("browse.version").toLowerCase()} ${versionValue}`
@@ -348,7 +468,7 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <ElementTagsEditor data={d} />
 
               {hasRelations && (
                 <div class="elements mt-3">
