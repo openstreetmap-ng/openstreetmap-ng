@@ -50,7 +50,10 @@ router = APIRouter()
 @router.get('/relation/{_:int}/history')
 @router.get('/relation/{_:int}/history/{__:int}')
 @router.get('/distance')
-async def index():
+async def index(edit_help: Annotated[bool, Query()] = False):
+    if edit_help and auth_user() is not None:
+        return RedirectResponse('/edit#walkthrough=true', status.HTTP_303_SEE_OTHER)
+
     return await render_response('index/index')
 
 
