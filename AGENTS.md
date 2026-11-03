@@ -542,6 +542,7 @@ Use macros for stable build-time datasets instead of fragile runtime DOM data du
 ## 13.1 Test Layout and Runtime
 
 - tests mirror app structure under `tests/*`
+- focused frontend unit tests under `tests/views` run with `bun test tests/views`; browser image APIs are mocked
 - shared fixtures in `tests/conftest.py` and `tests/data`
 - `--extended` marker controls heavier suites
 - for proto enum request fields in RPC tests, prefer enum-name literals (for example `'auth_web'`) when equivalent to enum constants, to keep test inputs concise and readable
