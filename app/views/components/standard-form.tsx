@@ -51,6 +51,10 @@ type ConfigureStandardFormSuccessContext = StandardFormSuccessActions & {
   headers: Headers
 }
 
+type FormDataBytesOptions = {
+  maxSize?: number
+}
+
 type StandardFormSuccessController = {
   actions: StandardFormSuccessActions
   readonly shouldKeepPending: boolean
@@ -78,8 +82,33 @@ const createSuccessController = (): StandardFormSuccessController => {
   }
 }
 
-export const formDataBytes = async (formData: FormData, name: string) =>
-  new Uint8Array(await (formData.get(name) as Blob).arrayBuffer())
+const formatByteSize = (size: number) => {
+  const units = ["B", "KiB", "MiB", "GiB"]
+  let value = size
+  let unitIndex = 0
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024
+    unitIndex++
+  }
+  return `${value.toLocaleString(undefined, {
+    maximumFractionDigits: value >= 10 ? 0 : 1,
+  })} ${units[unitIndex]!}`
+}
+
+export async function formDataBytes(
+  formData: FormData,
+  name: string,
+  options?: FormDataBytesOptions,
+) {
+  const blob = formData.get(name) as Blob
+  const maxSize = options?.maxSize
+  if (maxSize !== undefined && blob.size > maxSize) {
+    throw new Error(
+      t("validation.file_too_large", { size: formatByteSize(maxSize) }),
+    )
+  }
+  return new Uint8Array(await blob.arrayBuffer())
+}
 
 const removeEmptyData = (formData: FormData) => {
   const keysToDelete = []

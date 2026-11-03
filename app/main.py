@@ -112,10 +112,15 @@ async def lifespan(_):
             ChangesetService.context(),
             ElementSpatialService.context(),
         ):
-            # freeze uncollected gc objects for improved performance
+            # Freeze long-lived app objects only while the lifespan is active.
+            # Leaving them frozen into interpreter shutdown can break Cython
+            # profile cleanup on Python 3.14.
             gc.collect()
             gc.freeze()
-            yield
+            try:
+                yield
+            finally:
+                gc.unfreeze()
 
 
 register_url_convertor('element_type', ElementTypeConvertor())
