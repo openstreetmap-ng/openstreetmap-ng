@@ -79,7 +79,16 @@ class TraceQuery:
         Returns the file bytes.
         """
         trace = await TraceQuery.get_by_id(trace_id)
-        file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        try:
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        except FileNotFoundError:
+            # Background recompression can retire the key after our lookup.
+            # Recheck visibility as well as the pointer before retrying.
+            previous_file_id = trace['file_id']
+            trace = await TraceQuery.get_by_id(trace_id)
+            if trace['file_id'] == previous_file_id:
+                raise
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
 

@@ -26,9 +26,11 @@ class S3Storage(StorageBase):
     async def load(self, key: StorageKey):
         async def factory():
             async with _S3.client('s3') as s3:
-                return await (await s3.get_object(Bucket=self._bucket, Key=key))[
-                    'Body'
-                ].read()
+                try:
+                    response = await s3.get_object(Bucket=self._bucket, Key=key)
+                except s3.exceptions.NoSuchKey as e:
+                    raise FileNotFoundError(key) from e
+                return await response['Body'].read()
 
         return await CacheService.get(
             key,

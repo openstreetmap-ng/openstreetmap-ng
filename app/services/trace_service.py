@@ -23,6 +23,7 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+from app.services.trace_recompression_service import TraceRecompressionService
 
 
 class TraceService:
@@ -111,12 +112,26 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
-            # Clean up trace file on error
-            await TRACE_STORAGE.delete(trace_init['file_id'])
+            # A failed COMMIT acknowledgement does not prove rollback.
+            file_id = trace_init['file_id']
+            try:
+                referenced = await db_fetchval(
+                    bool,
+                    t'SELECT EXISTS(SELECT 1 FROM trace WHERE file_id = {file_id})',
+                )
+            except Exception:
+                logging.exception(
+                    'Retaining upload after an uncertain database outcome'
+                )
+            else:
+                if not referenced:
+                    await TRACE_STORAGE.delete(file_id)
             raise
+
+        TraceRecompressionService.schedule(trace_id, trace_init['file_id'])
+        return trace_id
 
     @staticmethod
     async def update(
@@ -172,7 +187,7 @@ class TraceService:
         async with db(True) as conn:
             file_id = await db_fetchval(
                 StorageKey,
-                t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                t'SELECT file_id FROM trace WHERE id = {trace_id} FOR UPDATE',
                 conn=conn,
             )
             if file_id is None:
