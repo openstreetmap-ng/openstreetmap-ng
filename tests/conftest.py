@@ -1,3 +1,4 @@
+import gc
 from asyncio import TaskGroup
 from copy import deepcopy
 from pathlib import Path
@@ -51,6 +52,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 async def transport():
     async with LifespanManager(app):
         yield ASGITransport(app)
+    assert gc.get_freeze_count() == 0, 'Application shutdown left GC objects frozen'
 
 
 @pytest.fixture
