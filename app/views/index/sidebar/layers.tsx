@@ -14,6 +14,7 @@ import {
   GPS_LAYER_ID,
   hasMapLayer,
   HOT_LAYER_ID,
+  HYBRID_LAYER_ID,
   type LayerId,
   LIBERTY_LAYER_ID,
   NOTES_LAYER_ID,
@@ -50,6 +51,7 @@ const BASE_LAYERS = new Set([
   TRACESTRACKTOPO_LAYER_ID,
   LIBERTY_LAYER_ID,
   HOT_LAYER_ID,
+  HYBRID_LAYER_ID,
 ])
 
 const OVERLAY_LAYERS = new Set([
@@ -388,6 +390,12 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
                     <span class="vector">{t("map.layers.vector")}</span>
                   </>
                 )}
+                {layerId === HYBRID_LAYER_ID && (
+                  <>
+                    {t("map.layers.hybrid")}
+                    <span class="vector">{t("map.layers.vector")}</span>
+                  </>
+                )}
                 {layerId === HOT_LAYER_ID && t("javascripts.map.base.hot")}
               </ListLayerTile>
             ))}
@@ -416,38 +424,40 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
         <h4>{t("map.overlays.title")}</h4>
         <p class="text-body-secondary small">{t("javascripts.map.layers.overlays")}</p>
 
-        <div class="layer-settings mb-3">
-          <LayerTile
-            kind="overlay"
-            active={enabledOverlays.value.has(AERIAL_LAYER_ID)}
-            onClick={() =>
-              toggleOverlay(
-                AERIAL_LAYER_ID,
-                !enabledOverlays.value.has(AERIAL_LAYER_ID),
-              )
-            }
-            minimap={getLayerMinimap(AERIAL_LAYER_ID)}
-          >
-            {t("map.layers.esri_world_imagery")}
-          </LayerTile>
+        {activeBaseLayerId.value !== HYBRID_LAYER_ID && (
+          <div class="layer-settings mb-3">
+            <LayerTile
+              kind="overlay"
+              active={enabledOverlays.value.has(AERIAL_LAYER_ID)}
+              onClick={() =>
+                toggleOverlay(
+                  AERIAL_LAYER_ID,
+                  !enabledOverlays.value.has(AERIAL_LAYER_ID),
+                )
+              }
+              minimap={getLayerMinimap(AERIAL_LAYER_ID)}
+            >
+              {t("map.layers.esri_world_imagery")}
+            </LayerTile>
 
-          <div class="layer-settings-inner">
-            <label class="form-label d-flex align-items-center gap-2 mb-0">
-              {t("map.overlays.opacity")}:
-              <input
-                class="form-range"
-                type="range"
-                min="1"
-                max="100"
-                step="1"
-                value={aerialOpacity.value * 100}
-                onInput={(e) =>
-                  (aerialOpacity.value = e.currentTarget.valueAsNumber / 100)
-                }
-              />
-            </label>
+            <div class="layer-settings-inner">
+              <label class="form-label d-flex align-items-center gap-2 mb-0">
+                {t("map.overlays.opacity")}:
+                <input
+                  class="form-range"
+                  type="range"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value={aerialOpacity.value * 100}
+                  onInput={(e) =>
+                    (aerialOpacity.value = e.currentTarget.valueAsNumber / 100)
+                  }
+                />
+              </label>
+            </div>
           </div>
-        </div>
+        )}
 
         <div class="ms-1">
           <OverlayToggle
