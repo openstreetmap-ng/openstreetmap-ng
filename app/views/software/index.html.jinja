@@ -1,0 +1,99 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ t('software.title') }} |{% endblock %}
+{% block body_class %}software-body{% endblock %}
+{% block body %}
+  <div class="content-header">
+    <h1 class="container">{{ t('software.title') }}</h1>
+  </div>
+  <div class="content-body">
+    <div class="container">
+      <p>{{ t('software.introduction') }}</p>
+      <form
+        method="get"
+        action="/software"
+        class="row g-3 mb-4"
+      >
+        {% for key, options in filters.items() %}
+          <div class="col-6 col-lg-3">
+            <label
+              class="form-label"
+              for="software-{{ key }}"
+              >{{ t('software.' ~ key) }}</label
+            >
+            <select
+              class="form-select"
+              name="{{ key }}"
+              id="software-{{ key }}"
+            >
+              <option value="">{{ t('software.all') }}</option>
+              {% for value in options %}
+                <option
+                  value="{{ value }}"
+                  {% if selected[key] == value %}selected{% endif %}
+                >
+                  {{ t('software.options.' ~ value) }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endfor %}
+        <div class="col-12 d-flex align-items-center gap-3">
+          <button
+            type="submit"
+            class="btn btn-primary"
+          >
+            {{ t('software.apply') }}
+          </button>
+          <a href="/software">{{ t('software.reset') }}</a>
+        </div>
+      </form>
+      <p role="status">{{ nt('software.results', count=entries|length) }}</p>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+        {% for entry in entries %}
+          <div class="col">
+            <article class="card h-100">
+              <div class="card-body">
+                <img
+                  src="{{ entry.image }}"
+                  class="float-end ms-3 object-fit-contain bg-white rounded p-1"
+                  alt=""
+                  width="64"
+                  height="64"
+                  loading="lazy"
+                />
+                <h2 class="h4">
+                  <a
+                    href="{{ entry.url }}"
+                    rel="external"
+                    >{{ entry.name }}</a
+                  >
+                </h2>
+                <p>{{ t(entry.description) }}</p>
+                <dl class="small mb-3">
+                  <dt>{{ t('software.category') }}</dt>
+                  <dd>{{ t('software.options.' ~ entry.category) }}</dd>
+                  <dt>{{ t('software.platform') }}</dt>
+                  <dd>
+                    {% for platform in entry.platforms %}{{ t('software.options.' ~ platform) }}{{ ', ' if not loop.last else '' }}{% endfor %}
+                  </dd>
+                  <dt>{{ t('software.license') }}</dt>
+                  <dd>{{ t('software.options.' ~ entry.license) }}</dd>
+                  <dt>{{ t('software.status') }}</dt>
+                  <dd>{{ t('software.options.' ~ entry.status) }}</dd>
+                </dl>
+                <a
+                  href="{{ entry.source }}"
+                  rel="external"
+                  >{{ t('software.details') }}</a
+                >
+              </div>
+            </article>
+          </div>
+        {% else %}
+          <div class="col-12"><p>{{ t('software.empty') }}</p></div>
+        {% endfor %}
+      </div>
+      <p class="small text-body-secondary mt-4">{{ t('software.reviewed') }}</p>
+    </div>
+  </div>
+{% endblock %}
