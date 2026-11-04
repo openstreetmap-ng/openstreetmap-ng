@@ -14,14 +14,24 @@ import {
 import { defineRoute } from "@index/router"
 import { focusObjects } from "@map/layers/focus-layer"
 import { convertRenderElementsData } from "@map/render-objects"
-import type { ReadonlySignal } from "@preact/signals"
+import { batch, type ReadonlySignal, useComputed } from "@preact/signals"
 import { type DataValid, Service } from "@proto/element_pb"
 import { ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
 import { tagsDiffStorage } from "@utils/local-storage"
+import { queryParam } from "@utils/path-codecs"
+import {
+  currentUrlSignal,
+  readUrlQueryParam,
+  updateUrlQueryParam,
+} from "@utils/url-state"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { useEffect, useRef } from "preact/hooks"
+
+const HISTORY_LIMITS = ["10", "25", "50", "100"] as const
+const HISTORY_LIMIT_QUERY = queryParam.enum(HISTORY_LIMITS, { default: "10" })
+const PAGE_QUERY = queryParam.positiveInt()
 
 const getPageTitle = (type: ElementTypeSlug, id: string) => {
   switch (type) {
@@ -84,6 +94,9 @@ const ElementHistorySidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const title = getPageTitle(type.value, id.toString())
+  const limit = useComputed(() =>
+    readUrlQueryParam("limit", HISTORY_LIMIT_QUERY, currentUrlSignal.value),
+  )
 
   setPageTitle(title)
 
@@ -116,11 +129,39 @@ const ElementHistorySidebar = ({
         </SidebarHeader>
       </div>
 
+      <div class="section py-2">
+        <label class="d-flex align-items-center gap-2">
+          <span>{t("element.versions_per_page")}</span>
+          <select
+            class="form-select form-select-sm w-auto"
+            value={limit.value}
+            onChange={(e) => {
+              const next = e.currentTarget.value as (typeof HISTORY_LIMITS)[number]
+              if (next === limit.value) return
+              batch(() => {
+                updateUrlQueryParam("limit", HISTORY_LIMIT_QUERY, next, "push")
+                updateUrlQueryParam("page", PAGE_QUERY, undefined, "replace")
+              })
+            }}
+          >
+            {HISTORY_LIMITS.map((value) => (
+              <option
+                key={value}
+                value={value}
+              >
+                {value}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <StandardPagination
         method={Service.method.getHistory}
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
+          limit: Number(limit.value),
         }}
         urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}
