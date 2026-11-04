@@ -1,7 +1,10 @@
 import logging
+from asyncio import Semaphore, Task, get_running_loop
+from contextvars import Context
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -23,6 +26,10 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+
+_RECOMPRESS_TASKS: set[Task[None]] = set()
+# Level 22 has a high memory cost; only run one recompression per process.
+_RECOMPRESS_SEMAPHORE = Semaphore(1)
 
 
 class TraceService:
@@ -111,12 +118,20 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Start only after the trace has committed, without retaining request context.
+        task = get_running_loop().create_task(
+            _recompress_trace(trace_id, trace_init['file_id'], file),
+            context=Context(),
+        )
+        _RECOMPRESS_TASKS.add(task)
+        task.add_done_callback(_RECOMPRESS_TASKS.discard, context=Context())
+        return trace_id
 
     @staticmethod
     async def update(
@@ -172,7 +187,7 @@ class TraceService:
         async with db(True) as conn:
             file_id = await db_fetchval(
                 StorageKey,
-                t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                t'SELECT file_id FROM trace WHERE id = {trace_id} FOR UPDATE',
                 conn=conn,
             )
             if file_id is None:
@@ -191,3 +206,32 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace(trace_id: TraceId, file_id: StorageKey, file: bytes):
+    """Replace an uploaded file with its level-22 copy, preserving the original bytes."""
+    try:
+        async with _RECOMPRESS_SEMAPHORE:
+            result = await TraceFile.compress(file, level=22)
+            new_file_id = await TRACE_STORAGE.save(
+                result.data, result.suffix, result.metadata
+            )
+            try:
+                async with db(True) as conn:
+                    rowcount = await db_update(
+                        'trace',
+                        {'file_id': new_file_id},
+                        where={'id': trace_id, 'file_id': file_id},
+                        conn=conn,
+                    )
+            except BaseException:
+                # Keep the original file if replacing its pointer failed.
+                await TRACE_STORAGE.delete(new_file_id)
+                raise
+
+            # The trace may have been deleted or replaced while compressing.
+            # Never delete the original until the pointer update has committed.
+            await TRACE_STORAGE.delete(file_id if rowcount else new_file_id)
+    except Exception:
+        logging.exception('Failed to recompress trace %d', trace_id)
+        capture_exception()
