@@ -6,6 +6,7 @@ import { EditPageSchema, Service } from "@proto/settings_applications_pb"
 import { Scope } from "@proto/shared_pb"
 import { OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
 import { throwAbortError } from "@utils/dom-helpers"
+import { validateImageUpload } from "@utils/image-upload"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
@@ -247,10 +248,18 @@ mountProtoPage(
                         class="avatar-form"
                         formRef={avatarFormRef}
                         method={Service.method.updateAvatar}
-                        buildRequest={async ({ formData }) => ({
-                          id,
-                          avatarFile: await formDataBytes(formData, "avatar_file"),
-                        })}
+                        buildRequest={async ({ formData }) => {
+                          try {
+                            await validateImageUpload(formData, "avatar_file")
+                          } catch (error) {
+                            avatarFileInputRef.current!.value = ""
+                            throw error
+                          }
+                          return {
+                            id,
+                            avatarFile: await formDataBytes(formData, "avatar_file"),
+                          }
+                        }}
                         onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
                       >
                         <input
