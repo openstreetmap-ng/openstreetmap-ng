@@ -685,3 +685,37 @@ theme:
   light: Light
   dark: Dark
   auto: Auto
+
+software:
+  title: OSM software
+  introduction: Discover tools for editing, navigating and working with OpenStreetMap data.
+  category: Category
+  platform: Operating system
+  license: License
+  status: Development status
+  all: All
+  apply: Apply filters
+  reset: Reset filters
+  results: Matching applications
+  project_details: Project details
+  empty: No applications match these filters. Try another combination or reset the filters.
+  reviewed: This initial selection was reviewed on 10 September 2026. Check project details for current support, licensing and platform availability.
+  josm: Edit OpenStreetMap data on your desktop with detailed tagging tools, imagery and validation.
+  streetcomplete: Improve nearby map details by answering simple survey questions on Android.
+  organic_maps: Download OpenStreetMap-based maps for offline walking, cycling and driving navigation. Linux support is currently beta.
+  qgis: Analyze spatial data and design maps on your desktop, including OpenStreetMap data imported through supported formats and tools.
+  options:
+    editing: Editing and surveying
+    navigation: Maps and navigation
+    analysis: GIS and analysis
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    android: Android
+    ios: iOS
+    web: Web browser
+    open: Open source
+    proprietary: Proprietary
+    active: Active development
+    maintenance: Maintenance only
+    inactive: Inactive
