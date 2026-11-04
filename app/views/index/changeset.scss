@@ -16,4 +16,19 @@
     background: rgba($success, 0.3);
     border: 1px solid rgba($success, 0.5);
   }
+
+  .changeset-diff-panel {
+    overflow: hidden;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: $border-radius;
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: min(70vh, 34rem);
+      background: var(--bs-body-bg);
+      border: 0;
+    }
+  }
 }

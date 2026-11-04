@@ -30,6 +30,8 @@ from app.middlewares.request_context_middleware import get_request
 from app.models.types import StorageKey
 from app.services.rate_limit_service import RateLimitService
 
+_ACHAVI_URL = 'https://overpass-api.de'
+
 # Please keep it CSP version 2-compatible for the time being.
 CSP_HEADER = '; '.join(
     filter(
@@ -54,7 +56,7 @@ CSP_HEADER = '; '.join(
             'child-src blob:',  # TODO: worker-src in CSP 3
             'img-src * data:',
             'connect-src * data:',
-            f'frame-src {" ".join({ID_URL, RAPID_URL})}',
+            f'frame-src {" ".join(sorted({ID_URL, RAPID_URL, _ACHAVI_URL}))}',
             f'frame-ancestors {APP_URL}',
             (f'report-uri {SENTRY_DSN}' if SENTRY_DSN else None),
         ),
