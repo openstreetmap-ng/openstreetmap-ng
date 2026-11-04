@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from psycopg import AsyncConnection
 from shapely import Point, get_coordinates
 
 from app.db import db, db_fetchone, db_insert, db_update
@@ -10,6 +11,7 @@ from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_scopes, auth_user
 from app.lib.http.client import HTTPError
+from app.lib.note_closing import parse_note_closures
 from app.lib.text.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
@@ -80,6 +82,31 @@ class NoteService:
         note_id: NoteId, text: str, event: GetCommentsResponse_Comment_Event
     ):
         """Comment on a note."""
+        result = await NoteService._comment(note_id, text, event)
+        assert result is not None
+        await NoteService.notify_comments([result])
+
+    @staticmethod
+    async def close_for_changeset(tags: dict[str, str], conn: AsyncConnection):
+        """Close tagged notes in the changeset transaction; notify after commit."""
+        results = []
+        for note_id, text in parse_note_closures(tags):
+            result = await NoteService._comment(
+                note_id, text, 'closed', conn=conn, skip_unavailable=True
+            )
+            if result is not None:
+                results.append(result)
+        return results
+
+    @staticmethod
+    async def _comment(
+        note_id: NoteId,
+        text: str,
+        event: GetCommentsResponse_Comment_Event,
+        *,
+        conn: AsyncConnection | None = None,
+        skip_unavailable: bool = False,
+    ):
         user = auth_user(required=True)
         user_id = user['id']
         send_activity_email: cython.bint = False
@@ -87,7 +114,7 @@ class NoteService:
         # Only show hidden notes to moderators
         hidden_filter = t'' if user_is_moderator(user) else t'AND hidden_at IS NULL'
 
-        async with db(True) as conn:
+        async with db(True, conn) as conn:
             note = await db_fetchone(
                 Note,
                 t"""
@@ -98,6 +125,12 @@ class NoteService:
                 """,
                 conn=conn,
             )
+            if skip_unavailable and (
+                note is None
+                or note['hidden_at'] is not None
+                or note['closed_at'] is not None
+            ):
+                return None
             if note is None:
                 raise_for.note_not_found(note_id)
 
@@ -176,10 +209,18 @@ class NoteService:
             'user': user,  # type: ignore
         }
 
+        return note, comment, send_activity_email
+
+    @staticmethod
+    async def notify_comments(results: list[tuple[Note, NoteComment, bool]]):
+        """Send activity and subscribe only after the note transaction commits."""
         async with TaskGroup() as tg:
-            if send_activity_email:
-                tg.create_task(_send_activity_email(note, comment))
-            tg.create_task(UserSubscriptionService.subscribe('note', note_id))
+            for note, comment, send_activity_email in results:
+                if send_activity_email:
+                    tg.create_task(_send_activity_email(note, comment))
+                tg.create_task(
+                    UserSubscriptionService.subscribe('note', comment['note_id'])
+                )
 
 
 async def _send_activity_email(note: Note, comment: NoteComment):
