@@ -2,7 +2,7 @@ from asyncio import TaskGroup
 from typing import override
 
 from connectrpc.request import RequestContext
-from psycopg.sql import SQL, Identifier
+from psycopg.sql import SQL
 from shapely import get_coordinates
 
 from app.config import (
@@ -116,16 +116,24 @@ class _Service(Service):
         element_type = ElementType.Name(request.element.type)
         id = ElementId(request.element.id)
         tid = typed_element_id(element_type, id)
+        page_size = (
+            request.limit if request.HasField('limit') else ELEMENT_HISTORY_PAGE_SIZE
+        )
+        if (
+            request.state.HasField('state')
+            and request.state.state.page_size != page_size
+        ):
+            request.state.ClearField('state')
 
         elements, state = await sp_paginate_query(
             Element,
             request.state,
             select=SQL('*'),
-            from_=Identifier('element'),
+            from_=SQL('element'),
             where=t'typed_id = {tid}',
             cursor_key='sequence_id',
             id_key='version',
-            page_size=ELEMENT_HISTORY_PAGE_SIZE,
+            page_size=page_size,
             cursor_kind='id',
             order_dir='desc',
         )
@@ -138,7 +146,7 @@ class _Service(Service):
         num_items = state.snapshot_max_id
         state.known_total.num_items = num_items
         state.known_total.num_pages = sp_num_pages(
-            num_items=num_items, page_size=ELEMENT_HISTORY_PAGE_SIZE
+            num_items=num_items, page_size=page_size
         )
 
         if not elements:

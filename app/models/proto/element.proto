@@ -45,6 +45,10 @@ message GetHistoryRequest {
   StandardPaginationRequest state = 1;
   ElementRef element = 2 [(buf.validate.field).required = true];
   bool tags_diff = 3;
+  optional uint32 limit = 4 [(buf.validate.field).uint32 = {
+    gt: 0
+    lte: 100
+  }];
 }
 
 message GetHistoryResponse {
