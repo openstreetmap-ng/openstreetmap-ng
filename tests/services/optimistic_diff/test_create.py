@@ -1,12 +1,20 @@
+from httpx import AsyncClient
 import pytest
 from shapely import Point
+from starlette import status
 
+from app.exceptions.api_error import APIError
+from app.exceptions.api06 import Exceptions06
+from app.exceptions.context import exceptions_context
+from app.lib.auth.context import auth_context
 from app.lib.auth.user_limits import UserRoleLimits
+from app.lib.io.xml_codec import XMLToDict
 from app.models.db.element import ElementInit, validate_elements
 from app.models.element import ElementId
 from app.models.proto.shared_types import ElementType
-from app.models.types import ChangesetId
+from app.models.types import ChangesetId, DisplayName
 from app.queries.element_query import ElementQuery
+from app.queries.user_query import UserQuery
 from app.services.changeset_service import ChangesetService
 from app.services.optimistic_diff import OptimisticDiff
 from speedup import typed_element_id
@@ -94,6 +102,81 @@ async def test_create_multiple_nodes(changeset_id: ChangesetId):
     name_map = {e['tags']['name']: e for e in elements}  # type: ignore
     assert_model(name_map['Node 1'], nodes[0] | {'typed_id': typed_ids[0]})
     assert_model(name_map['Node 2'], nodes[1] | {'typed_id': typed_ids[1]})
+
+
+async def test_create_fails_with_multiple_null_island_nodes(
+    changeset_id: ChangesetId,
+):
+    nodes: list[ElementInit] = [
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-1)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-2)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+    ]
+
+    with pytest.raises(APIError) as exc_info:
+        await OptimisticDiff.run(nodes)
+    assert exc_info.value.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert 'null island' in exc_info.value.detail
+
+
+async def test_create_multiple_null_island_nodes_allowed_for_moderator(
+    client: AsyncClient,
+):
+    client.headers['Authorization'] = 'User moderator'
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {'changeset': {'tag': [{'@k': 'created_by', '@v': 'tests'}]}}
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = ChangesetId(int(r.text))
+
+    nodes: list[ElementInit] = [
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-1)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+        {
+            'changeset_id': changeset_id,
+            'typed_id': typed_element_id('node', ElementId(-2)),
+            'version': 1,
+            'visible': True,
+            'tags': {},
+            'point': Point(0, 0),
+            'members': None,
+            'members_roles': None,
+        },
+    ]
+
+    moderator = await UserQuery.find_by_display_name(DisplayName('moderator'))
+    assert moderator is not None
+    with exceptions_context(Exceptions06()), auth_context(moderator):
+        assigned_ref_map = await OptimisticDiff.run(nodes)
+        assert len(assigned_ref_map) == 2
 
 
 @pytest.mark.parametrize(
