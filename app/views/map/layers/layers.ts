@@ -389,6 +389,61 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+export const BASE_VECTOR_LABEL_PRIORITY = 55
+
+export const isBaseVectorLabelLayer = (
+  layer: LayerSpecification | AddLayerObject,
+): boolean =>
+  layer.type === "symbol" &&
+  Boolean(
+    (layer.layout && "text-field" in layer.layout) ||
+      (layer as { "source-layer"?: string })["source-layer"] === "place",
+  )
+
+export const getMapLayerPriority = (
+  map: MaplibreMap,
+  extendedLayerId: string,
+): number => {
+  const layerId = resolveExtendedLayerId(extendedLayerId)
+  const config = layersConfig.get(layerId)
+  if (!config) return 0
+
+  if (config.isBaseLayer && config.specification.type === "vector") {
+    const layer = map.getLayer(extendedLayerId)
+    if (layer && isBaseVectorLabelLayer(layer as unknown as LayerSpecification)) {
+      return BASE_VECTOR_LABEL_PRIORITY
+    }
+  }
+
+  return config.priority ?? 0
+}
+
+/**
+ * Synchronize the z-index of the aerial overlay layer relative to base vector labels.
+ * Ensures place names and labels remain visible above aerial imagery in 3D globe view and hybrid view.
+ */
+export const syncAerialLayerOrder = (map: MaplibreMap) => {
+  if (!map.getLayer(AERIAL_LAYER_ID)) return
+
+  const priority = layersConfig.get(AERIAL_LAYER_ID)?.priority ?? 50
+  const beforeId = map
+    .getLayersOrder()
+    .find(
+      (id) =>
+        id !== AERIAL_LAYER_ID && priority < getMapLayerPriority(map, id),
+    )
+
+  const order = map.getLayersOrder()
+  const aerialIndex = order.indexOf(AERIAL_LAYER_ID)
+  const beforeIndex = beforeId ? order.indexOf(beforeId) : order.length
+
+  if (aerialIndex === -1 || beforeIndex === -1) return
+  if (aerialIndex === beforeIndex - 1) return
+
+  console.debug("Layers: Moving", AERIAL_LAYER_ID, "before", beforeId)
+  map.moveLayer(AERIAL_LAYER_ID, beforeId)
+}
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -414,12 +469,10 @@ export const addMapLayer = (
   const priority = config.priority ?? 0
   const beforeId: string | undefined = map
     .getLayersOrder()
-    .find(
-      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
-    )
+    .find((id) => priority < getMapLayerPriority(map, id))
 
   if (specType === "vector") {
-    console.debug("Layers: Adding vector", layerId, "before", beforeId)
+    console.debug("Layers: Adding vector", layerId)
     const vectorStyle = config.vectorStyle!
 
     // Add glyphs
@@ -450,7 +503,16 @@ export const addMapLayer = (
           // @ts-expect-error
           layer.source as LayerType,
         )
-      map.addLayer(layerObject, beforeId)
+
+      const layerPriority =
+        config.isBaseLayer && isBaseVectorLabelLayer(layer)
+          ? BASE_VECTOR_LABEL_PRIORITY
+          : priority
+      const layerBeforeId = map
+        .getLayersOrder()
+        .find((id) => layerPriority < getMapLayerPriority(map, id))
+
+      map.addLayer(layerObject, layerBeforeId)
     }
   } else {
     console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
@@ -507,6 +569,10 @@ export const addMapLayer = (
         handler(true, layerId, config)
       }
     })
+  }
+
+  if (layerId === AERIAL_LAYER_ID || config.isBaseLayer) {
+    syncAerialLayerOrder(map)
   }
 }
 
