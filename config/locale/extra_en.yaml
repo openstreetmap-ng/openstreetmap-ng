@@ -562,6 +562,9 @@ pagination:
 time:
   never: Never
 validation:
+  image_file_too_big: This image file is too large. Please choose a smaller file.
+  image_dimensions_too_big: This image has too many pixels to process. Please reduce its dimensions and try again.
+  image_not_readable: This image could not be read. Please choose a valid image file and try again.
   invalid_value: Invalid value
   display_name_is_taken: This display name is already taken
   new_email_is_current: The new email address is the same as the current one

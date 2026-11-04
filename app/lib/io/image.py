@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError, DecompressionBombWarning, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -30,6 +30,7 @@ from app.config import (
     IMAGE_PROXY_RECOMPRESS_QUALITY,
 )
 from app.exceptions.context import raise_for
+from app.lib.standard.feedback import StandardFeedback
 from app.models.types import NoteId, StorageKey, UserId
 
 if TYPE_CHECKING:
@@ -39,8 +40,6 @@ if cython.compiled:
     from cython.cimports.libc.math import sqrt
 else:
     from math import sqrt
-
-# TODO: test 200MP file
 
 
 class _Animation(NamedTuple):
@@ -242,8 +241,23 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    from app.lib.text.translation import t  # noqa: PLC0415
+
+    # Pillow decodes lazily: errors can occur on open, EXIF transpose or later frames.
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', DecompressionBombWarning)
+            img = open_image(BytesIO(data))
+            ImageOps.exif_transpose(img, in_place=True)
+            animation = _extract_animation(img)
+    except (DecompressionBombError, DecompressionBombWarning) as error:
+        StandardFeedback.raise_error(
+            None, t('validation.image_dimensions_too_big'), exc=error
+        )
+    except (UnidentifiedImageError, OSError, SyntaxError, EOFError) as error:
+        StandardFeedback.raise_error(
+            None, t('validation.image_not_readable'), exc=error
+        )
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -289,8 +303,6 @@ async def _normalize_image(
             img_width = max(1, int(img_width / mp_ratio))
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
-
-    animation = _extract_animation(img)
 
     if resize_to is None and crop_box is None:
         pass
