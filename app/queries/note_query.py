@@ -102,7 +102,8 @@ class NoteQuery:
                 EXISTS (
                     SELECT 1 FROM note_comment
                     WHERE note_id = note.id
-                    AND to_tsvector('simple', body) @@ phraseto_tsquery({phrase})
+                    AND to_tsvector('simple', body || ' ' || COALESCE(tags -> 'hashtags', ''))
+                        @@ phraseto_tsquery({phrase})
                 )
             """
             if phrase is not None

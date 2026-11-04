@@ -69,7 +69,7 @@ Top-level contributor-relevant locations:
 - `app/views/data` - generated static data (e.g. timezone bboxes)
 - `app/services` - write paths and workflows
 - `app/queries` - read paths
-- `app/migrations` - database schema migrations (currently baseline in `app/migrations/0.sql`)
+- `app/migrations` - database schema migrations (baseline in `0.sql`, structured note tags in `1.sql`)
 - `scripts` - Python/bash operational pipelines
 - `shellscripts` - command definitions exposed through Nix shell
 - `config` - runtime configs (locale, socials, process-compose, postgres, Caddy)
@@ -212,6 +212,14 @@ Core domains include:
 - map data (`element`, `changeset`, `changeset_bounds`, `element_spatial`)
 - social/content (`note`, `diary`, `message`, `trace`, `report`)
 - ops (`audit`, `rate_limit`, `admin_task`, `file`)
+
+Note tags are the latest tag set on `note`; nullable `note_comment.tags` records
+replacement snapshots (NULL means unchanged; an empty hstore explicitly clears).
+After migration `1.sql`, run the `migrate_note_hashtags` admin task to extract
+hashtags from legacy comments in batches. It locks parent notes and marks each
+completed opening snapshot, so it can resume after interruption. New notes are
+already marked. The legacy API reconstructs hashtags from each comment snapshot
+only for the response; it must not cache that text over the stored stripped body.
 
 ## 6.2 Typed IDs and Model Shapes
 

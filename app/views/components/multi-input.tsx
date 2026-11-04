@@ -1,4 +1,4 @@
-import { useSignal } from "@preact/signals"
+import { useSignal, useSignalEffect } from "@preact/signals"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
 
@@ -44,6 +44,7 @@ export const MultiInput = ({
   required = false,
   maxItems,
   maxItemLength,
+  onChange,
 }: {
   name: string
   defaultValue: string
@@ -51,10 +52,12 @@ export const MultiInput = ({
   required?: boolean
   maxItems: readonly [limit: number, message: string]
   maxItemLength: number
+  onChange?: (values: readonly string[]) => void
 }) => {
   const [maxItemsLimit, maxItemsFeedback] = maxItems
 
   const tokens = useSignal(seedTokens(defaultValue, maxItemsLimit, maxItemLength))
+  useSignalEffect(() => onChange?.(tokens.value))
   const latestInsertBlocked = useSignal(false)
   const inputRef = useRef<HTMLInputElement>(null)
 

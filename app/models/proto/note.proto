@@ -58,6 +58,7 @@ message CreateRequest {
     min_len: 1
     max_len: 2000
   }];
+  optional Tags tags = 3;
 }
 
 message CreateResponse {
@@ -119,6 +120,7 @@ message GetCommentsResponse {
     Event event = 2;
     uint64 created_at = 3;
     string body_rich = 4;
+    optional Tags tags = 5;
   }
 
   StandardPaginationState state = 1 [(buf.validate.field).required = true];
@@ -132,6 +134,7 @@ message AddCommentRequest {
     not_in: [0]
   }];
   string body = 3 [(buf.validate.field).string.max_len = 2000];
+  optional Tags tags = 4;
 }
 
 message AddCommentResponse {
@@ -144,6 +147,7 @@ message Data {
     optional User user = 1;
     uint64 created_at = 2;
     string body_rich = 3;
+    optional Tags tags = 4;
   }
 
   uint64 id = 1;
@@ -152,4 +156,21 @@ message Data {
   Header header = 4 [(buf.validate.field).required = true];
   bool is_subscribed = 5;
   optional uint32 disappear_days = 6;
+  map<string, string> tags = 7;
+}
+
+// Message presence distinguishes an unchanged tag set from an explicit clear.
+message Tags {
+  map<string, string> values = 1 [(buf.validate.field).map = {
+    max_pairs: 100
+    keys: {
+      string: {
+        min_len: 1
+        max_len: 255
+      }
+    }
+    values: {
+      string: {max_len: 2000}
+    }
+  }];
 }
