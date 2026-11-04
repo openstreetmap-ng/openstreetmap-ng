@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from psycopg import AsyncConnection
 from shapely import Point, get_coordinates
 
 from app.db import db, db_fetchone, db_insert, db_update
@@ -10,6 +11,8 @@ from app.exceptions.context import raise_for
 from app.lib.audit import audit
 from app.lib.auth.context import auth_scopes, auth_user
 from app.lib.http.client import HTTPError
+from app.lib.note_closures import note_closures
+from app.lib.text.locale import DEFAULT_LOCALE
 from app.lib.text.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
 from app.models.db.note import Note
@@ -19,9 +22,10 @@ from app.models.db.note_comment import (
 )
 from app.models.db.user import user_is_moderator
 from app.models.proto.note_types import GetCommentsResponse_Comment_Event
-from app.models.types import DisplayName, NoteCommentId, NoteId
+from app.models.types import DisplayName, NoteCommentId, NoteId, UserId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_query import NoteCommentQuery
+from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
@@ -29,6 +33,88 @@ from app.validators.geometry import validate_geometry
 
 
 class NoteService:
+    @staticmethod
+    async def close_from_changeset(
+        conn: AsyncConnection, user_id: UserId | None, tags: dict[str, str]
+    ):
+        """Close visible open notes atomically with their parent changeset."""
+        notifications: list[tuple[Note, NoteComment]] = []
+        closures = note_closures(tags)
+        if user_id is None or not closures:
+            return notifications
+        user = await UserQuery.find_by_id(user_id)
+        if user is None:
+            return notifications
+        # Stable ordering prevents deadlocks between overlapping changesets.
+        for note_id, body in sorted(closures.items()):
+            note = await db_fetchone(
+                Note,
+                t"""
+                    SELECT * FROM note WHERE id = {note_id}
+                    AND hidden_at IS NULL AND closed_at IS NULL FOR UPDATE
+                """,
+                conn=conn,
+            )
+            if note is None:
+                continue
+            comment_id, created_at = await db_insert(
+                'note_comment',
+                {
+                    'note_id': note_id,
+                    'user_id': user_id,
+                    'user_ip': None,
+                    'event': 'closed',
+                    'body': body,
+                },
+                returning='id, created_at',
+                conn=conn,
+            )
+            await db_update(
+                'note',
+                {'closed_at': created_at, 'updated_at': created_at},
+                where={'id': note_id},
+                conn=conn,
+            )
+            await db_insert(
+                'user_subscription',
+                {'user_id': user_id, 'target': 'note', 'target_id': note_id},
+                on_conflict=t'DO NOTHING',
+                conn=conn,
+            )
+            await audit(
+                'update_note_status',
+                conn,
+                user_id=user_id,
+                extra={'id': note_id, 'event': 'closed'},
+            )
+            if body:
+                await audit(
+                    'create_note_comment',
+                    conn,
+                    user_id=user_id,
+                    extra={'id': comment_id, 'note': note_id},
+                )
+            comment: NoteComment = {
+                'id': comment_id,
+                'user_id': user_id,
+                'user_ip': None,
+                'note_id': note_id,
+                'event': 'closed',
+                'body': body,
+                'body_rich_hash': None,
+                'created_at': created_at,
+                'user': user,  # type: ignore
+            }
+            notifications.append((note, comment))
+        return notifications
+
+    @staticmethod
+    async def notify_changeset_closures(notifications: list[tuple[Note, NoteComment]]):
+        """Send activity only after the changeset transaction commits."""
+        for note, comment in notifications:
+            with translation_context(DEFAULT_LOCALE):
+                await _send_activity_email(note, comment)
+
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
@@ -290,3 +376,6 @@ def _get_activity_email_subject(
             )
 
     raise NotImplementedError(f'Unsupported activity email note event {event!r}')
+
+
+
