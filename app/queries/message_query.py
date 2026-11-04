@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import NamedTuple
 
 import cython
@@ -17,6 +18,40 @@ class _MessageCountByUserResult(NamedTuple):
 
 
 class MessageQuery:
+    @staticmethod
+    def mailbox_filters(
+        *,
+        inbox: bool,
+        search_user: str | None,
+        search_subject: str | None,
+        created_after: datetime | None,
+        created_before: datetime | None,
+    ):
+        """Build optional filters, to be AND-combined with mailbox ownership."""
+        user_cond = None
+        if search_user:
+            if inbox:
+                user_cond = t"""EXISTS (
+                    SELECT 1 FROM "user" AS sender
+                    WHERE sender.id = message.from_user_id
+                      AND strpos(lower(sender.display_name), lower({search_user})) > 0
+                )"""
+            else:
+                user_cond = t"""EXISTS (
+                    SELECT 1 FROM message_recipient AS recipient
+                    JOIN "user" AS recipient_user ON recipient_user.id = recipient.user_id
+                    WHERE recipient.message_id = message.id
+                      AND strpos(lower(recipient_user.display_name), lower({search_user})) > 0
+                )"""
+        return t_and(
+            user_cond,
+            t'strpos(lower(subject), lower({search_subject})) > 0'
+            if search_subject
+            else None,
+            t'created_at >= {created_after}' if created_after is not None else None,
+            t'created_at <= {created_before}' if created_before is not None else None,
+        )
+
     @staticmethod
     async def get_by_id(message_id: MessageId) -> Message:
         """Get a message and its recipients by id."""
