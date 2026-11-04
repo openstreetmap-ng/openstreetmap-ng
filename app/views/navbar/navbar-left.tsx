@@ -1,6 +1,7 @@
 import { RemoteEditButton } from "@index/remote-edit"
-import { routerRemoteEditTarget } from "@index/router"
-import { useSignalEffect } from "@preact/signals"
+import { routerCtx, routerRemoteEditTarget } from "@index/router"
+import { useSignal, useSignalEffect } from "@preact/signals"
+import { isLoggedIn } from "@utils/config"
 import { assertNever } from "@std/assert/unstable-never"
 import { useDisposeEffect } from "@utils/dispose-scope"
 import { type Editor, preferredEditorStorage } from "@utils/local-storage"
@@ -10,6 +11,7 @@ import { t } from "i18next"
 import { render } from "preact"
 import { useEffect, useRef } from "preact/hooks"
 import { currentHash, currentMapState, editDisabled } from "./navbar-left-state"
+import { showEditHelp } from "./_edit-help"
 
 const buildEditHref = (editor: Editor) => {
   const params: Record<string, string> = { editor }
@@ -51,6 +53,8 @@ const EditorImg = ({
 }
 
 const NavbarLeft = () => {
+  const editAnchorRef = useRef<HTMLAnchorElement>(null)
+  const helpActive = useSignal(false)
   const dropdownRootRef = useRef<HTMLDivElement>(null)
   const dropdownToggleRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<Dropdown>(null)
@@ -98,11 +102,33 @@ const NavbarLeft = () => {
   // Effect: toggle tooltip based when edit is disabled/enabled
   useSignalEffect(() => {
     const tooltip = tooltipRef.current!
-    if (editDisabled.value) {
+    if (editDisabled.value && !helpActive.value) {
       tooltip.enable()
     } else {
       tooltip.disable()
       tooltip.hide()
+    }
+  })
+
+  useSignalEffect(() => {
+    const { pathname, search } = routerCtx.value
+    if (
+      !isLoggedIn ||
+      pathname !== "/" ||
+      new URLSearchParams(search).get("edit_help") !== "1"
+    )
+      return
+    helpActive.value = true
+    const dispose = showEditHelp(
+      editAnchorRef.current!,
+      t("javascripts.edit_help"),
+      () => {
+        helpActive.value = false
+      },
+    )
+    return () => {
+      dispose()
+      helpActive.value = false
     }
   })
 
@@ -122,6 +148,7 @@ const NavbarLeft = () => {
         ref={dropdownRootRef}
       >
         <a
+          ref={editAnchorRef}
           class={`btn edit-link default ${disabled ? "disabled" : ""}`}
           href={!disabled ? buildEditHref(preferredEditorStorage.value) : undefined}
           aria-disabled={disabled}
