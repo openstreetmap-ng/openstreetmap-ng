@@ -13,8 +13,10 @@
 {% endblock %}
 {% block body_class %}map-body{% endblock %}
 {% block body %}
+  {% include 'index/_tag-editor' %}
   <div
     id="IndexRoot"
     class="main-map-container"
   ></div>
 {% endblock %}
+
