@@ -43,6 +43,18 @@ changeset:
   count_one: "changeset"
   count_other: "changesets"
   viewing_edits_from_date: Viewing edits from {{date}}
+  view_diff: View changeset diff
+  hide_diff: Hide changeset diff
+  diff:
+    title: Changeset diff
+    loading: Loading changeset geometry…
+    before: Before
+    after: After
+    summary: "Compared {{count}} changed map item(s)."
+    no_geometry: No renderable geometry is available for this changeset.
+    limit: "{{count}} changed item(s) are not shown because this diff is limited."
+    context_limit: Some related geometry is not shown because this diff is limited.
+    error: The changeset geometry could not be loaded.
 changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below
