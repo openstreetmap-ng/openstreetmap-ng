@@ -9,6 +9,10 @@ BLACKLIST["app/services/optimistic_diff/__init__.py"]=1
 # https://github.com/cython/cython/issues/6880
 BLACKLIST["app/lib/settings_integration.py"]=1
 
+# Reason: Runtime finalization aborts under coverage when cythonized.
+BLACKLIST["app/lib/io/image.py"]=1
+BLACKLIST["app/db.py"]=1
+
 DIRS=(
   "app/exceptions" "app/format" "app/lib"
   "app/middlewares" "app/responses" "app/services"
