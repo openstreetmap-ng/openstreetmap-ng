@@ -20,6 +20,7 @@ from app.config import (
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_DECOMPRESSED_MAX_SIZE,
     TRACE_FILE_MAX_LAYERS,
+    TRACE_FILE_RECOMPRESS_ZSTD_LEVEL,
 )
 from app.exceptions.context import raise_for
 from app.models.types import StorageKey
@@ -32,11 +33,17 @@ class _CompressResult(NamedTuple):
 
 
 _ZSTD_SUFFIX = '.zst'
-_ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
-_ZSTD_OPTIONS: dict[int, int] = {
-    zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
-    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
-}
+
+
+def _zstd_metadata(level: int):
+    return {'zstd_level': str(level)}
+
+
+def _zstd_options(level: int):
+    return {
+        zstd.CompressionParameter.compression_level: level,
+        zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
+    }
 
 
 class TraceFile:
@@ -80,10 +87,29 @@ class TraceFile:
         result = await to_thread(
             zstd.compress,
             buffer,
-            options=_ZSTD_OPTIONS,
+            options=_zstd_options(TRACE_FILE_COMPRESS_ZSTD_LEVEL),
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
-        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+        return _CompressResult(
+            result,
+            _ZSTD_SUFFIX,
+            _zstd_metadata(TRACE_FILE_COMPRESS_ZSTD_LEVEL),
+        )
+
+    @staticmethod
+    async def recompress(buffer: bytes):
+        """Recompress the trace file buffer using a heavier zstd level."""
+        result = await to_thread(
+            zstd.compress,
+            buffer,
+            options=_zstd_options(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL),
+        )
+        logging.debug('Trace file zstd-recompressed size is %s', sizestr(len(result)))
+        return _CompressResult(
+            result,
+            _ZSTD_SUFFIX,
+            _zstd_metadata(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL),
+        )
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):

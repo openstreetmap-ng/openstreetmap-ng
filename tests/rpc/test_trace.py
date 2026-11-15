@@ -1,7 +1,11 @@
 from pathlib import Path
 
+import pytest
 from httpx import AsyncClient
 
+from app.db import db_fetchval
+from app.lib.io.trace_file import TraceFile
+from app.lib.storage import TRACE_STORAGE
 from app.models.proto.trace_pb2 import (
     DeleteRequest,
     GetPageRequest,
@@ -15,6 +19,7 @@ from app.models.proto.trace_pb2 import (
 from app.models.proto.trace_types import Visibility as VisibilityType
 from app.models.types import DisplayName
 from app.queries.user_query import UserQuery
+from app.services import trace_service as trace_service_module
 
 _GPX_BYTES = Path('tests/data/8473730.gpx').read_bytes()
 
@@ -144,3 +149,61 @@ async def test_trace_lifecycle(client: AsyncClient):
 
     response = GetPageResponse.FromString(r.content)
     assert all(trace.summary.id != private_trace_id for trace in response.traces)
+
+
+async def test_trace_upload_schedules_recompression(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+):
+    client.headers['Authorization'] = 'User user1'
+
+    scheduled = {}
+
+    class _Loop:
+        def create_task(self, coro):
+            scheduled['coro'] = coro
+            coro.close()
+            return None
+
+    monkeypatch.setattr(trace_service_module, 'get_running_loop', lambda: _Loop())
+
+    trace_id = await _upload_trace(
+        client,
+        name='scheduled-recompress.gpx',
+        description='scheduled recompress',
+        tags=['rpc-scheduled'],
+        visibility='private',
+    )
+
+    assert trace_id
+    assert 'coro' in scheduled
+
+
+async def test_trace_recompression_replaces_file_id(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    trace_id = await _upload_trace(
+        client,
+        name='recompress-target.gpx',
+        description='recompress target',
+        tags=['rpc-recompress'],
+        visibility='private',
+    )
+
+    old_file_id = await db_fetchval(
+        str, t'SELECT file_id FROM trace WHERE id = {trace_id}'
+    )
+    assert old_file_id is not None
+
+    await trace_service_module._recompress_trace_file(trace_id, old_file_id, _GPX_BYTES)
+
+    new_file_id = await db_fetchval(
+        str, t'SELECT file_id FROM trace WHERE id = {trace_id}'
+    )
+    assert new_file_id is not None
+    assert new_file_id != old_file_id
+
+    with pytest.raises(FileNotFoundError):
+        await TRACE_STORAGE.load(old_file_id)
+
+    new_file = await TRACE_STORAGE.load(new_file_id)
+    assert TraceFile.decompress_if_needed(new_file, new_file_id) == _GPX_BYTES
