@@ -115,7 +115,11 @@ async def lifespan(_):
             # freeze uncollected gc objects for improved performance
             gc.collect()
             gc.freeze()
-            yield
+            try:
+                yield
+            finally:
+                # Allow native extension objects to be collected before interpreter shutdown.
+                gc.unfreeze()
 
 
 register_url_convertor('element_type', ElementTypeConvertor())
