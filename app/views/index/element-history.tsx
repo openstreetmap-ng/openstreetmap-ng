@@ -18,7 +18,10 @@ import type { ReadonlySignal } from "@preact/signals"
 import { type DataValid, Service } from "@proto/element_pb"
 import { ElementType } from "@proto/shared_pb"
 import { setPageTitle } from "@runtime/title"
-import { tagsDiffStorage } from "@utils/local-storage"
+import { ELEMENT_HISTORY_MAX_PAGE_SIZE } from "@utils/config"
+import { historyPageSizeStorage, tagsDiffStorage } from "@utils/local-storage"
+import { queryParam } from "@utils/path-codecs"
+import { updateUrlQueryParam } from "@utils/url-state"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { useEffect, useRef } from "preact/hooks"
@@ -113,6 +116,39 @@ const ElementHistorySidebar = ({
               </BTooltip>
             </label>
           </div>
+          <label class="d-flex align-items-center gap-2 ms-1 mt-1">
+            <span>{t("element.versions_per_page")}</span>
+            <input
+              class="form-control form-control-sm w-auto"
+              type="number"
+              min={1}
+              max={ELEMENT_HISTORY_MAX_PAGE_SIZE}
+              step={1}
+              autoComplete="off"
+              value={historyPageSizeStorage.value}
+              onChange={(e) => {
+                const parsed = Number.parseInt(e.currentTarget.value, 10)
+                if (Number.isNaN(parsed)) {
+                  e.currentTarget.value = historyPageSizeStorage.value.toString()
+                  return
+                }
+                const next = Math.min(
+                  ELEMENT_HISTORY_MAX_PAGE_SIZE,
+                  Math.max(1, parsed),
+                )
+                e.currentTarget.value = next.toString()
+                if (next !== historyPageSizeStorage.value) {
+                  updateUrlQueryParam(
+                    "page",
+                    queryParam.positiveInt(),
+                    undefined,
+                    "replace",
+                  )
+                  historyPageSizeStorage.value = next
+                }
+              }}
+            />
+          </label>
         </SidebarHeader>
       </div>
 
@@ -121,6 +157,7 @@ const ElementHistorySidebar = ({
         request={{
           element: { type: ElementType[type.value], id: id.value },
           tagsDiff: tagsDiffStorage.value,
+          limit: historyPageSizeStorage.value,
         }}
         urlKey="page"
         ariaLabel={t("alt.elements_page_navigation")}

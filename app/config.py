@@ -27,6 +27,7 @@ from app.models.proto import (
     audit_types,
     changeset_pb2,
     diary_pb2,
+    element_pb2,
     message_pb2,
     note_pb2,
     report_pb2,
@@ -544,6 +545,9 @@ DIARY_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
 )
 DISPLAY_NAME_MAX_LENGTH: int = _proto_validate(
     settings_pb2.UpdateSettingsRequest, 'display_name.string.max_len'
+)
+ELEMENT_HISTORY_MAX_PAGE_SIZE: int = _proto_validate(
+    element_pb2.GetHistoryRequest, 'limit.uint32.lte'
 )
 LOCALE_CODE_MAX_LENGTH: int = _proto_validate(
     settings_pb2.UpdateSettingsRequest, 'language.string.max_len'

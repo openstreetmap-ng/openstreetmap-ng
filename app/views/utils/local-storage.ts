@@ -4,6 +4,7 @@ import { effect, type Signal, signal } from "@preact/signals"
 import type { GetRequest_Engine } from "@proto/routing_pb"
 import type { Theme } from "@runtime/theme"
 import { memoize } from "@std/cache/memoize"
+import { ELEMENT_HISTORY_MAX_PAGE_SIZE, ELEMENT_HISTORY_PAGE_SIZE } from "@utils/config"
 import { isLatitude, isLongitude, isZoom } from "@utils/coords"
 
 type StorageConfig<T> = {
@@ -178,6 +179,11 @@ export const shareExportFormatStorage = createStorageSignal<string>(
 
 export const tagsDiffStorage = createStorageSignal<boolean>("tagsDiff", {
   defaultValue: true,
+})
+
+export const historyPageSizeStorage = createStorageSignal<number>("historyPageSize", {
+  defaultValue: ELEMENT_HISTORY_PAGE_SIZE,
+  validate: (v) => Number.isInteger(v) && v >= 1 && v <= ELEMENT_HISTORY_MAX_PAGE_SIZE,
 })
 
 const EDITOR_KEYS = ["id", "rapid", "remote"] as const
