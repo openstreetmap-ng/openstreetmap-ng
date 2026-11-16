@@ -79,7 +79,16 @@ class TraceQuery:
         Returns the file bytes.
         """
         trace = await TraceQuery.get_by_id(trace_id)
-        file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        try:
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        except Exception:
+            # Recompression may have removed the old file after we read its id.
+            # Recheck visibility and retry only if the file pointer changed.
+            current_trace = await TraceQuery.get_by_id(trace_id)
+            if current_trace['file_id'] == trace['file_id']:
+                raise
+            trace = current_trace
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
 
