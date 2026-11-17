@@ -114,6 +114,8 @@ interface LayerConfig {
   layerOptions?: AddMapLayerOptions
   /** Layers with higher priority are drawn on top of others, defaults to 0 */
   priority?: number
+  /** Override the priority of text labels within a vector style. */
+  textPriority?: number
 }
 
 export const layersConfig = new Map<LayerId, LayerConfig>()
@@ -135,6 +137,8 @@ layersConfig.set(LIBERTY_LAYER_ID, {
   specification: { type: "vector" },
   // @ts-expect-error
   vectorStyle: libertyStyle,
+  // Keep labels above aerial imagery, but below GPS and interactive overlays.
+  textPriority: 51,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
 })
@@ -412,11 +416,16 @@ export const addMapLayer = (
   }
 
   const priority = config.priority ?? 0
-  const beforeId: string | undefined = map
-    .getLayersOrder()
-    .find(
-      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
-    )
+  const findBeforeId = (priority: number) =>
+    map.getLayersOrder().find((id) => {
+      const otherConfig = layersConfig.get(resolveExtendedLayerId(id))
+      const otherPriority =
+        map.getLayer(id)?.type === "symbol" && map.getLayoutProperty(id, "text-field")
+          ? (otherConfig?.textPriority ?? otherConfig?.priority ?? 0)
+          : (otherConfig?.priority ?? 0)
+      return priority < otherPriority
+    })
+  const beforeId = findBeforeId(priority)
 
   if (specType === "vector") {
     console.debug("Layers: Adding vector", layerId, "before", beforeId)
@@ -450,7 +459,14 @@ export const addMapLayer = (
           // @ts-expect-error
           layer.source as LayerType,
         )
-      map.addLayer(layerObject, beforeId)
+      map.addLayer(
+        layerObject,
+        findBeforeId(
+          layer.type === "symbol" && layer.layout?.["text-field"]
+            ? (config.textPriority ?? priority)
+            : priority,
+        ),
+      )
     }
   } else {
     console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
