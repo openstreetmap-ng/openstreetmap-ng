@@ -513,6 +513,12 @@ export function routerReplace<R extends CompiledRouteDef<any, any>>(
   assert(setPath("replace", path), `No route found for path: ${path}`)
 }
 
+/** Synchronize route state after a native URL update that preserves history state. */
+export const routerSyncLocation = () => {
+  loadReason = "sync"
+  currentPath.value = getCurrentPath()
+}
+
 export const configureRouter = (routeDefs: AnyRouteDef[]) => {
   compiledRouteVariants = routeDefs.flatMap((route, registrationIndex) =>
     route._pathVariants.map(({ tokens }, variantIndex) => ({
