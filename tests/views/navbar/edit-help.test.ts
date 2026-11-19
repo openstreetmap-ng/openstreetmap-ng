@@ -197,6 +197,47 @@ test("mobile tutorial waits for a visible edit control", async () => {
   }
 })
 
+test("navigation and browser back do not retain a completed tutorial", async () => {
+  const page = await pageFor("?edit_help=1&keep=a#map=5/2/1")
+  try {
+    await page.getByRole("tooltip").waitFor({ timeout: 1500 })
+    await page.evaluate(() => {
+      const link = document.createElement("a")
+      link.href = "/history"
+      link.id = "history-test"
+      link.textContent = "History"
+      document.querySelector("main")!.append(link)
+    })
+    await page.locator("#history-test").click()
+    expect(new URL(page.url()).pathname).toBe("/history")
+    expect(await page.getByRole("tooltip").count()).toBe(0)
+    await page.goBack()
+    expect(new URL(page.url()).searchParams.get("keep")).toBe("a")
+    expect(new URL(page.url()).searchParams.has("edit_help")).toBe(false)
+    expect(await page.getByRole("tooltip").count()).toBe(0)
+  } finally {
+    await page.close()
+  }
+})
+
+test("resize hides a collapsed tutorial and reopening restores it", async () => {
+  const page = await pageFor("?edit_help=1")
+  try {
+    await page.getByRole("tooltip").waitFor({ timeout: 1500 })
+    await page.setViewportSize({ width: 390, height: 800 })
+    await page.waitForTimeout(100)
+    expect(await page.getByRole("tooltip").count()).toBe(0)
+    expect(new URL(page.url()).searchParams.get("edit_help")).toBe("1")
+    await page.getByRole("button", { name: "Menu", exact: true }).click()
+    await page.getByRole("tooltip").waitFor({ timeout: 1500 })
+    await page.locator("#map-area").click()
+    expect(new URL(page.url()).searchParams.has("edit_help")).toBe(false)
+    expect(await page.getByRole("tooltip").count()).toBe(0)
+  } finally {
+    await page.close()
+  }
+})
+
 test("browser regression run has no uncaught page errors", () => {
   expect(errors).toEqual([])
 })

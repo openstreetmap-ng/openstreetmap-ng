@@ -15,9 +15,10 @@ components. Login configuration, map state, map layers, remote editor and stored
 editor preference are explicit boundary replacements. It is not an authenticated
 full-application or map-rendering test. No backend or account is used.
 
-The seven tests cover the requested hint, first-click completion, query and hash
+The tests cover the requested hint, first-click completion, query and hash
 preservation, replacement history, signed-out and non-1 requests, SPA re-entry,
-restoration of the disabled-edit tooltip, mobile collapse and browser errors.
+restoration of the disabled-edit tooltip, mobile collapse, viewport transitions,
+navigation and browser back, and browser errors.
 
 Full application validation still requires the documented Nix development
 environment and backend services.
