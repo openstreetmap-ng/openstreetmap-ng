@@ -8,7 +8,7 @@ import { trimEndBy } from "@std/text/unstable-trim-by"
 import { isUnmodifiedLeftClick } from "@utils/dom-helpers"
 import { getPathParamSpecificity, type QuerySchema } from "@utils/path-codecs"
 import { defineQueryContract, type QueryContract } from "@utils/query-contract"
-import { qsParseAll } from "@utils/query-string"
+import { qsEncode, qsParseAll } from "@utils/query-string"
 import { unquotePlus } from "@utils/url-helpers"
 import { z } from "@zod/zod/mini"
 import type { Map as MaplibreMap } from "maplibre-gl"
@@ -473,6 +473,17 @@ const setPath = (
   loadReason = reason
   currentPath.value = newPath
   return true
+}
+
+export const routerRemoveQueryParam = (key: string) => {
+  const query = qsParseAll(location.search)
+  if (!(key in query)) return
+  delete query[key]
+  const path = location.pathname + qsEncode(query)
+  assert(
+    setPath("replace", path, { reason: "sync" }),
+    `No route found for path: ${path}`,
+  )
 }
 
 export function routerNavigate<R extends CompiledRouteDef<any, any>>(
