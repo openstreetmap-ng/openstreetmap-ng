@@ -685,3 +685,40 @@ theme:
   light: Light
   dark: Dark
   auto: Auto
+
+software:
+  title: OpenStreetMap software
+  introduction: Explore applications for mapping, analyzing data, navigating, and creating map tiles.
+  category: Category
+  platform: Platform
+  license: Software license
+  status: Development status
+  all: All
+  apply: Apply filters
+  reset: Reset filters
+  results_one: "{{count}} application"
+  results_other: "{{count}} applications"
+  details: Project details
+  empty: No applications match these filters. Try another combination or reset the filters.
+  reviewed: This curated selection was reviewed on 28 October 2026. Platform lists show stable releases; check project details for requirements, current availability, and license terms.
+  descriptions:
+    id: Edit OpenStreetMap directly in your web browser.
+    josm: Edit and validate OpenStreetMap data with an extensible desktop editor.
+    overpass: Query OpenStreetMap data and display the results on a map in your browser.
+    organic_maps: Use OpenStreetMap-based offline maps and walking, cycling, and driving navigation on Android or iOS.
+    maptiler: Convert raster and vector data, including OSM input, into map tiles. Proprietary software with plan-specific limits; macOS currently requires Apple Silicon and macOS 26 or later.
+  options:
+    editing: Editing
+    analysis: Data analysis
+    navigation: Navigation
+    tiles: Map tile creation
+    web: Web browser
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    android: Android
+    ios: iOS
+    open: Open source
+    proprietary: Proprietary
+    maintained: Maintained
+    unmaintained: Unmaintained

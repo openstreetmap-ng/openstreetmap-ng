@@ -40,6 +40,12 @@ mountProtoPage(PageSchema, () => (
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
           <HelpCard
+            href="/software"
+            title={t("software.title")}
+          >
+            {t("software.introduction")}
+          </HelpCard>
+          <HelpCard
             href="/welcome"
             title={t("site.help.welcome.title")}
           >
