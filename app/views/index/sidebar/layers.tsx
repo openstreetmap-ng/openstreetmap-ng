@@ -14,6 +14,7 @@ import {
   GPS_LAYER_ID,
   hasMapLayer,
   HOT_LAYER_ID,
+  HYBRID_LAYER_ID,
   type LayerId,
   LIBERTY_LAYER_ID,
   NOTES_LAYER_ID,
@@ -50,6 +51,7 @@ const BASE_LAYERS = new Set([
   TRACESTRACKTOPO_LAYER_ID,
   LIBERTY_LAYER_ID,
   HOT_LAYER_ID,
+  HYBRID_LAYER_ID,
 ])
 
 const OVERLAY_LAYERS = new Set([
@@ -389,6 +391,12 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
                   </>
                 )}
                 {layerId === HOT_LAYER_ID && t("javascripts.map.base.hot")}
+                {layerId === HYBRID_LAYER_ID && (
+                  <>
+                    {t("map.layers.hybrid")}
+                    <span class="vector">{t("map.layers.vector")}</span>
+                  </>
+                )}
               </ListLayerTile>
             ))}
           </ul>
@@ -416,7 +424,10 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
         <h4>{t("map.overlays.title")}</h4>
         <p class="text-body-secondary small">{t("javascripts.map.layers.overlays")}</p>
 
-        <div class="layer-settings mb-3">
+        <div
+          class="layer-settings mb-3"
+          hidden={activeBaseLayerId.value === HYBRID_LAYER_ID}
+        >
           <LayerTile
             kind="overlay"
             active={enabledOverlays.value.has(AERIAL_LAYER_ID)}

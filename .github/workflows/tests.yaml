@@ -25,6 +25,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
 
+      - name: Test hybrid map layers
+        if: matrix.os == 'ubuntu-latest' && matrix.implementation == 'python'
+        run: |
+          nix-shell --pure --run "bun test tests/map/hybrid.test.ts"
+
       - name: Build Cython modules
         if: matrix.implementation == 'cython'
         run: |

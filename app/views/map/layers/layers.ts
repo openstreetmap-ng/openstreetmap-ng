@@ -1,3 +1,4 @@
+import { hybridStyle } from "@map/vector-styles/hybrid"
 import libertyStyle from "@map/vector-styles/liberty.json"
 import { batch, effect, signal } from "@preact/signals"
 import { effectiveTheme } from "@runtime/theme"
@@ -7,11 +8,12 @@ import { overlayOpacityStorage } from "@utils/local-storage"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
 import {
+  RasterTileSource,
   type AddLayerObject,
   type FilterSpecification,
   type LayerSpecification,
   type Map as MaplibreMap,
-  RasterTileSource,
+  type RasterSourceSpecification,
   type SourceSpecification,
   type StyleSpecification,
 } from "maplibre-gl"
@@ -26,6 +28,7 @@ export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
 export const DEFAULT_LAYER_CODE = "" as LayerCode
 
 export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
 export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
@@ -33,6 +36,7 @@ export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
+const HYBRID_LAYER_CODE = "I" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
 const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
@@ -234,6 +238,22 @@ layersConfig.set(AERIAL_LAYER_ID, {
   },
   layerCode: AERIAL_LAYER_CODE,
   priority: 50,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: {
+    type: "vector",
+    attribution: `${copyright}. ${aerialEsriCredit}. ${terms}`,
+  },
+  vectorStyle: hybridStyle(
+    libertyStyle as StyleSpecification,
+    layersConfig.get(AERIAL_LAYER_ID)!.specification as RasterSourceSpecification,
+  ),
+  isBaseLayer: true,
+  layerCode: HYBRID_LAYER_CODE,
+  // Above a remembered aerial overlay (50), below GPS (60) and data/notes.
+  // This also works when URL restoration adds overlays before the base map.
+  priority: 55,
 })
 
 layersConfig.set(GPS_LAYER_ID, {
