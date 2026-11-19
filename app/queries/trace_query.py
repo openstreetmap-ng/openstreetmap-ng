@@ -151,17 +151,19 @@ class TraceQuery:
     async def find_by_geom(
         geometry: Polygon | MultiPolygon,
         *,
-        identifiable_trackable: cython.bint,
+        identifiable_trackable: cython.bint = False,
+        visibility: list[str] | None = None,
         limit: int,
         legacy_offset: int | None = None,
     ) -> list[Trace]:
         """Find traces by geometry. Returns traces with segments intersecting the provided geometry."""
         h3_cells = polygon_to_h3(geometry, max_resolution=11)
-        visibility = (
-            ['identifiable', 'trackable']
-            if identifiable_trackable
-            else ['public', 'private']
-        )
+        if visibility is None:
+            visibility = (
+                ['identifiable', 'trackable']
+                if identifiable_trackable
+                else ['public', 'private']
+            )
 
         async with db(isolation_level=IsolationLevel.REPEATABLE_READ) as conn:
             chunks = await TimescaleDBQuery.get_chunks_ranges('trace', conn)
@@ -227,7 +229,7 @@ class TraceQuery:
                     trace['capture_times'] = capture_times_arr[intersect_mask].tolist()
 
         traces = filtered_traces
-        if not traces or identifiable_trackable:
+        if not traces or identifiable_trackable or visibility is not None:
             return traces
 
         # For public/private, return a simplified representation
