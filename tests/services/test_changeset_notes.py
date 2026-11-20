@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from unittest.mock import AsyncMock
 
@@ -56,6 +57,56 @@ async def _properties(client, id):
     r = await client.get(f'/api/0.6/notes/{id}.json')
     assert r.is_success, r.text
     return r.json()['properties']
+
+
+async def test_concurrent_changesets_close_note_once(
+    client: AsyncClient, changeset_id, monkeypatch
+):
+    id = await _note(client)
+    tags = {'closes:note': str(id), 'comment': 'concurrent close'}
+    await ChangesetService.update_tags(changeset_id, tags)
+    second = await ChangesetService.create(tags)
+    barrier = asyncio.Barrier(2)
+    original_fetch = changeset_notes.db_fetchone
+
+    async def synchronize_note_lock(*args, **kwargs):
+        await barrier.wait()
+        return await original_fetch(*args, **kwargs)
+
+    monkeypatch.setattr(changeset_notes, 'db_fetchone', synchronize_note_lock)
+    notify = AsyncMock()
+    monkeypatch.setattr(NoteService, 'notify_activity', notify)
+    async with asyncio.timeout(20):
+        await asyncio.gather(
+            ChangesetService.close(changeset_id), ChangesetService.close(second)
+        )
+    props = await _properties(client, id)
+    assert props['status'] == 'closed'
+    assert len(props['comments']) == 2
+    assert props['comments'][-1]['action'] == 'closed'
+    assert notify.call_count == 1
+    for closed_id in (changeset_id, second):
+        changeset = await ChangesetQuery.find_by_id(closed_id)
+        assert changeset is not None and changeset['closed_at'] is not None
+
+
+async def test_hidden_note_is_not_closed(
+    client: AsyncClient, changeset_id, monkeypatch
+):
+    id = await _note(client)
+    client.headers['Authorization'] = 'User moderator'
+    r = await client.delete(f'/api/0.6/notes/{id}.json')
+    assert r.is_success, r.text
+    before = await _properties(client, id)
+    await ChangesetService.update_tags(changeset_id, {'closes:note': str(id)})
+    notify = AsyncMock()
+    monkeypatch.setattr(NoteService, 'notify_activity', notify)
+    # Direct service call keeps the fixture's changeset-owner auth context.
+    await ChangesetService.close(changeset_id)
+    after = await _properties(client, id)
+    assert after['status'] == 'hidden'
+    assert after['comments'] == before['comments']
+    assert not notify.called
 
 
 async def test_manual_close_comments_and_skip_closed(

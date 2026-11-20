@@ -22,6 +22,12 @@ uv run --no-project --python 3.14 python tests/probes/changeset_notes.py --basel
 On exact base5cddbe2 all three original closure methods leave the test notes
 open. `tests/services/test_changeset_notes.py` additionally contains9 normal
 project pytest cases (5 parser parameters and4 real API/database scenarios).
+Two follow-up DB cases add synchronized concurrent closures of one note and
+hidden-note skip behavior. The concurrency case puts both real transactions at
+a barrier before the actual row-lock query; it expects one close event and one
+notification with both changesets closed. These also require the full project
+environment and were not run locally.
+
 Those require the full project environment. They were not run locally; a probe
 pass is not a DB suite pass. The real notification scheduler is reused, while
 the integration tests replace outbound notification delivery. No live notes,
