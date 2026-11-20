@@ -14,6 +14,10 @@ from app.models.proto.message_connect import (
 )
 from app.models.proto.message_connect import ServiceASGIApplication
 from app.models.proto.message_pb2 import (
+    BatchDeleteRequest,
+    BatchDeleteResponse,
+    BatchUpdateReadStateRequest,
+    BatchUpdateReadStateResponse,
     DeleteRequest,
     DeleteResponse,
     GetPageRequest,
@@ -140,10 +144,29 @@ class _Service(MessageServiceConnect):
         return UpdateReadStateResponse(updated=updated)
 
     @override
+    async def batch_update_read_state(
+        self, request: BatchUpdateReadStateRequest, ctx: RequestContext
+    ):
+        require_web_user()
+        updated_count = await MessageService.batch_set_state(
+            [MessageId(id_) for id_ in request.id],
+            read=request.read,
+        )
+        return BatchUpdateReadStateResponse(updated_count=updated_count)
+
+    @override
     async def delete(self, request: DeleteRequest, ctx: RequestContext):
         require_web_user()
         await MessageService.delete_message(MessageId(request.id))
         return DeleteResponse()
+
+    @override
+    async def batch_delete(self, request: BatchDeleteRequest, ctx: RequestContext):
+        require_web_user()
+        deleted_count = await MessageService.batch_delete_messages(
+            [MessageId(id_) for id_ in request.id],
+        )
+        return BatchDeleteResponse(deleted_count=deleted_count)
 
     @override
     async def send(self, request: SendRequest, ctx: RequestContext):

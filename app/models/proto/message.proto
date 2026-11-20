@@ -19,7 +19,9 @@ service Service {
   }
   rpc Get(GetRequest) returns (GetResponse) {}
   rpc UpdateReadState(UpdateReadStateRequest) returns (UpdateReadStateResponse) {}
+  rpc BatchUpdateReadState(BatchUpdateReadStateRequest) returns (BatchUpdateReadStateResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc BatchDelete(BatchDeleteRequest) returns (BatchDeleteResponse) {}
   rpc Send(SendRequest) returns (SendResponse) {}
 }
 
@@ -67,11 +69,42 @@ message UpdateReadStateResponse {
   bool updated = 1;
 }
 
+message BatchUpdateReadStateRequest {
+  repeated uint64 id = 1 [(buf.validate.field).repeated = {
+    unique: true
+    min_items: 1
+    max_items: 100
+    items: {
+      uint64: {gt: 0}
+    }
+  }];
+  bool read = 2;
+}
+
+message BatchUpdateReadStateResponse {
+  uint32 updated_count = 1;
+}
+
 message DeleteRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
 message DeleteResponse {}
+
+message BatchDeleteRequest {
+  repeated uint64 id = 1 [(buf.validate.field).repeated = {
+    unique: true
+    min_items: 1
+    max_items: 100
+    items: {
+      uint64: {gt: 0}
+    }
+  }];
+}
+
+message BatchDeleteResponse {
+  uint32 deleted_count = 1;
+}
 
 message SendRequest {
   string subject = 1 [(buf.validate.field).string = {
