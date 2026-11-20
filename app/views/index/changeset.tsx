@@ -42,6 +42,7 @@ import { pathParam } from "@utils/path-codecs"
 import { t } from "i18next"
 import type { Map as MaplibreMap } from "maplibre-gl"
 import { showLoginModal } from "../user/login"
+import { ChangesetDiffControl } from "./_changeset-diff-control"
 
 const focusPaint: FocusLayerPaint = {
   "fill-opacity": 0,
@@ -314,6 +315,7 @@ const ChangesetSidebar = ({
   id: ReadonlySignal<bigint>
 }) => {
   const isSubscribed = useSignal(false)
+  const diffActive = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
 
   const { resource, data } = useSidebar(
@@ -349,6 +351,7 @@ const ChangesetSidebar = ({
 
   // Effect: Map focus
   useDisposeSignalEffect((scope) => {
+    if (diffActive.value) return
     if (!data.value?.bounds.length) return
 
     scope.defer(() => focusObjects(map))
@@ -376,6 +379,12 @@ const ChangesetSidebar = ({
             </SidebarHeader>
 
             <ChangesetHeader data={d} />
+            <ChangesetDiffControl
+              key={d.id.toString()}
+              data={d}
+              map={map}
+              active={diffActive}
+            />
             <Tags tags={d.tags} />
 
             {/* Report button */}
