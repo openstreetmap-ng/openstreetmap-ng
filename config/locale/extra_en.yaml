@@ -1,4 +1,16 @@
 project_name: OpenStreetMap-NG
+changeset_diff:
+  open: Open changeset diff
+  close: Close changeset diff
+  view: Changeset diff view
+  all: Both
+  before: Before
+  after: After
+  large: "This view supports up to {{count}} changed nodes and ways. No partial diff is shown."
+  error: Could not load complete version geometry.
+  retry: Retry
+  empty: No node or way geometry changes.
+  relations: "Relation geometry is not included ({{count}} relations)."
 editor:
   rapid:
     name: Rapid
