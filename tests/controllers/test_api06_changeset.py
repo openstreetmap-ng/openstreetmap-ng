@@ -13,7 +13,61 @@ from app.config import (
 )
 from app.format import Format06
 from app.lib.io.xml_codec import XMLToDict
+from app.models.types import ChangesetId
+from app.queries.element_query import ElementQuery
 from tests.utils.assert_model import assert_model
+
+
+async def test_null_island_upload_rejected_without_writes(
+    client: AsyncClient, changeset_id: ChangesetId
+):
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'create': [
+                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -2, '@lat': 0, '@lon': 0}),
+                ]
+            }
+        }),
+    )
+    assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+    assert 'Null Island' in r.text
+    assert not await ElementQuery.find_by_changeset(changeset_id)
+
+    r = await client.get(f'/api/0.6/changeset/{changeset_id}')
+    assert r.is_success, r.text
+    changeset = XMLToDict.parse(r.content)['osm']['changeset']
+    assert changeset['@changes_count'] == 0
+
+    # The rejected transaction must not prevent a later legitimate upload.
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}
+        }),
+    )
+    assert r.is_success, r.text
+    assert len(await ElementQuery.find_by_changeset(changeset_id)) == 1
+
+
+async def test_null_island_upload_allows_nearby_node(
+    client: AsyncClient, changeset_id: ChangesetId
+):
+    r = await client.post(
+        f'/api/0.6/changeset/{changeset_id}/upload',
+        content=XMLToDict.unparse({
+            'osmChange': {
+                'create': [
+                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -2, '@lat': 0, '@lon': 0.0000001}),
+                ]
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    assert len(await ElementQuery.find_by_changeset(changeset_id)) == 2
 
 
 async def test_changeset_crud(client: AsyncClient):

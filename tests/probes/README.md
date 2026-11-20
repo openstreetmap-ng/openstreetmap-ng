@@ -21,6 +21,11 @@ actual preparation call site. The project pytest integration file
 including both privileged roles. Those require the normal project environment;
 a standalone probe pass is not evidence that they passed.
 
+Two additional API controller cases in `tests/controllers/test_api06_changeset.py`
+exercise real XML uploads: HTTP400 plus no element/changeset-size writes and a
+successful retry with one legitimate node; and an allowed nearby-coordinate
+upload. These also require the normal full project environment.
+
 For the baseline counterexample, use the same probe and an exact base worktree:
 
 ```sh
