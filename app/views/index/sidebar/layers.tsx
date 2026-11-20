@@ -14,6 +14,7 @@ import {
   GPS_LAYER_ID,
   hasMapLayer,
   HOT_LAYER_ID,
+  HYBRID_AERIAL_LAYER_ID,
   type LayerId,
   LIBERTY_LAYER_ID,
   NOTES_LAYER_ID,
@@ -49,6 +50,7 @@ const BASE_LAYERS = new Set([
   TRANSPORTMAP_LAYER_ID,
   TRACESTRACKTOPO_LAYER_ID,
   LIBERTY_LAYER_ID,
+  HYBRID_AERIAL_LAYER_ID,
   HOT_LAYER_ID,
 ])
 
@@ -63,6 +65,7 @@ const OVERLAY_LAYERS = new Set([
 // Avoids "Too many active WebGL context even after destroyed".
 const LAYER_THUMBNAILS = new Map<LayerId, string>([
   [AERIAL_LAYER_ID, "/static/img/layer/aerial.webp"],
+  [HYBRID_AERIAL_LAYER_ID, "/static/img/layer/aerial.webp"],
 ])
 
 type Minimap =
@@ -385,6 +388,12 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
                 {layerId === LIBERTY_LAYER_ID && (
                   <>
                     {t("map.layers.liberty")}
+                    <span class="vector">{t("map.layers.vector")}</span>
+                  </>
+                )}
+                {layerId === HYBRID_AERIAL_LAYER_ID && (
+                  <>
+                    {t("map.layers.hybrid_aerial")}
                     <span class="vector">{t("map.layers.vector")}</span>
                   </>
                 )}
