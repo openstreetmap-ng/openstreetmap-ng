@@ -146,7 +146,7 @@ test("missing or mismatched geometry is an error, not an incomplete success", as
   await expect(
     loadChangesetDiff(
       data,
-      async (ref) => ({ ...response(ref), visible: false }),
+      async (ref) => ({ ...response(ref), visible: ref.version !== 2n }),
       new AbortController().signal,
     ),
   ).rejects.toThrow()
@@ -157,4 +157,39 @@ test("missing or mismatched geometry is an error, not an incomplete success", as
       new AbortController().signal,
     ),
   ).rejects.toThrow("Mismatched")
+})
+
+test("restoration has no before geometry when the previous version is a tombstone", async () => {
+  const result = await loadChangesetDiff(
+    changeset([{ id: 1n, version: 3n, visible: true }]),
+    async (ref) =>
+      ref.version === 2n
+        ? ({
+            ...response(ref),
+            visible: false,
+            context: { render: { nodes: [], ways: [] } },
+          } as unknown as ElementData)
+        : response(ref),
+    new AbortController().signal,
+  )
+  expect(result.features).toHaveLength(1)
+  expect(result.features[0]?.properties?.phase).toBe("after")
+  expect(result.features[0]?.properties?.version).toBe("3")
+})
+
+test("objects created and deleted in the same changeset have no endpoint geometry", async () => {
+  let calls = 0
+  const result = await loadChangesetDiff(
+    changeset([
+      { id: 1n, version: 1n, visible: true },
+      { id: 1n, version: 2n, visible: false },
+    ]),
+    async (ref) => {
+      calls++
+      return response(ref)
+    },
+    new AbortController().signal,
+  )
+  expect(result.features).toHaveLength(0)
+  expect(calls).toBe(0)
 })

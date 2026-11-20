@@ -60,6 +60,11 @@ export const loadChangesetDiff = async (
         response.ref.version !== ref.version
       )
         throw new Error("Mismatched version response")
+      // Restoring a deleted object has no visible geometry at its before endpoint.
+      if (!response.visible && phase === "before") {
+        results[i] = []
+        continue
+      }
       const objects = convertRenderElementsData(response.context.render).filter(
         (object) => object.type === ElementType[ref.type] && object.id === ref.id,
       )
