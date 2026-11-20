@@ -1,7 +1,7 @@
 import logging
 import warnings
 from asyncio import Lock, to_thread
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from functools import partial
 from io import BytesIO
 from pathlib import Path
@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError, DecompressionBombWarning, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -199,6 +199,21 @@ async def _get_pipeline():
         yield _PIPE
 
 
+# Named tuples avoid ambiguous Python 3.14 except headers in Cython 3.2.
+_IMAGE_SIZE_ERRORS = (DecompressionBombError, DecompressionBombWarning)
+_IMAGE_READ_ERRORS = (OSError, SyntaxError)
+
+
+@contextmanager
+def _image_decode_errors():
+    try:
+        yield
+    except _IMAGE_SIZE_ERRORS:
+        raise_for.image_too_big()
+    except _IMAGE_READ_ERRORS:
+        raise_for.image_not_readable()
+
+
 @overload
 async def _normalize_image(
     data: bytes,
@@ -242,8 +257,9 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    with _image_decode_errors():
+        img = open_image(BytesIO(data))
+        ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -290,7 +306,8 @@ async def _normalize_image(
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
 
-    animation = _extract_animation(img)
+    with _image_decode_errors():
+        animation = _extract_animation(img)
 
     if resize_to is None and crop_box is None:
         pass
