@@ -14,6 +14,7 @@ from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -208,6 +209,7 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
+        self._check_null_island_nodes()
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
@@ -217,6 +219,22 @@ class OptimisticDiffPrepare:
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
+
+    def _check_null_island_nodes(self):
+        if user_is_moderator(auth_user()):
+            return
+
+        # Final state counts distinct edited nodes, not intermediate versions.
+        count = 0
+        for typed_id, entry in self.element_state.items():
+            element = entry.current
+            if element_type(typed_id) != 'node' or not element['visible']:
+                continue
+            point = element['point']
+            if point is not None and point.x == 0 and point.y == 0:
+                count += 1
+                if count >= 2:
+                    raise_for.diff_multiple_null_island_nodes()
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
