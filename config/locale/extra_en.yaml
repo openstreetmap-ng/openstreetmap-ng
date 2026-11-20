@@ -1,4 +1,6 @@
 project_name: OpenStreetMap-NG
+history_limit:
+  versions_per_page: Versions per page
 editor:
   rapid:
     name: Rapid

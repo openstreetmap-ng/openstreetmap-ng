@@ -20,6 +20,7 @@ export const {
   DIARY_COMMENT_BODY_MAX_LENGTH,
   DIARY_TITLE_MAX_LENGTH,
   DISPLAY_NAME_MAX_LENGTH,
+  ELEMENT_HISTORY_PAGE_SIZE,
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
@@ -58,6 +59,7 @@ export const {
   DIARY_COMMENT_BODY_MAX_LENGTH: number
   DIARY_TITLE_MAX_LENGTH: number
   DISPLAY_NAME_MAX_LENGTH: number
+  ELEMENT_HISTORY_PAGE_SIZE: number
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
@@ -109,6 +111,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "DIARY_COMMENT_BODY_MAX_LENGTH",
         "DIARY_TITLE_MAX_LENGTH",
         "DISPLAY_NAME_MAX_LENGTH",
+        "ELEMENT_HISTORY_PAGE_SIZE",
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
