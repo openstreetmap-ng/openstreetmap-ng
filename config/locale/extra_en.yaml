@@ -1,4 +1,16 @@
 project_name: OpenStreetMap-NG
+mailbox_selection:
+  actions: Selected message actions
+  select: Select
+  select_message: "Select message: {{subject}}"
+  select_visible: Select visible messages
+  count: "Selected: {{count}}"
+  read: Mark selected messages as read
+  unread: Mark selected messages as unread
+  delete: Delete selected messages
+  clear: Clear selection
+  failed_one: "One message could not be updated. It remains selected for retry."
+  failed_other: "{{count}} messages could not be updated. They remain selected for retry."
 editor:
   rapid:
     name: Rapid
