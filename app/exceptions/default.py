@@ -123,6 +123,12 @@ class Exceptions:
         raise APIError(status.HTTP_404_NOT_FOUND, detail='Diary comment not found')
 
     # --- diff ---
+    def diff_multiple_null_island_nodes(self) -> NoReturn:
+        raise APIError(
+            status.HTTP_400_BAD_REQUEST,
+            detail='Upload contains multiple nodes at Null Island (0, 0)',
+        )
+
     def diff_multiple_changesets(self) -> NoReturn:
         raise NotImplementedError
 
