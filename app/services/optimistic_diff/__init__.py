@@ -11,6 +11,7 @@ from app.db import db
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.models.db.element import ElementInit
 from app.models.element import TypedElementId
+from app.services.changeset_notes import close_changeset_notes, notify_changeset_notes
 from app.services.optimistic_diff.apply import OptimisticDiffApply
 from app.services.optimistic_diff.prepare import OptimisticDiffPrepare
 
@@ -37,7 +38,15 @@ class OptimisticDiff:
                 async with db(True) as conn:
                     prep = OptimisticDiffPrepare(conn, elements)
                     await prep.prepare()
-                    return await OptimisticDiffApply.apply(prep)
+                    result = await OptimisticDiffApply.apply(prep)
+                    notifications = (
+                        await close_changeset_notes(
+                            conn, prep.changeset['user_id'], prep.changeset['tags']
+                        )
+                        if prep.apply_elements
+                        and 'size_limit_reached' in prep.changeset
+                        else []
+                    )
             except* (OptimisticDiffError, OperationalError) as e:
                 attempt += 1
 
@@ -65,3 +74,6 @@ class OptimisticDiff:
                 await asyncio.sleep(sleep)
                 sleep = uniform(sleep * 1.5, sleep * 2.5)
                 sleep = min(sleep, sleep_limit)
+            else:
+                await notify_changeset_notes(notifications)
+                return result
