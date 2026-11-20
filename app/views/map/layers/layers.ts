@@ -1,4 +1,5 @@
 import libertyStyle from "@map/vector-styles/liberty.json"
+import { createHybridStyle } from "./_hybrid-style"
 import { batch, effect, signal } from "@preact/signals"
 import { effectiveTheme } from "@runtime/theme"
 import { memoize } from "@std/cache/memoize"
@@ -26,6 +27,7 @@ export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
 export const DEFAULT_LAYER_CODE = "" as LayerCode
 
 export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
 export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
@@ -137,6 +139,18 @@ layersConfig.set(LIBERTY_LAYER_ID, {
   vectorStyle: libertyStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: {
+    type: "vector",
+    attribution: `${copyright}. ${aerialEsriCredit}. ${terms}`,
+  },
+  // JSON imports widen the style specification's string literals.
+  // @ts-expect-error
+  vectorStyle: createHybridStyle(libertyStyle),
+  isBaseLayer: true,
+  layerCode: "B" as LayerCode,
 })
 
 layersConfig.set(CYCLOSM_LAYER_ID, {
