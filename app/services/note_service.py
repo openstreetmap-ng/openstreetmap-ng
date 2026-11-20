@@ -30,6 +30,11 @@ from app.validators.geometry import validate_geometry
 
 class NoteService:
     @staticmethod
+    async def notify_activity(note: Note, comment: NoteComment):
+        """Send activity notifications after the caller's transaction commits."""
+        await _send_activity_email(note, comment)
+
+    @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))

@@ -19,6 +19,7 @@ from app.db import (
     db_delete,
     db_fetchcol,
     db_fetchrow,
+    db_fetchrows,
     db_fetchval,
     db_insert,
     db_lock,
@@ -42,6 +43,7 @@ from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserI
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
+from app.services.changeset_notes import close_changeset_notes, notify_changeset_notes
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 
@@ -112,7 +114,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +126,7 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +143,9 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+            notifications = await close_changeset_notes(conn, changeset_user_id, tags)
+
+        await notify_changeset_notes(notifications)
 
     @staticmethod
     @asynccontextmanager
@@ -272,18 +277,25 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
+    notifications = []
+    async with db(True) as conn:
+        rows = await db_fetchrows(
+            t"""UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
                 updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
                 (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
                 created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
+                ) RETURNING user_id, tags""",
+            conn=conn,
+        )
+        for user_id, tags in rows:
+            notifications.extend(await close_changeset_notes(conn, user_id, tags))
 
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+    await notify_changeset_notes(notifications)
+
+    if rows:
+        logging.debug('Closed %d inactive changesets', len(rows))
 
 
 async def _delete_empty():
