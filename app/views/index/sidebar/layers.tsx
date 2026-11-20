@@ -241,6 +241,9 @@ export const LayersSidebar = ({ close }: { close: () => void }) => {
   }
 
   const setBaseLayer = (layerId: LayerId) => {
+    if (layerId === HYBRID_LAYER_ID && hasMapLayer(map, AERIAL_LAYER_ID)) {
+      removeMapLayer(map, AERIAL_LAYER_ID)
+    }
     const activeLayerId = activeBaseLayerId.peek()
     if (activeLayerId === layerId) return
 

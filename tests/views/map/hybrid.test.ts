@@ -5,6 +5,17 @@ const { chromium } = await import(process.env.PLAYWRIGHT_PACKAGE ?? "playwright"
 let browser: Awaited<ReturnType<typeof chromium.launch>>
 let server: ReturnType<typeof Bun.serve>
 const project = resolve(import.meta.dir, "../../..")
+const boundaries: Record<string, string> = {
+  "@runtime/theme": `import {signal} from '@preact/signals'; export const effectiveTheme=signal('light');`,
+  "@utils/local-storage": `import {signal} from '@preact/signals'; const opacity=signal(1); export const overlayOpacityStorage=()=>opacity; export const globeProjectionStorage=signal(false); export const layerOrderStorage=signal([]);`,
+  "@utils/config": `export const isBreakpointDown=()=>true; export const MAP_QUERY_AREA_MAX_SIZE=1; export const NOTE_QUERY_AREA_MAX_SIZE=1;`,
+  "@map/main-map": `import {signal} from '@preact/signals'; export const mainMap=signal(null);`,
+  "@map/layers/data-layer": `import {signal} from '@preact/signals'; export const dataLayerPending=signal(false);`,
+  "@map/layers/notes-layer": `import {signal} from '@preact/signals'; export const notesLayerPending=signal(false);`,
+  "@index/_action-sidebar": `import {h} from 'preact'; export const SidebarHeader=({title})=>h('h2',{},title);`,
+  "@index/sidebar/_toggle-button": `export class SidebarToggleControl {}`,
+  "./minimap-pool": `export const MinimapPool={attach(){},detach(){},syncFrom(){}};`,
+}
 
 beforeAll(async () => {
   const bundle = await Bun.build({
@@ -15,15 +26,15 @@ beforeAll(async () => {
         name: "runtime-boundaries",
         setup(build) {
           build.onResolve(
-            { filter: /^(@runtime\/theme|@utils\/local-storage)$/ },
+            {
+              filter:
+                /^(@runtime\/theme|@utils\/local-storage|@utils\/config|@map\/main-map|@map\/layers\/(data-layer|notes-layer)|@index\/_action-sidebar|@index\/sidebar\/_toggle-button|\.\/minimap-pool)$/,
+            },
             ({ path }) => ({ path, namespace: "boundary" }),
           )
           build.onLoad({ filter: /.*/, namespace: "boundary" }, ({ path }) => ({
-            contents:
-              path === "@runtime/theme"
-                ? `import {signal} from '@preact/signals'; export const effectiveTheme=signal('light');`
-                : `import {signal} from '@preact/signals'; export const overlayOpacityStorage=()=>signal(0.25);`,
-            loader: "ts",
+            contents: boundaries[path]!,
+            loader: "tsx",
             resolveDir: project,
           }))
         },
@@ -70,6 +81,52 @@ test("hybrid is a selectable base layer in the real registry", async () => {
     await page.close()
   }
 })
+
+if (process.env.HYBRID_LIVE_RENDER === "1")
+  test("selecting hybrid in the real sidebar clears a previously enabled aerial overlay", async () => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+    try {
+      await page.goto(server.url.toString())
+      await page.waitForFunction(() => "hybridTest" in window)
+      await page.evaluate(() => (window as any).hybridTest.ready)
+      await page.evaluate(() => (window as any).hybridTest.prepareSidebar())
+      expect(
+        (await page.evaluate(() => (window as any).hybridTest.snapshot())).layers.some(
+          (layer: any) => layer.id === "aerial",
+        ),
+      ).toBe(true)
+      await page.getByRole("button", { name: "Hybrid aerial", exact: true }).click()
+      await page.waitForFunction(
+        () => (window as any).hybridTest.snapshot().active === "hybrid",
+      )
+      expect(
+        (await page.evaluate(() => (window as any).hybridTest.snapshot())).layers.some(
+          (layer: any) => layer.id === "aerial",
+        ),
+      ).toBe(false)
+      expect(
+        await page
+          .getByRole("button", { name: "Esri World Imagery", exact: true })
+          .getAttribute("aria-pressed"),
+      ).toBe("false")
+      await page.evaluate(() => (window as any).hybridTest.switch("liberty"))
+      await page
+        .getByRole("button", { name: "Esri World Imagery", exact: true })
+        .click()
+      expect(
+        (await page.evaluate(() => (window as any).hybridTest.snapshot())).layers.some(
+          (layer: any) => layer.id === "aerial",
+        ),
+      ).toBe(true)
+      expect(
+        await page
+          .getByRole("button", { name: "Esri World Imagery", exact: true })
+          .getAttribute("aria-pressed"),
+      ).toBe("true")
+    } finally {
+      await page.close()
+    }
+  }, 60000)
 
 if (process.env.HYBRID_LIVE_RENDER === "1")
   test("live imagery and vector overlays render and survive switching on desktop/mobile", async () => {

@@ -13,6 +13,9 @@ await init({
             website_and_api_terms: "Website and API terms",
           },
         },
+        map: {
+          layers: { hybrid: "Hybrid aerial", esri_world_imagery: "Esri World Imagery" },
+        },
       },
     },
   },
@@ -63,6 +66,22 @@ Object.assign(window, {
     pan: async () => {
       map!.panBy([80, 0], { duration: 0 })
       await map!.once("idle")
+    },
+    prepareSidebar: async () => {
+      layers.removeMapLayer(map!, hybridId)
+      layers.addMapLayer(map!, layers.LIBERTY_LAYER_ID)
+      layers.addMapLayerSources(map!, layers.AERIAL_LAYER_ID)
+      layers.addMapLayer(map!, layers.AERIAL_LAYER_ID)
+      await map!.once("idle")
+      const { mainMap } = await import("@map/main-map")
+      mainMap.value = map!
+      const { LayersSidebar } = await import("@index/sidebar/layers")
+      const { h, render } = await import("preact")
+      const host = document.createElement("div")
+      host.style.cssText =
+        "position:absolute;right:0;top:0;z-index:5;width:320px;background:white;max-height:100%;overflow:auto"
+      document.body.append(host)
+      render(h(LayersSidebar, { close: () => {} }), host)
     },
   },
 })

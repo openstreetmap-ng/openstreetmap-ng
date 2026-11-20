@@ -14,9 +14,14 @@ endpoints, without credentials. It requires network access and WebGL support.
 Set `HYBRID_SCREENSHOT_DIR` to an existing directory to save desktop and mobile
 screenshots. Do not interpret the default registry-only check as a rendering test.
 
-The browser fixture runs the real layer registry, add/remove functions, signals,
-MapLibre renderer and Liberty style. Only theme and overlay-opacity storage are
-replaced. It checks full-opacity imagery, transparent vector layer selection,
+The map fixture runs the real layer registry, add/remove functions, signals,
+MapLibre renderer and Liberty style, with theme and storage boundaries.
+The sidebar transition test also runs the actual `LayersSidebar` and its buttons;
+configuration, pending note/data state, the application sidebar shell, minimap
+pool and main-map signal are explicit fixture boundaries, not a full app.
+It verifies that selecting hybrid clears a previous aerial overlay and updates
+the toggle, while the existing aerial overlay can still be enabled with Liberty.
+The rendering checks cover full-opacity imagery, transparent vector layer selection,
 real rendered features, nonuniform canvas pixels, layer-code lookup and switching
 to Liberty and back at 1280px and 390px widths. The pure tests verify ordering,
 sprites/glyphs and non-mutation of the existing styles and sources.
