@@ -1,0 +1,35 @@
+.action-sidebar.changeset {
+  .changeset-diff {
+    border-top: 1px solid var(--bs-border-color);
+
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      border-width: 0.15em;
+    }
+  }
+
+  .changeset-diff-legend {
+    display: flex;
+    align-items: center;
+  }
+
+  .changeset-diff-swatch {
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    vertical-align: middle;
+    border-radius: 50%;
+  }
+
+  .changeset-diff-swatch-before {
+    background-color: transparent;
+    border: 0.15rem dashed #d84a4a;
+  }
+
+  .changeset-diff-swatch-after {
+    background-color: #2b9b5f;
+    border: 0.05rem solid #2b9b5f;
+    transform: scale(0.7);
+  }
+}
