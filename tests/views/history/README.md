@@ -41,7 +41,7 @@ Map, router registration, protobuf service descriptor, tags and pagination
 loading/rendering are explicit boundary replacements. They do not run the actual
 StandardPagination cursor state machine, map scene, production styles or generated
 locale pipeline; the existing request-key behavior is verified by source review,
-not claimed as executed here. English source strings are normalized for i18next.
+not claimed as executed by browser.test.ts. English source strings are normalized for i18next.
 
 Playwright/Chrome must be installed. PLAYWRIGHT_PACKAGE can identify an existing
 module. HISTORY_SOURCE can identify an original sidebar for the missing-control
@@ -54,3 +54,33 @@ database, or Cython build were executed. Generated bindings and locks are not
 committed. Targeted Ruff passes for the probe; the RPC module's I001 is also
 present on the exact baseline with absent generated bindings, so unrelated
 imports were not reordered and its other rules were checked separately.
+
+## Real Pagination Follow-Up
+
+The separate pagination.test.ts closes the earlier cursor-state-machine test gap:
+
+```sh
+HISTORY_DESCRIPTORS=/tmp/history.binpb uv run --no-project --python 3.14 --with protobuf==6.33.6 python tests/views/history/generate_web.py
+bun test tests/views/history/pagination.test.ts
+```
+
+The generator consumes structured Buf descriptors, performs the same app/buf
+dependency-name flattening as the project web pipeline, and runs the installed
+protoc-gen-es2.11.0 with buf.gen.web.yaml's options. It generated38 local web
+bindings; those ignored outputs are not committed. This executes the web ES
+generation step, not the full Nix/Python/TS pipeline or full type gate.
+
+These two desktop/mobile cases use real StandardPagination, its request-key and
+cursor state machine, real dispose scopes and actual generated service/message
+descriptors. Requests are encoded/decoded with the real protobuf implementation.
+The RPC network boundary returns controlled protobuf responses with123 versions
+and rejects mixed-size cursors; no real database or transport runs. Map, route
+registration, metadata/tags renderers and unrelated map codecs remain replacements.
+Bootstrap plus relevant version-badge CSS is used, not full production styling.
+
+Coverage includes old page7 to new size50/page1 with no previous cursor, a delayed
+size25 response aborted before it can overwrite size50, actual next-page controls
+reusing only size50 cursors, size100 resetting the resource, Back to size50/page2
+with a fresh cursor, real version links/range labels, and preserved coordinates
+and hash. Passing this does not prove real row retrieval, authenticated HTTP,
+compiled Cython or external map rendering.
