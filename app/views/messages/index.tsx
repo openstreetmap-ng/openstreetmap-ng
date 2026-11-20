@@ -20,6 +20,7 @@ import { connectErrorToMessage, rpcUnary } from "@utils/rpc"
 import { t } from "i18next"
 import { useEffect, useRef } from "preact/hooks"
 import { changeUnreadMessagesBadge } from "../navbar/navbar"
+import { type BulkAction, runMessageBatch } from "./bulk"
 
 type PreviewState =
   | { status: "loading" }
@@ -71,10 +72,16 @@ const MessagesListItem = ({
   message,
   inbox,
   query,
+  selected,
+  disabled,
+  onSelect,
 }: {
   message: GetPageResponse_SummaryValid
   inbox: boolean
   query: MessageQuery
+  selected: boolean
+  disabled: boolean
+  onSelect: () => void
 }) => {
   const messageId = message.id
   const isUnread = inbox && message.unread
@@ -93,6 +100,19 @@ const MessagesListItem = ({
         isActive ? "active" : ""
       }`}
     >
+      <label class="d-flex align-items-center gap-2 position-relative z-3 mb-2">
+        <input
+          type="checkbox"
+          class="form-check-input m-0"
+          checked={selected}
+          disabled={disabled}
+          onChange={onSelect}
+          aria-label={t("mailbox_selection.select_message", {
+            subject: message.subject,
+          })}
+        />
+        <span class="small">{t("mailbox_selection.select")}</span>
+      </label>
       <p class="header text-muted d-flex justify-content-between">
         {inbox ? (
           <span>
@@ -342,16 +362,94 @@ mountProtoPage(IndexPageSchema, () => {
   const query = route.query
   const messages = useSignal<GetPageResponse_SummaryValid[]>([])
   const previewState = useSignal<PreviewState>({ status: "loading" })
+  const selected = useSignal(new Set<bigint>())
+  const bulkBusy = useSignal(false)
+  const bulkError = useSignal("")
+  const currentInbox = useRef(inbox)
+  const mailboxVersion = useRef(0)
+  if (currentInbox.current !== inbox) {
+    currentInbox.current = inbox
+    mailboxVersion.current++
+  }
 
-  const updateMessageUnread = (messageId: bigint, unread: boolean) =>
-    (messages.value = messages.value.map((message) =>
+  useEffect(() => {
+    selected.value = new Set()
+    bulkError.value = ""
+  }, [inbox])
+
+  const toggleSelection = (message: GetPageResponse_SummaryValid) => {
+    if (bulkBusy.peek()) return
+    const next = new Set(selected.peek())
+    if (!next.delete(message.id)) next.add(message.id)
+    selected.value = next
+  }
+
+  const selectVisible = () => {
+    const next = new Set(selected.peek())
+    const visible = messages.peek()
+    const all = visible.length > 0 && visible.every(({ id }) => next.has(id))
+    for (const message of visible) {
+      if (all) next.delete(message.id)
+      else next.add(message.id)
+    }
+    selected.value = next
+  }
+
+  const updateMessageUnread = (messageId: bigint, unread: boolean) => {
+    messages.value = messages.value.map((message) =>
       message.id === messageId && message.unread !== unread
         ? ((message.unread = unread), message)
         : message,
-    ))
+    )
+  }
 
-  const removeMessage = (messageId: bigint) =>
-    (messages.value = messages.value.filter((message) => message.id !== messageId))
+  const removeMessage = (messageId: bigint) => {
+    messages.value = messages.value.filter((message) => message.id !== messageId)
+    const next = new Set(selected.peek())
+    next.delete(messageId)
+    selected.value = next
+  }
+
+  const applyBulk = async (action: BulkAction) => {
+    if (bulkBusy.peek() || !selected.peek().size || (!inbox && action !== "delete"))
+      return
+    if (action === "delete" && !confirm(t("messages.delete_confirmation"))) return
+    const ids = [...selected.peek().keys()]
+    const version = mailboxVersion.current
+    query.value = getQueryWithoutShow(query)
+    bulkBusy.value = true
+    bulkError.value = ""
+    try {
+      const failures = await runMessageBatch(ids, async (id) => {
+        if (mailboxVersion.current !== version) return
+        if (action === "delete") {
+          await rpcUnary(Service.method.delete)({ id })
+          if (mailboxVersion.current !== version) return
+          batch(() => {
+            removeMessage(id)
+            if (query.peek().show === id) query.value = getQueryWithoutShow(query)
+          })
+        } else {
+          const read = action === "read"
+          const response = await rpcUnary(Service.method.updateReadState)({ id, read })
+          if (mailboxVersion.current !== version) return
+          batch(() => {
+            updateMessageUnread(id, !read)
+            if (response.updated) changeUnreadMessagesBadge(read ? -1 : 1)
+            if (query.peek().show === id) query.value = getQueryWithoutShow(query)
+          })
+        }
+        const next = new Set(selected.peek())
+        next.delete(id)
+        selected.value = next
+      })
+      if (failures.length && mailboxVersion.current === version) {
+        bulkError.value = t("mailbox_selection.failed", { count: failures.length })
+      }
+    } finally {
+      bulkBusy.value = false
+    }
+  }
 
   const markMessageUnread = async () => {
     const messageId = query.value.show
@@ -473,11 +571,92 @@ mountProtoPage(IndexPageSchema, () => {
         <div class="container">
           <div class="row flex-wrap-reverse">
             <div class="col-lg">
+              <fieldset
+                class="border-0 p-0 mb-3"
+                disabled={bulkBusy.value}
+                aria-busy={bulkBusy.value}
+              >
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <label class="d-flex align-items-center gap-2 me-2">
+                    <input
+                      type="checkbox"
+                      class="form-check-input m-0"
+                      checked={
+                        messages.value.length > 0 &&
+                        messages.value.every(({ id }) => selected.value.has(id))
+                      }
+                      disabled={!messages.value.length}
+                      onChange={selectVisible}
+                    />
+                    {t("mailbox_selection.select_visible")}
+                  </label>
+                  <span
+                    role="status"
+                    class="small text-muted me-2"
+                  >
+                    {t("mailbox_selection.count", { count: selected.value.size })}
+                  </span>
+                  <div
+                    class="btn-group"
+                    role="group"
+                    aria-label={t("mailbox_selection.actions")}
+                  >
+                    {inbox &&
+                      (["read", "unread"] as const).map((action) => (
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-soft"
+                          disabled={!selected.value.size}
+                          title={t(`mailbox_selection.${action}`)}
+                          aria-label={t(`mailbox_selection.${action}`)}
+                          onClick={() => void applyBulk(action)}
+                        >
+                          <i
+                            class={`bi bi-envelope${action === "read" ? "-open" : ""}`}
+                          />
+                        </button>
+                      ))}
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-soft"
+                      disabled={!selected.value.size}
+                      title={t("mailbox_selection.delete")}
+                      aria-label={t("mailbox_selection.delete")}
+                      onClick={() => void applyBulk("delete")}
+                    >
+                      <i class="bi bi-trash" />
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-soft"
+                      disabled={!selected.value.size}
+                      title={t("mailbox_selection.clear")}
+                      aria-label={t("mailbox_selection.clear")}
+                      onClick={() => {
+                        selected.value = new Set()
+                        bulkError.value = ""
+                      }}
+                    >
+                      <i class="bi bi-x-lg" />
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+              {bulkError.value && (
+                <div
+                  role="alert"
+                  class="alert alert-danger"
+                >
+                  {bulkError.value}
+                </div>
+              )}
               <StandardPagination
                 method={Service.method.getPage}
                 request={{ inbox }}
                 urlKey="page"
-                onLoad={(data) => (messages.value = data.messages)}
+                onLoad={(data) => {
+                  messages.value = data.messages
+                }}
               >
                 {() => (
                   <ul class="messages-list social-list list-unstyled mb-2">
@@ -488,6 +667,9 @@ mountProtoPage(IndexPageSchema, () => {
                           message={message}
                           inbox={inbox}
                           query={query}
+                          selected={selected.value.has(message.id)}
+                          disabled={bulkBusy.value}
+                          onSelect={() => toggleSelection(message)}
                         />
                       ))
                     ) : (
