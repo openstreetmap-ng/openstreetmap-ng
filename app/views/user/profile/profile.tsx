@@ -2,7 +2,7 @@ import { BTooltip } from "@components/bootstrap-wrappers"
 import { Time } from "@components/datetime-inputs"
 import { FollowToggleForm } from "@components/follow-toggle-form"
 import { ReportButton } from "@components/report"
-import { formDataBytes, StandardForm } from "@components/standard-form"
+import { StandardForm } from "@components/standard-form"
 import type { Signal } from "@preact/signals"
 import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
@@ -10,6 +10,7 @@ import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
 import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
 import { tRich } from "@utils/i18n"
+import { imageFormDataBytes } from "@utils/image-upload"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import type { ComponentChildren } from "preact"
@@ -169,9 +170,16 @@ const BackgroundForm = ({
       class="background-form"
       method={Service.method.updateBackground}
       buildRequest={async ({ formData }) => ({
-        backgroundFile: await formDataBytes(formData, "background_file"),
+        backgroundFile: await imageFormDataBytes(
+          formData,
+          "background_file",
+          fileInputRef.current!,
+        ),
       })}
       onSuccess={(resp) => (backgroundUrl.value = resp.backgroundUrl)}
+      onError={() => {
+        fileInputRef.current!.value = ""
+      }}
     >
       <input
         class="visually-hidden"
@@ -249,7 +257,11 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
+        const avatarFile = await imageFormDataBytes(
+          formData,
+          "avatar_file",
+          fileInputRef.current!,
+        )
         if (avatarFile.length) {
           return {
             avatar: {
@@ -267,6 +279,9 @@ const AvatarForm = ({
         }
       }}
       onSuccess={(resp) => (avatarUrl.value = resp.avatarUrl)}
+      onError={() => {
+        fileInputRef.current!.value = ""
+      }}
     >
       <input
         class="visually-hidden"
