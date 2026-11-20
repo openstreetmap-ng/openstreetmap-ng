@@ -93,7 +93,8 @@ export const ChangesetDiffControl = ({
         })
     }
     if (map.isStyleLoaded()) draw()
-    scope.map(map, "style.load", draw)
+    map.on("style.load", draw)
+    scope.defer(() => map.off("style.load", draw))
     scope.defer(() => {
       for (const id of LAYERS) if (map.getLayer(id)) map.removeLayer(id)
       if (map.getSource(SOURCE)) map.removeSource(SOURCE)
