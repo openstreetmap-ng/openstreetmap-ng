@@ -62,3 +62,22 @@ def test_decode_error_boundary_does_not_hide_programming_errors():
         _image_decode_errors(),
     ):
         raise RuntimeError('not an input failure')
+
+
+@pytest.mark.parametrize(
+    ('exception', 'status'),
+    [
+        (PILImage.DecompressionBombError, 413),
+        (PILImage.DecompressionBombWarning, 413),
+        (OSError, 422),
+        (SyntaxError, 422),
+    ],
+)
+def test_all_decode_exception_types_are_mapped(exception, status):
+    with (
+        exceptions_context(Exceptions()),
+        pytest.raises(APIError) as error,
+        _image_decode_errors(),
+    ):
+        raise exception('invalid image data')
+    assert error.value.status_code == status

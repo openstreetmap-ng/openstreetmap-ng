@@ -5,6 +5,7 @@ Only configuration and unused native element-ID bindings are isolated. This is
 not a full HTTP, database, Cython-compiled, or authentication integration test.
 """
 
+import argparse
 import ast
 import importlib
 import sys
@@ -83,6 +84,21 @@ package = ModuleType('app.exceptions')
 package.__path__ = [str(Path('app/exceptions').resolve())]
 sys.modules['app.exceptions'] = package
 package.Exceptions = importlib.import_module('app.exceptions.default').Exceptions
+
+arguments = argparse.ArgumentParser()
+arguments.add_argument('--compiled-image', type=Path)
+options = arguments.parse_args()
+if options.compiled_image is not None:
+    importlib.import_module('app.lib.io')
+    specification = importlib.util.spec_from_file_location(
+        'app.lib.io.image', options.compiled_image
+    )
+    assert specification is not None
+    assert isinstance(specification.loader, importlib.machinery.ExtensionFileLoader)
+    module = importlib.util.module_from_spec(specification)
+    sys.modules['app.lib.io.image'] = module
+    specification.loader.exec_module(module)
+    print(f'Compiled image module: {module.__file__}')
 
 print(f'Image source root: {Path.cwd()}')
 print(

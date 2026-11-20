@@ -199,13 +199,18 @@ async def _get_pipeline():
         yield _PIPE
 
 
+# Named tuples avoid ambiguous Python 3.14 except headers in Cython 3.2.
+_IMAGE_SIZE_ERRORS = (DecompressionBombError, DecompressionBombWarning)
+_IMAGE_READ_ERRORS = (OSError, SyntaxError)
+
+
 @contextmanager
 def _image_decode_errors():
     try:
         yield
-    except DecompressionBombError, DecompressionBombWarning:
+    except _IMAGE_SIZE_ERRORS:
         raise_for.image_too_big()
-    except OSError, SyntaxError:
+    except _IMAGE_READ_ERRORS:
         raise_for.image_not_readable()
 
 

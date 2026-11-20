@@ -15,7 +15,24 @@ explicit boundaries that raise if called; no image operation is stubbed.
 `--noconftest` deliberately excludes database/application lifespan setup.
 The missing optional NSFW model warning is expected and is not content-safety
 validation. The probe does not prove HTTP/RPC, authentication, database or
-Cython-compiled execution. Cython source-to-C translation is a separate check.
+Cython-compiled execution by default. For a separately built actual extension:
+
+```sh
+python tests/lib/image_native_probe.py --compiled-image /path/to/image.pyd
+```
+
+Run this inside the same locked-package environment. `.so` extensions are also
+accepted; the probe requires a native extension loader, not a renamed Python
+source file. Build with the project's Cython 3.2.4 directives
+`overflowcheck=True,embedsignature=True,profile=True` and compile against the
+active CPython headers/library. Our Windows check used isolated Zig 0.17.1 with
+`CYTHON_PROFILE=1` and `CYTHON_USE_SYS_MONITORING=0`. This verifies real compiled
+image code but still does not start the full Nix application or database.
+
+The named exception tuples must not be inlined into a multi-exception header:
+Ruff formats Python 3.14 headers without parentheses, which Cython 3.2 can parse
+as legacy exception binding. The regression covers every exception in both
+groups, including `DecompressionBombWarning` and `SyntaxError`.
 
 The bomb tests lower Pillow's threshold for tiny 8x8 and 4x4 PNGs rather than
 allocating a huge image. Corrupt/empty data, default error status, background
