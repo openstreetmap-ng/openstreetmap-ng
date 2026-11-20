@@ -161,6 +161,23 @@ messages:
   delete_confirmation: Are you sure you want to delete this message?
   action_sent: sent
   action_delivered: delivered
+  retention:
+    count_label: Message age
+    unit_label: Time unit
+    mailbox_inbox: inbox
+    mailbox_outbox: outbox
+    unit_days_one: day
+    unit_days_other: days
+    unit_weeks_one: week
+    unit_weeks_other: weeks
+    unit_months_one: month
+    unit_months_other: months
+    unit_years_one: year
+    unit_years_other: years
+    submit: Delete old
+    confirmation: Delete messages older than {{count}} {{unit}} from your {{mailbox}}?
+    deleted_count_one: Deleted {{count}} old message.
+    deleted_count_other: Deleted {{count}} old messages.
   user_sent_you_a_message_on_platform_subject: "{user} sent you a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_one: "{user} sent you and {count} other a message on {platform}: {subject}"
   user_sent_you_and_others_a_message_on_platform_subject_other: "{user} sent you and {count} others a message on {platform}: {subject}"
