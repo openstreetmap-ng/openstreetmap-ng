@@ -1,4 +1,37 @@
 project_name: OpenStreetMap-NG
+software_directory:
+  title: OSM Software
+  introduction: Editors, navigation apps, and cartography tools for OpenStreetMap.
+  category: Category
+  platform: Operating system
+  license: License
+  maintenance: Maintenance
+  all: All
+  apply: Apply filters
+  reset: Reset filters
+  count: "Projects: {{count}}"
+  source: Project source
+  empty: No projects match these filters.
+  checked: "Curated project information checked on 20 November 2026. Project names and artwork belong to their respective owners."
+  options:
+    editing: Editing
+    navigation: Navigation
+    cartography: Cartography
+    web: Web
+    windows: Windows
+    macos: macOS
+    linux: Linux
+    android: Android
+    ios: iOS
+    open: Open source
+    proprietary: Proprietary
+    active: Active development
+    inactive: Inactive development
+  description:
+    id: Edit OpenStreetMap directly in a web browser with guided tagging and imagery.
+    josm: A desktop editor for detailed OpenStreetMap editing, imagery, and GPX workflows.
+    organicmaps: Offline maps and navigation using OpenStreetMap data on Android and iOS.
+    qgis: Desktop geographic analysis and map production, with support for OpenStreetMap data.
 editor:
   rapid:
     name: Rapid

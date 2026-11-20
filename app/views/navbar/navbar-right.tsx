@@ -39,6 +39,10 @@ const navLinks = [
     label: t("layouts.help"),
   },
   {
+    href: "/software",
+    label: t("software_directory.title"),
+  },
+  {
     href: "/about",
     label: t("layouts.about"),
   },

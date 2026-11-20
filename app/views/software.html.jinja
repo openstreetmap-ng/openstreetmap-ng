@@ -1,0 +1,56 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ t('software_directory.title') }} |{% endblock %}
+{% block body_class %}software-directory{% endblock %}
+{% block body %}
+<div class="content-header">
+  <div class="container">
+    <h1>{{ t('software_directory.title') }}</h1>
+    <p>{{ t('software_directory.introduction') }}</p>
+  </div>
+</div>
+<div class="content-body">
+  <div class="container">
+    <form action="/software" method="get" class="row g-3 mb-4">
+      {% for field, values in options.items() %}
+      <div class="col-12 col-sm-6 col-lg">
+        <label for="software-{{ field }}" class="form-label">{{ t('software_directory.' ~ field) }}</label>
+        <select id="software-{{ field }}" name="{{ field }}" class="form-select">
+          <option value="">{{ t('software_directory.all') }}</option>
+          {% for value in values %}
+          <option value="{{ value }}" {% if filters[field] == value %}selected{% endif %}>{{ t('software_directory.options.' ~ value) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endfor %}
+      <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-2"></i>{{ t('software_directory.apply') }}</button>
+        <a class="btn btn-soft" href="/software">{{ t('software_directory.reset') }}</a>
+      </div>
+    </form>
+    <p role="status" class="text-muted">{{ t('software_directory.count', count=software|length) }}</p>
+    <div class="row gx-4">
+      {% for item in software %}
+      <article class="col-12 col-lg-6 mb-4" data-software="{{ item.slug }}">
+        <div class="d-flex gap-3 border-bottom pb-4 h-100">
+          <img src="/static/img/software/{{ item.slug }}.png" width="72" height="72" class="object-fit-contain flex-shrink-0" alt="{{ item.name }}" loading="lazy" />
+          <div class="flex-grow-1" style="min-width: 0">
+            <h2 class="h4"><a href="{{ item.website }}">{{ item.name }}</a></h2>
+            <p>{{ t('software_directory.description.' ~ item.slug) }}</p>
+            <dl class="small">
+              <dt>{{ t('software_directory.category') }}</dt><dd>{{ t('software_directory.options.' ~ item.category) }}</dd>
+              <dt>{{ t('software_directory.platform') }}</dt><dd>{% for platform in item.platforms %}{{ t('software_directory.options.' ~ platform) }}{% if not loop.last %}, {% endif %}{% endfor %}</dd>
+              <dt>{{ t('software_directory.license') }}</dt><dd>{{ item.license_name }}</dd>
+              <dt>{{ t('software_directory.maintenance') }}</dt><dd>{{ t('software_directory.options.' ~ item.maintenance) }}</dd>
+            </dl>
+            <a href="{{ item.source }}">{{ t('software_directory.source') }} <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+          </div>
+        </div>
+      </article>
+      {% else %}
+      <p class="py-4">{{ t('software_directory.empty') }} <a href="/software">{{ t('software_directory.reset') }}</a></p>
+      {% endfor %}
+    </div>
+    <p class="small text-muted">{{ t('software_directory.checked') }}</p>
+  </div>
+</div>
+{% endblock %}
