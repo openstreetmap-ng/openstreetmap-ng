@@ -1,0 +1,19 @@
+{% if user %}
+  <template id="ElementTagEditorTemplate">
+    <form method="POST" class="element-tag-editor">
+      <input type="hidden" name="version" />
+      <label class="form-label d-block">
+        {{ t('tag_editor.tags') }}
+        <textarea class="form-control font-monospace mt-1" name="tags" rows="8" spellcheck="false" dir="auto"></textarea>
+      </label>
+      <label class="form-label d-block mt-3">
+        {{ t('tag_editor.comment') }}
+        <input class="form-control mt-1" type="text" name="comment" required pattern=".*\S.*" maxlength="255" />
+      </label>
+      <div class="d-flex gap-2 mt-3 mb-3">
+        <button type="button" class="btn btn-secondary" data-discard>{{ t('tag_editor.discard') }}</button>
+        <button type="submit" class="btn btn-primary">{{ t('tag_editor.submit') }}</button>
+      </div>
+    </form>
+  </template>
+{% endif %}
