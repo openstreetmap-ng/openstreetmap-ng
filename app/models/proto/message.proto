@@ -24,8 +24,23 @@ service Service {
 }
 
 message GetPageRequest {
+  option (buf.validate.message).cel = {
+    id: "message.date_range"
+    message: "The start must not be after the end."
+    expression: "!has(this.created_after) || !has(this.created_before) || this.created_after <= this.created_before"
+  };
   StandardPaginationRequest state = 1;
   bool inbox = 2;
+  optional string search_user = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  optional string search_subject = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 100
+  }];
+  optional uint64 created_after = 5 [(buf.validate.field).uint64.lte = 253402300799];
+  optional uint64 created_before = 6 [(buf.validate.field).uint64.lte = 253402300799];
 }
 
 message GetPageResponse {
@@ -71,7 +86,10 @@ message DeleteRequest {
   uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
 }
 
-message DeleteResponse {}
+message DeleteResponse {
+  // True only when this request removed a visible, unread recipient entry.
+  bool removed_unread = 1;
+}
 
 message SendRequest {
   string subject = 1 [(buf.validate.field).string = {

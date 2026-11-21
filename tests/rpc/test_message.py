@@ -9,6 +9,7 @@ from app.exceptions.context import exceptions_context
 from app.lib.auth.context import auth_context
 from app.models.proto.message_pb2 import (
     DeleteRequest,
+    DeleteResponse,
     GetRequest,
     GetResponse,
     SendRequest,
@@ -113,6 +114,17 @@ async def test_message_crud(client: AsyncClient):
         content=DeleteRequest(id=message_id).SerializeToString(),
     )
     assert r.is_success, r.text
+
+    assert DeleteResponse.FromString(r.content).removed_unread
+
+    # Retrying a deletion must not decrement the unread count again.
+    r = await client.post(
+        '/rpc/message.Service/Delete',
+        headers={'Content-Type': 'application/proto'},
+        content=DeleteRequest(id=message_id).SerializeToString(),
+    )
+    assert r.is_success, r.text
+    assert not DeleteResponse.FromString(r.content).removed_unread
 
     # Test accessing deleted message
     r = await client.post(

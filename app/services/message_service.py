@@ -126,8 +126,8 @@ class MessageService:
         return bool(rowcount)
 
     @staticmethod
-    async def delete_message(message_id: MessageId):
-        """Delete a message."""
+    async def delete_message(message_id: MessageId) -> bool:
+        """Delete a message and report whether an unread inbox entry was removed."""
         # TODO: account delete, prune messages
         user_id = auth_user(required=True)['id']
 
@@ -142,6 +142,7 @@ class MessageService:
             if from_user_id is None:
                 raise_for.message_not_found(message_id)
 
+            removed_unread = False
             # Update sender if user is the sender
             if from_user_id == user_id:
                 await db_update(
@@ -152,11 +153,16 @@ class MessageService:
                 )
             # Update recipient if user is a recipient
             else:
-                await db_update(
-                    'message_recipient',
-                    {'hidden': True},
-                    where=t'message_id = {message_id} AND user_id = {user_id} AND NOT hidden',
-                    conn=conn,
+                removed_unread = bool(
+                    await db_fetchval(
+                        bool,
+                        t"""
+                        UPDATE message_recipient SET hidden = TRUE
+                        WHERE message_id = {message_id} AND user_id = {user_id} AND NOT hidden
+                        RETURNING NOT read
+                    """,
+                        conn=conn,
+                    )
                 )
 
             # Check if anyone still has access to the message
@@ -175,6 +181,8 @@ class MessageService:
             if still_visible is None:
                 await db_delete('message', where={'id': message_id}, conn=conn)
                 # message_recipient is deleted by cascade
+
+        return removed_unread
 
 
 async def _send_activity_email(message: Message):
