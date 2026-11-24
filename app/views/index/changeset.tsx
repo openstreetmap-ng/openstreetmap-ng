@@ -74,6 +74,9 @@ const getChangesetElementsTitle = (type: ElementType) => {
   return (count: string) => t("browse.changeset.relation", { count })
 }
 
+const getChangesetDiffUrl = (changesetId: bigint) =>
+  `https://overpass-api.de/achavi/?changeset=${changesetId}`
+
 const ChangesetHeader = ({ data }: { data: DataValid }) => {
   const isOpen = !data.closedAt
   return (
@@ -208,6 +211,87 @@ const ChangesetComment = ({
   </li>
 )
 
+const ChangesetDiffPanel = ({
+  changesetId,
+  onClose,
+}: {
+  changesetId: bigint
+  onClose: () => void
+}) => {
+  const diffUrl = getChangesetDiffUrl(changesetId)
+  return (
+    <section class="changeset-diff-panel mt-3 mb-3">
+      <div class="d-flex align-items-center justify-content-between gap-2 p-2">
+        <div>
+          <h4 class="h6 mb-0">Changeset diff</h4>
+          <p class="small text-muted mb-0">
+            View the changed objects without leaving this page.
+          </p>
+        </div>
+        <button
+          class="btn-close"
+          type="button"
+          aria-label={t("javascripts.close")}
+          onClick={onClose}
+        />
+      </div>
+      <iframe
+        src={diffUrl}
+        title="Changeset diff map"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
+      />
+      <div class="p-2 text-end">
+        <a
+          class="btn btn-sm btn-outline-primary"
+          href={diffUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="bi bi-box-arrow-up-right me-1" />
+          Open full Achavi view
+        </a>
+      </div>
+    </section>
+  )
+}
+
+const ChangesetDiffToggle = ({
+  changesetId,
+  selectedChangesetId,
+}: {
+  changesetId: bigint
+  selectedChangesetId: Signal<bigint | null>
+}) => {
+  const isOpen = selectedChangesetId.value === changesetId
+
+  return (
+    <>
+      <div class="d-grid mt-3">
+        <button
+          class={`btn btn-sm ${isOpen ? "btn-primary" : "btn-outline-primary"}`}
+          type="button"
+          aria-expanded={isOpen}
+          onClick={() =>
+            (selectedChangesetId.value = isOpen ? null : changesetId)
+          }
+        >
+          <i class="bi bi-bezier2 me-1" />
+          {isOpen ? "Hide changeset diff" : "Open changeset diff"}
+        </button>
+      </div>
+
+      {isOpen && (
+        <ChangesetDiffPanel
+          changesetId={changesetId}
+          onClose={() => (selectedChangesetId.value = null)}
+        />
+      )}
+    </>
+  )
+}
+
 const ChangesetFooter = ({ data }: { data: DataValid }) => {
   const changesetIdStr = data.id.toString()
   return (
@@ -315,6 +399,7 @@ const ChangesetSidebar = ({
 }) => {
   const isSubscribed = useSignal(false)
   const preloadedComments = useSignal<GetCommentsResponseValid | null>(null)
+  const diffChangesetId = useSignal<bigint | null>(null)
 
   const { resource, data } = useSidebar(
     useComputed(() => ({ id: id.value })),
@@ -377,6 +462,11 @@ const ChangesetSidebar = ({
 
             <ChangesetHeader data={d} />
             <Tags tags={d.tags} />
+
+            <ChangesetDiffToggle
+              changesetId={d.id}
+              selectedChangesetId={diffChangesetId}
+            />
 
             {/* Report button */}
             {isLoggedIn && d.user && config.userConfig!.user.id !== d.user.id && (
