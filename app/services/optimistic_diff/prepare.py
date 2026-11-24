@@ -14,6 +14,7 @@ from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -208,6 +209,8 @@ class OptimisticDiffPrepare:
             else:
                 entry.current = element
 
+        await self._check_null_island()
+
         self._update_changeset_size(
             num_create=num_create,
             num_modify=num_modify,
@@ -217,6 +220,38 @@ class OptimisticDiffPrepare:
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
+
+    async def _check_null_island(self):
+        """Reject multiple null-island nodes, including earlier changeset uploads."""
+        if user_is_moderator(auth_user(required=True)):
+            return
+
+        # Count distinct nodes in their final state, not intermediate revisions.
+        # Ignored delete-if-unused operations must not override a current node.
+        nodes = {
+            element['typed_id']: element
+            for element in self.apply_elements
+            if element_type(element['typed_id']) == 'node'
+        }
+        count = sum(
+            element['visible']
+            and (point := element['point']) is not None
+            and point.x == 0
+            and point.y == 0
+            for element in nodes.values()
+        )
+        if not count:
+            return  # Always allow deletion and moving nodes away from null island.
+        if count >= 2:
+            raise_for.diff_null_island()
+
+        # The changeset row remains locked throughout prepare/apply, so uploads
+        # to the same changeset cannot both pass with an outdated count.
+        previous = await ElementQuery.find_changeset_null_island_nodes(
+            self.changeset['id'], exclude=list(nodes), conn=self.conn
+        )
+        if previous:
+            raise_for.diff_null_island()
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
