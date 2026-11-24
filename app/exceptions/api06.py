@@ -160,6 +160,13 @@ class Exceptions06(Exceptions):
         )
 
     @override
+    def diff_null_island(self):
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Multiple nodes at (0, 0) are not allowed in one upload',
+        )
+
+    @override
     def diff_unsupported_action(self, action: str):
         raise APIError(
             status.HTTP_400_BAD_REQUEST,

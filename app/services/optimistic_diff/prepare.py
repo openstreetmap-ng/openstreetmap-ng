@@ -14,6 +14,7 @@ from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -217,6 +218,28 @@ class OptimisticDiffPrepare:
         async with TaskGroup() as tg:
             tg.create_task(self._update_changeset_bounds())
             tg.create_task(self._check_members_remote())
+
+        self._check_null_island()
+
+    def _check_null_island(self):
+        """Reject uploads with multiple distinct final nodes at exactly (0, 0)."""
+        if user_is_moderator(auth_user(required=True)):
+            return
+
+        num_null_nodes: cython.size_t = 0
+        for typed_id in {element['typed_id'] for element in self.apply_elements}:
+            element = self.element_state[typed_id].current
+            point = element['point']
+            if (
+                element['visible']
+                and element_type(element['typed_id']) == 'node'
+                and point is not None
+                and point.x == 0
+                and point.y == 0
+            ):
+                num_null_nodes += 1
+                if num_null_nodes >= 2:
+                    raise_for.diff_null_island()
 
     async def _preload_elements_state(self):
         """Preload elements state from the database."""
