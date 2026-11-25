@@ -1,3 +1,4 @@
+from app.config import TRACE_FILE_RECOMPRESS_ZSTD_LEVEL
 from app.lib.io.trace_file import TraceFile
 from app.models.types import StorageKey
 
@@ -9,3 +10,12 @@ async def test_trace_file_compression():
         == b'hello'
     )
     assert TraceFile.decompress_if_needed(result.data, StorageKey('test')) != b'hello'
+
+
+async def test_trace_file_recompression():
+    result = await TraceFile.recompress(b'hello')
+    assert result.metadata['zstd_level'] == str(TRACE_FILE_RECOMPRESS_ZSTD_LEVEL)
+    assert (
+        TraceFile.decompress_if_needed(result.data, StorageKey('test' + result.suffix))
+        == b'hello'
+    )
