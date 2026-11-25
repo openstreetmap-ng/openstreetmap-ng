@@ -59,7 +59,7 @@
       {% endif %}
     {% endif %}
   </p>
-  {% if comment.body %}
+  {% if comment.body or (comment.tags and comment.tags.get('hashtags')) %}
     <table style="width: 100%; margin: 1em 0; background: #eee">
       <tr>
         <td style="width: 50px; vertical-align: top">
