@@ -23,6 +23,7 @@ export const {
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
+  IMAGE_UPLOAD_MAX_SIZE,
   LOCAL_CHAPTERS,
   MAP_QUERY_AREA_MAX_SIZE,
   MESSAGE_BODY_MAX_LENGTH,
@@ -61,6 +62,7 @@ export const {
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
+  IMAGE_UPLOAD_MAX_SIZE: number
   LOCAL_CHAPTERS: { id: string; url: string }[]
   MAP_QUERY_AREA_MAX_SIZE: number
   MESSAGE_BODY_MAX_LENGTH: number
@@ -112,6 +114,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
+        "IMAGE_UPLOAD_MAX_SIZE",
         "LOCAL_CHAPTERS",
         "MAP_QUERY_AREA_MAX_SIZE",
         "MESSAGE_BODY_MAX_LENGTH",
