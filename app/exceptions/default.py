@@ -123,6 +123,12 @@ class Exceptions:
         raise APIError(status.HTTP_404_NOT_FOUND, detail='Diary comment not found')
 
     # --- diff ---
+    def diff_null_island(self) -> NoReturn:
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Suspicious edit: multiple nodes at (0, 0) in the same changeset. Check the node coordinates before uploading.',
+        )
+
     def diff_multiple_changesets(self) -> NoReturn:
         raise NotImplementedError
 

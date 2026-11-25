@@ -5,9 +5,11 @@ import cython
 from psycopg import AsyncConnection
 
 from app.db import db_fetchval, db_update
+from app.exceptions.context import raise_for
 from app.exceptions.optimistic_diff_error import OptimisticDiffError
 from app.lib.audit import audit
 from app.lib.geo.compressible_geometry import compressible_geometry
+from app.lib.geo.null_island import null_island_node_ids
 from app.models.db.element import Element, ElementInit
 from app.models.element import ElementId, TypedElementId
 from app.models.proto.shared_types import ElementType
@@ -57,6 +59,9 @@ class OptimisticDiffApply:
         # Check if the elements have no new references
         await _check_elements_unreferenced(conn, prepare)
 
+        # Check under the write lock so separate uploads cannot race this rule.
+        await _check_null_island(conn, prepare)
+
         # Process elements and changeset updates
         created_at = await _update_elements(conn, prepare)
         await _update_changeset(conn, prepare, created_at)
@@ -76,6 +81,33 @@ class OptimisticDiffApply:
             result[unassigned_tid] = (assigned_tid, [version])
 
         return result
+
+
+async def _check_null_island(conn: AsyncConnection, prepare: OptimisticDiffPrepare):
+    """Allow one null-island node per changeset, including earlier uploads."""
+    null_ids = null_island_node_ids(prepare.apply_elements)
+    if not null_ids:
+        # Deletions and moves away from null island must remain possible.
+        return
+    if len(null_ids) >= 2:
+        raise_for.diff_null_island()
+
+    changeset_id = prepare.changeset['id']
+    replaced_ids = list({element['typed_id'] for element in prepare.apply_elements})
+    if await db_fetchval(
+        bool,
+        t"""
+        SELECT EXISTS (
+            SELECT 1 FROM element
+            WHERE changeset_id = {changeset_id}
+              AND latest AND visible
+              AND ST_X(point) = 0 AND ST_Y(point) = 0
+              AND NOT (typed_id = ANY({replaced_ids}::bigint[]))
+        )
+        """,
+        conn=conn,
+    ):
+        raise_for.diff_null_island()
 
 
 async def _check_elements_unreferenced(
