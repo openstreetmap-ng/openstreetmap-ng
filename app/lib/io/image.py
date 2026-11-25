@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError, DecompressionBombWarning, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -39,8 +39,6 @@ if cython.compiled:
     from cython.cimports.libc.math import sqrt
 else:
     from math import sqrt
-
-# TODO: test 200MP file
 
 
 class _Animation(NamedTuple):
@@ -242,8 +240,17 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    # Cython still requires parentheses around exception tuples.
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', DecompressionBombWarning)
+            img = open_image(BytesIO(data))
+            ImageOps.exif_transpose(img, in_place=True)
+            animation = _extract_animation(img)
+    except (DecompressionBombError, DecompressionBombWarning):  # fmt: skip
+        raise_for.image_too_big()
+    except (OSError, SyntaxError, ValueError):  # fmt: skip
+        raise_for.image_unreadable()
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -289,8 +296,6 @@ async def _normalize_image(
             img_width = max(1, int(img_width / mp_ratio))
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
-
-    animation = _extract_animation(img)
 
     if resize_to is None and crop_box is None:
         pass
