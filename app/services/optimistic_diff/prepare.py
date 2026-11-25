@@ -6,6 +6,7 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
 from shapely import Point, bounds, box
 
@@ -14,6 +15,7 @@ from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -21,7 +23,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetBoundsQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -207,6 +208,16 @@ class OptimisticDiffPrepare:
                 )
             else:
                 entry.current = element
+
+        if not user_is_moderator(auth_user()):
+            null_island_count: cython.size_t = 0
+            for element in apply_elements:
+                point = element.get('point')
+                if point is not None and point.x == 0.0 and point.y == 0.0:
+                    null_island_count += 1
+
+            if null_island_count >= 2:
+                raise_for.diff_null_island(null_island_count)
 
         self._update_changeset_size(
             num_create=num_create,
