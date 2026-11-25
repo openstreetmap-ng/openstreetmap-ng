@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from buf.validate import validate_pb2
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
 from google.protobuf.message import Message
@@ -36,7 +37,6 @@ from app.models.proto import (
     settings_security_pb2,
     trace_pb2,
 )
-from buf.validate import validate_pb2
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -559,6 +559,10 @@ MESSAGE_SUBJECT_MAX_LENGTH: int = _proto_validate(
 )
 NOTE_COMMENT_BODY_MAX_LENGTH: int = _proto_validate(
     note_pb2.AddCommentRequest, 'body.string.max_len'
+)
+NOTE_TAGS_MAX_NUM: int = _proto_validate(note_pb2.Tags, 'values.map.max_pairs')
+NOTE_TAG_VALUE_MAX_LENGTH: int = _proto_validate(
+    note_pb2.Tags, 'values.map.values.string.max_len'
 )
 OAUTH_APP_NAME_MAX_LENGTH = _proto_validate(
     settings_applications_pb2.CreateRequest, 'name.string.max_len'

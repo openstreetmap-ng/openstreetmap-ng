@@ -30,7 +30,9 @@ from app.validators.geometry import validate_geometry
 
 class NoteService:
     @staticmethod
-    async def create(lon: float, lat: float, text: str) -> NoteId:
+    async def create(
+        lon: float, lat: float, text: str, *, tags: dict[str, str] | None = None
+    ) -> NoteId:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
 
@@ -51,7 +53,7 @@ class NoteService:
             note_created_at: datetime
             note_id, note_created_at = await db_insert(
                 'note',
-                {'point': t'ST_QuantizeCoordinates({point}, 7)'},
+                {'point': t'ST_QuantizeCoordinates({point}, 7)', 'tags': tags or {}},
                 returning='id, created_at',
                 conn=conn,
             )
@@ -64,6 +66,7 @@ class NoteService:
                     'note_id': note_id,
                     'event': 'opened',
                     'body': text,
+                    'tags': tags or {},
                     'created_at': note_created_at,
                 },
                 conn=conn,
@@ -77,7 +80,11 @@ class NoteService:
 
     @staticmethod
     async def comment(
-        note_id: NoteId, text: str, event: GetCommentsResponse_Comment_Event
+        note_id: NoteId,
+        text: str,
+        event: GetCommentsResponse_Comment_Event,
+        *,
+        tags: dict[str, str] | None = None,
     ):
         """Comment on a note."""
         user = auth_user(required=True)
@@ -102,6 +109,8 @@ class NoteService:
                 raise_for.note_not_found(note_id)
 
             updates: dict[str, Any] = {}
+            if tags is not None:
+                updates['tags'] = tags
 
             if event == 'closed':
                 if note['closed_at'] is not None:
@@ -143,6 +152,7 @@ class NoteService:
                     'note_id': note_id,
                     'event': event,
                     'body': text,
+                    'tags': tags,
                 },
                 returning='id, created_at',
                 conn=conn,
@@ -151,7 +161,7 @@ class NoteService:
             # Update the note's updated_at to match the comment's created_at
             updates['updated_at'] = created_at
             await db_update('note', updates, where={'id': note_id}, conn=conn)
-            if text:
+            if text or tags is not None:
                 await audit(
                     'create_note_comment',
                     conn,
@@ -172,6 +182,7 @@ class NoteService:
             'event': event,
             'body': text,
             'body_rich_hash': None,
+            'tags': tags,
             'created_at': created_at,
             'user': user,  # type: ignore
         }

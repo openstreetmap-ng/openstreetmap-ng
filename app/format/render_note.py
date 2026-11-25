@@ -1,6 +1,7 @@
 import cython
 from shapely import get_coordinates
 
+from app.lib.text.note_tags import append_note_hashtags
 from app.models.db.note import Note, note_status
 from app.models.proto.note_pb2 import GetMapResponse
 
@@ -18,7 +19,8 @@ class RenderNoteMixin:
 @cython.cfunc
 def _encode_note(result: GetMapResponse.Note, note: Note):
     x, y = get_coordinates(note['point'])[0].tolist()
-    body = note['comments'][0]['body']  # pyright: ignore [reportTypedDictNotRequiredAccess]
+    header = note['comments'][0]  # pyright: ignore [reportTypedDictNotRequiredAccess]
+    body = append_note_hashtags(header['body'], header['tags'])
     if len(body) > 100:
         body = body[:100] + '...'
     result.id = note['id']

@@ -21,6 +21,7 @@ class Note(TypedDict):
     updated_at: datetime
     closed_at: datetime | None
     hidden_at: datetime | None
+    tags: dict[str, str]
 
     # runtime
     num_comments: NotRequired[int]
