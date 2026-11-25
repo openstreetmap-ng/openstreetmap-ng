@@ -248,6 +248,7 @@ const AvatarForm = ({
     <StandardForm
       class="avatar-form"
       method={Service.method.updateAvatar}
+      feedbackRootSelector=".avatar-feedback"
       buildRequest={async ({ formData }) => {
         const avatarFile = await formDataBytes(formData, "avatar_file")
         if (avatarFile.length) {
@@ -283,6 +284,7 @@ const AvatarForm = ({
         src={avatarUrl.value}
         alt={t("alt.profile_picture")}
       />
+      <div class="avatar-feedback" />
 
       {isSelf && (
         <div class="dropdown">
