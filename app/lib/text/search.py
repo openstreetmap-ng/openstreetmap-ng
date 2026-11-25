@@ -1,21 +1,21 @@
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import cython
 import numpy as np
 from shapely import MultiPolygon, Point, Polygon, STRtree
 
-from app.config import (
-    SEARCH_LOCAL_AREA_LIMIT,
-    SEARCH_LOCAL_MAX_ITERATIONS,
-    SEARCH_LOCAL_RATIO,
-)
-from app.lib.geo.parse import parse_bbox
-from app.lib.text.feature_icon import FeatureIcon
-from app.models.db.element import Element
 from app.models.element import TypedElementId
-from app.models.proto.shared_pb2 import Bounds
 from speedup import element_type
+
+if TYPE_CHECKING:
+    from app.models.proto.shared_pb2 import Bounds
+
+    from app.lib.text.feature_icon import FeatureIcon
+    from app.models.db.element import Element
 
 if cython.compiled:
     from cython.cimports.libc.math import ceil, log2
@@ -48,6 +48,14 @@ class Search:
 
         Returns a list of (Bounds, shapely) bounds.
         """
+        from app.models.proto.shared_pb2 import Bounds  # noqa: PLC0415
+
+        from app.config import (  # noqa: PLC0415
+            SEARCH_LOCAL_AREA_LIMIT,
+            SEARCH_LOCAL_MAX_ITERATIONS,
+        )
+        from app.lib.geo.parse import parse_bbox  # noqa: PLC0415
+
         search_local_area_limit: cython.double = SEARCH_LOCAL_AREA_LIMIT
         search_local_max_iterations: cython.size_t = (
             local_max_iterations
@@ -120,6 +128,8 @@ class Search:
             # global search
             logging.debug('Search performed using global mode')
             return -1
+
+        from app.config import SEARCH_LOCAL_RATIO  # noqa: PLC0415
 
         logging.debug('Search performed using local mode')
         max_local_results: cython.size_t = len(task_results[-2])
@@ -220,6 +230,40 @@ class Search:
             if name1 == name2:
                 mask[i2] = False
 
+        # Deduplicate streets with same name in vicinity (~5.5 km), preferring road relations
+        street_proximity: cython.double = 0.05
+        nearby_streets = tree.query(geoms, 'dwithin', street_proximity).T
+        nearby_streets = np.unique(nearby_streets, axis=0)
+        nearby_streets = nearby_streets[nearby_streets[:, 0] < nearby_streets[:, 1]]
+        nearby_streets = np.sort(nearby_streets, axis=1)
+
+        for i1, i2 in nearby_streets.tolist():
+            if not mask[i1] and not mask[i2]:
+                continue
+            r1 = dedup1[i1]
+            r2 = dedup1[i2]
+            if not (_is_street(r1.element) and _is_street(r2.element)):
+                continue
+
+            street_name1 = _get_street_name(r1)
+            street_name2 = _get_street_name(r2)
+            if (
+                street_name1 is not None
+                and street_name2 is not None
+                and street_name1.casefold() == street_name2.casefold()
+            ):
+                is_rel1 = element_type(r1.element['typed_id']) == 'relation'
+                is_rel2 = element_type(r2.element['typed_id']) == 'relation'
+
+                if is_rel2 and not is_rel1 and mask[i2]:
+                    mask[i1] = False
+                    r2.bounds = _merge_bounds(r2.bounds, r1.bounds)
+                elif mask[i1]:
+                    mask[i2] = False
+                    r1.bounds = _merge_bounds(r1.bounds, r2.bounds)
+                elif mask[i2]:
+                    r2.bounds = _merge_bounds(r2.bounds, r1.bounds)
+
         return [result for result, is_mask in zip(dedup1, mask) if is_mask]
 
 
@@ -239,3 +283,43 @@ def _should_use_global_search(task_results: list[list[SearchResult]]) -> cython.
 
     # https://nominatim.org/release-docs/latest/customize/Ranking/
     return global_results[0].rank <= 16
+
+
+def _merge_bounds(
+    b1: tuple[float, float, float, float],
+    b2: tuple[float, float, float, float],
+) -> tuple[float, float, float, float]:
+    return (
+        min(b1[0], b2[0]),
+        min(b1[1], b2[1]),
+        max(b1[2], b2[2]),
+        max(b1[3], b2[3]),
+    )
+
+
+def _is_street(element: Element) -> bool:
+    tags = element.get('tags')
+    if not tags:
+        return False
+    if 'highway' in tags:
+        return True
+    return tags.get('type') in {'route', 'associatedStreet', 'street'} and tags.get(
+        'route'
+    ) in {'road', 'highway'}
+
+
+def _get_street_name(result: SearchResult) -> str | None:
+    tags = result.element.get('tags')
+    if tags:
+        if name := tags.get('name'):
+            return name.strip()
+        if int_name := tags.get('int_name'):
+            return int_name.strip()
+        for key, val in tags.items():
+            if key.startswith('name:') and val:
+                return val.strip()
+        if ref := tags.get('ref'):
+            return ref.strip()
+    if result.display_name:
+        return result.display_name.split(',')[0].strip()
+    return None
