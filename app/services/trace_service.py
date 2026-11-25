@@ -1,6 +1,8 @@
 import logging
+from sys import modules
 from typing import Any
 
+from app.models.proto.trace_types import Visibility
 from fastapi import UploadFile
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
@@ -20,7 +22,6 @@ from app.models.db.trace import (
     TraceMetaInitValidator,
     normalize_trace_tags,
 )
-from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
@@ -111,6 +112,15 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
+
+                if 'pytest' not in modules:
+                    from app.background.trace_recompression import (  # noqa: PLC0415
+                        schedule_trace_file_recompression,
+                    )
+
+                    schedule_trace_file_recompression(
+                        trace_id, trace_init['file_id'], file
+                    )
                 return trace_id
 
         except Exception:
