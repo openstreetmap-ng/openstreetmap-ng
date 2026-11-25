@@ -17,6 +17,7 @@ import { LayersSidebarControl } from "@index/sidebar/layers"
 import { LegendSidebarControl } from "@index/sidebar/legend"
 import { ShareSidebarControl } from "@index/sidebar/share"
 import { effect, signal } from "@preact/signals"
+import { isLoggedIn } from "@utils/config"
 import { wrapIdleCallbackStatic } from "@utils/dom-helpers"
 import { globeProjectionStorage, mapStateStorage } from "@utils/local-storage"
 import { Map as MaplibreMap, ScaleControl } from "maplibre-gl"
@@ -36,6 +37,14 @@ import { applyMapState, getInitialMapState, getMapState, parseMapState } from ".
 export const mainMap = signal<MaplibreMap | null>(null)
 
 export const rightSidebar = signal<RightSidebarKind | null>(null)
+
+const startEditHelpWalkthrough = () => {
+  if (!isLoggedIn) return false
+  if (new URLSearchParams(window.location.search).get("edit_help") !== "1") return false
+
+  window.location.replace("/edit#walkthrough=true")
+  return true
+}
 
 /** Get the main map instance */
 const createMainMap = (
@@ -123,6 +132,8 @@ export const initMainMap = (
   onMapStateChange: (state: MapState) => void,
   onInitError?: (ctx: MapInitErrorContext) => void,
 ) => {
+  if (startEditHelpWalkthrough()) return
+
   const map = createMainMap(container, onMapStateChange, onInitError)
   if (!map) return
 
