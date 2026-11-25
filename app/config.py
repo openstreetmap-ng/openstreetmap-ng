@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
+from buf.validate import validate_pb2
 from email_validator.rfc_constants import EMAIL_MAX_LENGTH as EMAIL_MAX_LENGTH_RFC
 from githead import githead
 from google.protobuf.message import Message
@@ -36,7 +37,6 @@ from app.models.proto import (
     settings_security_pb2,
     trace_pb2,
 )
-from buf.validate import validate_pb2
 
 
 def _ByteSize(v: str):  # noqa: N802
@@ -593,6 +593,9 @@ TRACE_TAG_MAX_LENGTH: int = _proto_validate(
     trace_pb2.Metadata, 'tags.repeated.items.string.max_len'
 )
 TRACE_TAGS_LIMIT: int = _proto_validate(trace_pb2.Metadata, 'tags.repeated.max_items')
+AVATAR_UPLOAD_MAX_SIZE: int = _proto_validate(
+    settings_pb2.UpdateAvatarRequest, 'avatar_file.bytes.max_len'
+)
 USER_DESCRIPTION_MAX_LENGTH: int = _proto_validate(
     settings_pb2.UpdateDescriptionRequest, 'description.string.max_len'
 )

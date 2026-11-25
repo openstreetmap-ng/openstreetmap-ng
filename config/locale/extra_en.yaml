@@ -562,6 +562,7 @@ pagination:
 time:
   never: Never
 validation:
+  file_too_large: "This file is too large. Please choose a file of {{size}} MiB or less."
   invalid_value: Invalid value
   display_name_is_taken: This display name is already taken
   new_email_is_current: The new email address is the same as the current one
