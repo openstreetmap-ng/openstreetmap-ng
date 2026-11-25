@@ -1,14 +1,17 @@
+import logging
 from asyncio import TaskGroup
+from collections.abc import Awaitable
 from datetime import datetime
-from typing import Any
+from typing import Any, TypeAlias
 
 import cython
+from psycopg import AsyncConnection
 from shapely import Point, get_coordinates
 
 from app.db import db, db_fetchone, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
-from app.lib.auth.context import auth_scopes, auth_user
+from app.lib.auth.context import auth_context, auth_scopes, auth_user
 from app.lib.http.client import HTTPError
 from app.lib.text.translation import t, translation_context
 from app.middlewares.request_context_middleware import get_request_ip
@@ -17,8 +20,9 @@ from app.models.db.note_comment import (
     NoteComment,
     note_comments_resolve_rich_text,
 )
-from app.models.db.user import user_is_moderator
+from app.models.db.user import User, user_is_moderator
 from app.models.proto.note_types import GetCommentsResponse_Comment_Event
+from app.models.scope import Scope
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_query import NoteCommentQuery
@@ -26,6 +30,14 @@ from app.queries.user_subscription_query import UserSubscriptionQuery
 from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
+
+NoteCommentSideEffect: TypeAlias = tuple[
+    User,
+    frozenset[Scope],
+    Note,
+    NoteComment,
+    bool,
+]
 
 
 class NoteService:
@@ -77,9 +89,26 @@ class NoteService:
 
     @staticmethod
     async def comment(
-        note_id: NoteId, text: str, event: GetCommentsResponse_Comment_Event
-    ):
+        note_id: NoteId,
+        text: str,
+        event: GetCommentsResponse_Comment_Event,
+        *,
+        ignore_closed_or_missing: bool = False,
+        conn: AsyncConnection | None = None,
+        deferred_side_effects: list[NoteCommentSideEffect] | None = None,
+    ) -> bool:
         """Comment on a note."""
+        own_transaction = conn is None
+        if own_transaction and deferred_side_effects is not None:
+            raise ValueError(
+                'connection is required when deferring comment side effects'
+            )
+        if not own_transaction and deferred_side_effects is None:
+            raise ValueError(
+                'deferred_side_effects is required when using an existing connection'
+            )
+
+        side_effects = [] if deferred_side_effects is None else deferred_side_effects
         user = auth_user(required=True)
         user_id = user['id']
         send_activity_email: cython.bint = False
@@ -87,7 +116,7 @@ class NoteService:
         # Only show hidden notes to moderators
         hidden_filter = t'' if user_is_moderator(user) else t'AND hidden_at IS NULL'
 
-        async with db(True) as conn:
+        async with db(True, conn) as conn:
             note = await db_fetchone(
                 Note,
                 t"""
@@ -99,12 +128,16 @@ class NoteService:
                 conn=conn,
             )
             if note is None:
+                if ignore_closed_or_missing:
+                    return False
                 raise_for.note_not_found(note_id)
 
             updates: dict[str, Any] = {}
 
             if event == 'closed':
                 if note['closed_at'] is not None:
+                    if ignore_closed_or_missing:
+                        return False
                     raise_for.note_closed(note_id, note['closed_at'])
                 updates['closed_at'] = t'statement_timestamp()'
                 send_activity_email = True
@@ -175,11 +208,65 @@ class NoteService:
             'created_at': created_at,
             'user': user,  # type: ignore
         }
+        side_effects.append((
+            user,
+            auth_scopes(),
+            note,
+            comment,
+            bool(send_activity_email),
+        ))
 
+        if own_transaction:
+            await NoteService.run_comment_side_effects(side_effects)
+
+        return True
+
+    @staticmethod
+    async def run_comment_side_effects(
+        side_effects: list[NoteCommentSideEffect],
+        *,
+        best_effort: bool = False,
+    ):
+        """Run email and subscription work after the database transaction commits."""
+        runner = (
+            _run_comment_side_effect_best_effort
+            if best_effort
+            else _run_comment_side_effect
+        )
+        async with TaskGroup() as tg:
+            for side_effect in side_effects:
+                tg.create_task(runner(side_effect))
+
+
+async def _run_comment_side_effect_best_effort(
+    side_effect: NoteCommentSideEffect,
+):
+    try:
+        await _run_comment_side_effect(side_effect, best_effort=True)
+    except Exception:
+        logging.exception('Failed to run note comment side effect')
+
+
+async def _run_comment_side_effect(
+    side_effect: NoteCommentSideEffect,
+    *,
+    best_effort: bool = False,
+):
+    user, scopes, note, comment, send_activity_email = side_effect
+
+    async def run(operation: Awaitable[Any]):
+        try:
+            await operation
+        except Exception:
+            if not best_effort:
+                raise
+            logging.exception('Failed to run note comment side effect operation')
+
+    with auth_context(user, scopes):
         async with TaskGroup() as tg:
             if send_activity_email:
-                tg.create_task(_send_activity_email(note, comment))
-            tg.create_task(UserSubscriptionService.subscribe('note', note_id))
+                tg.create_task(run(_send_activity_email(note, comment)))
+            tg.create_task(run(UserSubscriptionService.subscribe('note', note['id'])))
 
 
 async def _send_activity_email(note: Note, comment: NoteComment):

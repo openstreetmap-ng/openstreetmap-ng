@@ -26,6 +26,7 @@ class Changeset(TypedDict):
     num_modify: int
     num_delete: int
     union_bounds: Polygon | None
+    note_close_authorized: bool
 
     # runtime
     user: NotRequired[UserDisplay]
