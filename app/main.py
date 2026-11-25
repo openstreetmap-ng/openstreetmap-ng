@@ -60,6 +60,7 @@ from app.services.email_service import EmailService
 from app.services.image_proxy_service import ImageProxyService
 from app.services.system_app_service import SystemAppService
 from app.services.test_service import TestService
+from app.services.trace_service import TraceService
 
 
 # HACK: Execute sync functions directly without threadpool
@@ -111,6 +112,7 @@ async def lifespan(_):
             EmailService.context(),
             ChangesetService.context(),
             ElementSpatialService.context(),
+            TraceService.context(),
         ):
             # freeze uncollected gc objects for improved performance
             gc.collect()
