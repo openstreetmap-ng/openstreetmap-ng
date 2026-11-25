@@ -1,7 +1,7 @@
 import logging
 import warnings
 from asyncio import Lock, to_thread
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from functools import partial
 from io import BytesIO
 from pathlib import Path
@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError, Resampling
 from PIL.Image import Image as PILImage
-from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
@@ -30,6 +30,7 @@ from app.config import (
     IMAGE_PROXY_RECOMPRESS_QUALITY,
 )
 from app.exceptions.context import raise_for
+from app.lib.standard.feedback import StandardFeedback
 from app.models.types import NoteId, StorageKey, UserId
 
 if TYPE_CHECKING:
@@ -39,8 +40,6 @@ if cython.compiled:
     from cython.cimports.libc.math import sqrt
 else:
     from math import sqrt
-
-# TODO: test 200MP file
 
 
 class _Animation(NamedTuple):
@@ -242,8 +241,9 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    with _decode_errors():
+        img = open_image(BytesIO(data))
+        ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
     img_width: cython.size_t
@@ -290,7 +290,8 @@ async def _normalize_image(
             img_height = max(1, int(img_height / mp_ratio))
             resize_to = (img_width, img_height)
 
-    animation = _extract_animation(img)
+    with _decode_errors():
+        animation = _extract_animation(img)
 
     if resize_to is None and crop_box is None:
         pass
@@ -336,6 +337,23 @@ async def _normalize_image(
     )
     logging.debug('Optimized image quality: Q%d', quality)
     return (buffer, img) if return_img else buffer
+
+
+@contextmanager
+def _decode_errors():
+    """Report expected image decode failures through visible form feedback."""
+    try:
+        yield
+    except (DecompressionBombError, OSError, EOFError, SyntaxError, ValueError) as e:
+        # Translation depends on user models, which import this module.
+        from app.lib.text.translation import t  # noqa: PLC0415
+
+        key = (
+            'validation.image_dimensions_too_big'
+            if isinstance(e, DecompressionBombError)
+            else 'validation.image_not_readable'
+        )
+        StandardFeedback.raise_error(None, t(key), exc=e)
 
 
 async def _optimize_quality(
