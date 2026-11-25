@@ -491,6 +491,8 @@ login:
   sign_in: Sign in
   sign_in_with_a_passkey: Sign in with a passkey
   sign_in_with_service: "Sign in with {{service}}"
+  show_password: Show password
+  hide_password: Hide password
 two_fa:
   two_factor_methods: Two-factor methods
   secure_your_account_using_additional_verification_methods: Secure your account using additional verification methods.
