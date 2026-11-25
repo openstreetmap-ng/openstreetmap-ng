@@ -389,6 +389,27 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+const getLayerPriority = (
+  config: LayerConfig | undefined,
+  type: string,
+  sourceLayer?: string,
+) => {
+  const priority = config?.priority ?? 0
+  // Place names remain readable over opaque imagery without lifting road arrows
+  // or other symbols out of their original position in the vector style.
+  if (
+    config?.isBaseLayer &&
+    config.specification.type === "vector" &&
+    type === "symbol" &&
+    sourceLayer === "place"
+  )
+    return Math.max(
+      priority,
+      (layersConfig.get(AERIAL_LAYER_ID)!.priority ?? 0) + 1,
+    )
+  return priority
+}
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -411,12 +432,19 @@ export const addMapLayer = (
     return
   }
 
-  const priority = config.priority ?? 0
-  const beforeId: string | undefined = map
-    .getLayersOrder()
-    .find(
-      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
-    )
+  const getBeforeId = (priority: number) =>
+    map.getLayersOrder().find((id) => {
+      const layer = map.getLayer(id)
+      return (
+        priority <
+        getLayerPriority(
+          layersConfig.get(resolveExtendedLayerId(id)),
+          layer.type,
+          layer.sourceLayer,
+        )
+      )
+    })
+  const beforeId = getBeforeId(config.priority ?? 0)
 
   if (specType === "vector") {
     console.debug("Layers: Adding vector", layerId, "before", beforeId)
@@ -450,7 +478,16 @@ export const addMapLayer = (
           // @ts-expect-error
           layer.source as LayerType,
         )
-      map.addLayer(layerObject, beforeId)
+      map.addLayer(
+        layerObject,
+        getBeforeId(
+          getLayerPriority(
+            config,
+            layer.type,
+            "source-layer" in layer ? layer["source-layer"] : undefined,
+          ),
+        ),
+      )
     }
   } else {
     console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
