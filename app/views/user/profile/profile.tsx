@@ -8,7 +8,11 @@ import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
-import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import {
+  AVATAR_MAX_FILE_SIZE,
+  config,
+  USER_RECENT_ACTIVITY_ENTRIES,
+} from "@utils/config"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -249,12 +253,16 @@ const AvatarForm = ({
       class="avatar-form"
       method={Service.method.updateAvatar}
       buildRequest={async ({ formData }) => {
-        const avatarFile = await formDataBytes(formData, "avatar_file")
-        if (avatarFile.length) {
+        const avatar = formData.get("avatar_file") as File
+        if (avatar.size) {
+          if (avatar.size > AVATAR_MAX_FILE_SIZE) {
+            throw new Error(t("validation.image_is_too_large"))
+          }
+
           return {
             avatar: {
               case: "avatarFile" as const,
-              value: avatarFile,
+              value: await formDataBytes(formData, "avatar_file"),
             },
           }
         }
