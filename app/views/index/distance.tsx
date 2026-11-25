@@ -1,7 +1,7 @@
 import { SidebarHeader } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
 import { fitBoundsIfNeeded } from "@map/bounds"
-import { closestPointOnSegment } from "@map/geometry"
+import { closestPointOnSegment, unwrapLongitude } from "@map/geometry"
 import { emptyFeatureCollection, type LayerId, layersConfig } from "@map/layers/layers"
 import { getMarkerIconElement, MARKER_ICON_ANCHOR, type MarkerColor } from "@map/marker"
 import { batch, type Signal, useSignal, useSignalEffect } from "@preact/signals"
@@ -145,15 +145,22 @@ const DistanceSidebar = ({
     markers.current[endIndex]!.label = null
   }
 
-  const updateLabel = (endIndex: number) => {
+  const getVisualSegment = (endIndex: number) => {
     assertGreater(endIndex, 0)
-    const startEntry = markers.current[endIndex - 1]!
-    const endEntry = markers.current[endIndex]!
-    const startLngLat = startEntry.marker.getLngLat()
-    const endLngLat = endEntry.marker.getLngLat()
+    const start = markers.current[endIndex - 1]!.marker.getLngLat()
+    const end = markers.current[endIndex]!.marker.getLngLat()
+    const visualEnd = {
+      lng: unwrapLongitude(end.lng, start.lng),
+      lat: end.lat,
+    }
+    return { start, end, visualEnd }
+  }
+
+  const updateLabel = (endIndex: number) => {
+    const { start: startLngLat, end: endLngLat, visualEnd } = getVisualSegment(endIndex)
 
     const startScreenPoint = map.project(startLngLat)
-    const endScreenPoint = map.project(endLngLat)
+    const endScreenPoint = map.project(visualEnd)
 
     // Calculate middle point
     // TODO: make sure this works correctly with 3d globe (#155)
@@ -173,7 +180,7 @@ const DistanceSidebar = ({
 
     const newDistance = startLngLat.distanceTo(endLngLat)
 
-    const label = endEntry.label!
+    const label = markers.current[endIndex]!.label!
     totalDistance.value = totalDistance.peek() + (newDistance - label.distance)
     label.distance = newDistance
     label.setLngLat(middlePoint)
@@ -182,12 +189,10 @@ const DistanceSidebar = ({
   }
 
   const segmentCoords = (endIndex: number) => {
-    assertGreater(endIndex, 0)
-    const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
-    const endLngLat = markers.current[endIndex]!.marker.getLngLat()
+    const { start, visualEnd } = getVisualSegment(endIndex)
     return [
-      [startLngLat.lng, startLngLat.lat],
-      [endLngLat.lng, endLngLat.lat],
+      [start.lng, start.lat],
+      [visualEnd.lng, visualEnd.lat],
     ]
   }
 
@@ -463,13 +468,12 @@ const DistanceSidebar = ({
 
     const firstSegmentId = Number(features[0]!.id)
     const firstEndIndex = markerIdToIndex.get(firstSegmentId)!
-    const firstStartLngLat = markers.current[firstEndIndex - 1]!.marker.getLngLat()
-    const firstEndLngLat = markers.current[firstEndIndex]!.marker.getLngLat()
+    const firstSegment = getVisualSegment(firstEndIndex)
     let bestEndId = firstSegmentId
     let bestClosestPoint = closestPointOnSegment(
       hitPoint,
-      map.project(firstStartLngLat),
-      map.project(firstEndLngLat),
+      map.project(firstSegment.start),
+      map.project(firstSegment.visualEnd),
     )
     let bestDistanceSq =
       (bestClosestPoint.x - hitPoint.x) ** 2 + (bestClosestPoint.y - hitPoint.y) ** 2
@@ -477,12 +481,11 @@ const DistanceSidebar = ({
     for (let i = 1; i < features.length; i++) {
       const segmentId = Number(features[i]!.id)
       const endIndex = markerIdToIndex.get(segmentId)!
-      const startLngLat = markers.current[endIndex - 1]!.marker.getLngLat()
-      const endLngLat = markers.current[endIndex]!.marker.getLngLat()
+      const segment = getVisualSegment(endIndex)
       const closestPoint = closestPointOnSegment(
         hitPoint,
-        map.project(startLngLat),
-        map.project(endLngLat),
+        map.project(segment.start),
+        map.project(segment.visualEnd),
       )
       const distanceSq =
         (closestPoint.x - hitPoint.x) ** 2 + (closestPoint.y - hitPoint.y) ** 2
