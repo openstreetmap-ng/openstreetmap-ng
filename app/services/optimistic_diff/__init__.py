@@ -19,6 +19,8 @@ class OptimisticDiff:
     @staticmethod
     async def run(
         elements: list[ElementInit],
+        *,
+        reject_null_island: bool = False,
     ) -> dict[TypedElementId, tuple[TypedElementId, list[int]]]:
         """
         Perform an optimistic diff update of the elements.
@@ -35,7 +37,9 @@ class OptimisticDiff:
         while True:
             try:
                 async with db(True) as conn:
-                    prep = OptimisticDiffPrepare(conn, elements)
+                    prep = OptimisticDiffPrepare(
+                        conn, elements, reject_null_island=reject_null_island
+                    )
                     await prep.prepare()
                     return await OptimisticDiffApply.apply(prep)
             except* (OptimisticDiffError, OperationalError) as e:

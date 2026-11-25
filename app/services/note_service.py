@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from shapely import Point, get_coordinates
 
 from app.db import db, db_fetchone, db_insert, db_update
@@ -18,7 +19,6 @@ from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
-from app.models.proto.note_types import GetCommentsResponse_Comment_Event
 from app.models.types import DisplayName, NoteCommentId, NoteId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_query import NoteCommentQuery
@@ -45,6 +45,9 @@ class NoteService:
         else:
             user_id = None
             user_ip = get_request_ip()
+
+        if point.x == 0 and point.y == 0 and not user_is_moderator(user):
+            raise_for.bad_null_island_coordinates()
 
         async with db(True) as conn:
             note_id: NoteId

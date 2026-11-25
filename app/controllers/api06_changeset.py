@@ -126,7 +126,7 @@ async def upload_diff(
     except Exception as e:
         raise_for.bad_xml('osmChange', str(e))
 
-    assigned_ref_map = await OptimisticDiff.run(elements)
+    assigned_ref_map = await OptimisticDiff.run(elements, reject_null_island=True)
     return Format06.encode_diff_result(assigned_ref_map)
 
 

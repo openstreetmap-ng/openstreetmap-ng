@@ -6,14 +6,16 @@ from typing import Final, Literal, TypeAlias, assert_never
 
 import cython
 import numpy as np
+from app.models.proto.shared_types import ElementType
 from psycopg import AsyncConnection
-from shapely import Point, bounds, box
+from shapely import Point, bounds, box, get_coordinates
 
 from app.exceptions.context import raise_for
 from app.lib.auth.context import auth_user
 from app.lib.geo.changeset_bounds import extend_changeset_bounds
 from app.models.db.changeset import Changeset, changeset_increase_size
 from app.models.db.element import Element, ElementInit
+from app.models.db.user import user_is_moderator
 from app.models.element import (
     TYPED_ELEMENT_ID_NODE_MAX,
     TYPED_ELEMENT_ID_NODE_MIN,
@@ -21,7 +23,6 @@ from app.models.element import (
     TYPED_ELEMENT_ID_RELATION_MIN,
     TypedElementId,
 )
-from app.models.proto.shared_types import ElementType
 from app.models.types import SequenceId
 from app.queries.changeset_query import ChangesetBoundsQuery, ChangesetQuery
 from app.queries.element_query import ElementQuery
@@ -100,7 +101,19 @@ class OptimisticDiffPrepare:
     Changeset bounding box set of element refs.
     """
 
-    def __init__(self, conn: AsyncConnection, elements: list[ElementInit], /):
+    _reject_null_island: bool
+    """
+    Whether current edits must reject nodes located at 0,0.
+    """
+
+    def __init__(
+        self,
+        conn: AsyncConnection,
+        elements: list[ElementInit],
+        /,
+        *,
+        reject_null_island: bool = False,
+    ):
         self.conn = conn
         self.apply_elements = []
         self._elements = list(map(dict.copy, elements))  # type: ignore
@@ -111,6 +124,7 @@ class OptimisticDiffPrepare:
         self._reference_override = defaultdict(set)
         self._bbox_points = []
         self._bbox_refs = set()
+        self._reject_null_island = reject_null_island
 
     async def prepare(self):
         await self._preload_changeset()
@@ -207,6 +221,8 @@ class OptimisticDiffPrepare:
                 )
             else:
                 entry.current = element
+
+        self._check_null_island_elements()
 
         self._update_changeset_size(
             num_create=num_create,
@@ -379,6 +395,20 @@ class OptimisticDiffPrepare:
 
         if not_found:
             self._elements_check_members_remote |= dict.fromkeys(not_found, parent_tid)
+
+    def _check_null_island_elements(self):
+        """Reject suspicious changesets with repeated null island elements."""
+        if not self._reject_null_island or user_is_moderator(auth_user()):
+            return
+
+        count: cython.size_t = 0
+        for element in self.apply_elements:
+            point = element['point']
+            if element['visible'] and point is not None and _is_null_island(point):
+                count += 1
+
+            if count >= 2:
+                raise_for.bad_null_island_coordinates()
 
     def _push_bbox_info(
         self, prev: ElementInit | None, element: ElementInit, element_type: ElementType
@@ -628,3 +658,8 @@ class OptimisticDiffPrepare:
         hidden_ref = next(iter(hidden_refs))
         parent_typed_id = elements_check_members_remote[hidden_ref]
         raise_for.element_member_not_found(parent_typed_id, hidden_ref)
+
+
+def _is_null_island(point: Point):
+    x, y = get_coordinates(point).round(7)[0].tolist()
+    return x == 0 and y == 0
