@@ -10,11 +10,13 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 import cython
 from blurhash_rs import blurhash_encode
 from PIL import ImageOps, ImageSequence
+from PIL.Image import DecompressionBombError
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
 from PIL.Image import open as open_image
 from sizestr import sizestr
 
+from flask import current_app
 from app.config import (
     AI_MODELS_DIR,
     AI_TRANSFORMERS_DEVICE,
@@ -242,7 +244,12 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
+    try:
+        img = open_image(BytesIO(data))
+    except DecompressionBombError:
+        current_app.api.abort(413, description="Image is too large or its dimensions exceed allowed limits")
+    except Exception:
+        current_app.api.abort(422, description="Image is not readable or its format is not supported")
     ImageOps.exif_transpose(img, in_place=True)
 
     # normalize shape ratio
