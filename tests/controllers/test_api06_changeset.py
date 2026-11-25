@@ -109,6 +109,64 @@ async def test_changeset_crud(client: AsyncClient):
     assert '@max_lon' not in changeset
 
 
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    note_ids: list[int] = []
+    for index in range(2):
+        r = await client.post(
+            '/api/0.6/notes.json',
+            json={
+                'lon': float(index),
+                'lat': float(index),
+                'text': f'{test_changeset_close_closes_tagged_notes.__name__} {index}',
+            },
+        )
+        assert r.is_success, r.text
+        note_ids.append(r.json()['properties']['id'])
+
+    # Create a changeset that closes both notes, with a per-note override and invalid/non-existent IDs
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'changeset comment'},
+                        {
+                            '@k': 'created_by',
+                            '@v': test_changeset_close_closes_tagged_notes.__name__,
+                        },
+                        {
+                            '@k': 'closes:note',
+                            '@v': f'{note_ids[0]};{note_ids[1]};99999999;invalid;',
+                        },
+                        {'@k': 'closes:note:comment', '@v': 'global note comment'},
+                        {
+                            '@k': f'closes:note:{note_ids[1]}:comment',
+                            '@v': 'specific note comment',
+                        },
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    expected_comments = ['global note comment', 'specific note comment']
+    for note_id, expected_comment in zip(note_ids, expected_comments, strict=True):
+        r = await client.get(f'/api/0.6/notes/{note_id}.json')
+        assert r.is_success, r.text
+        props = r.json()['properties']
+        assert props['status'] == 'closed'
+        assert props['comments'][-1]['action'] == 'closed'
+        assert props['comments'][-1]['text'] == expected_comment
+
+
 async def test_changeset_upload(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
 

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from random import uniform
 from time import monotonic
+from typing import Any
 
 import cython
 from sentry_sdk.api import start_transaction
@@ -18,7 +19,9 @@ from app.db import (
     db,
     db_delete,
     db_fetchcol,
+    db_fetchone,
     db_fetchrow,
+    db_fetchrows,
     db_fetchval,
     db_insert,
     db_lock,
@@ -38,7 +41,15 @@ from app.models.db.changeset_comment import (
     ChangesetComment,
     changeset_comments_resolve_rich_text,
 )
-from app.models.types import ChangesetCommentId, ChangesetId, DisplayName, UserId
+from app.models.db.note import Note
+from app.models.types import (
+    ChangesetCommentId,
+    ChangesetId,
+    DisplayName,
+    NoteCommentId,
+    NoteId,
+    UserId,
+)
 from app.queries.changeset_query import ChangesetQuery
 from app.queries.user_query import UserQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -112,7 +123,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +135,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            tags: dict[str, str]
+            changeset_user_id, closed_at, tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +153,7 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+            await _close_tagged_notes(conn, changeset_user_id, tags)
 
     @staticmethod
     @asynccontextmanager
@@ -272,18 +285,28 @@ async def _process_task():
 
 async def _close_inactive():
     """Close all inactive changesets."""
-    rowcount = await db_update(
-        'changeset',
-        {'closed_at': t'statement_timestamp()', 'updated_at': t'DEFAULT'},
-        where=t"""closed_at IS NULL AND (
-                updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
-                (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
-                created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
-            )""",
-    )
+    async with db(True) as conn:
+        rows = await db_fetchrows(
+            t"""
+                UPDATE changeset
+                SET closed_at = statement_timestamp(), updated_at = DEFAULT
+                WHERE closed_at IS NULL AND (
+                    updated_at < statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} OR
+                    (updated_at >= statement_timestamp() - {CHANGESET_IDLE_TIMEOUT} AND
+                    created_at < statement_timestamp() - {CHANGESET_OPEN_TIMEOUT})
+                )
+                RETURNING user_id, tags
+            """,
+            conn=conn,
+        )
 
-    if rowcount:
-        logging.debug('Closed %d inactive changesets', rowcount)
+        for row in rows:
+            user_id: UserId | None = row[0]
+            tags: dict[str, str] = row[1]
+            await _close_tagged_notes(conn, user_id, tags)
+
+        if rows:
+            logging.debug('Closed %d inactive changesets', len(rows))
 
 
 async def _delete_empty():
@@ -391,3 +414,86 @@ def _get_activity_email_subject(
         else 'user_mailer.changeset_comment_notification.commented.subject other',
         commenter=comment_user_name,
     )
+
+
+def _parse_note_closure_tags(tags: dict[str, str]) -> dict[NoteId, str]:
+    """Parse closes:note tags into a mapping of note ID to closing comment."""
+    note_ids_tag = tags.get('closes:note')
+    if not note_ids_tag:
+        return {}
+
+    default_comment = tags.get('closes:note:comment', tags.get('comment', ''))
+    comments: dict[NoteId, str] = {}
+    for raw_note_id in note_ids_tag.split(';'):
+        raw_note_id = raw_note_id.strip()
+        if not raw_note_id.isdigit():
+            continue
+
+        note_id = NoteId(int(raw_note_id))
+        comments[note_id] = tags.get(f'closes:note:{note_id}:comment', default_comment)
+
+    return comments
+
+
+async def _close_tagged_notes(
+    conn: Any,
+    user_id: UserId | None,
+    tags: dict[str, str],
+) -> None:
+    """Close notes associated with changeset tags."""
+    if user_id is None:
+        return
+
+    closure_map = _parse_note_closure_tags(tags)
+    if not closure_map:
+        return
+
+    for note_id, comment_text in closure_map.items():
+        note = await db_fetchone(
+            Note,
+            t"""
+                SELECT id FROM note
+                WHERE id = {note_id} AND closed_at IS NULL
+            """,
+            for_update=True,
+            conn=conn,
+        )
+        if note is None:
+            continue
+
+        row_comment = await db_insert(
+            'note_comment',
+            {
+                'user_id': user_id,
+                'user_ip': None,
+                'note_id': note_id,
+                'event': 'closed',
+                'body': comment_text,
+            },
+            returning='id, created_at',
+            conn=conn,
+        )
+        comment_id: NoteCommentId = row_comment[0]
+        created_at: datetime = row_comment[1]
+
+        await db_update(
+            'note',
+            {
+                'closed_at': created_at,
+                'updated_at': created_at,
+            },
+            where={'id': note_id},
+            conn=conn,
+        )
+
+        if comment_text:
+            await audit(
+                'create_note_comment',
+                conn,
+                extra={'id': comment_id, 'note': note_id},
+            )
+        await audit(
+            'update_note_status',
+            conn,
+            extra={'id': note_id, 'event': 'closed'},
+        )
