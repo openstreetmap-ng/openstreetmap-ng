@@ -1,7 +1,11 @@
 import logging
+from asyncio import TaskGroup
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -24,8 +28,25 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_RECOMPRESS_TG: TaskGroup
+_RECOMPRESS_EXECUTOR: ThreadPoolExecutor
+
 
 class TraceService:
+    @asynccontextmanager
+    @staticmethod
+    async def context():
+        global _RECOMPRESS_TG, _RECOMPRESS_EXECUTOR
+        _RECOMPRESS_EXECUTOR = ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix='trace-recompress',
+        )
+        try:
+            async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+                yield
+        finally:
+            _RECOMPRESS_EXECUTOR.shutdown(wait=True, cancel_futures=True)
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +132,16 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        _RECOMPRESS_TG.create_task(
+            _recompress_trace_file(trace_id, trace_init['file_id'], file)
+        )
+        return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +216,55 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace_file(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file_bytes: bytes,
+):
+    new_file_id: StorageKey | None = None
+    file_id_updated = False
+    try:
+        result = await TraceFile.recompress(
+            file_bytes,
+            executor=_RECOMPRESS_EXECUTOR,
+        )
+        new_file_id = await TRACE_STORAGE.save(
+            result.data,
+            result.suffix,
+            result.metadata,
+        )
+
+        async with db(True) as conn:
+            rowcount = await db_update(
+                'trace',
+                {'file_id': new_file_id},
+                where={'id': trace_id, 'file_id': old_file_id},
+                conn=conn,
+            )
+        file_id_updated = bool(rowcount)
+
+        if file_id_updated:
+            await TRACE_STORAGE.delete(old_file_id)
+            logging.debug(
+                'Recompressed trace file %r to %r',
+                old_file_id,
+                new_file_id,
+            )
+        else:
+            await TRACE_STORAGE.delete(new_file_id)
+            new_file_id = None
+
+    except Exception:
+        if new_file_id is not None and not file_id_updated:
+            try:
+                await TRACE_STORAGE.delete(new_file_id)
+            except Exception:
+                logging.exception(
+                    'Failed to delete abandoned recompressed trace file %r',
+                    new_file_id,
+                )
+                capture_exception()
+        logging.exception('Trace file recompression failed for trace %r', trace_id)
+        capture_exception()
