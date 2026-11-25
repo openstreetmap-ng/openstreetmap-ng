@@ -319,6 +319,62 @@ async def test_changeset_close_twice(client: AsyncClient):
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
 
 
+async def test_changeset_close_closes_tagged_notes(client: AsyncClient):
+    client.headers['Authorization'] = 'User user1'
+
+    first_note_id = await _create_note(
+        client, test_changeset_close_closes_tagged_notes.__qualname__
+    )
+    second_note_id = await _create_note(
+        client, f'{test_changeset_close_closes_tagged_notes.__qualname__} override'
+    )
+    already_closed_note_id = await _create_note(
+        client, f'{test_changeset_close_closes_tagged_notes.__qualname__} closed'
+    )
+
+    r = await client.post(
+        f'/api/0.6/notes/{already_closed_note_id}/close.json',
+        params={'text': 'already closed'},
+    )
+    assert r.is_success, r.text
+
+    r = await client.put(
+        '/api/0.6/changeset/create',
+        content=XMLToDict.unparse({
+            'osm': {
+                'changeset': {
+                    'tag': [
+                        {'@k': 'comment', '@v': 'default close comment'},
+                        {
+                            '@k': 'closes:note',
+                            '@v': f'{first_note_id};bad;{second_note_id};{first_note_id};{already_closed_note_id};0',
+                        },
+                        {
+                            '@k': f'closes:note:{second_note_id}:comment',
+                            '@v': 'second note close comment',
+                        },
+                    ]
+                }
+            }
+        }),
+    )
+    assert r.is_success, r.text
+    changeset_id = int(r.text)
+
+    r = await client.put(f'/api/0.6/changeset/{changeset_id}/close')
+    assert r.is_success, r.text
+
+    await _assert_note_closed(client, first_note_id, 'default close comment')
+    await _assert_note_closed(client, second_note_id, 'second note close comment')
+
+    r = await client.get(f'/api/0.6/notes/{already_closed_note_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert props['status'] == 'closed'
+    assert len(props['comments']) == 2
+    assert props['comments'][-1]['text'] == 'already closed'
+
+
 async def test_changesets_not_found(client: AsyncClient):
     r = await client.get('/api/0.6/changeset/0')
     assert r.status_code == status.HTTP_404_NOT_FOUND, r.text
@@ -352,6 +408,29 @@ async def test_changesets_tag_max_length(
         assert r.is_success, r.text
     else:
         assert r.status_code == status.HTTP_400_BAD_REQUEST, r.text
+
+
+async def _create_note(client: AsyncClient, text: str) -> int:
+    r = await client.post(
+        '/api/0.6/notes.json', json={'lon': 0, 'lat': 0, 'text': text}
+    )
+    assert r.is_success, r.text
+    return r.json()['properties']['id']
+
+
+async def _assert_note_closed(client: AsyncClient, note_id: int, close_comment: str):
+    r = await client.get(f'/api/0.6/notes/{note_id}.json')
+    assert r.is_success, r.text
+    props = r.json()['properties']
+    assert_model(props, {'status': 'closed', 'closed_at': str})
+    assert_model(
+        props['comments'][-1],
+        {
+            'user': 'user1',
+            'action': 'closed',
+            'text': close_comment,
+        },
+    )
 
 
 @pytest.mark.parametrize(
