@@ -143,7 +143,10 @@ class _Service(NoteServiceConnect):
     @override
     async def create(self, request: CreateRequest, ctx: RequestContext):
         note_id = await NoteService.create(
-            request.location.lon, request.location.lat, request.body
+            request.location.lon,
+            request.location.lat,
+            request.body,
+            append_app_hashtag=True,
         )
         return CreateResponse(id=note_id)
 
