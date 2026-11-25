@@ -2,6 +2,7 @@ from string.templatelib import Template
 
 import cython
 import numpy as np
+from botocore.exceptions import ClientError
 from numpy.typing import NDArray
 from psycopg import IsolationLevel
 from psycopg.sql import SQL
@@ -79,7 +80,19 @@ class TraceQuery:
         Returns the file bytes.
         """
         trace = await TraceQuery.get_by_id(trace_id)
-        file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        try:
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
+        except (FileNotFoundError, ClientError) as error:
+            if isinstance(error, ClientError) and error.response['Error'][
+                'Code'
+            ] not in {'NoSuchKey', '404', 'NotFound'}:
+                raise
+            # Recompression may have replaced the file after the metadata read.
+            refreshed = await TraceQuery.get_by_id(trace_id)
+            if refreshed['file_id'] == trace['file_id']:
+                raise
+            trace = refreshed
+            file_buffer = await TRACE_STORAGE.load(trace['file_id'])
         file_bytes = TraceFile.decompress_if_needed(file_buffer, trace['file_id'])
         return file_bytes
 
