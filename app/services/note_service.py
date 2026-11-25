@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import Any
 
 import cython
+from app.models.proto.note_types import GetCommentsResponse_Comment_Event
+from psycopg import AsyncConnection
 from shapely import Point, get_coordinates
 
 from app.db import db, db_fetchone, db_insert, db_update
@@ -18,8 +20,7 @@ from app.models.db.note_comment import (
     note_comments_resolve_rich_text,
 )
 from app.models.db.user import user_is_moderator
-from app.models.proto.note_types import GetCommentsResponse_Comment_Event
-from app.models.types import DisplayName, NoteCommentId, NoteId
+from app.models.types import DisplayName, NoteCommentId, NoteId, UserId
 from app.queries.nominatim_query import NominatimQuery
 from app.queries.note_query import NoteCommentQuery
 from app.queries.user_subscription_query import UserSubscriptionQuery
@@ -180,6 +181,86 @@ class NoteService:
             if send_activity_email:
                 tg.create_task(_send_activity_email(note, comment))
             tg.create_task(UserSubscriptionService.subscribe('note', note_id))
+
+    @staticmethod
+    async def close_if_open(
+        note_id: NoteId,
+        text: str,
+        user_id: UserId | None,
+        *,
+        conn: AsyncConnection,
+    ) -> bool:
+        """
+        Close a note as the given user.
+
+        Returns False when the note cannot be closed (missing, hidden, already
+        closed, or anonymous user). Used by changeset close to process
+        ``closes:note`` tags without raising on already-closed notes.
+
+        Unlike ``comment``, this method does not send an activity email and
+        accepts an explicit connection + user_id so it can run inside a
+        changeset transaction (including the background inactive-closer).
+        """
+        if user_id is None:
+            return False
+
+        note = await db_fetchone(
+            Note,
+            t"""
+                SELECT * FROM note
+                WHERE id = {note_id}
+                  AND closed_at IS NULL
+                  AND hidden_at IS NULL
+                FOR UPDATE
+            """,
+            conn=conn,
+        )
+        if note is None:
+            return False
+
+        comment_id: NoteCommentId
+        created_at: datetime
+        comment_id, created_at = await db_insert(
+            'note_comment',
+            {
+                'user_id': user_id,
+                'user_ip': None,
+                'note_id': note_id,
+                'event': 'closed',
+                'body': text,
+            },
+            returning='id, created_at',
+            conn=conn,
+        )
+
+        await db_update(
+            'note',
+            {'closed_at': created_at, 'updated_at': created_at},
+            where={'id': note_id},
+            conn=conn,
+        )
+
+        if text:
+            await audit(
+                'create_note_comment',
+                conn,
+                user_id=user_id,
+                extra={'id': comment_id, 'note': note_id},
+            )
+        await audit(
+            'update_note_status',
+            conn,
+            user_id=user_id,
+            extra={'id': note_id, 'event': 'closed'},
+        )
+
+        await db_insert(
+            'user_subscription',
+            {'user_id': user_id, 'target': 'note', 'target_id': note_id},
+            on_conflict=t'DO NOTHING',
+            conn=conn,
+        )
+        return True
 
 
 async def _send_activity_email(note: Note, comment: NoteComment):
