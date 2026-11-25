@@ -1,7 +1,10 @@
 import logging
+from asyncio import Queue, TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -24,8 +27,25 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_RECOMPRESS_TG: TaskGroup
+_RECOMPRESS_QUEUE: Queue[tuple[TraceId, StorageKey] | None] | None = None
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        """Context manager for background trace work."""
+        global _RECOMPRESS_QUEUE, _RECOMPRESS_TG
+        _RECOMPRESS_QUEUE = queue = Queue()
+        async with (_RECOMPRESS_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            _RECOMPRESS_TG.create_task(_recompress_worker(queue))
+            try:
+                yield
+            finally:
+                await queue.put(None)
+                _RECOMPRESS_QUEUE = None
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +131,15 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Recompress after the fast upload path has committed the trace.
+        _queue_recompress(trace_id, trace_init['file_id'])
+        return trace_id
 
     @staticmethod
     async def update(
@@ -170,24 +193,104 @@ class TraceService:
         user_id = auth_user(required=True)['id']
 
         async with db(True) as conn:
-            file_id = await db_fetchval(
-                StorageKey,
-                t'SELECT file_id FROM trace WHERE id = {trace_id}',
-                conn=conn,
-            )
-            if file_id is None:
-                raise_for.trace_not_found(trace_id)
-
-            rowcount = await db_delete(
+            row = await db_delete(
                 'trace',
                 where={'id': trace_id, 'user_id': user_id},
+                returning='file_id',
+                assert_returning=False,
                 conn=conn,
             )
 
-            if not rowcount:
+            if row is None:
+                trace_exists = await db_fetchval(
+                    bool,
+                    t'SELECT EXISTS (SELECT 1 FROM trace WHERE id = {trace_id})',
+                    conn=conn,
+                )
+                if not trace_exists:
+                    raise_for.trace_not_found(trace_id)
                 raise_for.trace_access_denied(trace_id)
 
+            file_id: StorageKey = row[0]
             await audit('delete_trace', conn, extra={'id': trace_id})
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_task(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+    file_bytes: bytes,
+):
+    """Recompress a stored trace without delaying its upload response."""
+    try:
+        result = await TraceFile.recompress(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+
+        try:
+            rowcount = await db_update(
+                'trace',
+                {'file_id': new_file_id},
+                where={'id': trace_id, 'file_id': old_file_id},
+            )
+        except Exception:
+            await TRACE_STORAGE.delete(new_file_id)
+            raise
+
+        if not rowcount:
+            await TRACE_STORAGE.delete(new_file_id)
+            return
+
+        try:
+            await TRACE_STORAGE.delete(old_file_id)
+        except Exception:
+            logging.warning(
+                'Failed to delete old trace file %r after recompressing trace %d',
+                old_file_id,
+                trace_id,
+            )
+            capture_exception()
+
+        logging.debug('Recompressed trace file %r for trace %d', new_file_id, trace_id)
+
+    except Exception:
+        logging.warning('Failed to recompress trace file for trace %d', trace_id)
+        capture_exception()
+
+
+async def _recompress_stored_task(
+    trace_id: TraceId,
+    old_file_id: StorageKey,
+):
+    """Reload the saved trace and recompress it outside the upload request."""
+    try:
+        file_buffer = await TRACE_STORAGE.load(old_file_id)
+        file_bytes = TraceFile.decompress_if_needed(file_buffer, old_file_id)
+        await _recompress_task(trace_id, old_file_id, file_bytes)
+    except Exception:
+        logging.warning('Failed to load trace file for recompressing trace %d', trace_id)
+        capture_exception()
+
+
+def _queue_recompress(trace_id: TraceId, old_file_id: StorageKey):
+    """Queue a trace for background recompression when the service context is active."""
+    if _RECOMPRESS_QUEUE is None:
+        logging.debug(
+            'Skipping trace recompression for trace %d because context is not active',
+            trace_id,
+        )
+        return
+    _RECOMPRESS_QUEUE.put_nowait((trace_id, old_file_id))
+
+
+async def _recompress_worker(queue: Queue[tuple[TraceId, StorageKey] | None]):
+    """Recompress queued traces without growing upload-time work unboundedly."""
+    while True:
+        item = await queue.get()
+        if item is None:
+            return
+
+        await _recompress_stored_task(*item)
