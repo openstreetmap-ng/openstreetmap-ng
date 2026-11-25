@@ -1,4 +1,6 @@
 import logging
+from asyncio import Semaphore, TaskGroup
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import UploadFile
@@ -24,8 +26,18 @@ from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
 
+_TG: TaskGroup
+_RECOMPRESS_LOCK = Semaphore(1)
+
 
 class TraceService:
+    @staticmethod
+    @asynccontextmanager
+    async def context():
+        global _TG
+        async with (_TG := TaskGroup()):  # pyright: ignore[reportConstantRedefinition]
+            yield
+
     @staticmethod
     async def upload(
         file: UploadFile | bytes,
@@ -111,12 +123,16 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
-
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Start only after the initial file and trace transaction are committed.
+        _TG.create_task(
+            _recompress(trace_id, trace_init['file_id'], file, len(result.data))
+        )
+        return trace_id
 
     @staticmethod
     async def update(
@@ -172,7 +188,7 @@ class TraceService:
         async with db(True) as conn:
             file_id = await db_fetchval(
                 StorageKey,
-                t'SELECT file_id FROM trace WHERE id = {trace_id}',
+                t'SELECT file_id FROM trace WHERE id = {trace_id} FOR UPDATE',
                 conn=conn,
             )
             if file_id is None:
@@ -191,3 +207,36 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress(
+    trace_id: TraceId, old_file_id: StorageKey, data: bytes, old_size: int
+):
+    """Replace a trace's initial archive without delaying its upload response."""
+    try:
+        async with _RECOMPRESS_LOCK:
+            result = await TraceFile.compress(data, level=22)
+        if len(result.data) >= old_size:
+            return
+
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+        promoted = False
+        try:
+            async with db(True) as conn:
+                changed = await db_update(
+                    'trace',
+                    {'file_id': new_file_id},
+                    where={'id': trace_id, 'file_id': old_file_id},
+                    conn=conn,
+                )
+            promoted = bool(changed)
+        finally:
+            if not promoted:
+                await TRACE_STORAGE.delete(new_file_id)
+        if promoted:
+            await TRACE_STORAGE.delete(old_file_id)
+    except Exception:
+        # Recompression is optional; failures must not cancel other background work.
+        logging.exception('Background recompression failed for trace %d', trace_id)
