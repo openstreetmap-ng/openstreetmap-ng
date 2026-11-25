@@ -2,9 +2,11 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest
+from fastapi import status
 from PIL import Image as PILImage
 
 from app.config import IMAGE_MAX_FRAMES
+from app.exceptions.api_error import APIError
 from app.lib.io.image import Image
 
 
@@ -42,3 +44,16 @@ async def test_normalize_avatar_preserves_animation(animation: bytes):
     assert len(normalized[0]) < len(animation)
     assert result.is_animated  # type: ignore
     assert 1 < result.n_frames <= IMAGE_MAX_FRAMES  # type: ignore
+
+
+async def test_normalize_avatar_handles_decompression_bomb(monkeypatch):
+    buffer = BytesIO()
+    PILImage.new('RGB', (10, 10), 'white').save(buffer, format='PNG')
+
+    monkeypatch.setattr(PILImage, 'MAX_IMAGE_PIXELS', 1)
+
+    with pytest.raises(APIError) as e:
+        await Image.normalize_avatar(buffer.getvalue())
+
+    assert e.value.status_code == status.HTTP_413_CONTENT_TOO_LARGE
+    assert e.value.detail == 'Image is too large'
