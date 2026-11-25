@@ -1,7 +1,9 @@
 import logging
+from asyncio import Semaphore, Task, get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
+from sentry_sdk import capture_exception
 
 from app.config import TRACE_FILE_UPLOAD_MAX_SIZE
 from app.db import db, db_delete, db_fetchval, db_insert, db_update
@@ -23,6 +25,9 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+
+_RECOMPRESS_LOCK = Semaphore(1)
+_RECOMPRESS_TASKS: set[Task[None]] = set()
 
 
 class TraceService:
@@ -111,12 +116,19 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Start only after the trace transaction commits, without delaying upload.
+        task = get_running_loop().create_task(
+            _recompress(trace_id, trace_init['file_id'], file, len(result.data))
+        )
+        _RECOMPRESS_TASKS.add(task)
+        task.add_done_callback(_RECOMPRESS_TASKS.discard)
+        return trace_id
 
     @staticmethod
     async def update(
@@ -178,16 +190,50 @@ class TraceService:
             if file_id is None:
                 raise_for.trace_not_found(trace_id)
 
-            rowcount = await db_delete(
+            row = await db_delete(
                 'trace',
                 where={'id': trace_id, 'user_id': user_id},
+                returning='file_id',
+                assert_returning=False,
                 conn=conn,
             )
 
-            if not rowcount:
+            if row is None:
                 raise_for.trace_access_denied(trace_id)
 
+            # Recompression may replace the file between SELECT and DELETE.
+            file_id = row[0]
             await audit('delete_trace', conn, extra={'id': trace_id})
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress(
+    trace_id: TraceId, file_id: StorageKey, buffer: bytes, compressed_size: int
+):
+    """Replace an uploaded file with a smaller level-22 copy in the background."""
+    try:
+        # Bound expensive compression to one trace per worker process.
+        async with _RECOMPRESS_LOCK:
+            result = await TraceFile.compress(buffer, level=22)
+        if len(result.data) >= compressed_size:
+            return
+
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+        try:
+            rowcount = await db_update(
+                'trace',
+                {'file_id': new_file_id},
+                where={'id': trace_id, 'file_id': file_id},
+            )
+        except Exception:
+            await TRACE_STORAGE.delete(new_file_id)
+            raise
+
+        # A deleted or replaced trace must not leave the new file orphaned.
+        await TRACE_STORAGE.delete(file_id if rowcount else new_file_id)
+    except Exception:
+        capture_exception()
