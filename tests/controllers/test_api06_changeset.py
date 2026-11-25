@@ -132,7 +132,7 @@ async def test_changeset_upload(client: AsyncClient):
         content=XMLToDict.unparse({
             'osmChange': {
                 'create': [
-                    ('node', {'@id': -1, '@lat': 0, '@lon': 0}),
+                    ('node', {'@id': -1, '@lat': 1.0, '@lon': 1.0}),
                     ('way', {'@id': -1, 'nd': [{'@ref': -1}]}),
                 ]
             }
@@ -157,10 +157,10 @@ async def test_changeset_upload(client: AsyncClient):
             '@updated_at': datetime,
             '@closed_at': datetime,
             '@changes_count': 2,
-            '@min_lat': 0.0,
-            '@max_lat': 0.0,
-            '@min_lon': 0.0,
-            '@max_lon': 0.0,
+            '@min_lat': 1.0,
+            '@max_lat': 1.0,
+            '@min_lon': 1.0,
+            '@max_lon': 1.0,
         },
     )
 
@@ -285,7 +285,9 @@ async def test_changeset_upload_closed(client: AsyncClient):
     r = await client.post(
         f'/api/0.6/changeset/{changeset_id}/upload',
         content=XMLToDict.unparse({
-            'osmChange': {'create': [('node', {'@id': -1, '@lat': 0, '@lon': 0})]}
+            'osmChange': {
+                'create': [('node', {'@id': -1, '@lat': 1.0, '@lon': 1.0})]
+            }
         }),
     )
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
