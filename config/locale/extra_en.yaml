@@ -486,6 +486,7 @@ internalization:
     If you would like to help, start with {{this_guide}}.
   this_guide: this guide
 login:
+  show_password: Show password
   welcome_back: Welcome back
   or_continue_with: or continue with
   sign_in: Sign in
