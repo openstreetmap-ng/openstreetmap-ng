@@ -1,0 +1,116 @@
+{% extends '_base' %}
+{% block title_prefix %}{{ t('site.software.title') }} |{% endblock %}
+{% block body_class %}software-page{% endblock %}
+{% block body %}
+  <div class="content-header">
+    <div class="container">
+      <h1>{{ t('site.software.title') }}</h1>
+      <p class="lead mb-0">{{ t('site.software.description') }}</p>
+    </div>
+  </div>
+
+  <div class="content-body">
+    <div class="container">
+      <form
+        class="row g-3 align-items-end mb-4"
+        method="GET"
+        action="/software"
+      >
+        {% for filter_name, options in SOFTWARE_FILTERS.items() %}
+          <div class="col-sm-6 col-lg-3">
+            <label
+              class="form-label"
+              for="software-filter-{{ filter_name }}"
+            >
+              {{ t('site.software.filters.' ~ filter_name) }}
+            </label>
+            <select
+              class="form-select"
+              id="software-filter-{{ filter_name }}"
+              name="{{ filter_name }}"
+            >
+              <option value="">{{ t('site.software.filters.any') }}</option>
+              {% for option in options %}
+                <option
+                  value="{{ option.value }}"
+                  {% if SELECTED_FILTERS[filter_name] == option.value %}selected{% endif %}
+                >
+                  {{ option.label }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endfor %}
+
+        <div class="col-sm-6 col-lg-3">
+          <button
+            class="btn btn-primary me-2"
+            type="submit"
+          >
+            {{ t('action.apply') }}
+          </button>
+          <a
+            class="btn btn-link"
+            href="/software"
+          >
+            {{ t('action.reset_filters') }}
+          </a>
+        </div>
+      </form>
+
+      {% if SOFTWARE_ITEMS %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+          {% for item in SOFTWARE_ITEMS %}
+            <div class="col">
+              <article class="card h-100">
+                <div class="bg-body-secondary text-center p-4 border-bottom">
+                  <img
+                    class="img-fluid"
+                    src="{{ item.image }}"
+                    alt=""
+                    loading="lazy"
+                    draggable="false"
+                    style="max-height: 4rem"
+                  />
+                </div>
+                <div class="card-body d-flex flex-column">
+                  <h2 class="h5 card-title">
+                    <a
+                      class="stretched-link"
+                      href="{{ item.url }}"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {{ item.name }}
+                    </a>
+                  </h2>
+                  <p class="card-text">{{ item.description }}</p>
+                  <div class="d-flex flex-wrap gap-1 mt-auto">
+                    <span class="badge text-bg-light">
+                      {{ SOFTWARE_FILTER_LABELS['category'][item.category] }}
+                    </span>
+                    {% for platform in item.platforms %}
+                      <span class="badge text-bg-light">
+                        {{ SOFTWARE_FILTER_LABELS['platform'][platform] }}
+                      </span>
+                    {% endfor %}
+                    <span class="badge text-bg-light">
+                      {{ SOFTWARE_FILTER_LABELS['license'][item.license] }}
+                    </span>
+                    <span class="badge text-bg-light">
+                      {{ SOFTWARE_FILTER_LABELS['status'][item.status] }}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">
+          {{ t('site.software.no_results') }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
