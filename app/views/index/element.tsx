@@ -1,6 +1,6 @@
 import { Time } from "@components/datetime-inputs"
 import { PageOrder, StandardPaginationNav } from "@components/standard-pagination"
-import { Tags } from "@components/tags"
+import { TagsEditable } from "@components/tags"
 import { UserLink } from "@components/user-link"
 import { SidebarContent, SidebarHeader, useSidebar } from "@index/_action-sidebar"
 import { defineRoute } from "@index/router"
@@ -348,7 +348,7 @@ const ElementSidebar = ({
                 />
               )}
 
-              <Tags tags={d.tags} />
+              <TagsEditable tags={d.tags} isLatest={!d.nextVersion} />
 
               {hasRelations && (
                 <div class="elements mt-3">
