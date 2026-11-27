@@ -25,7 +25,11 @@ async def test_gps_invalid_coordinates(client: AsyncClient, path: str):
 
 async def test_uploaded_trace_contributes_and_is_removed(client: AsyncClient):
     client.headers['Authorization'] = 'User user1'
-    content = b'<gpx version="1.1"><trk><trkseg><trkpt lat="0" lon="0"/><trkpt lat="0" lon="0.001"/></trkseg></trk></gpx>'
+    content = (
+        b'<?xml version="1.0" encoding="UTF-8"?>\n'
+        b'<gpx version="1.1" creator="gps-tile-test" xmlns="http://www.topografix.com/GPX/1/1">'
+        b'<trk><trkseg><trkpt lat="0" lon="0"/><trkpt lat="0" lon="0.001"/></trkseg></trk></gpx>'
+    )
     ids = []
     try:
         for _ in range(2):
