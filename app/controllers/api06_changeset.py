@@ -123,6 +123,8 @@ async def upload_diff(
 ):
     try:
         elements = Format06.decode_osmchange(changeset_id, data)
+    except APIError:
+        raise
     except Exception as e:
         raise_for.bad_xml('osmChange', str(e))
 
