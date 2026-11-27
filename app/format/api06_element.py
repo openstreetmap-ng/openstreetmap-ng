@@ -392,6 +392,17 @@ def _decode_element_unsafe(
         'members': members,
         'members_roles': members_roles,
     }
+
+    # Null island coordinates always indicate an editor bug
+    if (
+        type == 'node'
+        and result['visible']
+        and point is not None
+        and point.x == 0
+        and point.y == 0
+    ):
+        raise ValueError('Nodes cannot be placed at null island (0, 0)')
+
     return result
 
 
