@@ -607,6 +607,26 @@ Regenerate using project commands.
 
 ## 17. High-Signal File References
 
+### Built-in GPS Tiles
+
+GPS rasters are served at `/gps/lines/{z}/{x}/{y}` with optional `.png`.
+The Rust iterator produces bounded pixel batches; PostgreSQL stores per-trace
+contributions, completion markers, and incrementally maintained zoom counters.
+Trace insertion and deletion update these tables in the trace transaction.
+Visibility changes do not change anonymous geometry contributions; tile output
+contains no trace identifiers, metadata, elevation, or timestamps.
+
+After applying the GPS schema migration to an existing database, run the registered
+`backfill_gps_tiles` admin task in bounded batches until all traces have completion
+markers. The task is restartable and serializes against deletion using trace row
+locks. Empty geometries receive completion markers too. New uploads are indexed
+immediately. The raster source overzooms above `GPS_MASTER_ZOOM`.
+
+GPS regressions live in `tests/controllers/test_gps_tiles.py`,
+`tests/services/test_gps_tile_service.py`, and `speedup/src/gps_batches.rs`.
+Run Python tests through the normal Nix `run-tests` workflow, not a plain-shell
+substitute for the app lifespan, PostGIS, or TimescaleDB integration.
+
 Backend core:
 
 - `app/main.py`
