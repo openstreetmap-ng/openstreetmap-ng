@@ -8,7 +8,12 @@ import { useSignal } from "@preact/signals"
 import { PageSchema, type PageValid } from "@proto/profile_pb"
 import { Service, UpdateAvatarRequest_Preset } from "@proto/settings_pb"
 import { toSentenceCase } from "@std/text/unstable-to-sentence-case"
-import { config, USER_RECENT_ACTIVITY_ENTRIES } from "@utils/config"
+import {
+  IMAGE_MAX_UPLOAD_FILE_SIZE,
+  config,
+  USER_RECENT_ACTIVITY_ENTRIES,
+} from "@utils/config"
+import { checkImageFileSize } from "@utils/image-file"
 import { tRich } from "@utils/i18n"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
@@ -180,7 +185,9 @@ const BackgroundForm = ({
         accept="image/*"
         ref={fileInputRef}
         onChange={(e) => {
-          e.currentTarget.form!.requestSubmit()
+          if (checkImageFileSize(e.currentTarget, IMAGE_MAX_UPLOAD_FILE_SIZE)) {
+            e.currentTarget.form!.requestSubmit()
+          }
         }}
       />
       <img
@@ -275,7 +282,9 @@ const AvatarForm = ({
         accept="image/*"
         ref={fileInputRef}
         onChange={(e) => {
-          e.currentTarget.form!.requestSubmit()
+          if (checkImageFileSize(e.currentTarget, IMAGE_MAX_UPLOAD_FILE_SIZE)) {
+            e.currentTarget.form!.requestSubmit()
+          }
         }}
       />
       <img

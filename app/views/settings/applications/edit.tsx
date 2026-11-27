@@ -4,8 +4,9 @@ import { formDataBytes, StandardForm } from "@components/standard-form"
 import { useSignal } from "@preact/signals"
 import { EditPageSchema, Service } from "@proto/settings_applications_pb"
 import { Scope } from "@proto/shared_pb"
-import { OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
+import { IMAGE_MAX_UPLOAD_FILE_SIZE, OAUTH_APP_NAME_MAX_LENGTH } from "@utils/config"
 import { throwAbortError } from "@utils/dom-helpers"
+import { checkImageFileSize } from "@utils/image-file"
 import { mountProtoPage } from "@utils/proto-page"
 import { t } from "i18next"
 import { useRef } from "preact/hooks"
@@ -259,7 +260,16 @@ mountProtoPage(
                           name="avatar_file"
                           accept="image/*"
                           ref={avatarFileInputRef}
-                          onChange={() => avatarFormRef.current!.requestSubmit()}
+                          onChange={(e) => {
+                            if (
+                              checkImageFileSize(
+                                e.currentTarget,
+                                IMAGE_MAX_UPLOAD_FILE_SIZE,
+                              )
+                            ) {
+                              avatarFormRef.current!.requestSubmit()
+                            }
+                          }}
                         />
                         <img
                           class="avatar"

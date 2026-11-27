@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypeAlias, overload
 
 import cython
 from blurhash_rs import blurhash_encode
-from PIL import ImageOps, ImageSequence
+from PIL import ImageOps, ImageSequence, UnidentifiedImageError
+from PIL.Image import DecompressionBombError, DecompressionBombWarning
 from PIL.Image import Image as PILImage
 from PIL.Image import Resampling
 from PIL.Image import open as open_image
@@ -25,6 +26,7 @@ from app.config import (
     BACKGROUND_MAX_MEGAPIXELS,
     BACKGROUND_MAX_RATIO,
     IMAGE_MAX_FRAMES,
+    IMAGE_MAX_UPLOAD_FILE_SIZE,
     IMAGE_PROXY_BLURHASH_MAX_COMPONENTS,
     IMAGE_PROXY_IMAGE_MAX_SIDE,
     IMAGE_PROXY_RECOMPRESS_QUALITY,
@@ -242,8 +244,20 @@ async def _normalize_image(
     - Megapixels: downscale
     - File size: reduce quality
     """
-    img = open_image(BytesIO(data))
-    ImageOps.exif_transpose(img, in_place=True)
+    if len(data) > IMAGE_MAX_UPLOAD_FILE_SIZE:
+        raise_for.image_too_big()
+
+    try:
+        with warnings.catch_warnings():
+            # Treat decompression bomb warnings as errors
+            warnings.simplefilter('error', DecompressionBombWarning)
+            img = open_image(BytesIO(data))
+            ImageOps.exif_transpose(img, in_place=True)
+            img.load()  # force decode to surface truncated/corrupt data
+    except DecompressionBombError:
+        raise_for.image_too_big()
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise_for.image_unsupported()
 
     # normalize shape ratio
     img_width: cython.size_t
