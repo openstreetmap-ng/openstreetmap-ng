@@ -47,6 +47,11 @@ changesets_history:
   changesets_above: Changesets above
   changesets_below: Changesets below
 element:
+  tags: Tags
+  edit_tags_text: Edit text
+  edit_tags_comment: Comment
+  edit_tags_submit: Submit
+  discard: Discard
   tags_diff_mode: Tags diff mode
   highlight_changed_tags_between_versions: Highlight changed tags between versions
 note:

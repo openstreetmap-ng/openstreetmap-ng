@@ -1,8 +1,9 @@
 import { useSignal } from "@preact/signals"
 import { memoize } from "@std/cache/memoize"
 import { union } from "@std/collections/union"
-import { primaryLanguage } from "@utils/config"
+import { isLoggedIn, primaryLanguage } from "@utils/config"
 import { useDisposeEffect } from "@utils/dispose-scope"
+import { t } from "i18next"
 import { getWikiData } from "./tags.macro" with { type: "macro" }
 
 const { localeSets, wikiPages: WIKI_PAGES } = getWikiData()
@@ -352,6 +353,68 @@ const computeDiffRows = (
     }
   }
   return [...rows, ...deleted]
+}
+
+export const TagsEditable = ({
+  tags,
+  isLatest,
+}: {
+  tags: Record<string, string>
+  isLatest: boolean
+}) => {
+  const editing = useSignal(false)
+
+  if (!isLoggedIn || !isLatest) return <Tags tags={tags} />
+
+  const tagsJson = JSON.stringify(tags)
+  const tagsText = Object.entries(tags)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("\n")
+
+  return editing.value ? (
+    <form class="tags-edit" method="post" data-tags={tagsJson}>
+      <textarea
+        class="form-control"
+        name="tags"
+        rows={Math.min(15, Math.max(3, Object.keys(tags).length + 1))}
+        defaultValue={tagsText}
+        required
+      />
+      <input
+        class="form-control mt-2"
+        type="text"
+        name="comment"
+        placeholder={t("element.edit_tags_comment")}
+        required
+      />
+      <div class="mt-2">
+        <button class="btn btn-primary btn-sm" type="submit">
+          {t("element.edit_tags_submit")}
+        </button>
+        <button
+          class="btn btn-secondary btn-sm ms-2"
+          type="button"
+          onClick={() => (editing.value = false)}
+        >
+          {t("element.discard")}
+        </button>
+      </div>
+    </form>
+  ) : (
+    <>
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-2">{t("element.tags")}</h6>
+        <button
+          class="btn btn-link btn-sm p-0 mb-2"
+          type="button"
+          onClick={() => (editing.value = true)}
+        >
+          {t("element.edit_tags_text")}
+        </button>
+      </div>
+      <Tags tags={tags} />
+    </>
+  )
 }
 
 export const Tags = ({
