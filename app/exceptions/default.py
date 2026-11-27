@@ -184,13 +184,19 @@ class Exceptions:
         raise NotImplementedError
 
     # --- image ---
-    def image_not_found(self):
+    def image_not_found(self) -> NoReturn:
         raise APIError(status.HTTP_404_NOT_FOUND, detail='Image not found')
 
-    def image_too_big(self):
+    def image_too_big(self) -> NoReturn:
         raise APIError(status.HTTP_413_CONTENT_TOO_LARGE, detail='Image is too large')
 
-    def image_inappropriate(self):
+    def image_unsupported(self) -> NoReturn:
+        raise APIError(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail='Image is not a supported format or is corrupted',
+        )
+
+    def image_inappropriate(self) -> NoReturn:
         raise APIError(
             status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail='Image violates content policy',
