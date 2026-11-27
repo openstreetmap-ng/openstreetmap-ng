@@ -39,6 +39,11 @@ const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
 const TRACESTRACKTOPO_LAYER_CODE = "P" as LayerCode
 const HOT_LAYER_CODE = "H" as LayerCode
 
+// Vector basemap label (symbol) layers are rendered above the aerial overlay
+// so place names stay visible even at full overlay opacity, but below
+// higher-priority overlays like GPS traces.
+const BASE_SYMBOL_PRIORITY = 55
+
 export const AERIAL_LAYER_ID = "aerial" as LayerId
 export const NOTES_LAYER_ID = "notes" as LayerId
 export const DATA_LAYER_ID = "data" as LayerId
@@ -389,6 +394,20 @@ const LAYER_TYPE_FILTERS: Partial<Record<LayerType, FilterSpecification>> = {
   symbol: ["==", ["geometry-type"], "Point"],
 }
 
+// Effective priority of each rendered layer id, so overlays added later
+// respect per-type priorities of layers added earlier (e.g. base symbols).
+const renderedLayerPriorities = new Map<string, number>()
+
+const getRenderedLayerPriority = (map: MaplibreMap, id: string) =>
+  renderedLayerPriorities.get(id) ??
+  layersConfig.get(resolveExtendedLayerId(id))?.priority ??
+  0
+
+const findLayerBeforeId = (map: MaplibreMap, priority: number) =>
+  map
+    .getLayersOrder()
+    .find((id) => priority < getRenderedLayerPriority(map, id))
+
 export const addMapLayer = (
   map: MaplibreMap,
   layerId: LayerId,
@@ -412,11 +431,7 @@ export const addMapLayer = (
   }
 
   const priority = config.priority ?? 0
-  const beforeId: string | undefined = map
-    .getLayersOrder()
-    .find(
-      (id) => priority < (layersConfig.get(resolveExtendedLayerId(id))?.priority ?? 0),
-    )
+  const beforeId = findLayerBeforeId(map, priority)
 
   if (specType === "vector") {
     console.debug("Layers: Adding vector", layerId, "before", beforeId)
@@ -438,6 +453,12 @@ export const addMapLayer = (
 
     // Add layers
     for (const layer of vectorStyle.layers) {
+      const layerPriority =
+        config.isBaseLayer && layer.type === "symbol"
+          ? BASE_SYMBOL_PRIORITY
+          : priority
+      const layerBeforeId =
+        layerPriority === priority ? beforeId : findLayerBeforeId(map, layerPriority)
       const layerObject: AddLayerObject = {
         ...layer,
         id: getExtendedLayerId(layerId, layer.id as LayerType),
@@ -450,7 +471,8 @@ export const addMapLayer = (
           // @ts-expect-error
           layer.source as LayerType,
         )
-      map.addLayer(layerObject, beforeId)
+      map.addLayer(layerObject, layerBeforeId)
+      renderedLayerPriorities.set(layerObject.id, layerPriority)
     }
   } else {
     console.debug("Layers: Adding", layerId, layerTypes, "before", beforeId)
@@ -498,6 +520,7 @@ export const addMapLayer = (
       // @ts-expect-error
       if (filter) layerObject.filter = filter
       map.addLayer(layerObject, beforeId)
+      renderedLayerPriorities.set(layerObject.id, priority)
     }
   }
 
@@ -521,6 +544,7 @@ export const removeMapLayer = (
     if (resolveExtendedLayerId(extendedLayerId) !== layerId) continue
     console.debug("Layers: Removing", extendedLayerId, "for", layerId)
     map.removeLayer(extendedLayerId)
+    renderedLayerPriorities.delete(extendedLayerId)
     removed = true
   }
   if (removed) {
