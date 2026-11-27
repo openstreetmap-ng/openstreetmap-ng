@@ -20,6 +20,7 @@ from app.db import (
 from app.lib.auth.crypto import hash_bytes
 from app.models.types import ChangesetId
 from app.services.admin_task_service import register_admin_task
+from app.services.gps_tile_service import GPSTileService
 from app.utils import calc_num_workers
 
 
@@ -33,6 +34,11 @@ _MIGRATIONS_DIR = Path('app/migrations')
 
 
 class MigrationService:
+    @staticmethod
+    @register_admin_task
+    async def backfill_gps_tiles(limit: int = 1000):
+        await GPSTileService.backfill(limit)
+
     @staticmethod
     async def fix_sequence_counters():
         """Fix the sequence counters."""

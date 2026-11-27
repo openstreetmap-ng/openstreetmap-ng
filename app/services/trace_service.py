@@ -23,6 +23,7 @@ from app.models.db.trace import (
 from app.models.proto.trace_types import Visibility
 from app.models.types import StorageKey, TraceId
 from app.queries.trace_query import TraceQuery
+from app.services.gps_tile_service import GPSTileService
 
 
 class TraceService:
@@ -99,6 +100,7 @@ class TraceService:
                     conn=conn,
                 )
                 trace_id: TraceId = row[0]
+                await GPSTileService.insert(trace_id, conn)
 
                 await audit(
                     'create_trace',
@@ -188,6 +190,7 @@ class TraceService:
                 raise_for.trace_access_denied(trace_id)
 
             await audit('delete_trace', conn, extra={'id': trace_id})
+            await GPSTileService.delete(trace_id, conn)
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)

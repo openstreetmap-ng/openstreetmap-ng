@@ -23,6 +23,7 @@ export const {
   EMAIL_MAX_LENGTH,
   EMAIL_MIN_LENGTH,
   ENV,
+  GPS_MASTER_ZOOM,
   LOCAL_CHAPTERS,
   MAP_QUERY_AREA_MAX_SIZE,
   MESSAGE_BODY_MAX_LENGTH,
@@ -61,6 +62,7 @@ export const {
   EMAIL_MAX_LENGTH: number
   EMAIL_MIN_LENGTH: number
   ENV: "dev" | "test" | "prod"
+  GPS_MASTER_ZOOM: number
   LOCAL_CHAPTERS: { id: string; url: string }[]
   MAP_QUERY_AREA_MAX_SIZE: number
   MESSAGE_BODY_MAX_LENGTH: number
@@ -97,6 +99,7 @@ import json
 from app.config import *
 from app.lib.text.local_chapters import LOCAL_CHAPTERS as _local_chapters
 from app.lib.text.locale import DEFAULT_LOCALE
+from app.lib.geo.gps_tiles import GPS_MASTER_ZOOM
 from app.models.db.connected_account import CONFIGURED_AUTH_PROVIDERS
 from app.lib.telemetry.sentry import *
 LOCAL_CHAPTERS = [c._asdict() for c in _local_chapters]
@@ -112,6 +115,7 @@ print(json.dumps({k: globals()[k] for k in ${JSON.stringify([
         "EMAIL_MAX_LENGTH",
         "EMAIL_MIN_LENGTH",
         "ENV",
+        "GPS_MASTER_ZOOM",
         "LOCAL_CHAPTERS",
         "MAP_QUERY_AREA_MAX_SIZE",
         "MESSAGE_BODY_MAX_LENGTH",

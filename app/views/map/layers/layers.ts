@@ -3,6 +3,7 @@ import { batch, effect, signal } from "@preact/signals"
 import { effectiveTheme } from "@runtime/theme"
 import { memoize } from "@std/cache/memoize"
 import { filterKeys } from "@std/collections/filter-keys"
+import { GPS_MASTER_ZOOM } from "@utils/config"
 import { overlayOpacityStorage } from "@utils/local-storage"
 import type { FeatureCollection } from "geojson"
 import { t } from "i18next"
@@ -239,8 +240,8 @@ layersConfig.set(AERIAL_LAYER_ID, {
 layersConfig.set(GPS_LAYER_ID, {
   specification: {
     type: "raster",
-    // This layer has no zoom limits
-    tiles: ["https://gps.tile.openstreetmap.org/lines/{z}/{x}/{y}.png"],
+      tiles: [`${window.location.origin}/gps/lines/{z}/{x}/{y}.png`],
+      maxzoom: GPS_MASTER_ZOOM,
     tileSize: 256,
   },
   layerCode: GPS_LAYER_CODE,
