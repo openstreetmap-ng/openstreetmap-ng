@@ -100,7 +100,7 @@ async def test_compressed_json(
         {
             'user': 'user1',
             'action': 'opened',
-            'text': text,
+            'text': f'{text}\n\n#osm-ng',
         },
     )
 
@@ -188,7 +188,7 @@ async def test_passthrough_unsupported_compression(client: AsyncClient):
         {
             'user': 'user1',
             'action': 'opened',
-            'text': text,
+            'text': f'{text}\n\n#osm-ng',
         },
     )
 

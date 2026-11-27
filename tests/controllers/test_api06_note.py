@@ -255,7 +255,10 @@ async def test_note_query_by_bbox(client: AsyncClient):
 
     # Verify that note is found
     assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
-    assert_model(props['comments'][0], {'text': test_note_query_by_bbox.__qualname__})
+    assert_model(
+        props['comments'][0],
+        {'text': f'{test_note_query_by_bbox.__qualname__}\n\n#osm-ng'},
+    )
 
 
 async def test_note_search(client: AsyncClient):
@@ -281,7 +284,7 @@ async def test_note_search(client: AsyncClient):
 
     # Verify that note is found
     assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
-    assert_model(props['comments'][0], {'text': text})
+    assert_model(props['comments'][0], {'text': f'{text}\n\n#osm-ng'})
 
 
 async def test_invalid_note_id(client: AsyncClient):
