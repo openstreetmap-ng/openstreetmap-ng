@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, Response, status
 from pydantic import PositiveInt
 
 from app.config import CHANGESET_QUERY_DEFAULT_LIMIT, CHANGESET_QUERY_MAX_LIMIT
+from app.exceptions.api_error import APIError
 from app.exceptions.context import raise_for
 from app.format import Format06
 from app.lib.auth.context import api_user
