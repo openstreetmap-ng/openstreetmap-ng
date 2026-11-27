@@ -1,3 +1,4 @@
+import hybridStyle from "@map/vector-styles/hybrid.json"
 import libertyStyle from "@map/vector-styles/liberty.json"
 import { batch, effect, signal } from "@preact/signals"
 import { effectiveTheme } from "@runtime/theme"
@@ -26,6 +27,7 @@ export const DEFAULT_LAYER_ID = STANDARD_LAYER_ID
 export const DEFAULT_LAYER_CODE = "" as LayerCode
 
 export const LIBERTY_LAYER_ID = "liberty" as LayerId
+export const HYBRID_LAYER_ID = "hybrid" as LayerId
 export const CYCLOSM_LAYER_ID = "cyclosm" as LayerId
 export const CYCLEMAP_LAYER_ID = "cyclemap" as LayerId
 export const TRANSPORTMAP_LAYER_ID = "transportmap" as LayerId
@@ -33,6 +35,7 @@ export const TRACESTRACKTOPO_LAYER_ID = "tracestracktopo" as LayerId
 export const HOT_LAYER_ID = "hot" as LayerId
 
 const LIBERTY_LAYER_CODE = "L" as LayerCode
+const HYBRID_LAYER_CODE = "B" as LayerCode
 const CYCLOSM_LAYER_CODE = "Y" as LayerCode
 const CYCLEMAP_LAYER_CODE = "C" as LayerCode
 const TRANSPORTMAP_LAYER_CODE = "T" as LayerCode
@@ -137,6 +140,17 @@ layersConfig.set(LIBERTY_LAYER_ID, {
   vectorStyle: libertyStyle,
   isBaseLayer: true,
   layerCode: LIBERTY_LAYER_CODE,
+})
+
+layersConfig.set(HYBRID_LAYER_ID, {
+  specification: {
+    type: "vector",
+    attribution: `${aerialEsriCredit}. ${copyright}. ${terms}`,
+  },
+  // @ts-expect-error
+  vectorStyle: hybridStyle,
+  isBaseLayer: true,
+  layerCode: HYBRID_LAYER_CODE,
 })
 
 layersConfig.set(CYCLOSM_LAYER_ID, {
