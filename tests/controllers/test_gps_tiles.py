@@ -23,12 +23,18 @@ async def test_gps_invalid_coordinates(client: AsyncClient, path: str):
     assert (await client.get(f'/gps/lines/{path}.png')).status_code == 400
 
 
-async def test_uploaded_trace_contributes_and_is_removed(client: AsyncClient):
+@pytest.mark.parametrize('point_count', [2, 10000])
+async def test_uploaded_trace_contributes_and_is_removed(
+    client: AsyncClient, point_count: int
+):
     client.headers['Authorization'] = 'User user1'
+    points = ''.join(
+        f'<trkpt lat="0" lon="{i * 0.0001}"/>' for i in range(point_count)
+    ).encode()
     content = (
         b'<?xml version="1.0" encoding="UTF-8"?>\n'
         b'<gpx version="1.1" creator="gps-tile-test" xmlns="http://www.topografix.com/GPX/1/1">'
-        b'<trk><trkseg><trkpt lat="0" lon="0"/><trkpt lat="0" lon="0.001"/></trkseg></trk></gpx>'
+        b'<trk><trkseg>' + points + b'</trkseg></trk></gpx>'
     )
     ids = []
     try:

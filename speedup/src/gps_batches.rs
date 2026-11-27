@@ -174,6 +174,27 @@ mod tests {
         assert_eq!(pixels(vec![vec![(-90.0, 0.0)], vec![(90.0, 0.0)]]).len(), 2);
     }
     #[test]
+    fn repeated_points_are_deduplicated_within_batch() {
+        assert_eq!(
+            pixels(vec![vec![(0.0, 0.0); 3]]),
+            BTreeSet::from([(2048, 2048)])
+        );
+    }
+    #[test]
+    fn polar_coordinates_stay_inside_world() {
+        assert_eq!(
+            pixels(vec![vec![(0.0, 90.0)], vec![(0.0, -90.0)]]),
+            BTreeSet::from([(2048, 0), (2048, 4095)])
+        );
+    }
+    #[test]
+    fn empty_segments_do_not_end_the_iterator() {
+        assert_eq!(
+            pixels(vec![vec![], vec![(0.0, 0.0)], vec![]]),
+            BTreeSet::from([(2048, 2048)])
+        );
+    }
+    #[test]
     fn reverse_wrapped_line() {
         let a = (179.0, 32.0);
         let b = (-179.0, 33.0);
