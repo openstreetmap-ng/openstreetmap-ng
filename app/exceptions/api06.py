@@ -188,6 +188,13 @@ class Exceptions06(Exceptions):
             raise NotImplementedError(f'Unsupported element type {type!r}')
 
     @override
+    def diff_null_island_node(self):
+        raise APIError(
+            status.HTTP_412_PRECONDITION_FAILED,
+            detail='Cannot create or modify a node at null island (0, 0).',
+        )
+
+    @override
     def diff_update_bad_version(self, element: ElementInit):
         raise APIError(
             status.HTTP_412_PRECONDITION_FAILED,
