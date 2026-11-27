@@ -75,3 +75,29 @@ async def test_counter_mutation_rolls_back():
             )
             == before
         )
+
+
+async def test_last_contribution_prunes_only_touched_zero_counters():
+    async with _rollback_connection() as conn:
+        baseline = await db_fetchval(
+            int,
+            t'SELECT COALESCE((SELECT count FROM gps_pixel WHERE x = 44 AND y = 44), 0)',
+            conn=conn,
+        )
+        await _seed(conn, [-10804], 44, 44)
+        await GPSTileService.delete(TraceId(-10804), conn)
+        remaining = await db_fetchval(
+            int, t'SELECT count FROM gps_pixel WHERE x = 44 AND y = 44', conn=conn
+        )
+        if baseline:
+            assert remaining == baseline
+        else:
+            assert remaining is None
+        assert (
+            await db_fetchval(
+                int,
+                t'SELECT count(*) FROM gps_trace_pixel WHERE trace_id = -10804',
+                conn=conn,
+            )
+            == 0
+        )

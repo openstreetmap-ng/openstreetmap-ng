@@ -75,8 +75,7 @@ class GPSTileService:
         await conn.execute(t'SELECT pg_advisory_xact_lock(108, 0)')
         await conn.execute(t"""
             WITH removed AS (
-                DELETE FROM gps_trace_pixel WHERE trace_id = {trace_id}
-                RETURNING x, y
+                SELECT x, y FROM gps_trace_pixel WHERE trace_id = {trace_id}
             ), master AS (
                 UPDATE gps_pixel AS p SET count = p.count - 1
                 FROM removed AS r WHERE p.x = r.x AND p.y = r.y
@@ -89,4 +88,19 @@ class GPSTileService:
             UPDATE gps_pixel_overview AS p SET count = p.count - r.count
             FROM overview AS r WHERE p.zoom = r.z AND p.x = r.x AND p.y = r.y
         """)
+        # Keep contributions until all touched zero counters have been pruned.
+        await conn.execute(t"""
+            DELETE FROM gps_pixel WHERE count = 0 AND (x, y) IN (
+                SELECT x, y FROM gps_trace_pixel WHERE trace_id = {trace_id}
+            )
+        """)
+        await conn.execute(t"""
+            DELETE FROM gps_pixel_overview WHERE count = 0 AND (zoom, x, y) IN (
+                SELECT z, x >> ({GPS_MASTER_ZOOM} - z), y >> ({GPS_MASTER_ZOOM} - z)
+                FROM gps_trace_pixel
+                CROSS JOIN generate_series(0, {GPS_MASTER_ZOOM} - 1) AS z
+                WHERE trace_id = {trace_id}
+            )
+        """)
+        await conn.execute(t'DELETE FROM gps_trace_pixel WHERE trace_id = {trace_id}')
         await conn.execute(t'DELETE FROM gps_trace_index WHERE trace_id = {trace_id}')
