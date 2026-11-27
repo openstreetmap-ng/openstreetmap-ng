@@ -5,6 +5,7 @@ from typing import Any
 import cython
 from shapely import Point, get_coordinates
 
+from app.config import NOTE_COMMENT_BODY_MAX_LENGTH
 from app.db import db, db_fetchone, db_insert, db_update
 from app.exceptions.context import raise_for
 from app.lib.audit import audit
@@ -27,12 +28,31 @@ from app.services.email_service import EmailService
 from app.services.user_subscription_service import UserSubscriptionService
 from app.validators.geometry import validate_geometry
 
+# Hashtag appended to opening note comments, identifying the application
+# that created the note (like OsmAnd/MAPS.ME notes)
+NOTE_HASHTAG = '#osm-ng'
+
+
+@cython.cfunc
+def _append_hashtag(text: str) -> str:
+    """Append the app hashtag to the note text when not already present."""
+    if NOTE_HASHTAG in text.split():
+        return text
+    if not text.strip():
+        return NOTE_HASHTAG
+    suffix = f'\n\n{NOTE_HASHTAG}'
+    overflow = len(text) + len(suffix) - NOTE_COMMENT_BODY_MAX_LENGTH
+    if overflow > 0:
+        text = text[: len(text) - overflow]
+    return f'{text}{suffix}'
+
 
 class NoteService:
     @staticmethod
     async def create(lon: float, lat: float, text: str) -> NoteId:
         """Create a note and return its id."""
         point = validate_geometry(Point(lon, lat))
+        text = _append_hashtag(text)
 
         user = auth_user()
         if user is not None:

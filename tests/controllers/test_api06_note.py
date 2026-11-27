@@ -41,7 +41,7 @@ async def test_note_create_xml(client: AsyncClient):
         {
             'user': 'user1',
             'action': 'opened',
-            'text': test_note_create_xml.__qualname__,
+            'text': f'{test_note_create_xml.__qualname__}\n\n#osm-ng',
         },
     )
 
@@ -62,7 +62,7 @@ async def test_note_create_json(client: AsyncClient):
         {
             'user': 'user1',
             'action': 'opened',
-            'text': test_note_create_json.__qualname__,
+            'text': f'{test_note_create_json.__qualname__}\n\n#osm-ng',
         },
     )
 
@@ -104,7 +104,7 @@ async def test_note_create_anonymous(client: AsyncClient):
         props['comments'][0],
         {
             'action': 'opened',
-            'text': test_note_create_anonymous.__qualname__,
+            'text': f'{test_note_create_anonymous.__qualname__}\n\n#osm-ng',
         },
     )
     assert 'user' not in props['comments'][0]
@@ -128,7 +128,7 @@ async def test_note_crud(client: AsyncClient):
         {
             'user': 'user1',
             'action': 'opened',
-            'text': test_note_crud.__qualname__,
+            'text': f'{test_note_crud.__qualname__}\n\n#osm-ng',
         },
     )
 
@@ -255,7 +255,10 @@ async def test_note_query_by_bbox(client: AsyncClient):
 
     # Verify that note is found
     assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
-    assert_model(props['comments'][0], {'text': test_note_query_by_bbox.__qualname__})
+    assert_model(
+        props['comments'][0],
+        {'text': f'{test_note_query_by_bbox.__qualname__}\n\n#osm-ng'},
+    )
 
 
 async def test_note_search(client: AsyncClient):
@@ -281,7 +284,7 @@ async def test_note_search(client: AsyncClient):
 
     # Verify that note is found
     assert_model(props, {'status': 'open', 'comments': Len(1, 1)})
-    assert_model(props['comments'][0], {'text': text})
+    assert_model(props['comments'][0], {'text': f'{text}\n\n#osm-ng'})
 
 
 async def test_invalid_note_id(client: AsyncClient):
