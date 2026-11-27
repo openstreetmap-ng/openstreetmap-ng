@@ -112,7 +112,7 @@ class ChangesetService:
         async with db(True) as conn:
             row = await db_fetchrow(
                 t"""
-                    SELECT user_id, closed_at
+                    SELECT user_id, closed_at, tags
                     FROM changeset
                     WHERE id = {changeset_id}
                 """,
@@ -124,7 +124,8 @@ class ChangesetService:
 
             changeset_user_id: UserId
             closed_at: datetime | None
-            changeset_user_id, closed_at = row
+            changeset_tags: dict[str, str]
+            changeset_user_id, closed_at, changeset_tags = row
 
             if changeset_user_id != user_id:
                 raise_for.changeset_access_denied()
@@ -141,6 +142,8 @@ class ChangesetService:
                 conn=conn,
             )
             await audit('close_changeset', conn, extra={'id': changeset_id})
+
+        await _close_tagged_notes(changeset_tags)
 
     @staticmethod
     @asynccontextmanager
@@ -391,3 +394,30 @@ def _get_activity_email_subject(
         else 'user_mailer.changeset_comment_notification.commented.subject other',
         commenter=comment_user_name,
     )
+
+
+async def _close_tagged_notes(tags: dict[str, str]) -> None:
+    """Close notes referenced by `closes:note` changeset tags (#126)."""
+    from app.exceptions.api_error import APIError  # noqa: PLC0415
+    from app.models.types import NoteId  # noqa: PLC0415
+    from app.services.note_service import NoteService  # noqa: PLC0415
+
+    raw = tags.get('closes:note')
+    if not raw:
+        return
+
+    # Default closing message: explicit override, else the changeset comment
+    default_comment = tags.get('closes:note:comment') or tags.get('comment') or ''
+
+    for token in raw.split(';'):
+        token = token.strip()
+        if not token.isdigit():
+            continue
+
+        note_id = NoteId(int(token))
+        comment = tags.get(f'closes:note:{token}:comment', default_comment)
+        try:
+            await NoteService.comment(note_id, comment, 'closed')
+        except APIError:
+            # Already closed, missing, or inaccessible notes are skipped
+            logging.debug('Skipping note %s for closes:note', token)
