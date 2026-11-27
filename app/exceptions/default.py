@@ -132,6 +132,9 @@ class Exceptions:
     def diff_create_bad_id(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 
+    def diff_null_island_node(self) -> NoReturn:
+        raise NotImplementedError
+
     def diff_update_bad_version(self, element: ElementInit) -> NoReturn:
         raise NotImplementedError
 

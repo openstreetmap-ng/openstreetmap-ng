@@ -401,7 +401,7 @@ def _decode_element_unsafe(
         and point.x == 0
         and point.y == 0
     ):
-        raise ValueError('Nodes cannot be placed at null island (0, 0)')
+        raise_for.diff_null_island_node()
 
     return result
 
