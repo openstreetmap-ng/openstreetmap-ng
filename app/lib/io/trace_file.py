@@ -19,6 +19,7 @@ from app.config import (
     TRACE_FILE_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_COMPRESS_ZSTD_THREADS,
     TRACE_FILE_DECOMPRESSED_MAX_SIZE,
+    TRACE_FILE_HEAVY_COMPRESS_ZSTD_LEVEL,
     TRACE_FILE_MAX_LAYERS,
 )
 from app.exceptions.context import raise_for
@@ -35,6 +36,14 @@ _ZSTD_SUFFIX = '.zst'
 _ZSTD_METADATA: dict[str, str] = {'zstd_level': str(TRACE_FILE_COMPRESS_ZSTD_LEVEL)}
 _ZSTD_OPTIONS: dict[int, int] = {
     zstd.CompressionParameter.compression_level: TRACE_FILE_COMPRESS_ZSTD_LEVEL,
+    zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
+}
+
+_ZSTD_HEAVY_METADATA: dict[str, str] = {
+    'zstd_level': str(TRACE_FILE_HEAVY_COMPRESS_ZSTD_LEVEL)
+}
+_ZSTD_HEAVY_OPTIONS: dict[int, int] = {
+    zstd.CompressionParameter.compression_level: TRACE_FILE_HEAVY_COMPRESS_ZSTD_LEVEL,
     zstd.CompressionParameter.nb_workers: TRACE_FILE_COMPRESS_ZSTD_THREADS,
 }
 
@@ -84,6 +93,19 @@ class TraceFile:
         )
         logging.debug('Trace file zstd-compressed size is %s', sizestr(len(result)))
         return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_METADATA)
+
+    @staticmethod
+    async def recompress(buffer: bytes):
+        """Recompress with the heavy zstd level. Runs in a thread; used by background optimization (#100)."""
+        result = await to_thread(
+            zstd.compress,
+            buffer,
+            options=_ZSTD_HEAVY_OPTIONS,
+        )
+        logging.debug(
+            'Trace file heavy zstd-compressed size is %s', sizestr(len(result))
+        )
+        return _CompressResult(result, _ZSTD_SUFFIX, _ZSTD_HEAVY_METADATA)
 
     @staticmethod
     def decompress_if_needed(buffer: bytes, file_id: StorageKey):

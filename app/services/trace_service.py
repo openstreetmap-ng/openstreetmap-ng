@@ -1,4 +1,5 @@
 import logging
+from asyncio import get_running_loop
 from typing import Any
 
 from fastapi import UploadFile
@@ -12,6 +13,7 @@ from app.lib.auth.context import auth_user
 from app.lib.io.trace_file import TraceFile
 from app.lib.io.xml_codec import XMLToDict
 from app.lib.storage import TRACE_STORAGE
+from app.lib.text.translation import t
 from app.lib.time.date_utils import utcnow
 from app.models.db.trace import (
     TraceInit,
@@ -111,12 +113,17 @@ class TraceService:
                         'visibility': trace_init['visibility'],
                     },
                 )
-                return trace_id
 
         except Exception:
             # Clean up trace file on error
             await TRACE_STORAGE.delete(trace_init['file_id'])
             raise
+
+        # Start heavy recompression in the background so it doesn't delay the response
+        get_running_loop().create_task(  # noqa: RUF006
+            _recompress_trace(trace_id, file, trace_init['file_id'])
+        )
+        return trace_id
 
     @staticmethod
     async def update(
@@ -191,3 +198,29 @@ class TraceService:
 
         # After successful delete, also remove the file
         await TRACE_STORAGE.delete(file_id)
+
+
+async def _recompress_trace(
+    trace_id: TraceId, file_bytes: bytes, old_file_id: StorageKey
+) -> None:
+    """Heavy-recompress a trace file in the background and repoint the trace (#100)."""
+    try:
+        result = await TraceFile.recompress(file_bytes)
+        new_file_id = await TRACE_STORAGE.save(
+            result.data, result.suffix, result.metadata
+        )
+
+        async with db(True) as conn:
+            await db_update(
+                'trace',
+                {'file_id': new_file_id, 'updated_at': t'DEFAULT'},
+                where={'id': trace_id},
+                conn=conn,
+            )
+
+        await TRACE_STORAGE.delete(old_file_id)
+        logging.debug(
+            'Trace %d recompressed: %r -> %r', trace_id, old_file_id, new_file_id
+        )
+    except Exception:
+        logging.exception('Trace %d recompression failed', trace_id)
